@@ -1,0 +1,337 @@
+<section id="jianghu-campaign-map" lang="zh-CN" aria-labelledby="jianghu-map-title">
+  <h2 id="jianghu-map-title">一局江湖的系统关系</h2>
+  <div class="viz-row jm-views" role="group" aria-label="查看方式">
+    <button type="button" class="btn" data-jm-mode="map" aria-pressed="true">系统关系</button>
+    <button type="button" class="btn" data-jm-mode="case" aria-pressed="false">推演一趟药镖</button>
+    <button type="button" class="btn btn-ghost" id="jm-back" hidden>回到总图</button>
+  </div>
+  <div class="viz-row jm-outcomes" role="group" aria-label="同一趟药镖的三种走向" hidden>
+    <button type="button" class="btn" data-jm-outcome="arrived" aria-pressed="true">护送交货</button>
+    <button type="button" class="btn" data-jm-outcome="lost" aria-pressed="false">失镖撤回</button>
+    <button type="button" class="btn" data-jm-outcome="passed" aria-pressed="false">没有接镖</button>
+  </div>
+  <div class="jm-stage" role="group" aria-label="每条线均从起因指向后果">
+    <svg class="jm-lines" aria-hidden="true" focusable="false" preserveAspectRatio="none">
+      <defs>
+        <marker id="jm-arrow" viewBox="0 0 9 10" refX="7.5" refY="5" markerWidth="9" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+          <path d="M1 1.5 7 5 1 8.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+      <g class="jm-wires" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"></g>
+    </svg>
+    <div class="jm-side jm-in">
+      <span class="text-small jm-side-label">起因</span>
+      <div class="jm-branches" id="jm-inputs"></div>
+    </div>
+    <div class="jm-core">
+      <h3 id="jm-focus">江湖差事</h3>
+      <span class="text-small" id="jm-scope">押镖 · 夺宝 · 赌斗</span>
+    </div>
+    <div class="jm-side jm-out">
+      <span class="text-small jm-side-label">后果</span>
+      <div class="jm-branches" id="jm-outputs"></div>
+    </div>
+  </div>
+  <div class="jm-detail" aria-live="polite" aria-atomic="true">
+    <div id="jm-cycle"><strong>反馈</strong><span id="jm-cycle-text"></span></div>
+    <div><strong id="jm-status"></strong><span id="jm-rule"></span></div>
+    <div class="text-small" id="jm-question"></div>
+  </div>
+</section>
+<style>
+  #jianghu-campaign-map {
+    container: jmc / inline-size;
+    color: var(--foreground);
+    --jm-gap: var(--font-size-base);
+  }
+  #jianghu-campaign-map [hidden] { display: none !important; }
+  #jianghu-campaign-map h2 { margin-block: 0 calc(var(--jm-gap) * .55); padding-inline-end: 4em; }
+  #jianghu-campaign-map h3 { margin: 0; }
+  #jianghu-campaign-map strong { font-weight: 500; }
+  #jianghu-campaign-map .jm-outcomes { margin-block-start: calc(var(--jm-gap) * .5); }
+  #jianghu-campaign-map .jm-stage {
+    display: grid; position: relative; isolation: isolate;
+    grid-template-columns: minmax(0, 1fr) minmax(0, .85fr) minmax(0, 1fr);
+    align-items: center; column-gap: calc(var(--jm-gap) * 1.4);
+    padding-block: calc(var(--jm-gap) * .75);
+  }
+  #jianghu-campaign-map .jm-lines {
+    position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;
+    color: color-mix(in srgb, var(--foreground) 56%, var(--background));
+  }
+  #jianghu-campaign-map .jm-side,
+  #jianghu-campaign-map .jm-branches,
+  #jianghu-campaign-map .jm-node,
+  #jianghu-campaign-map .jm-core { display: grid; justify-items: center; text-align: center; min-inline-size: 0; }
+  #jianghu-campaign-map .jm-side { align-self: stretch; grid-template-rows: auto 1fr; row-gap: calc(var(--jm-gap) * .6); }
+  #jianghu-campaign-map .jm-branches { align-content: space-evenly; row-gap: calc(var(--jm-gap) * .75); width: 100%; }
+  #jianghu-campaign-map .jm-node,
+  #jianghu-campaign-map .jm-core { align-content: center; row-gap: calc(var(--jm-gap) * .2); }
+  #jianghu-campaign-map .jm-core { justify-self: center; }
+  #jianghu-campaign-map .jm-verb,
+  #jianghu-campaign-map .jm-side-label,
+  #jianghu-campaign-map #jm-scope,
+  #jianghu-campaign-map #jm-question { color: var(--muted-foreground); overflow-wrap: anywhere; }
+  #jianghu-campaign-map .jm-verb { max-inline-size: 16em; }
+  #jianghu-campaign-map .jm-detail {
+    border-block-start: 1px solid var(--border); padding-block-start: calc(var(--jm-gap) * .65);
+    display: grid; row-gap: calc(var(--jm-gap) * .28);
+  }
+  #jianghu-campaign-map #jm-status,
+  #jianghu-campaign-map #jm-cycle strong { margin-inline-end: .6em; }
+  @container jmc (max-width: 535px) {
+    #jianghu-campaign-map .jm-stage {
+      grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+      column-gap: calc(var(--jm-gap) * .4); row-gap: calc(var(--jm-gap) * .7);
+    }
+    #jianghu-campaign-map .jm-core { grid-row: 1; grid-column: 1 / -1; }
+    #jianghu-campaign-map .jm-in { grid-row: 2; grid-column: 1; padding-inline-start: calc(var(--jm-gap) * 1.25); }
+    #jianghu-campaign-map .jm-out { grid-row: 2; grid-column: 2; padding-inline-end: calc(var(--jm-gap) * 1.25); }
+    #jianghu-campaign-map .jm-verb { max-inline-size: 10em; }
+  }
+</style>
+<script>
+(() => {
+  const root = document.getElementById('jianghu-campaign-map');
+  if (!root || root.dataset.initialized) return;
+  root.dataset.initialized = 'true';
+  const find = selector => root.querySelector(selector);
+  const modules = {
+    job: {
+      name: '江湖差事', scope: '押镖 · 夺宝 · 赌斗',
+      status: '设计推演', rule: '同一趟差事只认一批货、实际到场的人和一次交付结果。',
+      open: '待定 · 玩家离开后，哪些事由江湖势力自行办完？'
+    },
+    world: {
+      name: '舆图与势力', scope: '城镇 · 据点 · 秘境',
+      status: '设计目标', rule: '药铺缺药才有这趟药镖。货到了，当地补进这批药，其他城镇各有各的供需。',
+      open: '待定 · 势力能自行调动哪些人手，地方消息传多远？'
+    },
+    party: {
+      name: '开局与同伴', scope: '领队 · 出身 · 同伴去留',
+      status: '已定', rule: '玩家以江湖领队身份带队，同伴按招式、装备与站位分工。',
+      open: '待定 · 师门召回、酬金和伤势怎样影响一位同伴能否出勤？'
+    },
+    arts: {
+      name: '武学与修为', scope: '拜师 · 秘籍 · 历练',
+      status: '现行方向', rule: '侠客向师父求教或读现有秘籍。学会轻功可以换位，学会护卫招式可以护住医者。',
+      open: '待定 · 学习门槛、修炼所花的时间，以及老兵的成长上限。'
+    },
+    kit: {
+      name: '兵甲与百工', scope: '兵器 · 衣甲 · 奇材 · 行囊',
+      status: '原版系统对照', rule: '战利品可卖作盘缠，也可作百工材料。同一份材料花掉后只结算一次。',
+      open: '待定 · 哪些材料可制作或修理，携带的负重怎样影响内力？'
+    },
+    fight: {
+      name: '对手与交手', scope: '敌手与异兽 · 地形 · 合围',
+      status: '已定', rule: '内力替代原版疲劳。每回合用行动点走位、出招，兵器和站位决定能打到谁。',
+      open: '待定 · 内力怎样消耗和恢复？起手、拆招、破架和护甲按什么顺序结算？'
+    },
+    care: {
+      name: '生计与伤养', scope: '酬金 · 行粮 · 药散 · 调养',
+      status: '设计推演', rule: '拿到镖银还要发酬、买药和备粮。伤员多歇一天，下一趟可用的人手和盘缠也会变。',
+      open: '待定 · 疗伤要花多少钱、歇几天，才能给败退的队伍留出重整的机会？'
+    },
+    ties: {
+      name: '名器与恩怨', scope: '名器易主 · 宿敌 · 市井传闻',
+      status: '玩法提案', rule: '一件名器同一时刻只有一处下落。若宿敌携刀逃走，见过他的人就能提供线索。',
+      open: '待定 · 谁亲眼看见、消息何时过时？案件、通缉与易容留待后议。'
+    },
+    fame: {
+      name: '声名与擂台', scope: '江湖口碑 · 赌斗 · 天下擂',
+      status: '玩法提案', rule: '履约和擂台战绩传开，可引来新邀约。赌斗的彩头、设擂的志向都在这一局兑现。',
+      open: '待定 · 哪些人会因声名发来邀约，玩家在什么条件下能设擂？'
+    }
+  };
+  const cycles = {
+    job: '镇上缺药 → 商人托镖 → 药货到镇 → 缺药缓解，这票结清',
+    world: '地方缺货 → 势力调人运货 → 货源变化 → 地方需求随之改变',
+    party: '带队接活 → 同伴负伤 → 换人补位 → 按新阵容再选差事',
+    arts: '习得招式 → 实战试招 → 积累历练 → 决定接下来练什么',
+    kit: '整备出门 → 交手耗材 → 带回奇材或酬银 → 回城补装',
+    fight: '结阵交手 → 发现护卫够不到医者 → 调整站位 → 下一仗换阵',
+    care: '接镖取酬 → 发钱买药 → 伤员归队 → 又能接活',
+    ties: '名器易主 → 追问目击者 → 找到原物 → 更新持有者',
+    fame: '赴约比武 → 战绩传开 → 收到新邀约 → 再赴约'
+  };
+  const edges = [
+    ['world', 'job', '药铺缺药，商人托镖'],
+    ['party', 'job', '人手决定能接什么活'],
+    ['arts', 'job', '所学决定擅长哪类差事'],
+    ['kit', 'job', '所带行粮限定行程'],
+    ['job', 'fight', '押运途中可能遇劫'],
+    ['job', 'care', '交货后镖银到账'],
+    ['job', 'ties', '失镖后可循线追索'],
+    ['job', 'fame', '亲历者记下是否履约'],
+    ['job', 'world', '货物抵达，缓解缺药'],
+    ['ties', 'job', '打听到去向，再追失物'],
+    ['fame', 'job', '名声引来约战或托付'],
+    ['party', 'arts', '循同伴师承寻访师父'],
+    ['party', 'fight', '排阵时给医者留掩护'],
+    ['arts', 'fight', '所学招式改变分工'],
+    ['fight', 'arts', '参战所得用于修炼'],
+    ['kit', 'fight', '兵器决定可及的距离'],
+    ['kit', 'arts', '磨合名器或习得专招'],
+    ['fight', 'kit', '缴获和异兽奇材入囊'],
+    ['fight', 'care', '受伤者归队后要调养'],
+    ['care', 'party', '康复后才能补回阵容'],
+    ['care', 'arts', '心境与心魔或影响突破'],
+    ['care', 'kit', '余钱用于添置补给'],
+    ['kit', 'care', '备下的药散用于养伤'],
+    ['fight', 'ties', '逃走的持有人可追索'],
+    ['ties', 'world', '目击者把消息带回城镇'],
+    ['world', 'kit', '地方货源决定可购物资'],
+    ['world', 'fight', '据点和地形改变遭遇'],
+    ['ties', 'fame', '昔日对手可以再约战'],
+    ['fight', 'fame', '见证者传出擂台战绩']
+  ];
+  const homeIn = ['world', 'party', 'arts', 'kit'];
+  const homeOut = ['fight', 'care', 'ties', 'fame'];
+  const cases = {
+    arrived: {
+      focus: '药镖已交付', carrier: '领队接镖，把药送达',
+      states: [['药货', '这批药交给镇上药铺'], ['酬金与伤势', '领约定镖银，先给伤员买药'], ['消息', '镖局与药铺知道已签收'], ['下一趟', '缺药缓解，老主顾可再托付']],
+      rule: '货归药铺，队伍领镖银。这票镖单就此结清。', open: '如果药铺再缺药，药商要为新的货物另开一张镖单。'
+    },
+    lost: {
+      focus: '药镖被劫走', carrier: '领队带着伤员撤回',
+      states: [['药货', '原来那批药在劫镖者手中'], ['酬金与伤势', '交货酬金未领，伤员仍要治'], ['消息', '逃回的镖师只知最后去向'], ['下一趟', '趁线索尚新去追，或先送医']],
+      rule: '同一批药还有下落，丢镖的损失就能接成追货差事。', open: '推演假设 · 这张镖单约定交货付酬，失败赔付与线索有效期仍待定。'
+    },
+    passed: {
+      focus: '药镖仍在途中', carrier: '领队没接，另一支镖队接手',
+      states: [['药货', '这批药随接单的镖队在途'], ['酬金与伤势', '玩家没有这笔押镖收入'], ['消息', '镖局知道启程，药铺在等'], ['下一趟', '收到到货或失镖的消息再行动']],
+      rule: '这次推演由另一支镖队出发，玩家日后仍可能听到这趟镖的结果。', open: '设计目标 · 势力能够自行办事。由谁接手、何时出结果仍待定。'
+    }
+  };
+  const scene = find('.jm-stage');
+  const core = find('.jm-core');
+  const lines = find('.jm-wires');
+  const back = find('#jm-back');
+  const inBox = find('#jm-inputs');
+  const outBox = find('#jm-outputs');
+  const state = {mode: 'map', focus: 'job', outcome: 'arrived'};
+  let pending = 0;
+  const lineNs = 'http://www.w3.org/2000/svg';
+
+  function branch(title, verb, key) {
+    const node = document.createElement('div');
+    node.className = 'jm-node';
+    const mark = document.createElement(key ? 'button' : 'strong');
+    mark.dataset.jmAnchor = '';
+    mark.textContent = title;
+    if (key) {
+      mark.type = 'button';
+      mark.className = 'btn';
+      mark.dataset.jmNode = key;
+      mark.setAttribute('aria-label', title + '，' + verb + '。查看此系统的起因与后果');
+    }
+    const label = document.createElement('span');
+    label.className = 'text-small jm-verb';
+    label.textContent = verb;
+    node.append(mark, label);
+    return node;
+  }
+  function selectedEdges(incoming) {
+    const here = state.focus;
+    const index = incoming ? 0 : 1;
+    const near = edges.filter(e => e[1 - index] === here);
+    if (here !== 'job') return near;
+    return (incoming ? homeIn : homeOut).map(k => near.find(e => e[index] === k));
+  }
+  function render() {
+    const isMap = state.mode === 'map';
+    root.querySelectorAll('[data-jm-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.jmMode === state.mode)));
+    root.querySelectorAll('[data-jm-outcome]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.jmOutcome === state.outcome)));
+    back.hidden = !isMap || state.focus === 'job';
+    find('.jm-outcomes').hidden = isMap;
+    const data = isMap ? modules[state.focus] : cases[state.outcome];
+    find('#jm-focus').textContent = isMap ? data.name : data.focus;
+    find('#jm-scope').textContent = isMap ? data.scope : '同一批丹药';
+    find('#jm-status').textContent = isMap ? data.status : '本例的结果';
+    find('#jm-cycle').hidden = !isMap;
+    find('#jm-cycle-text').textContent = isMap ? cycles[state.focus] : '';
+    find('#jm-rule').textContent = data.rule;
+    find('#jm-question').textContent = data.open;
+    if (isMap) {
+      inBox.replaceChildren(...selectedEdges(true).map(([from, , label]) => branch(modules[from].name, label, from)));
+      outBox.replaceChildren(...selectedEdges(false).map(([, to, label]) => branch(modules[to].name, label, to)));
+    } else {
+      inBox.replaceChildren(branch('药铺与镖局', '镇上缺药，药商托镖'), branch('领队的选择', data.carrier));
+      outBox.replaceChildren(...data.states.map(([label, value]) => branch(label, value)));
+    }
+    schedule();
+  }
+  function schedule() {
+    cancelAnimationFrame(pending);
+    pending = requestAnimationFrame(draw);
+  }
+  function draw() {
+    const bounds = scene.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return;
+    find('.jm-lines').setAttribute('viewBox', [0, 0, bounds.width, bounds.height].join(' '));
+    const rect = el => {
+      const box = el.getBoundingClientRect();
+      return {left: box.left - bounds.left, right: box.right - bounds.left, y: (box.top + box.bottom)/2 - bounds.top};
+    };
+    const hub = rect(core);
+    const pieces = [];
+    function wire(d, arrow = false) {
+      const path = document.createElementNS(lineNs, 'path');
+      path.setAttribute('d', d);
+      if (arrow) path.setAttribute('marker-end', 'url(#jm-arrow)');
+      pieces.push(path);
+    }
+    for (const inbound of [true, false]) {
+      const box = inbound ? inBox : outBox;
+      const leaves = [...box.querySelectorAll('[data-jm-anchor]')].map(rect);
+      if (!leaves.length) continue;
+      const mobile = getComputedStyle(core).gridRowStart === '1';
+      const rootX = inbound ? hub.left - 6 : hub.right + 6;
+      const ends = leaves.map(n => mobile ? (inbound ? n.left - 4 : n.right + 4) : (inbound ? n.right + 4 : n.left - 4));
+      const lane = mobile ? (inbound ? 3 : bounds.width - 3) : (rootX + (inbound ? Math.max(...ends) : Math.min(...ends))) / 2;
+      const ys = [hub.y, ...leaves.map(n => n.y)];
+      wire('M' + lane + ' ' + Math.min(...ys) + 'V' + Math.max(...ys));
+      wire(inbound ? 'M' + lane + ' ' + hub.y + 'H' + rootX : 'M' + rootX + ' ' + hub.y + 'H' + lane, inbound);
+      leaves.forEach((n,i) => wire(inbound ? 'M' + ends[i] + ' ' + n.y + 'H' + lane : 'M' + lane + ' ' + n.y + 'H' + ends[i], !inbound));
+    }
+    lines.replaceChildren(...pieces);
+  }
+  function restore(saved) {
+    const selection = saved && saved.modelContent;
+    if (!selection) return;
+    state.mode = selection.mode === 'case' ? 'case' : 'map';
+    state.focus = Object.hasOwn(modules, selection.focus) ? selection.focus : 'job';
+    state.outcome = Object.hasOwn(cases, selection.outcome) ? selection.outcome : 'arrived';
+  }
+  root.addEventListener('click', event => {
+    const b = event.target.closest('button');
+    if (!b || !root.contains(b)) return;
+    const oldFocus = state.focus;
+    if (b.dataset.jmMode) state.mode = b.dataset.jmMode;
+    else if (b.dataset.jmOutcome) state.outcome = b.dataset.jmOutcome;
+    else if (b.dataset.jmNode) state.focus = b.dataset.jmNode;
+    else if (b === back) state.focus = 'job';
+    else return;
+    render();
+    if (b.dataset.jmNode || b === back) {
+      const next = !back.hidden ? back : root.querySelector('[data-jm-node="' + oldFocus + '"]');
+      if (next) next.focus({preventScroll: true});
+    }
+    if (window.openai?.setWidgetState) window.openai.setWidgetState({modelContent: {...state}, privateContent: null}).catch(() => {});
+  });
+  window.addEventListener('openai:set_globals', e => {
+    if (!e.detail?.globals?.widgetState) return;
+    restore(e.detail.globals.widgetState);
+    render();
+  });
+  restore(window.openai?.widgetState);
+  render();
+  if (window.ResizeObserver) {
+    const sizeObserver = new ResizeObserver(draw);
+    for (const part of [scene, core, inBox, outBox]) sizeObserver.observe(part);
+  }
+  window.addEventListener('resize', schedule);
+  if (document.fonts) document.fonts.ready.then(schedule);
+})();
+</script>
