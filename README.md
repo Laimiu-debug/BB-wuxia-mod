@@ -21,6 +21,7 @@
 | [docs/wuxia-mod-design.md](docs/wuxia-mod-design.md) | 整体设计方案 |
 | [docs/wuxia-outline-reconciliation.md](docs/wuxia-outline-reconciliation.md) | 六模块大纲与方案的对照 |
 | [docs/repo-review.md](docs/repo-review.md) | 对本仓库现状的评审 |
+| [docs/project-discussion-log.md](docs/project-discussion-log.md) | 项目讨论纪要 |
 
 ## 下一步
 
