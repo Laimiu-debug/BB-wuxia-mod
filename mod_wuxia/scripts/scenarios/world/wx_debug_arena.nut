@@ -104,10 +104,6 @@ this.wx_debug_arena <- this.inherit("scripts/scenarios/world/starting_scenario",
 
 	function onSpawnPlayer()
 	{
-		local settlements = this.World.EntityManager.getSettlements();
-		if (settlements.len() > 0)
-		{
-			this.World.State.getPlayer().setPos(settlements[0].getPos());
-		}
+		::Wuxia.spawnPlayerNearSettlement();
 	}
 });

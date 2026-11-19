@@ -14,6 +14,8 @@
 ::include("mod_wuxia/systems/combat_rules.nut");
 ::include("mod_wuxia/systems/sect_relations.nut");
 ::include("mod_wuxia/systems/loot_economy.nut");
+::include("mod_wuxia/systems/scenario_start.nut");
+::include("mod_wuxia/systems/selftest.nut");
 
 // 3. Vanilla Engine Hooks (Non-destructive)
 ::include("mod_wuxia/hooks/entity/tactical/actor.nut");

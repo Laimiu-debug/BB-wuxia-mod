@@ -152,7 +152,8 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 
 	function onUpdate( _properties )
 	{
-		local actor = this.getContainer().getActor();
+		local container = this.getContainer();
+		local actor = container == null ? null : container.getActor();
 		local agg = ::Wuxia.CombatRules.getAggregateFlags(this);
 		this.m.CachedAggFlags = agg;
 
@@ -225,7 +226,8 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		if (agg.HeavyArmorScale > 0.0)
 		{
 			local totalArmor = actor.getArmor(::Const.BodyPart.Body) + actor.getArmor(::Const.BodyPart.Head);
-			local mult = ::Math.max(0.50, 1.0 - (totalArmor * agg.HeavyArmorScale * 0.01));
+			local mult = 1.0 - (totalArmor * agg.HeavyArmorScale * 0.01);
+			if (mult < 0.50) mult = 0.50;
 			_properties.DamageReceivedArmorMult *= mult;
 		}
 
@@ -242,7 +244,8 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 				{
 					local actualMitigated = ::Math.min(maxMitigate, qiSpent * 2);
 					local ratio = 1.0 - (actualMitigated.tofloat() / _hitInfo.DamageRegular.tofloat());
-					_properties.DamageReceivedRegularMult *= ::Math.max(0.5, ratio);
+					if (ratio < 0.50) ratio = 0.50;
+					_properties.DamageReceivedRegularMult *= ratio;
 					::Wuxia.CombatRules.spendQi(actor, qiSpent);
 				}
 			}
@@ -357,7 +360,5 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 			local key = _in.readString();
 			this.m.UsedUniqueEffects[key] <- true;
 		}
-
-		this.syncGrantedSkills();
 	}
 });

@@ -4,6 +4,8 @@ Automated BBMOD install + live Battle Brothers smoke-test runner for mod_wuxia.
 Uses the local G:\CODE\bbmod\app\core ModManager, game launcher, and gamelog parser.
 """
 
+import re
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -17,6 +19,14 @@ TEST_ENABLED = {"mod_fox_008.zip", "mod_bbmod_zhcn.zip", "mod_wuxia.zip"}
 sys.path.insert(0, str(BBMOD_APP))
 from core.modmanager import ModManager
 from core import game, gamelog
+
+SELFTEST_RESULT = re.compile(r"\[WX-SELFTEST\] =+ Result: (\d+) PASSED, (\d+) FAILED =+")
+MAIN_MENU_READY = "Screen 'MainMenuScreen' successfully registered."
+
+
+def is_game_error(row: gamelog.LogRow) -> bool:
+    message = row.text.upper()
+    return row.level in ("error", "critical") or "EXCEPTION" in message or "COMPILE ERROR" in message
 
 
 def install_and_switch() -> None:
@@ -32,7 +42,7 @@ def install_and_switch() -> None:
     print(f"[BBMOD] Installed {WUXIA_ZIP.name} and switched to profile '{TEST_PROFILE}': {sorted(TEST_ENABLED)}")
 
 
-def run_smoke_test(wait_seconds: int = 20, keep_open: bool = False) -> int:
+def run_smoke_test(wait_seconds: int = 120, keep_open: bool = False) -> int:
     if game.is_game_running():
         print("[TEST] BattleBrothers.exe is already running; closing existing test instance first.")
         game.kill_game()
@@ -43,20 +53,20 @@ def run_smoke_test(wait_seconds: int = 20, keep_open: bool = False) -> int:
     before_mtime = log_file.stat().st_mtime_ns if (log_file and log_file.exists()) else 0
     print(f"[TEST] Log path: {log_file}")
 
-    info = game.GameInfo(
-        root=GAME_ROOT,
-        exe=GAME_ROOT / "win32" / "BattleBrothers.exe",
-        version="1.5.2.3",
-        data_dir=GAME_ROOT / "data",
-    )
-    print("[TEST] Launching BattleBrothers.exe...")
-    game.launch_game(info, via_steam=False)
+    exe_path = GAME_ROOT / "win32" / "BattleBrothers.exe"
+    print(f"[TEST] Launching {exe_path}...")
+    subprocess.Popen([str(exe_path)], cwd=str(exe_path.parent))
 
-    # Wait until log.html updates and settles (up to wait_seconds)
+    # Wait until log.html updates and settles (up to wait_seconds), retrying launch if Steam was still syncing
     deadline = time.time() + wait_seconds
+    last_launch = time.time()
     updated = False
     while time.time() < deadline:
         time.sleep(1.5)
+        if not updated and (time.time() - last_launch) >= 6.0 and not game.is_game_running():
+            print("[TEST] No game process yet; retrying the launch...")
+            subprocess.Popen([str(exe_path)], cwd=str(exe_path.parent))
+            last_launch = time.time()
         if log_file is None:
             log_dir = game.find_log_write_path()
             log_file = (log_dir / "log.html") if log_dir else None
@@ -64,25 +74,28 @@ def run_smoke_test(wait_seconds: int = 20, keep_open: bool = False) -> int:
             cur_mtime = log_file.stat().st_mtime_ns
             if cur_mtime > before_mtime:
                 updated = True
-                # Check if main menu / preload finished
                 rows = gamelog.load_log(log_file)
-                if any("MainMenuState" in r.text or "mod_wuxia" in r.text or r.level in ("error", "critical") for r in rows):
-                    time.sleep(4)
+                menu_ready = any(MAIN_MENU_READY in row.text for row in rows)
+                test_finished = any(SELFTEST_RESULT.search(row.text) for row in rows)
+                if any(is_game_error(row) for row in rows):
+                    break
+                if menu_ready and test_finished:
+                    time.sleep(2)
                     break
 
     if not keep_open:
         game.kill_game()
         time.sleep(1)
 
-    if not log_file or not log_file.exists():
-        print("[TEST] ERROR: Could not locate log.html!")
+    if not updated or not log_file or not log_file.exists():
+        print("[TEST] ERROR: The game did not write a fresh log.html before the deadline.")
         return 2
 
     rows = gamelog.load_log(log_file)
     print(f"[TEST] Parsed {len(rows)} rows from {log_file} (updated={updated})")
 
-    errors = [r for r in rows if r.level in ("error", "critical") or "EXCEPTION" in r.text.upper() or "COMPILE ERROR" in r.text.upper()]
-    wuxia_rows = [r for r in rows if "wuxia" in r.text.lower() or "modern hooks" in r.text.lower() or "running queue" in r.text.lower()]
+    errors = [r for r in rows if is_game_error(r)]
+    wuxia_rows = [r for r in rows if "wuxia" in r.text.lower() or "wx-selftest" in r.text.lower() or "modern hooks" in r.text.lower() or "running queue" in r.text.lower()]
 
     print("=== WUXIA / HOOKS LOG ROWS ===")
     for r in wuxia_rows:
@@ -92,7 +105,20 @@ def run_smoke_test(wait_seconds: int = 20, keep_open: bool = False) -> int:
     for r in errors[:40]:
         print(" ", r)
 
-    return 1 if errors else 0
+    if errors:
+        return 1
+
+    results = [match for row in rows if (match := SELFTEST_RESULT.search(row.text))]
+    if not results or not any(MAIN_MENU_READY in row.text for row in rows):
+        print("[TEST] ERROR: The log does not confirm both the Wuxia self-test and main menu initialization.")
+        return 2
+
+    passed, failed = map(int, results[-1].groups())
+    if passed == 0 or failed:
+        print(f"[TEST] ERROR: Wuxia self-test reported {passed} passed and {failed} failed.")
+        return 1
+
+    return 0
 
 
 def main() -> int:
@@ -100,7 +126,7 @@ def main() -> int:
     keep = "--keep-open" in sys.argv
     if "--install-only" in sys.argv:
         return 0
-    return run_smoke_test(wait_seconds=25, keep_open=keep)
+    return run_smoke_test(keep_open=keep)
 
 
 if __name__ == "__main__":

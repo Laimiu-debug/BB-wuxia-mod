@@ -45,15 +45,15 @@
 		if ("OnDodgeQiCap" in f)         agg.OnDodgeQiCap = ::Math.max(agg.OnDodgeQiCap, f.OnDodgeQiCap);
 		if ("OnKillQiRegen" in f)        agg.OnKillQiRegen += f.OnKillQiRegen;
 		if ("OnKillAPRefund" in f)       agg.OnKillAPRefund = ::Math.max(agg.OnKillAPRefund, f.OnKillAPRefund);
-		if ("QiShieldPct" in f)          agg.QiShieldPct = ::Math.max(agg.QiShieldPct, f.QiShieldPct);
-		if ("LightArmorMitigation" in f) agg.LightArmorMitigation = ::Math.max(agg.LightArmorMitigation, f.LightArmorMitigation);
-		if ("HeavyArmorScale" in f)      agg.HeavyArmorScale = ::Math.max(agg.HeavyArmorScale, f.HeavyArmorScale);
-		if ("InitToDefRatio" in f)       agg.InitToDefRatio = ::Math.max(agg.InitToDefRatio, f.InitToDefRatio);
+		if ("QiShieldPct" in f && f.QiShieldPct > agg.QiShieldPct)                         agg.QiShieldPct = f.QiShieldPct;
+		if ("LightArmorMitigation" in f && f.LightArmorMitigation > agg.LightArmorMitigation) agg.LightArmorMitigation = f.LightArmorMitigation;
+		if ("HeavyArmorScale" in f && f.HeavyArmorScale > agg.HeavyArmorScale)             agg.HeavyArmorScale = f.HeavyArmorScale;
+		if ("InitToDefRatio" in f && f.InitToDefRatio > agg.InitToDefRatio)                agg.InitToDefRatio = f.InitToDefRatio;
 		if ("TerrainCostHalved" in f && f.TerrainCostHalved) agg.TerrainCostHalved = true;
 		if ("ElevationDiscount" in f && f.ElevationDiscount) agg.ElevationDiscount = true;
 		if ("QuickHands" in f && f.QuickHands) agg.QuickHands = true;
-		if ("InjuryThresholdMult" in f)  agg.InjuryThresholdMult = ::Math.max(agg.InjuryThresholdMult, f.InjuryThresholdMult);
-		if ("WeaponQiDiscount" in f)     agg.WeaponQiDiscount = ::Math.max(agg.WeaponQiDiscount, f.WeaponQiDiscount);
+		if ("InjuryThresholdMult" in f && f.InjuryThresholdMult > agg.InjuryThresholdMult) agg.InjuryThresholdMult = f.InjuryThresholdMult;
+		if ("WeaponQiDiscount" in f && f.WeaponQiDiscount > agg.WeaponQiDiscount)          agg.WeaponQiDiscount = f.WeaponQiDiscount;
 		if ("ArmorDmgBonus" in f)        agg.ArmorDmgBonus += f.ArmorDmgBonus;
 		if ("DirectDmgBonus" in f)       agg.DirectDmgBonus += f.DirectDmgBonus;
 		if ("InflictOpeningPct" in f)    agg.InflictOpeningPct = ::Math.max(agg.InflictOpeningPct, f.InflictOpeningPct);
@@ -83,7 +83,8 @@
 	if (pen <= 15) return 1.0 - _maxMitigation;
 	// Smooth decay above 15 fatigue penalty (matching vanilla Nimble philosophy)
 	local excess = pen - 15;
-	local reduced = ::Math.max(0.0, _maxMitigation - (excess * 0.025));
+	local reduced = _maxMitigation - (excess * 0.025);
+	if (reduced < 0.0) reduced = 0.0;
 	return 1.0 - reduced;
 };
 
