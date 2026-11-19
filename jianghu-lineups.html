@@ -1,0 +1,302 @@
+<div id="jianghu-lineups" lang="zh-CN">
+  <style>
+    #jianghu-lineups {container-type:inline-size}
+    #jianghu-lineups [hidden] {display:none!important}
+    #jianghu-lineups .jm-head {display:grid;justify-items:start;gap:calc(var(--font-size-base)*.5)}
+    #jianghu-lineups .jm-canvas {position:relative;margin-top:var(--font-size-base)}
+    #jianghu-lineups .jm-wires {position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    #jianghu-lineups .jm-path {fill:none;stroke:color-mix(in srgb,var(--foreground) 46%,var(--background));stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+    #jianghu-lineups .jm-path.jm-chosen {stroke:var(--viz-series-1);stroke-width:2}
+    #jianghu-lineups .jm-arrow {fill:context-stroke}
+    #jianghu-lineups .jm-overview {position:relative;display:grid;align-items:center;grid-template-columns:minmax(0,1fr) max-content minmax(0,1fr);gap:calc(var(--font-size-base)*1.75) calc(var(--font-size-base)*2.6);padding-block:var(--font-size-base)}
+    #jianghu-lineups .jm-hub {grid-area:1/2/5/3;align-self:center;text-align:center;justify-self:center}
+    #jianghu-lineups .jm-entry {grid-row:var(--row);grid-column:var(--col);text-align:start;min-width:0}
+    #jianghu-lineups .jm-entry.jm-west {text-align:end}
+    #jianghu-lineups .jm-entry p,#jianghu-lineups .jm-option p,#jianghu-lineups .jm-scene p {margin-top:calc(var(--font-size-base)*.35)}
+    #jianghu-lineups .jm-entry p,#jianghu-lineups .jm-option p {text-wrap:balance}
+    #jianghu-lineups .jm-detail {position:relative}
+    #jianghu-lineups .jm-scene {text-align:center;width:fit-content;max-width:100%;margin-inline:auto}
+    #jianghu-lineups .jm-options {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(var(--font-size-base)*2.3) var(--font-size-base);margin-top:calc(var(--font-size-base)*2.6)}
+    #jianghu-lineups .jm-option {grid-row:1;grid-column:var(--col);text-align:center;min-width:0;align-self:start}
+    #jianghu-lineups .jm-turn {grid-area:2/1/3/4;justify-self:center;text-align:center;max-width:36em}
+    #jianghu-lineups .jm-turn p {margin-bottom:calc(var(--font-size-base)*.5)}
+    @container (max-width:590px) {
+      #jianghu-lineups .jm-overview {display:flex;flex-direction:column;align-items:stretch;gap:var(--font-size-base);padding-block:0}
+      #jianghu-lineups .jm-hub,#jianghu-lineups .jm-scene {align-self:start;text-align:start;margin-inline:0}
+      #jianghu-lineups .jm-entry,#jianghu-lineups .jm-entry.jm-west {text-align:start;margin-inline-start:calc(var(--font-size-base)*2)}
+      #jianghu-lineups .jm-options {display:flex;flex-direction:column;gap:calc(var(--font-size-base)*1.25);margin-top:calc(var(--font-size-base)*1.4);margin-inline-start:calc(var(--font-size-base)*2)}
+      #jianghu-lineups .jm-option,#jianghu-lineups .jm-turn {text-align:start}
+      #jianghu-lineups .jm-turn {margin-inline-start:calc(var(--font-size-base)*1.35)}
+    }
+  </style>
+  <header class="jm-head">
+    <h2>玩家眼里的江湖</h2>
+    <span id="jm-status" class="sr-only" aria-live="polite"></span>
+    <nav id="jm-nav" class="viz-row" aria-label="切换念头" hidden>
+      <button type="button" class="btn" id="jm-home">回到全图</button>
+      <button type="button" class="btn" id="jm-back" hidden>返回刚才的选择</button>
+    </nav>
+  </header>
+  <div class="jm-canvas">
+    <svg class="jm-wires" role="img" aria-labelledby="jm-wire-title jm-wire-desc">
+      <title id="jm-wire-title">玩家可能想到的几条路</title>
+      <desc id="jm-wire-desc">这些念头可以各自展开。</desc>
+      <defs><marker id="jm-turn-arrow" viewBox="0 0 8 8" markerWidth="6" markerHeight="6" refX="7.3" refY="4" orient="auto"><path class="jm-arrow" d="M 0 0 L 8 4 L 0 8 L 1.7 4 Z"></path></marker></defs>
+      <g id="jm-lines"></g>
+    </svg>
+    <section class="jm-overview" id="jm-overview" aria-labelledby="jm-hub">
+      <h3 class="jm-hub" id="jm-hub">眼下，我最惦记什么？</h3>
+      <div class="jm-entry jm-west" style="--row:1;--col:1">
+        <button type="button" class="btn" data-topic="ambition">我想靠押镖闯出名声</button>
+        <p class="text-small">最险的那趟镖，我也想接得住。</p>
+      </div>
+      <div class="jm-entry" style="--row:1;--col:3">
+        <button type="button" class="btn" data-topic="allegiance">这回我帮哪边？</button>
+        <p class="text-small">镖局催我追药，山寨里也有人等药。</p>
+      </div>
+      <div class="jm-entry jm-west" style="--row:2;--col:1">
+        <button type="button" class="btn" data-topic="sword">我想学会那一剑</button>
+        <p class="text-small">刚看完打擂，那一下回锋真漂亮。</p>
+      </div>
+      <div class="jm-entry" style="--row:2;--col:3">
+        <button type="button" class="btn" data-topic="companion">这位枪客值得招吗？</button>
+        <p class="text-small">他守车有一手。我舍得换下谁？</p>
+      </div>
+      <div class="jm-entry jm-west" style="--row:3;--col:1">
+        <button type="button" class="btn" data-topic="manual">这本刀谱给谁？</button>
+        <p class="text-small">刚从战利品里翻出来，也值些钱。</p>
+      </div>
+      <div class="jm-entry" style="--row:3;--col:3">
+        <button type="button" class="btn" data-topic="money">药钱从哪儿来？</button>
+        <p class="text-small">两个人带伤，银子只够再撑几天。</p>
+      </div>
+      <div class="jm-entry jm-west" style="--row:4;--col:1">
+        <button type="button" class="btn" data-topic="road">旧驿里到底有什么？</button>
+        <p class="text-small">茶客说，那座空驿昨夜亮了灯。</p>
+      </div>
+      <div class="jm-entry" style="--row:4;--col:3">
+        <button type="button" class="btn" data-topic="fight">刚才那仗还能怎么打？</button>
+        <p class="text-small">我只顾追人，一回头后排已经倒了。</p>
+      </div>
+    </section>
+    <section class="jm-detail" id="jm-detail" aria-labelledby="jm-question" hidden>
+      <div class="jm-scene" id="jm-scene">
+        <h3 id="jm-question"></h3>
+        <p class="text-small" id="jm-sight"></p>
+      </div>
+      <div class="jm-options" id="jm-options" role="group" aria-label="这个念头可能带来的选择"></div>
+      <div class="jm-turn" id="jm-turn" hidden>
+        <p id="jm-aftermath"></p>
+        <button type="button" class="btn" id="jm-next" hidden></button>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+(() => {
+  const root=document.getElementById('jianghu-lineups');
+  if(!root || root.dataset.ready)return;
+  root.dataset.ready='true';
+  const one=selector=>root.querySelector(selector);
+  const topics=new Map(Array.from(root.querySelectorAll('[data-topic]'),button=>[button.dataset.topic,button]));
+  const cases={
+    ambition:{
+      sight:'进城时看见威远的镖旗。我也想有一天，报出我们这队的名字，货主就敢把东西交过来。',
+      options:[
+        {act:'先把老主顾的货送好',why:'再跑一趟熟路也行。我想让人记住，交给我的东西送得到。',after:'这回货主还指名要那个守过车的小刀客。手里有本刀谱，该不该留给他？',next:'manual'},
+        {act:'去接别人不敢走的镖',why:'我想试试这支队到底能走多远。最险的山口，有谁认得路？',after:'队里原先在黑风寨讨过生活的老伙计认路。再请一个懂守车的人，这趟我就敢接。',next:'companion'},
+        {act:'先替朋友走一趟',why:'有位朋友刚丢了货。扬名的机会以后还有，我答应他的事得先办。',after:'到了才发现，他要找回的是一车药。镇上有人买了，山里也有人等着用。',next:'allegiance'}
+      ]
+    },
+    allegiance:{
+      sight:'威远的镖师托我追回整车药。一听说要上黑风寨，跟了我一路的老刀客说，他妹妹还在寨里养伤。',
+      options:[
+        {act:'整车送回药铺',why:'镇里的病人已经等了两天。我应下的镖，就得亲自送到。',after:'老刀客惦记他妹妹。我愿意把自己的镖银拿出来，问问药铺还能不能匀一份。',next:'money'},
+        {act:'陪老伙计上山',why:'他陪我闯过几次险。先去看他妹妹一眼，镖局那边我自己交代。',after:'我陪他到了寨门口。以后见到那位托我的镖师，这趟怎么走的，我得照实说。'},
+        {act:'带两边的人谈一谈',why:'我的枪客以前替威远押镖，老刀客认识寨里的人。两人愿不愿意陪我去？',after:'枪客肯领我见货主，老刀客肯去请寨里的郎中。人能坐到一张桌上，才知道这车药分不分得开。'}
+      ]
+    },
+    sword:{
+      sight:'刚看完城里的擂。我喜欢的那个残剑门弟子，能不能也打出这一手？',
+      options:[
+        {act:'追上去问他师承',why:'我想知道这招叫什么，他肯不肯教外人。',after:'原来师父暂住断碑驿。我上次替他的同门办过事，也许能请那人领我进门。',next:'road'},
+        {act:'先拿自己的剑试试',why:'说不定我也会回锋，只是没在那个时候用过。',after:'若一上擂就被逼得出不了剑，我更想弄清刚才哪一步吃了亏。',next:'fight'},
+        {act:'先记下名字',why:'专程去拜师要盘缠，我现在还带着两个伤员。',after:'这门剑法可以惦记着。今天先得让伤员看上大夫。',next:'money'}
+      ]
+    },
+    companion:{
+      sight:'一个替威远押过镖的枪客，刚在擂边拦下两人。他肯同行一程，要分一份酬银。',
+      options:[
+        {act:'请他走一趟',why:'上一仗正缺个人拦住侧面。我想看看他和我的刀客合不合。',after:'下回再遇见那伙人，我想让枪客守侧面，让刀客放手去追。',next:'fight'},
+        {act:'我想留老刀客',why:'新人看着更强，可上回我追过头，是老伙计回身救了我。',after:'要是给老刀客一门合适的刀法，他自己也有机会打出名堂。',next:'manual'},
+        {act:'问个路，各走各的',why:'他要往北，我答应过替人往南送一封信。',after:'互通了名姓就各自上路。这趟信送到，比眼下多招一个好手更要紧。'}
+      ]
+    },
+    manual:{
+      sight:'我翻到一册刀谱。成名刀客现在就能用，一直跟着我的小刀客也正缺一门拿手功夫。',
+      options:[
+        {act:'给成名刀客',why:'下趟擂我想赢。他本来就擅长抢攻，这一手回身刀能接上他的变招。',after:'我想再会会上次从他刀下溜走的人。这次由他去追，后排该留谁？',next:'fight'},
+        {act:'留给守车的小刀客',why:'他陪我押过三趟镖。要是他在车旁就能回身接敌，前排的剑客便不用回援。',after:'我想留他在队里。要是那个枪客肯来，两个人一前一后就能护住车。',next:'companion'},
+        {act:'拿去换药钱',why:'眼前有人等着治伤，刀谱的卖价能解急。',after:'刀谱换成了药，老伙计能熬过这趟。等他养好，我们再一起出发。'}
+      ]
+    },
+    money:{
+      sight:'药铺等着收钱。镇里有趟轻省的短差，另一支商队开的价高，要走很远。',
+      options:[
+        {act:'接城里的短差',why:'少赚一点也够付药钱，还赶得上我想看的那场擂。',after:'账结清了，我终于能去擂边看看，那位剑客到底怎么出手。',next:'sword'},
+        {act:'远镖值得走',why:'这笔酬银够撑好一阵，可伤员上不了阵，谁能补他的位置？',after:'要是城门口那个枪客肯走一程，我先算算分他一份之后还值不值。',next:'companion'},
+        {act:'先翻翻行囊',why:'也许卖件闲置的东西，就能让两个伤员踏实歇一天。',after:'手边最值钱的偏偏是那册刀谱。我舍得卖，还是有人值得我留给他？',next:'manual'}
+      ]
+    },
+    road:{
+      sight:'断碑驿要绕一点路。有人说里面藏过剑谱，也有人只见过一盏灯。',
+      options:[
+        {act:'先找去过的人问',why:'消息到底是谁亲眼见的？我愿意花点工夫弄清楚。',after:'茶客说那位外乡枪客刚从旧驿来。我想听他说说见闻，再决定要不要邀他带路。',next:'companion'},
+        {act:'亲自进去看看',why:'就算什么也捡不到，我也想知道里面发生过什么。',after:'门后传来一阵咳嗽声。剑谱的事先放放，谁一个人在这儿过夜？'},
+        {act:'这趟先不绕',why:'伤员在马背上熬了半天。先去镇上，哪怕传闻被别人抢先。',after:'到了镇上先看药价。给他治好伤，下一次才走得了远路。',next:'money'}
+      ]
+    },
+    fight:{
+      sight:'对面一退，我就带人去追。等我回过神，留在后面的同伴已经伤了。',
+      options:[
+        {act:'原班人换个打法',why:'我还想和他们打回来。下次我追，留老伙计接应，能不能赢？',after:'阵里明明有人能守，是我上回把他也派出去了。先跟这批人再打一场。'},
+        {act:'去请教怎么拆招',why:'我到现在还没看懂对手那一下，换个人上去也可能吃亏。',after:'我现在去看擂，惦记的是人家怎么接住那一剑。看明白了再替自己的人求教。',next:'sword'},
+        {act:'带伤员走',why:'那个从开局跟到现在的人还活着。我先顾他。',after:'这口气以后再出。进镇第一件事，是看看身上的银子够不够买药。',next:'money'}
+      ]
+    }
+  };
+  const overview=one('#jm-overview'),detail=one('#jm-detail'),options=one('#jm-options');
+  const turn=one('#jm-turn'),next=one('#jm-next'),nav=one('#jm-nav'),back=one('#jm-back');
+  const status=one('#jm-status'),canvas=one('.jm-canvas'),wires=one('.jm-wires');
+  const state={topic:null,pick:null,history:[]};
+  let frame=0, renderedTopic=null;
+  const name=key=>topics.get(key).textContent;
+  function show() {
+    const key=state.topic;
+    overview.hidden=!!key; detail.hidden=!key; nav.hidden=!key;
+    back.hidden=!state.history.length;
+    if(!key){status.textContent='全图。可以从眼下最惦记的事开始。';renderedTopic=null;queueDraw();return;}
+    const item=cases[key];
+    if(renderedTopic!==key){
+      one('#jm-question').textContent=name(key);one('#jm-sight').textContent=item.sight;
+      const branches=item.options.map((choice,i)=>{
+        const el=document.createElement('div');el.className='jm-option';el.style.setProperty('--col',i+1);
+        const button=document.createElement('button');button.type='button';button.className='btn';button.dataset.pick=i;
+        button.textContent=choice.act;button.setAttribute('aria-controls','jm-turn');
+        const thought=document.createElement('p');thought.className='text-small';thought.textContent=choice.why;
+        el.append(button,thought);return el;
+      });
+      options.replaceChildren(...branches,turn);renderedTopic=key;
+    }
+    const buttons=Array.from(options.querySelectorAll('[data-pick]'));
+    const choice=state.pick===null?null:item.options[state.pick];
+    buttons.forEach((b,i)=>b.setAttribute('aria-pressed',String(i===state.pick)));
+    if(choice){
+      buttons[state.pick].parentElement.after(turn);
+      one('#jm-aftermath').textContent=choice.after;
+      next.hidden=!choice.next;
+      next.textContent=choice.next?'接着想想 · '+name(choice.next):'';
+      status.textContent=choice.act+'。'+choice.after;
+    }else status.textContent=name(key)+' '+item.sight;
+    turn.hidden=!choice;queueDraw();
+  }
+  function remember() {
+    const api=window.openai;
+    if(!api || typeof api.setWidgetState!=='function')return;
+    const current=state.topic && cases[state.topic].options[state.pick];
+    const data={modelContent:{view:'玩家的念头',thought:state.topic?name(state.topic):null,choice:current?current.act:null},
+      privateContent:{version:2,topic:state.topic,pick:state.pick,history:state.history.map(x=>({...x}))}};
+    Promise.resolve(api.setWidgetState(data)).catch(()=>{});
+  }
+  function validPoint(p) {
+    return !!p && topics.has(p.topic) && (p.pick===null || (Number.isInteger(p.pick) && p.pick>=0 && p.pick<cases[p.topic].options.length));
+  }
+  function restore(snapshot) {
+    const p=snapshot && snapshot.privateContent;
+    if(!p || p.version!==2)return;
+    const active=validPoint(p);
+    state.topic=active?p.topic:null;state.pick=active?p.pick:null;
+    state.history=active && Array.isArray(p.history)?p.history.filter(validPoint).slice(-12).map(x=>({topic:x.topic,pick:x.pick})):[];
+    show();
+  }
+  function openTopic(key) {
+    if(!topics.has(key))return;
+    if(state.topic)state.history=[...state.history,{topic:state.topic,pick:state.pick}].slice(-12);
+    state.topic=key;state.pick=null;show();remember();
+    options.querySelector('button').focus({preventScroll:true});
+  }
+  root.addEventListener('click',event=>{
+    const b=event.target.closest('button');if(!b || !root.contains(b))return;
+    if(b.dataset.topic){openTopic(b.dataset.topic);return;}
+    if(b===one('#jm-home')){
+      const from=state.topic;state.topic=null;state.pick=null;state.history=[];
+      show();remember();if(from)topics.get(from).focus({preventScroll:true});return;
+    }
+    if(b===back && state.history.length){
+      const old=state.history.pop();state.topic=old.topic;state.pick=old.pick;show();remember();
+      const prev=options.querySelector('[data-pick="'+(old.pick??0)+'"]');
+      if(prev)prev.focus({preventScroll:true});return;
+    }
+    if(!state.topic)return;
+    if(b===next && state.pick!==null){openTopic(cases[state.topic].options[state.pick].next);return;}
+    if(b.hasAttribute('data-pick')){
+      const i=Number(b.dataset.pick);state.pick=state.pick===i?null:i;show();remember();
+    }
+  });
+  function draw() {
+    const area=canvas.getBoundingClientRect();
+    if(!area.width || !area.height)return;
+    const em=parseFloat(getComputedStyle(root).fontSize)||16;
+    const mobile=getComputedStyle(overview.hidden?options:overview).display==='flex';
+    const rect=el=>{
+      const r=el.getBoundingClientRect();
+      return {x:r.left-area.left+r.width/2,y:r.top-area.top+r.height/2,l:r.left-area.left,r:r.right-area.left,t:r.top-area.top,b:r.bottom-area.top};
+    };
+    const group=document.createDocumentFragment();
+    function line(d,selected,arrow) {
+      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d',d);path.setAttribute('class',selected?'jm-path jm-chosen':'jm-path');
+      if(arrow)path.setAttribute('marker-end','url(#jm-turn-arrow)');
+      group.appendChild(path);
+    }
+    const isTopic=!!state.topic;
+    const center=rect(isTopic?one('#jm-scene'):one('#jm-hub'));
+    const buttons=isTopic?Array.from(options.querySelectorAll('[data-pick]')):Array.from(topics.values());
+    if(mobile){
+      const spine=em*.55;
+      const targets=buttons.map(rect);
+      line('M '+spine+' '+(center.b+4)+' V '+targets.at(-1).y,false,false);
+      targets.forEach((r,i)=>line('M '+spine+' '+r.y+' H '+(r.l-4),isTopic && i===state.pick,false));
+    }else{
+      buttons.forEach((el,i)=>{
+        const r=rect(el);
+        if(isTopic){
+          const start=center.b+4,end=r.t-5,mid=(start+end)/2;
+          line('M '+center.x+' '+start+' C '+center.x+' '+mid+' '+r.x+' '+mid+' '+r.x+' '+end,i===state.pick,true);
+        }else{
+          const side=r.x<center.x?-1:1;
+          const start=side<0?center.l-5:center.r+5,end=side<0?r.r+4:r.l-4,mid=(start+end)/2;
+          line('M '+start+' '+center.y+' C '+mid+' '+center.y+' '+mid+' '+r.y+' '+end+' '+r.y,false,false);
+        }
+      });
+    }
+    if(isTopic && state.pick!==null){
+      const a=rect(buttons[state.pick].parentElement),b=rect(turn);
+      const from=mobile?a.l+em*.35:a.x,to=mobile?b.l+em*.35:b.x,mid=(a.b+b.t)/2;
+      line('M '+from+' '+(a.b+3)+' C '+from+' '+mid+' '+to+' '+mid+' '+to+' '+(b.t-4),true,true);
+    }
+    wires.setAttribute('viewBox','0 0 '+area.width+' '+area.height);
+    one('#jm-lines').replaceChildren(group);
+    one('#jm-wire-desc').textContent=isTopic?name(state.topic)+'可能通向'+cases[state.topic].options.map(c=>c.act).join('、')+'。':'每个念头都可以单独展开，任选一项开始。';
+  }
+  function queueDraw(){if(!frame)frame=requestAnimationFrame(()=>{frame=0;draw();});}
+  const sizeObserver=new ResizeObserver(draw);
+  sizeObserver.observe(canvas);
+  window.addEventListener('openai:set_globals',event=>{
+    const globals=event.detail && event.detail.globals;
+    if(globals && Object.prototype.hasOwnProperty.call(globals,'widgetState'))restore(globals.widgetState);
+  });
+  show();restore(window.openai && window.openai.widgetState);
+  if(document.fonts)document.fonts.ready.then(queueDraw);
+})();
+</script>
