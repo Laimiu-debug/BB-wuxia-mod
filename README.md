@@ -1,6 +1,6 @@
 # BB-wuxia-mod
 
-《战场兄弟》（Battle Brothers）武侠 Mod 的设计仓库。当前处于**系统设计与规格细化阶段**，尚未开始正式 `.nut` 代码实现。
+《战场兄弟》（Battle Brothers）武侠 Mod 的设计仓库。核心系统总设计、数值标尺、MVP 切片与图标化插槽 UI 方案已全部定稿，即将进入基于 `Modern Hooks + MSU` 的第一阶段开发。
 
 ## 核心设计文档（单一真相源）
 
@@ -34,4 +34,4 @@
 
 ## 下一步
 
-基于 [docs/system-design.md](docs/system-design.md) 第 6 节，逐章细化插槽解锁节奏、功法重数、残页与洗髓数值、AP 突破边界及第一阶段最小可玩切片（MVP），定稿后即可基于 `Modern Hooks + MSU` 搭建 Mod 骨架进入开发。
+基于已定稿的 [docs/system-design.md](docs/system-design.md)，进入开发阶段：核实 Windows 游戏/汉化/`Modern Hooks + MSU` 实机环境，搭建最小 Mod 骨架包，并按 MVP 清单依次实现人物插槽数据与存档、图标化拖拽 UI、首批 24 本秘籍与战斗循环。
