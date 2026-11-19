@@ -25,9 +25,9 @@ local enemyArchetypeList = [
 	["scripts/entity/tactical/enemies/bandit_thug",     "bandit_thug"],
 	["scripts/entity/tactical/enemies/bandit_raider",   "bandit_raider"],
 	["scripts/entity/tactical/enemies/bandit_marksman", "bandit_marksman"],
-	["scripts/entity/tactical/enemies/mercenary",       "mercenary"],
 	["scripts/entity/tactical/enemies/bandit_leader",   "bandit_leader"],
-	["scripts/entity/tactical/enemies/swordmaster",     "swordmaster"]
+	["scripts/entity/tactical/humans/mercenary",        "mercenary"],
+	["scripts/entity/tactical/humans/swordmaster",      "swordmaster"]
 ];
 
 foreach (pair in enemyArchetypeList)

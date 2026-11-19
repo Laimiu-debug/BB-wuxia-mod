@@ -30,9 +30,10 @@
 	};
 
 	// Return full Wuxia tab state for the selected brother + stash manuals/pages/pills
-	q.onWXGetState <- function( _entityId )
+	q.onWXGetState <- function( _data )
 	{
-		local bro = this.WX_findBrotherById(_entityId);
+		local entityId = (typeof _data == "array") ? _data[0] : _data;
+		local bro = this.WX_findBrotherById(entityId);
 		local stashData = ::Wuxia.UI.buildStashWuxiaItems();
 		return {
 			ok               = (bro != null),

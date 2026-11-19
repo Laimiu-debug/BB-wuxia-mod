@@ -12,7 +12,7 @@
 	if (typeof CharacterScreenDatasource !== 'undefined') {
 		CharacterScreenDatasource.prototype.notifyBackendWXGetState = function (_entityId, _callback) {
 			if (this.mSQHandle !== null) {
-				SQ.call(this.mSQHandle, 'onWXGetState', _entityId, _callback);
+				SQ.call(this.mSQHandle, 'onWXGetState', [_entityId], _callback);
 			}
 		};
 
@@ -55,20 +55,20 @@
 	}
 
 	var origCreateDIV = CharacterScreenPerksModule.prototype.createDIV;
-	var origLoadFromData = CharacterScreenPerksModule.prototype.loadFromData;
+	var origDestroyDIV = CharacterScreenPerksModule.prototype.destroyDIV;
+	var origLoadBrother = CharacterScreenPerksModule.prototype.loadPerkTreesWithBrotherData;
 	var origShow = CharacterScreenPerksModule.prototype.show;
 
 	CharacterScreenPerksModule.prototype.createDIV = function (_parentDiv) {
 		origCreateDIV.call(this, _parentDiv);
 
-		// Hide vanilla 7-row perk tree grid while preserving the tab wrapper
-		if (this.mListScrollContainer) {
-			this.mListScrollContainer.hide();
-		} else if (this.mContainer) {
-			this.mContainer.children().hide();
+		// Hide vanilla 7-row perk column while keeping the tab container intact
+		if (this.mLeftColumn) {
+			this.mLeftColumn.hide();
 		}
 
 		this.mWXState = null;
+		this.mWXCurrentEntityId = null;
 		this.mWXFilter = 'all';
 		this.mWXDragPayload = null;
 		this.mWXWashState = {
@@ -81,14 +81,29 @@
 		this.wxBuildRootDOM(this.mContainer || _parentDiv);
 	};
 
+	CharacterScreenPerksModule.prototype.destroyDIV = function () {
+		if (this.mWXRoot) {
+			this.mWXRoot.empty();
+			this.mWXRoot.remove();
+			this.mWXRoot = null;
+		}
+		origDestroyDIV.call(this);
+	};
+
 	CharacterScreenPerksModule.prototype.show = function () {
 		origShow.call(this);
 		this.wxRefreshFromBackend();
 	};
 
-	CharacterScreenPerksModule.prototype.loadFromData = function (_brother) {
-		origLoadFromData.call(this, _brother);
-		this.mWXCurrentEntityId = (_brother && typeof _brother.id !== 'undefined') ? _brother.id : null;
+	CharacterScreenPerksModule.prototype.loadPerkTreesWithBrotherData = function (_brother) {
+		origLoadBrother.call(this, _brother);
+		if (_brother) {
+			if (typeof CharacterScreenIdentifier !== 'undefined' && CharacterScreenIdentifier.Entity && (CharacterScreenIdentifier.Entity.Id in _brother)) {
+				this.mWXCurrentEntityId = _brother[CharacterScreenIdentifier.Entity.Id];
+			} else if (typeof _brother.id !== 'undefined') {
+				this.mWXCurrentEntityId = _brother.id;
+			}
+		}
 		this.wxRefreshFromBackend();
 	};
 

@@ -16,7 +16,7 @@
 	};
 });
 
-::Wuxia.HooksMod.hook("scripts/ai/tactical/behaviors/ai_attack_throwing_weapons", function( q )
+::Wuxia.HooksMod.hook("scripts/ai/tactical/behaviors/ai_attack_bow", function( q )
 {
 	q.create = @(__original) function()
 	{
