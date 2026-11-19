@@ -1,0 +1,485 @@
+/* ============================================================================
+ * BB Wuxia Mod - Dark Ming-era Wuxia UI Stylesheet
+ * ============================================================================ */
+
+.wx-panel {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	box-sizing: border-box;
+	padding: 8px 10px;
+	color: #e6dcc8;
+	font-size: 13px;
+	display: flex;
+	flex-direction: column;
+	background: rgba(16, 13, 11, 0.92);
+	border: 1px solid #4a3a28;
+}
+
+.wx-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding-bottom: 6px;
+	border-bottom: 1px solid #3d3023;
+	margin-bottom: 6px;
+}
+
+.wx-summary-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.wx-tag {
+	padding: 2px 7px;
+	border-radius: 3px;
+	font-size: 12px;
+	background: #231c16;
+	border: 1px solid #524130;
+}
+
+.wx-tag-ap {
+	color: #f3d285;
+	border-color: #8c6a2e;
+}
+
+.wx-tag-harmony {
+	color: #8ed1a5;
+	border-color: #366647;
+}
+
+.wx-tag-conflict {
+	color: #ff8c7a;
+	border-color: #9e3124;
+	background: #361310;
+}
+
+.wx-btn {
+	cursor: pointer;
+	padding: 4px 10px;
+	font-size: 12px;
+	color: #f0e4cc;
+	background: #2e241b;
+	border: 1px solid #785f42;
+	border-radius: 3px;
+}
+
+.wx-btn:hover {
+	background: #423326;
+}
+
+.wx-btn:disabled {
+	opacity: 0.45;
+	cursor: default;
+}
+
+.wx-btn-wash.has-chance {
+	border-color: #d9a74a;
+	color: #ffe29e;
+	background: #3d2c12;
+}
+
+.wx-btn-danger {
+	border-color: #b53a2a;
+	background: #4f1812;
+	color: #ffd9d2;
+}
+
+.wx-toast {
+	display: none;
+	padding: 4px 8px;
+	margin-bottom: 6px;
+	font-size: 12px;
+	border-radius: 3px;
+}
+
+.wx-toast.is-ok {
+	background: #173322;
+	border: 1px solid #3d8559;
+	color: #c2f0d2;
+}
+
+.wx-toast.is-error {
+	background: #3b1410;
+	border: 1px solid #a8392c;
+	color: #ffd2cc;
+}
+
+/* 7 Square Icon Slots */
+.wx-slots-section {
+	padding: 6px 0 8px 0;
+	border-bottom: 1px solid #3d3023;
+}
+
+.wx-slots-row {
+	display: flex;
+	justify-content: center;
+	gap: 10px;
+	margin-bottom: 8px;
+}
+
+.wx-slots-row-free {
+	margin-bottom: 0;
+	gap: 26px;
+}
+
+.wx-slot-card {
+	width: 74px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.wx-slot-box {
+	position: relative;
+	width: 60px;
+	height: 60px;
+	border-radius: 4px;
+	background: #1c1713;
+	border: 2px solid #594a3a;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+}
+
+.wx-slot-box.is-locked {
+	opacity: 0.52;
+	background: #120f0d;
+	border-style: dashed;
+}
+
+.wx-slot-box.is-drop-valid {
+	box-shadow: 0 0 8px rgba(130, 224, 155, 0.75);
+	border-color: #63c97d;
+}
+
+.wx-slot-box.is-drop-hover {
+	box-shadow: 0 0 12px rgba(255, 214, 102, 0.95);
+	border-color: #ffd666;
+}
+
+.wx-slot-icon {
+	width: 52px;
+	height: 52px;
+	pointer-events: none;
+}
+
+.wx-slot-plus {
+	font-size: 24px;
+	color: #6e5c48;
+}
+
+.wx-slot-lock {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	font-size: 11px;
+	color: #9e8c77;
+}
+
+.wx-frag-badge {
+	position: absolute;
+	top: -3px;
+	right: -3px;
+	padding: 0 4px;
+	font-size: 10px;
+	background: #8f1d14;
+	color: #ffe2dc;
+	border: 1px solid #e06a5c;
+	border-radius: 2px;
+}
+
+/* Quality Glow Borders */
+.wx-q-common { border-color: #7d8f7d; }
+.wx-q-sect   { border-color: #4682c4; box-shadow: inset 0 0 6px rgba(70, 130, 196, 0.35); }
+.wx-q-secret { border-color: #9f59d9; box-shadow: inset 0 0 8px rgba(159, 89, 217, 0.45); }
+.wx-q-unique { border-color: #e6b447; box-shadow: 0 0 6px rgba(230, 180, 71, 0.45), inset 0 0 8px rgba(230, 180, 71, 0.4); }
+
+.wx-slot-meta {
+	width: 100%;
+	margin-top: 3px;
+	text-align: center;
+}
+
+.wx-dots {
+	height: 8px;
+	display: flex;
+	justify-content: center;
+	gap: 4px;
+	margin-bottom: 2px;
+}
+
+.wx-dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: #332a22;
+	border: 1px solid #6b5844;
+}
+
+.wx-dot.is-lit {
+	background: #f0c259;
+	border-color: #ffe399;
+}
+
+.wx-exp-bar {
+	width: 60px;
+	height: 4px;
+	margin: 0 auto 2px auto;
+	background: #241d17;
+	border-radius: 2px;
+	overflow: hidden;
+}
+
+.wx-exp-fill {
+	height: 100%;
+	background: #5ca8d6;
+}
+
+.wx-exp-fill.is-max     { background: #e3b242; }
+.wx-exp-fill.is-blocked { background: #d94638; }
+.wx-exp-fill.is-frag    { background: #9c3027; }
+
+.wx-slot-caption {
+	font-size: 11px;
+	color: #d9ccb4;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* Bottom Stash Drawer */
+.wx-drawer {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	padding-top: 6px;
+}
+
+.wx-filter-bar {
+	display: flex;
+	gap: 4px;
+	margin-bottom: 6px;
+}
+
+.wx-filter-btn {
+	cursor: pointer;
+	padding: 2px 7px;
+	font-size: 11px;
+	color: #bfb097;
+	background: #1f1914;
+	border: 1px solid #45372a;
+	border-radius: 2px;
+}
+
+.wx-filter-btn.is-active {
+	color: #ffe6ad;
+	background: #3b2d1d;
+	border-color: #a8834a;
+}
+
+.wx-stash-grid {
+	flex: 1;
+	overflow-y: auto;
+	display: flex;
+	flex-wrap: wrap;
+	align-content: flex-start;
+	gap: 6px;
+	padding: 4px;
+	background: rgba(10, 8, 7, 0.55);
+	border: 1px solid #33281e;
+}
+
+.wx-stash-tile {
+	position: relative;
+	width: 62px;
+	padding: 4px 2px 3px 2px;
+	background: #1d1713;
+	border: 2px solid #574838;
+	border-radius: 3px;
+	cursor: grab;
+	text-align: center;
+	box-sizing: border-box;
+}
+
+.wx-tile-icon {
+	width: 44px;
+	height: 44px;
+	display: block;
+	margin: 0 auto;
+	pointer-events: none;
+}
+
+.wx-tile-name {
+	margin-top: 2px;
+	font-size: 10px;
+	color: #e6dac5;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.wx-tile-count {
+	position: absolute;
+	top: 1px;
+	right: 2px;
+	padding: 0 3px;
+	font-size: 10px;
+	background: rgba(15, 12, 10, 0.85);
+	color: #e3d5bc;
+	border-radius: 2px;
+}
+
+.wx-tile-count.is-craftable {
+	background: #1e5934;
+	color: #c8ffd9;
+}
+
+.wx-tile-count.is-pill {
+	background: #23476b;
+	color: #cbe7ff;
+}
+
+.wx-empty-hint {
+	width: 100%;
+	padding: 20px 8px;
+	text-align: center;
+	color: #8c7d68;
+	font-size: 12px;
+}
+
+/* Tooltip */
+.wx-tooltip {
+	position: absolute;
+	left: 10px;
+	right: 10px;
+	bottom: 10px;
+	z-index: 20;
+	padding: 8px 10px;
+	background: rgba(14, 11, 9, 0.96);
+	border: 1px solid #9e7d4a;
+	border-radius: 4px;
+	pointer-events: none;
+	font-size: 12px;
+	line-height: 1.45;
+}
+
+.wx-tt-title { font-weight: bold; color: #f5d68c; margin-bottom: 3px; }
+.wx-tt-desc  { color: #cfc2ab; margin-bottom: 4px; }
+.wx-tt-tier  { color: #8c806d; }
+.wx-tt-tier.is-unlocked { color: #a7e3b9; }
+.wx-tt-exp   { margin-top: 4px; color: #90c5e8; }
+.wx-tt-warn  { margin-top: 3px; color: #ff8e80; }
+
+/* Modals */
+.wx-modal-backdrop {
+	position: absolute;
+	left: 0; top: 0; right: 0; bottom: 0;
+	z-index: 30;
+	background: rgba(6, 5, 4, 0.82);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.wx-modal-box {
+	width: 90%;
+	max-width: 440px;
+	padding: 12px 14px;
+	background: #1c1612;
+	border: 2px solid #967746;
+	border-radius: 4px;
+}
+
+.wx-modal-title {
+	font-size: 14px;
+	font-weight: bold;
+	color: #f5d68c;
+	padding-bottom: 6px;
+	margin-bottom: 8px;
+	border-bottom: 1px solid #4a3a28;
+}
+
+.wx-modal-body {
+	font-size: 12px;
+	line-height: 1.5;
+	color: #e0d4be;
+}
+
+.wx-modal-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 10px;
+}
+
+.wx-wash-source {
+	color: #a9d6f5;
+	margin-bottom: 6px;
+}
+
+.wx-wash-label {
+	margin: 6px 0 4px 0;
+	color: #e6c98a;
+}
+
+.wx-attr-grid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 5px;
+	margin-bottom: 6px;
+}
+
+.wx-attr-btn {
+	cursor: pointer;
+	width: 48%;
+	display: flex;
+	justify-content: space-between;
+	padding: 4px 7px;
+	font-size: 11px;
+	color: #e6dac5;
+	background: #261f19;
+	border: 1px solid #594735;
+	border-radius: 3px;
+}
+
+.wx-attr-btn.is-selected {
+	border-color: #f0c050;
+	background: #423217;
+	color: #ffe8a6;
+}
+
+.wx-attr-stars {
+	color: #f5c651;
+}
+
+.wx-protect-check {
+	display: block;
+	margin: 6px 0;
+	cursor: pointer;
+	color: #b7e3c5;
+}
+
+.wx-wash-preview {
+	padding: 6px 8px;
+	background: #14100d;
+	border: 1px solid #403224;
+	border-radius: 3px;
+}
+
+.wx-chance-line {
+	margin: 3px 0;
+	color: #ffe18f;
+}
+
+/* Tactical HUD AP Transcendence Indicators */
+.wx-ap-transcended {
+	box-shadow: inset 0 0 6px rgba(105, 198, 255, 0.45);
+}
+
+.wx-ap-burst {
+	box-shadow: inset 0 0 10px rgba(255, 206, 74, 0.8);
+}
