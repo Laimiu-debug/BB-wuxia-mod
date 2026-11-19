@@ -8,7 +8,7 @@ this.wx_debug_arena <- this.inherit("scripts/scenarios/world/starting_scenario",
 	{
 		this.m.ID = "scenario.wx_debug_arena";
 		this.m.Name = "【调试】演武试剑台";
-		this.m.Description = "[p=c][img]gfx/ui/events/event_80.png[/img][/p][p]武侠 Mod 底座框架测试开局。开局即配备各等级侠客、全品阶秘籍、残页与五种核心丹药（含洗髓丹、护脉丹、凝神丸），用于直接检验七大图标插槽拖拽、散功覆盖、火候升重、突破 9 AP 与洗经伐髓。[/p]";
+		this.m.Description = "[p=c][img]gfx/ui/events/event_80.png[/img][/p][p]武侠 Mod 底座框架测试开局。开局即配备 1/5/9/11 级测试侠客、全套 24 本秘籍、残页与五种核心丹药（含洗髓丹、护脉丹、凝神丸），用于直接检验七大图标插槽拖拽、散功覆盖、火候升重、突破 9 AP 与洗经伐髓。[/p]";
 		this.m.Difficulty = 1;
 		this.m.Order = 200;
 	}
@@ -32,17 +32,28 @@ this.wx_debug_arena <- this.inherit("scripts/scenarios/world/starting_scenario",
 			bro.setStartValuesEx([p.Bg]);
 			bro.setName(p.Name);
 			bro.setPlaceInFormation(i + 2);
+			bro.m.HireTime = this.Time.getVirtualTimeF();
 
-			// Advance to preset level so slots unlock immediately
-			while (bro.getLevel() < p.Level)
+			// Safely advance level directly without calling updateLevel() in a loop!
+			if (p.Level > 1)
 			{
-				bro.m.XP = ::Const.LevelXP[bro.getLevel()];
-				bro.updateLevel();
+				local extraLevels = p.Level - 1;
+				bro.m.Level = p.Level;
+				bro.m.XP = this.Const.LevelXP[p.Level - 1];
+				bro.m.LevelUps = 0;
+				bro.m.BaseProperties.Hitpoints += extraLevels * 2;
+				bro.m.BaseProperties.Stamina += extraLevels * 3;
+				bro.m.BaseProperties.Bravery += extraLevels * 2;
+				bro.m.BaseProperties.Initiative += extraLevels * 3;
+				bro.m.BaseProperties.MeleeSkill += extraLevels * 3;
+				bro.m.BaseProperties.MeleeDefense += extraLevels * 2;
+				bro.m.Hitpoints = bro.getHitpointsMax();
 			}
 			bro.m.PerkPoints = 0;
+			bro.getSkills().update();
 		}
 
-		// Equip one hero with starter manual to showcase loaded slot right away
+		// Equip first hero with starter manuals to showcase loaded slots right away
 		local brothers = roster.getAll();
 		if (brothers.len() > 0)
 		{
@@ -50,7 +61,7 @@ this.wx_debug_arena <- this.inherit("scripts/scenarios/world/starting_scenario",
 			::Wuxia.Slots.equipManual(brothers[0], 1, "wx_manual_qingfeng", false);
 		}
 
-		// Populate Stash with sample manuals across all 4 tiers, pages, and all 5 pills
+		// Populate Stash with all 24 manuals, pages, and all 5 pills
 		local stash = this.World.Assets.getStash();
 		stash.resize(120);
 
@@ -100,10 +111,48 @@ this.wx_debug_arena <- this.inherit("scripts/scenarios/world/starting_scenario",
 
 		this.World.Assets.m.Money = 15000;
 		this.World.Assets.addBusinessReputation(300);
+
+		local food = ::new("scripts/items/supplies/ground_grains_item");
+		food.setAmount(25);
+		stash.add(food);
+		this.World.Assets.updateFood();
 	}
 
 	function onSpawnPlayer()
 	{
-		::Wuxia.spawnPlayerNearSettlement();
+		local settlements = this.World.EntityManager.getSettlements();
+		local randomVillage = settlements[0];
+		foreach (s in settlements)
+		{
+			if (!s.isMilitary() && !s.isIsolatedFromRoads() && s.isAlliedWithPlayer())
+			{
+				randomVillage = s;
+				break;
+			}
+		}
+
+		local spawnTile = randomVillage.getTile();
+		local navSettings = this.World.getNavigator().createSettings();
+		navSettings.ActionPointCosts = this.Const.World.TerrainTypeNavCost_Flat;
+
+		for (local tries = 0; tries < 200; tries = ++tries)
+		{
+			local x = this.Math.rand(this.Math.max(2, spawnTile.SquareCoords.X - 4), this.Math.min(this.Const.World.Settings.SizeX - 2, spawnTile.SquareCoords.X + 4));
+			local y = this.Math.rand(this.Math.max(2, spawnTile.SquareCoords.Y - 4), this.Math.min(this.Const.World.Settings.SizeY - 2, spawnTile.SquareCoords.Y + 4));
+			if (!this.World.isValidTileSquare(x, y)) continue;
+			local tile = this.World.getTileSquare(x, y);
+			if (tile.Type == this.Const.World.TerrainType.Ocean || tile.Type == this.Const.World.TerrainType.Shore || tile.IsOccupied) continue;
+			if (tile.getDistanceTo(spawnTile) <= 1) continue;
+			local path = this.World.getNavigator().findPath(tile, spawnTile, navSettings, 0);
+			if (!path.isEmpty())
+			{
+				spawnTile = tile;
+				break;
+			}
+		}
+
+		this.World.State.m.Player = this.World.spawnEntity("scripts/entity/world/player_party", spawnTile.Coords.X, spawnTile.Coords.Y);
+		this.World.Assets.updateLook(1);
+		this.World.getCamera().setPos(this.World.State.m.Player.getPos());
 	}
 });

@@ -11,7 +11,7 @@ this.wx_manual_item <- this.inherit("scripts/items/item", {
 		this.m.ID = "misc.wx_manual_item";
 		this.m.Name = "武学秘籍";
 		this.m.Description = "可在角色界面「武学修为」页直接拖拽至对应插槽修习（消耗品）。";
-		this.m.Icon = "misc/inventory_scroll_01.png";
+		this.m.Icon = "misc/inventory_anatomists_book_01.png";
 		this.m.SlotType = this.Const.ItemSlot.None;
 		this.m.ItemType = this.Const.Items.ItemType.Usable;
 		this.m.IsDroppedAsLoot = true;

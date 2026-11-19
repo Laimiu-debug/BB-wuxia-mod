@@ -9,8 +9,8 @@ this.wx_sword_tianwai <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.ID = "actives.wx_sword_tianwai";
 		this.m.Name = "天外一剑";
 		this.m.Description = "剑道极境孤本绝招：消耗 7 AP 与 36 内息，贯出两格剑气直透经脉（伤害 +25%，额外穿甲 +20%，并留破绽）。";
-		this.m.Icon = "skills/active_52.png";
-		this.m.IconDisabled = "skills/active_52_sw.png";
+		this.m.Icon = "skills/active_07.png";
+		this.m.IconDisabled = "skills/active_07_sw.png";
 		this.m.Overlay = "active_52";
 		this.m.SoundOnUse = [
 			"sounds/combat/lunge_01.wav"

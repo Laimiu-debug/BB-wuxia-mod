@@ -8,8 +8,8 @@ this.wx_meditate <- this.inherit("scripts/skills/skill", {
 		this.m.ID = "actives.wx_meditate";
 		this.m.Name = "调息吐纳";
 		this.m.Description = "沉心吐纳、引气归元：消耗 4 点行动点，立即恢复已损耗内息的 25%（至少 12 点）。";
-		this.m.Icon = "skills/active_103.png";
-		this.m.IconDisabled = "skills/active_103_sw.png";
+		this.m.Icon = "ui/perks/perk_54_active.png";
+		this.m.IconDisabled = "ui/perks/perk_54_active_sw.png";
 		this.m.Overlay = "active_103";
 		this.m.SoundOnUse = [
 			"sounds/combat/recover_01.wav"

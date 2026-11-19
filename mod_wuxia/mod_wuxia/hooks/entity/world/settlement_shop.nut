@@ -1,17 +1,22 @@
-// Hook town marketplace building to stock common Wuxia manuals & healing/exp pills on restock
+// Hook town settlement shop refresh to safely stock common Wuxia manuals & healing/exp pills
+// NOTE: marketplace_building.onUpdateShopList() returns a list array; hooking settlement.updateShop() AFTER
+// __original(_force) guarantees the marketplace Stash is already filled without altering onUpdateShopList's return value!
 
-::Wuxia.HooksMod.hook("scripts/entity/world/settlements/buildings/marketplace_building", function( q )
+::Wuxia.HooksMod.hook("scripts/entity/world/settlement", function( q )
 {
-	q.onUpdateShopList = @(__original) function( _id = null )
+	q.updateShop = @(__original) function( _force = false )
 	{
-		if (_id != null)
-			__original(_id);
-		else
-			__original();
+		__original(_force);
 
-		if ("m" in this && "Stash" in this.m && this.m.Stash != null)
+		if ("Buildings" in this.m && this.m.Buildings != null)
 		{
-			::Wuxia.Loot.injectTownShopStock(this.m.Stash);
+			foreach (b in this.m.Buildings)
+			{
+				if (b != null && b.getID() == "building.marketplace" && "Stash" in b.m && b.m.Stash != null)
+				{
+					::Wuxia.Loot.injectTownShopStock(b.m.Stash);
+				}
+			}
 		}
 	};
 });

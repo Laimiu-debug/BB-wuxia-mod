@@ -12,7 +12,7 @@ this.wx_page_item <- this.inherit("scripts/items/item", {
 		this.m.ID = "misc.wx_page_item";
 		this.m.Name = "武学残页";
 		this.m.Description = "散落的武学残页。集齐所需张数可在「武学修为」页拼合为完整秘籍，或冒险拖拽进行残本强修（限一重且有走火入魔风险）。";
-		this.m.Icon = "misc/inventory_scroll_02.png";
+		this.m.Icon = "misc/inventory_anatomists_book_02.png";
 		this.m.SlotType = this.Const.ItemSlot.None;
 		this.m.ItemType = this.Const.Items.ItemType.Usable;
 		this.m.IsDroppedAsLoot = true;

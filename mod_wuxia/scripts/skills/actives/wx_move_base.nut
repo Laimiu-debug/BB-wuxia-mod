@@ -26,9 +26,10 @@ this.wx_move_base <- this.inherit("scripts/skills/skill", {
 	function wxHasRequiredWeapon()
 	{
 		if (this.m.RequiredWeaponTypes.len() == 0) return true;
-		local actor = this.getContainer().getActor();
+		local container = this.getContainer();
+		local actor = container == null ? null : container.getActor();
 		if (actor == null) return false;
-		local weapon = actor.getMainhandItem();
+		local weapon = actor.getItems().getItemAtSlot(::Const.ItemSlot.Mainhand);
 		if (weapon == null) return false;
 
 		local wid = weapon.getID().tolower();

@@ -221,7 +221,7 @@
 					categoryLabel = "丹药",
 					quality       = "sect",
 					qualityLabel  = "修为丹",
-					icon          = pdef.Icon,
+					icon          = "ui/items/" + pdef.Icon,
 					expAmount     = pdef.ExpAmount,
 					description   = pdef.Description
 				});

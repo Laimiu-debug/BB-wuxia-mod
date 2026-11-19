@@ -18,7 +18,7 @@
 		Name        = "金疮散",
 		Description = "外敷内服皆宜的跌打良药，可加快外伤愈合或立即解除一处轻度外伤。",
 		Kind        = "heal_external",
-		Icon        = "consumables/medicine_01.png",
+		Icon        = "consumables/bandages_01.png",
 		Value       = 180
 	},
 	wx_pill_huxin = {
@@ -35,7 +35,7 @@
 		Description = "凝聚心神的修炼丹药。拖拽至任意未满重武学插槽，可立即灌注 150 点火候。",
 		Kind        = "infuse_exp",
 		ExpAmount   = 150,
-		Icon        = "consumables/happy_powder_01.png",
+		Icon        = "consumables/pills_01.png",
 		Value       = 600
 	},
 	wx_pill_xisui = {
