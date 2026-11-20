@@ -71,15 +71,19 @@ this.wx_debug_arena <- this.inherit("scripts/scenarios/world/starting_scenario",
 			::Wuxia.Slots.equipManual(brothers[0], 1, "wx_manual_qingfeng", false);
 		}
 
-		// Populate Stash with all 264 manuals, paired Fist weapons, 8 sample Historical Relic Weapons, pages, and all 5 pills
+		// Populate Stash with all 268 manuals, Fist weapons, sample Historical Relics, Shan Hai Red Gear & Cores, pages, and pills
 		local stash = this.World.Assets.getStash();
-		stash.resize(390);
+		stash.resize(415);
 
 		foreach (wp in [
 			"weapons/wx_fist_wraps", "weapons/wx_fist_iron", "weapons/wx_fist_heavy", "weapons/named/wx_named_fist",
 			"weapons/named/wx_relic_taie", "weapons/named/wx_relic_modao", "weapons/named/wx_relic_huaji",
 			"weapons/named/wx_relic_huntiegun", "weapons/named/wx_relic_longlinzhao", "weapons/named/wx_relic_wengjinchui",
-			"weapons/named/wx_relic_yuchang", "weapons/named/wx_relic_zhentiangong"
+			"weapons/named/wx_relic_yuchang", "weapons/named/wx_relic_zhentiangong", "weapons/named/wx_relic_xingtianqi",
+			"armor/named/wx_armor_zhuyan", "armor/named/wx_armor_feiyi", "armor/named/wx_armor_qiongqi", "armor/named/wx_armor_jumang",
+			"helmets/named/wx_helm_taotie", "helmets/named/wx_helm_bashe",
+			"accessory/wx_acc_jiuwei", "accessory/wx_acc_wuzhiqi",
+			"misc/wx_core_zhuyan", "misc/wx_core_feiyi"
 		])
 		{
 			stash.add(::new("scripts/items/" + wp));

@@ -12,7 +12,9 @@
 ::include("mod_wuxia/config/manuals/wx_manuals_sword_saber.nut");
 ::include("mod_wuxia/config/manuals/wx_manuals_pole_fist.nut");
 ::include("mod_wuxia/config/manuals/wx_manuals_heavy_odd_ranged.nut");
+::include("mod_wuxia/config/manuals/wx_manuals_shanhai.nut");
 ::include("mod_wuxia/config/wx_relic_weapons.nut");
+::include("mod_wuxia/config/wx_shanhai.nut");
 ::include("mod_wuxia/config/wx_backgrounds.nut");
 ::include("mod_wuxia/config/wx_ecology.nut");
 ::include("mod_wuxia/config/sects.nut");
@@ -24,6 +26,7 @@
 ::include("mod_wuxia/systems/marrow_wash.nut");
 ::include("mod_wuxia/systems/combat_rules.nut");
 ::include("mod_wuxia/systems/wx_relic_system.nut");
+::include("mod_wuxia/systems/wx_shanhai_system.nut");
 ::include("mod_wuxia/systems/sect_relations.nut");
 ::include("mod_wuxia/systems/loot_economy.nut");
 ::include("mod_wuxia/systems/wx_world_encounters.nut");

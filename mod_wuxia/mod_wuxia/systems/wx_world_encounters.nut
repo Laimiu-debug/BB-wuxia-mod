@@ -4,6 +4,17 @@
 	{
 		foreach (id in _roster)
 		{
+			if ("ShanHaiBosses" in ::Wuxia.Config && (id in ::Wuxia.Config.ShanHaiBosses))
+			{
+				local boss = ::Wuxia.Config.ShanHaiBosses[id];
+				local bTroop = clone ::Const.World.Spawn.Troops[boss.BaseTroop];
+				if (boss.EntityType in ::Const.EntityType) bTroop.ID = ::Const.EntityType[boss.EntityType];
+				bTroop.Script = boss.Script;
+				bTroop.Strength = boss.Strength;
+				::Const.World.Common.addTroop(_party, { Type = bTroop }, true, 0);
+				_party.getTroops().top().Name = boss.Name;
+				continue;
+			}
 			local fighter = id in ::Wuxia.Config.Fighters ? ::Wuxia.Config.Fighters[id] : null;
 			local troop = clone ::Const.World.Spawn.Troops[fighter == null ? id : fighter.BaseTroop];
 			if (fighter != null) troop.Script = "scripts/entity/tactical/enemies/wx_" + id;
@@ -41,7 +52,7 @@
 			{
 				local nearest = 10000;
 				foreach (town in towns) nearest = ::Math.min(nearest, tile.getDistanceTo(town.getTile()));
-				if (nearest < 7 || nearest > 18) continue;
+				if (nearest < 6 || nearest > 26) continue;
 				local crowded = false;
 				foreach (site in sites) if (site.isAlive() && tile.getDistanceTo(site.getTile()) < 4) { crowded = true; break; }
 				if (crowded) continue;

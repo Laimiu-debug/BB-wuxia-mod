@@ -262,4 +262,18 @@
 		CustomIcon = null, CustomIconLarge = null, CustomArmamentIcon = null,
 		Description = "巴蜀名匠以寒星陨铁薄锻而成的十二柄柳叶飞刀，出手无影、例不虚发。"
 	},
+	wx_relic_xingtianqi = {
+		ID = "wx_relic_xingtianqi", Name = "刑天舞干断首戚", Family = "Axe",
+		Script = "scripts/items/weapons/named/wx_relic_xingtianqi", BaseNamedScript = "scripts/items/weapons/named/named_heavy_rusty_axe",
+		MinValue = 8200, Categories = null,
+		CustomIcon = null, CustomIconLarge = null, CustomArmamentIcon = null,
+		Description = "《山海经·海外西经》常羊战魂不灭神髓重铸的上古巨戚：阔钺沉锋凶煞滔天，破甲碎盾无人可挡！"
+	},
+	wx_relic_qiongqizhao = {
+		ID = "wx_relic_qiongqizhao", Name = "穷奇裂风血骨爪", Family = "Fist",
+		Script = "scripts/items/weapons/named/wx_relic_qiongqizhao", BaseNamedScript = "scripts/items/weapons/named/wx_named_fist",
+		MinValue = 7600, Categories = null,
+		CustomIcon = null, CustomIconLarge = null, CustomArmamentIcon = null,
+		Description = "取西极凶兽穷奇弯钩利爪配裂风妖丹精炼的成对凶兵护手，出爪如恶风撕喉！"
+	},
 };

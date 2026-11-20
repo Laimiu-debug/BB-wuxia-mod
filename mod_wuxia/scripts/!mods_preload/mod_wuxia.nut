@@ -1,7 +1,7 @@
 ::Wuxia <- {
 	ID = "mod_wuxia",
 	Name = "武侠江湖 (BB Wuxia)",
-	Version = "0.5.0",
+	Version = "0.6.0",
 	SchemaVersion = 1,
 	Config = {},
 	Text = {},

@@ -83,5 +83,59 @@
 		Brush = "world_bandit_camp_01", Fortified = true, FactionType = "Orcs",
 		Troops = ["OrcWarlord", "OrcWarrior", "OrcWarrior", "OrcBerserker", "OrcBerserker", "GoblinAmbusher", "GoblinAmbusher", "dartist"],
 		RewardManual = "wx_manual_jinzhong", ExtraManual = "wx_manual_lingbo", GivesHerb = true
+	},
+	shanhai_zhuyan = {
+		Name = "【山海秘境】小次山血猿绝谷", Description = "绝谷寒雾中回荡着震裂山石的猿啼——《山海经》凶兽『白首赤足』的朱厌猿王盘踞于此！斩杀大妖可获【朱厌沸血丹核】与《朱厌沸血神功》残页。",
+		Brush = "world_cave_01", Fortified = false, FactionType = "Beasts",
+		Troops = ["boss_zhuyan", "Unhold", "Unhold"],
+		RewardManual = "wx_manual_shanhai_zhuyan", ExtraManual = "wx_manual_dari_rulai", GivesHerb = true, IsShanHai = true
+	},
+	shanhai_feiyi = {
+		Name = "【山海秘境】太华赤旱毒渊", Description = "草木枯焦、赤地千里的深渊裂谷，上古毒蛟『六足四翼』肥遗王蛰伏谷底。讨平此渊可夺【肥遗旱火毒丹】与孤本残页。",
+		Brush = "world_cave_steppe_01", Fortified = false, FactionType = "Beasts",
+		Troops = ["boss_feiyi", "Serpent", "Serpent"],
+		RewardManual = "wx_manual_shennong_baicao", ExtraManual = "wx_manual_taixu", GivesHerb = true, IsShanHai = true
+	},
+	shanhai_qiongqi = {
+		Name = "【山海秘境】邽山恶风荒冢", Description = "狂风呼啸如牛鸣的塞外荒丘，凶兽穷奇率领成群西山蛊雕伺机扑杀正道侠客。破巢可得【穷奇裂风妖丹】与《穷奇逐风翼步》残页。",
+		Brush = "world_cave_steppe_01", Fortified = false, FactionType = "Beasts",
+		Troops = ["boss_qiongqi", "Hyena", "Hyena", "Hyena", "Hyena"],
+		RewardManual = "wx_manual_shanhai_qiongqi", ExtraManual = "wx_manual_lingbo", GivesHerb = true, IsShanHai = true
+	},
+	shanhai_taotie = {
+		Name = "【山海秘境】钩吾噬骨魔渊", Description = "白骨堆积如山的幽暗深坑，上古贪兽饕餮率北山狍鸮群盘踞其中。诛灭首恶可得【饕餮噬元凶丹】与《饕餮吞天魔功》残页。",
+		Brush = "world_abandoned_village", Fortified = false, FactionType = "Beasts",
+		Troops = ["boss_taotie", "Ghoul", "Ghoul", "Ghoul", "Ghoul"],
+		RewardManual = "wx_manual_shanhai_taotie", ExtraManual = "wx_manual_tianmo_jieti", GivesHerb = true, IsShanHai = true
+	},
+	shanhai_jiuwei = {
+		Name = "【山海秘境】青丘迷魂幽谷", Description = "桃花瘴雾终年不散的诡异幽谷，千年九尾妖主驱使梦魇讹兽与巨猿护法，心志不坚者慎入！",
+		Brush = "world_ancient_statue", Fortified = false, FactionType = "Beasts",
+		Troops = ["boss_jiuwei", "Alp", "Alp", "Unhold", "Spider", "Spider"],
+		RewardManual = "wx_manual_beiming_huaqi", ExtraManual = "wx_manual_shenxing_baibian", GivesHerb = true, IsShanHai = true
+	},
+	shanhai_bashe = {
+		Name = "【山海秘境】洞庭苍梧黑泽", Description = "巨象枯骨半沉泥沼的黑水大泽，苍梧吞象巴蛇王率群蟒潜伏芦苇深处。斩蛇取胆可铸无双鳞冠。",
+		Brush = "world_cave_01", Fortified = false, FactionType = "Beasts",
+		Troops = ["boss_bashe", "Serpent", "Serpent", "Serpent", "Spider"],
+		RewardManual = "wx_manual_youlong_jinghong", ExtraManual = "wx_manual_jingke_cixin", GivesHerb = true, IsShanHai = true
+	},
+	shanhai_jumang = {
+		Name = "【山海秘境】都广建木神林", Description = "古树参天蔽日的太古秘林，句芒建木王盘根错节，凡刀剑轻砍皆受铁棘反伤，唯有开山巨斧可断其根！",
+		Brush = "world_ancient_temple", Fortified = false, FactionType = "Beasts",
+		Troops = ["boss_jumang", "Schrat", "Schrat"],
+		RewardManual = "wx_manual_pangu_kaitian", ExtraManual = "wx_manual_xuanwu_budong", GivesHerb = true, IsShanHai = true
+	},
+	shanhai_wuzhiqi = {
+		Name = "【山海秘境】龟山寒渊水眼", Description = "铁索崩断的深潭水眼，上古水猿大妖无支祁破封而出，寒涛掌风专封武人经脉。",
+		Brush = "world_buried_castle", Fortified = false, FactionType = "Beasts",
+		Troops = ["boss_wuzhiqi", "Unhold", "Serpent", "Serpent"],
+		RewardManual = "wx_manual_senluo_wanxiang", ExtraManual = "wx_manual_bawang_xiejia", GivesHerb = true, IsShanHai = true
+	},
+	shanhai_xingtian = {
+		Name = "【山海秘境】常羊古战祭坛", Description = "残戈断戟插满焦土的上古祭坛，无首巨人战魂犹自挥舞干戚守卫山陵，乃天下武人检验至刚破邪绝学的试金石！",
+		Brush = "world_ancient_temple", Fortified = false, FactionType = "Undead",
+		Troops = ["boss_xingtian", "SkeletonHeavy", "SkeletonHeavy", "SkeletonHeavy", "SkeletonPriest"],
+		RewardManual = "wx_manual_shanhai_xingtian", ExtraManual = "wx_manual_jiuyao_pocheng", GivesHerb = true, IsShanHai = true
 	}
 };

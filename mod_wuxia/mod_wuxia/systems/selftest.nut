@@ -199,8 +199,8 @@
 		}
 		local heart = ::new("scripts/items/misc/unhold_heart_item");
 		local brain = ::new("scripts/items/misc/ghoul_brain_item");
-		if (heart.getID() != "misc.unhold_heart" || heart.getName() != "白猿心头血核") throw "Unhold heart remap failed";
-		if (brain.getID() != "misc.ghoul_brain" || brain.getName() != "食腐山魈脑髓") throw "Ghoul brain remap failed";
+		if (heart.getID() != "misc.unhold_heart" || heart.getName() != "朱厌心头赤血核") throw "Unhold heart Shan Hai remap failed: " + heart.getName();
+		if (brain.getID() != "misc.ghoul_brain" || brain.getName() != "狍鸮颅内髓珠") throw "Ghoul brain Shan Hai remap failed: " + brain.getName();
 
 		local ev = ::new("scripts/events/events/wx_event_grand_tournament");
 		if (ev.getID() != "event.wx_grand_tournament" || ev.m.Screens.len() < 4) throw "Tournament event invalid";
@@ -326,8 +326,15 @@
 		}
 		foreach (specs in [::Wuxia.Config.Vendettas, ::Wuxia.Config.Strongholds])
 			foreach (key, spec in specs)
+			{
+				if ("RewardManual" in spec && spec.RewardManual != null && ::Wuxia.Slots.getManualDef(spec.RewardManual) == null)
+					throw "Invalid RewardManual in " + key;
+				if ("ExtraManual" in spec && spec.ExtraManual != null && ::Wuxia.Slots.getManualDef(spec.ExtraManual) == null)
+					throw "Invalid ExtraManual in " + key;
 				foreach (role in spec.Troops)
-					if (!(role in ::Wuxia.Config.Fighters) && !(role in ::Const.World.Spawn.Troops)) throw role;
+					if (!(role in ::Wuxia.Config.Fighters) && !(role in ::Wuxia.Config.ShanHaiBosses) && !(role in ::Const.World.Spawn.Troops))
+						throw "Unresolvable encounter troop: " + role + " in " + key;
+			}
 	});
 	check("Weapon families and per-quality martial stat budgets", function() {
 		local weapons = {
@@ -654,6 +661,77 @@
 		c.onAnySkillUsed(mockAtk, lowHpEnemy, atkProps);
 		if (::Math.abs(atkProps.DamageTotalMult - 1.20) > 0.001)
 			throw "Expected 1.20x ExecuteLowHpDmg on <50% HP target, got " + atkProps.DamageTotalMult;
+	});
+
+	check("v0.6.0 Shan Hai Jing: 9 Apex Bosses, 9 Neidan Cores, 8 Red Gear/Talismans, 9 Blueprints & Rumor Event", function() {
+		if (::Const.Strings.EntityName[::Const.EntityType.Unhold] != "小次山朱厌巨猿" || ::Const.Strings.EntityName[::Const.EntityType.Lindwurm] != "太华六足肥遗蛟")
+			throw "Shan Hai EntityName mapping mismatch";
+
+		// 1. Verify all 9 Boss configs, traits, locations & Neidan Cores
+		local bossCount = 0;
+		foreach (bid, bcfg in ::Wuxia.Config.ShanHaiBosses)
+		{
+			bossCount += 1;
+			if (!(bcfg.BaseTroop in ::Const.World.Spawn.Troops) || !(bcfg.EntityType in ::Const.EntityType))
+				throw "Invalid Boss BaseTroop/EntityType: " + bid;
+			local trait = ::new("scripts/skills/special/wx_shanhai_boss_trait");
+			trait.setBossID(bcfg.Key);
+			local p = ::Const.CharacterProperties.getClone();
+			trait.onUpdate(p);
+			if (bcfg.Key == "qiongqi" && p.ActionPoints < 11) throw "Qiongqi did not reach 11 AP";
+
+			local core = ::new("scripts/items/misc/" + bcfg.CoreID);
+			if (core.getID() != "misc." + bcfg.CoreID || core.getName() == "" || core.m.Icon == "")
+				throw "Invalid Shan Hai Core item: " + bcfg.CoreID;
+			core.getTooltip();
+
+			local lair = ::new("scripts/entity/world/locations/wx_" + bcfg.LairID);
+			if (lair.getTypeID() != "location.wx_" + bcfg.LairID)
+				throw "Invalid Shan Hai Lair location: " + bcfg.LairID;
+		}
+		if (bossCount != 9) throw "Expected 9 Shan Hai Apex Bosses, got " + bossCount;
+
+		// 2. Instantiate all 8 Shan Hai Red Armors / Helmets / Talismans
+		foreach (gid, gcfg in ::Wuxia.Config.ShanHaiGear)
+		{
+			local path = gcfg.Kind == "armor" ? ("scripts/items/armor/named/" + gid)
+				: (gcfg.Kind == "helmet" ? ("scripts/items/helmets/named/" + gid) : ("scripts/items/accessory/" + gid));
+			local gear = ::new(path);
+			if (gear.getName() != gcfg.Name || gear.m.Icon == "")
+				throw "Invalid Shan Hai Gear item: " + gid;
+			gear.getTooltip();
+			if (gid == "wx_armor_qiongqi" && gear.m.StaminaModifier < -9)
+				throw "Qiongqi nimble armor exceeded -9 stamina penalty: " + gear.m.StaminaModifier;
+			if (gid == "wx_acc_jiuwei")
+			{
+				local p1 = ::Const.CharacterProperties.getClone();
+				local b0 = p1.Bravery;
+				gear.onUpdateProperties(p1);
+				if (p1.Bravery - b0 != 12) throw "Jiuwei talisman did not add +12 Bravery";
+			}
+			if (gid == "wx_acc_wuzhiqi")
+			{
+				local p2 = ::Const.CharacterProperties.getClone();
+				gear.onUpdateProperties(p2);
+				if (!p2.IsImmuneToPoison || p2.FatigueRecoveryRate < 2) throw "Wuzhiqi pearl did not grant Poison Immunity & Qi recovery";
+			}
+		}
+
+		// 3. Instantiate all 9 Shan Hai Taxidermist Blueprints & Rumor Event
+		foreach (bpName in [
+			"wx_bp_armor_zhuyan", "wx_bp_armor_feiyi", "wx_bp_armor_qiongqi", "wx_bp_armor_jumang",
+			"wx_bp_helm_taotie", "wx_bp_helm_bashe", "wx_bp_acc_jiuwei", "wx_bp_acc_wuzhiqi",
+			"wx_bp_relic_xingtianqi"
+		])
+		{
+			local bp = ::new("scripts/crafting/blueprints/" + bpName);
+			if (bp.getID() != "blueprint." + bpName) throw "Invalid Shan Hai blueprint: " + bpName;
+		}
+
+		local rumor = ::new("scripts/events/events/wx_event_shanhai_rumor");
+		if (rumor.getID() != "event.wx_shanhai_rumor" || rumor.m.Screens.len() < 3)
+			throw "Invalid Shan Hai rumor event";
+		::logInfo("[WX-SELFTEST] Verified 9 Shan Hai Apex Bosses, 9 Cores, 8 Red Gear/Talismans & 9 Blueprints");
 	});
 	::logInfo("[WX-SELFTEST] ================= Result: " + passed + " PASSED, " + failed + " FAILED =================");
 };
