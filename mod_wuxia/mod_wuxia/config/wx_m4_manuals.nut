@@ -159,3 +159,127 @@
 		{ ExpNeeded = 800, Stats = { Bravery = 20 }, GrantSkills = ["perk.fearsome"], Flags = { VsUndeadDmg = 0.18, AntiFearAura = true }, Summary = "定力 +20；破邪总伤 +18%，自身对抗怨灵惊骇等负面战意检定额外 +15 定力！" }
 	]
 };
+
+// =========================================================================
+// 五、M4.1b 全兵器补完与玄门/玄冰心法（重锤 / 大斧 / 软鞭连枷 / 短匕 / 神机火器）
+// =========================================================================
+
+::Wuxia.Config.Manuals.wx_manual_hanshan_chui <- {
+	ID = "wx_manual_hanshan_chui", Name = "撼山锤法", Category = "waigong", Quality = "common",
+	Element = null, WeaponTypes = ["Hammer"], Icon = "ui/perks/perk_44.png",
+	Description = "朔方与太行力士惯习的基础重锤套路，沉腰坐马、专砸铁甲。",
+	BasePrice = 340, FragmentsNeeded = 0, AllowFragmentLearn = false, Requirements = {},
+	Levels = [
+		{ ExpNeeded = 0,   Stats = { MeleeSkill = 1 },                   GrantSkills = [], Flags = { WeaponQiDiscount = 0.08 }, Summary = "持锤武艺 +1，锤招内息消耗 -8%。" },
+		{ ExpNeeded = 80,  Stats = { MeleeSkill = 2 },                   GrantSkills = [], Flags = { WeaponQiDiscount = 0.14, ArmorDmgBonus = 0.08 }, Summary = "持锤武艺 +2，破甲 +8%，锤招消耗 -14%。" },
+		{ ExpNeeded = 180, Stats = { MeleeSkill = 3, MeleeDefense = 2 }, GrantSkills = [], Flags = { WeaponQiDiscount = 0.20, ArmorDmgBonus = 0.15 }, Summary = "持锤武艺 +3，招架 +2，破甲 +15%，锤招消耗 -20%。" }
+	]
+};
+
+::Wuxia.Config.Manuals.wx_manual_zhenyue_chui <- {
+	ID = "wx_manual_zhenyue_chui", Name = "震岳碎甲锤", Category = "waigong", Quality = "sect",
+	Element = null, WeaponTypes = ["Hammer"], Icon = "ui/perks/perk_44.png",
+	Description = "太行震岳门镇派重锤法，锤出如山崩石裂，隔着百炼重甲亦能震碎五脏。",
+	BasePrice = 2200, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { MeleeSkill = 65, Stamina = 100 },
+	Levels = [
+		{ ExpNeeded = 0,   Stats = { MeleeSkill = 2, MeleeDefense = 1 }, GrantSkills = ["actives.wx_hammer_shatter"], Flags = { ArmorDmgBonus = 0.12 }, Summary = "武艺 +2，招架 +1，破甲 +12%；解锁「震岳碎甲击」（高破甲保底震伤致失衡）。" },
+		{ ExpNeeded = 160, Stats = { MeleeSkill = 4, MeleeDefense = 2 }, GrantSkills = ["actives.wx_hammer_shatter"], Flags = { ArmorDmgBonus = 0.18, DirectDmgBonus = 0.06 }, Summary = "武艺 +4，招架 +2；破甲 +18%，穿甲 +6%。" },
+		{ ExpNeeded = 360, Stats = { MeleeSkill = 5, MeleeDefense = 3 }, GrantSkills = ["actives.wx_hammer_shatter"], Flags = { ArmorDmgBonus = 0.25, DirectDmgBonus = 0.12 }, Summary = "武艺 +5，招架 +3；破甲 +25%，穿甲 +12%，专克重甲铁卫与金甲古墓卫。" }
+	]
+};
+
+::Wuxia.Config.Manuals.wx_manual_kaishan_fu <- {
+	ID = "wx_manual_kaishan_fu", Name = "开山斧法", Category = "waigong", Quality = "common",
+	Element = null, WeaponTypes = ["Axe"], Icon = "ui/perks/perk_43.png",
+	Description = "关外樵客与绿林前锋常用的劈砍斧式，势大力沉、易伤头颅。",
+	BasePrice = 340, FragmentsNeeded = 0, AllowFragmentLearn = false, Requirements = {},
+	Levels = [
+		{ ExpNeeded = 0,   Stats = { MeleeSkill = 1 }, GrantSkills = [], Flags = { WeaponQiDiscount = 0.08 }, Summary = "持斧武艺 +1，斧招内息消耗 -8%。" },
+		{ ExpNeeded = 80,  Stats = { MeleeSkill = 2 }, GrantSkills = [], Flags = { WeaponQiDiscount = 0.14, CritHeadBonus = 5 }, Summary = "持斧武艺 +2，击头几率 +5%，斧招消耗 -14%。" },
+		{ ExpNeeded = 180, Stats = { MeleeSkill = 3 }, GrantSkills = [], Flags = { WeaponQiDiscount = 0.20, CritHeadBonus = 10 }, Summary = "持斧武艺 +3，击头几率 +10%，斧招消耗 -20%。" }
+	]
+};
+
+::Wuxia.Config.Manuals.wx_manual_pishan_fu <- {
+	ID = "wx_manual_pishan_fu", Name = "劈山断门斧", Category = "waigong", Quality = "sect",
+	Element = null, WeaponTypes = ["Axe"], Icon = "ui/perks/perk_43.png",
+	Description = "辽东劈山盟刚猛斧法，遇盾碎盾、无盾断门，专破刀盾龟缩阵线。",
+	BasePrice = 2200, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { MeleeSkill = 65 },
+	Levels = [
+		{ ExpNeeded = 0,   Stats = { MeleeSkill = 2 }, GrantSkills = ["actives.wx_axe_split"], Flags = { ArmorDmgBonus = 0.10, CritHeadBonus = 5 }, Summary = "武艺 +2，破甲 +10%；解锁「力劈华山」（持盾碎盾、无盾增伤留破绽）。" },
+		{ ExpNeeded = 160, Stats = { MeleeSkill = 4 }, GrantSkills = ["actives.wx_axe_split"], Flags = { ArmorDmgBonus = 0.18, CritHeadBonus = 8 }, Summary = "武艺 +4；破甲 +18%，击头几率 +8%。" },
+		{ ExpNeeded = 360, Stats = { MeleeSkill = 5, MeleeDefense = 2 }, GrantSkills = ["actives.wx_axe_split"], Flags = { ArmorDmgBonus = 0.25, CritHeadBonus = 12 }, Summary = "武艺 +5，招架 +2；破甲 +25%，击头几率 +12%。" }
+	]
+};
+
+::Wuxia.Config.Manuals.wx_manual_chansi_bian <- {
+	ID = "wx_manual_chansi_bian", Name = "缠丝软鞭谱", Category = "waigong", Quality = "sect",
+	Element = null, WeaponTypes = ["Flail"], Icon = "ui/perks/perk_42.png",
+	Description = "云梦软鞭门奇门鞭枷谱：流星锤与九节鞭诡谲拐弯，专绕盾牌死角猛抽面门。",
+	BasePrice = 2150, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { MeleeSkill = 64 },
+	Levels = [
+		{ ExpNeeded = 0,   Stats = { MeleeSkill = 2, MeleeDefense = 1 }, GrantSkills = ["actives.wx_flail_lash"], Flags = { CritHeadBonus = 6, WeaponQiDiscount = 0.10 }, Summary = "武艺 +2，招架 +1；解锁「云梦绕盾抽」（无视盾防、高击头致失衡）。" },
+		{ ExpNeeded = 160, Stats = { MeleeSkill = 4, MeleeDefense = 2 }, GrantSkills = ["actives.wx_flail_lash"], Flags = { CritHeadBonus = 10, WeaponQiDiscount = 0.15 }, Summary = "武艺 +4，招架 +2；击头几率 +10%，鞭枷消耗 -15%。" },
+		{ ExpNeeded = 360, Stats = { MeleeSkill = 5, MeleeDefense = 3 }, GrantSkills = ["actives.wx_flail_lash"], Flags = { CritHeadBonus = 15, WeaponQiDiscount = 0.20, DirectDmgBonus = 0.10 }, Summary = "武艺 +5，招架 +3；击头 +15%，穿甲 +10%，鞭枷消耗 -20%。" }
+	]
+};
+
+::Wuxia.Config.Manuals.wx_manual_fenshui_ci <- {
+	ID = "wx_manual_fenshui_ci", Name = "分水透骨刺", Category = "waigong", Quality = "common",
+	Element = null, WeaponTypes = ["Dagger"], Icon = "ui/perks/perk_51.png",
+	Description = "江淮水寨与夜行人惯使的贴身短匕刺法，出手狠快，专寻甲叶缝隙。",
+	BasePrice = 350, FragmentsNeeded = 0, AllowFragmentLearn = false, Requirements = {},
+	Levels = [
+		{ ExpNeeded = 0,   Stats = { MeleeSkill = 1, Initiative = 3 }, GrantSkills = [], Flags = { WeaponQiDiscount = 0.08 }, Summary = "持匕武艺 +1，身法 +3，短刃消耗 -8%。" },
+		{ ExpNeeded = 80,  Stats = { MeleeSkill = 2, Initiative = 5 }, GrantSkills = [], Flags = { WeaponQiDiscount = 0.14 }, Summary = "持匕武艺 +2，身法 +5，短刃消耗 -14%。" },
+		{ ExpNeeded = 180, Stats = { MeleeSkill = 3, Initiative = 8 }, GrantSkills = [], Flags = { WeaponQiDiscount = 0.20, DirectDmgBonus = 0.08 }, Summary = "持匕武艺 +3，身法 +8，短刃消耗 -20%，穿甲 +8%。" }
+	]
+};
+
+::Wuxia.Config.Manuals.wx_manual_youming_bi <- {
+	ID = "wx_manual_youming_bi", Name = "幽冥绝命匕", Category = "waigong", Quality = "secret",
+	Element = null, WeaponTypes = ["Dagger"], Icon = "ui/perks/perk_51.png",
+	Description = "幽冥隐杀楼不传刺客绝学：借队友打出的破绽、失衡或点穴窗口欺身透甲，一匕封喉。",
+	BasePrice = 4600, FragmentsNeeded = 5, AllowFragmentLearn = true, Requirements = { MeleeSkill = 76, Initiative = 105 },
+	Levels = [
+		{ ExpNeeded = 0,   Stats = { MeleeSkill = 3, MeleeDefense = 2 }, GrantSkills = ["actives.wx_dagger_execute"], Flags = { DirectDmgBonus = 0.08 }, Summary = "武艺 +3，招架 +2，穿甲 +8%；解锁「追魂透骨刺」（对受制敌高命暴伤处决）。" },
+		{ ExpNeeded = 250, Stats = { MeleeSkill = 5, MeleeDefense = 3 }, GrantSkills = ["actives.wx_dagger_execute"], Flags = { DirectDmgBonus = 0.12, HitChanceBonus = 5 }, Summary = "武艺 +5，招架 +3；穿甲 +12%，近战命中 +5%。" },
+		{ ExpNeeded = 600, Stats = { MeleeSkill = 7, MeleeDefense = 5 }, GrantSkills = ["actives.wx_dagger_execute"], Flags = { DirectDmgBonus = 0.15, HitChanceBonus = 8, CritHeadBonus = 10 }, Summary = "武艺 +7，招架 +5；穿甲 +15%，命中 +8%，击头 +10%。" }
+	]
+};
+
+::Wuxia.Config.Manuals.wx_manual_shenji <- {
+	ID = "wx_manual_shenji", Name = "神机火器谱", Category = "waigong", Quality = "sect",
+	Element = null, WeaponTypes = ["Firearm", "Crossbow"], Icon = "ui/perks/perk_49.png",
+	Description = "神机火器营秘传铅弹火铳与劲弩阵法，轰雷掣电震慑敌阵，令当面之敌魂飞失衡。",
+	BasePrice = 2400, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { RangedSkill = 66 },
+	Levels = [
+		{ ExpNeeded = 0,   Stats = { RangedSkill = 2, RangedDefense = 1 }, GrantSkills = [], Flags = { FirearmDazePct = 30 }, Summary = "射艺 +2，避暗 +1；火铳或劲弩命中时 30% 几率震得目标「失衡」。" },
+		{ ExpNeeded = 160, Stats = { RangedSkill = 4, RangedDefense = 2 }, GrantSkills = [], Flags = { FirearmDazePct = 55, ArmorDmgBonus = 0.12 }, Summary = "射艺 +4，避暗 +2；火铳/劲弩震慑失衡率 55%，破甲伤害 +12%。" },
+		{ ExpNeeded = 360, Stats = { RangedSkill = 5, RangedDefense = 3 }, GrantSkills = [], Flags = { FirearmDazePct = 80, ArmorDmgBonus = 0.20, DirectDmgBonus = 0.08 }, Summary = "射艺 +5，避暗 +3；火铳/劲弩命中 80% 几率致「失衡」，破甲 +20%，穿甲 +8%。" }
+	]
+};
+
+::Wuxia.Config.Manuals.wx_manual_taihe <- {
+	ID = "wx_manual_taihe", Name = "太和纯阳功", Category = "neigong", Quality = "secret",
+	Element = "neutral", WeaponTypes = [], Icon = "ui/perks/perk_21.png",
+	Description = "太和玄门镇山道家内功绝学，圆融冲和、全无偏执相克之虞，兼具绵长回气与借力护体真气。",
+	BasePrice = 4700, FragmentsNeeded = 5, AllowFragmentLearn = true, Requirements = { Bravery = 58, Stamina = 100 },
+	Levels = [
+		{ ExpNeeded = 0,   Stats = { Stamina = 15, Bravery = 6, FatigueRecoveryRate = 2 },  GrantSkills = ["actives.wx_meditate"], Flags = {}, Summary = "内息 +15，定力 +6，每回合回气 +2。" },
+		{ ExpNeeded = 250, Stats = { Stamina = 25, Bravery = 12, FatigueRecoveryRate = 4 }, GrantSkills = ["actives.wx_meditate"], Flags = { QiShieldPct = 0.25 }, Summary = "内息 +25，定力 +12，回气 +4；解锁 25% 真气护体。" },
+		{ ExpNeeded = 600, Stats = { Stamina = 35, Bravery = 18, FatigueRecoveryRate = 6 }, GrantSkills = ["actives.wx_meditate"], Flags = { QiShieldPct = 0.35, OnDodgeQiRegen = 4, OnDodgeQiCap = 2 }, Summary = "内息 +35，定力 +18，回气 +6；35% 真气护体，近战闪避借力回 4 内息。" }
+	]
+};
+
+::Wuxia.Config.Manuals.wx_manual_hanbing <- {
+	ID = "wx_manual_hanbing", Name = "寒冰护脉诀", Category = "neigong", Quality = "sect",
+	Element = "yin", WeaponTypes = [], Icon = "ui/perks/perk_11.png",
+	Description = "昆仑玄冰宫阴寒心法，真气凛冽似万年玄冰，大成后近身犯我者必受寒劲反侵。",
+	BasePrice = 2000, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { Bravery = 48 },
+	Levels = [
+		{ ExpNeeded = 0,   Stats = { Stamina = 10, Bravery = 4 },  GrantSkills = ["actives.wx_meditate"], Flags = { OnDodgeQiRegen = 2, OnDodgeQiCap = 2 }, Summary = "内息 +10，定力 +4；近战闪避回 2 内息。" },
+		{ ExpNeeded = 160, Stats = { Stamina = 18, Bravery = 8 },  GrantSkills = ["actives.wx_meditate"], Flags = { OnDodgeQiRegen = 3, OnDodgeQiCap = 2, QiShieldPct = 0.25 }, Summary = "内息 +18，定力 +8；解锁 25% 玄冰真气护体。" },
+		{ ExpNeeded = 360, Stats = { Stamina = 25, Bravery = 12 }, GrantSkills = ["actives.wx_meditate"], Flags = { OnDodgeQiRegen = 4, OnDodgeQiCap = 3, QiShieldPct = 0.30, FrostChillOnHit = true }, Summary = "内息 +25，定力 +12；30% 真气护体，受近战命中时寒劲反侵令攻击者陷入「失衡」！" }
+	]
+};

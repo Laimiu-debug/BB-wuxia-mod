@@ -82,8 +82,11 @@ this.wx_event_grand_tournament <- this.inherit("scripts/events/event", {
 			{
 				::World.Assets.addMoney(4500);
 				::World.Assets.addBusinessReputation(250);
-				foreach (sid in ["weiyuan", "qingfeng", "gaibang", "shaolin"])
-					::Wuxia.SectRelations.addRelation(sid, 15);
+				foreach (sid, sdef in ::Wuxia.Config.Sects)
+				{
+					if ("Alignment" in sdef && sdef.Alignment == "righteous")
+						::Wuxia.SectRelations.addRelation(sid, 12);
+				}
 
 				local stash = ::World.Assets.getStash();
 				local uniques = ::Wuxia.Loot.getManualIDsByQuality("unique");

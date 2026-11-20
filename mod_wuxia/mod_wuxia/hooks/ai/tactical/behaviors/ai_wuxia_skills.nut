@@ -43,7 +43,8 @@ extendBehavior("ai_attack_default", [
 	"actives.wx_sword_combo", "actives.wx_sword_tianwai", "actives.wx_saber_cleave",
 	"actives.wx_saber_duanyue", "actives.wx_spear_guard", "actives.wx_acupoint_strike",
 	"actives.wx_throwing_rain", "actives.wx_smoke_cast",
-	"actives.wx_fist_jingang", "actives.wx_fist_acupoint", "actives.wx_fist_disarm"
+	"actives.wx_fist_jingang", "actives.wx_fist_acupoint", "actives.wx_fist_disarm",
+	"actives.wx_hammer_shatter", "actives.wx_axe_split", "actives.wx_flail_lash", "actives.wx_dagger_execute"
 ]);
 extendBehavior("ai_attack_bow", ["actives.wx_throwing_rain", "actives.wx_smoke_cast"]);
 extendBehavior("ai_defend_riposte", ["actives.wx_sword_counter", "actives.wx_poise_charge"]);

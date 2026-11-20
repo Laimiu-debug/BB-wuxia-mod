@@ -43,7 +43,11 @@
 		"scripts/skills/actives/wx_fist_shock",
 		"scripts/skills/actives/wx_fist_jingang",
 		"scripts/skills/actives/wx_fist_acupoint",
-		"scripts/skills/actives/wx_fist_disarm"
+		"scripts/skills/actives/wx_fist_disarm",
+		"scripts/skills/actives/wx_hammer_shatter",
+		"scripts/skills/actives/wx_axe_split",
+		"scripts/skills/actives/wx_flail_lash",
+		"scripts/skills/actives/wx_dagger_execute"
 	];
 
 	foreach (sp in skillScripts)
@@ -282,12 +286,17 @@
 		local weapons = {
 			short_bow = "Bow", crossbow = "Crossbow",
 			wooden_stick = "Staff", goedendag = "Staff", bludgeon = "Staff",
-			wx_fist_wraps = "Fist", wx_fist_iron = "Fist", wx_fist_heavy = "Fist"
+			wx_fist_wraps = "Fist", wx_fist_iron = "Fist", wx_fist_heavy = "Fist",
+			warhammer = "Hammer", military_pick = "Hammer",
+			hand_axe = "Axe", greataxe = "Axe",
+			flail = "Flail", battle_whip = "Flail",
+			rondel_dagger = "Dagger", ["oriental/qatal_dagger"] = "Dagger",
+			["oriental/handgonne"] = "Firearm"
 		};
 		foreach (id, family in weapons)
 		{
 			local w = ::new("scripts/items/weapons/" + id);
-			foreach (test in ["Bow", "Crossbow", "Staff", "Fist"])
+			foreach (test in ["Bow", "Crossbow", "Staff", "Fist", "Hammer", "Axe", "Flail", "Dagger", "Firearm"])
 				if (::Wuxia.CombatRules.matchesWeapon(w, [test]) != (test == family)) throw id + " " + test;
 		}
 		local namedFist = ::new("scripts/items/weapons/named/wx_named_fist");
@@ -452,6 +461,30 @@
 		c.onAnySkillUsed(mockAtk, undeadTarget, atkProps);
 		if (::Math.abs(atkProps.DamageTotalMult - 1.18) > 0.001)
 			throw "Expected 1.18x VsUndeadDmg, got " + atkProps.DamageTotalMult;
+	});
+
+	check("M4.1b 44-Sect regional network & tea-house trio picker", function() {
+		local sectCount = 0;
+		foreach (sid, sdef in ::Wuxia.Config.Sects)
+		{
+			sectCount += 1;
+			if (sid != sdef.ID || !("Region" in sdef) || !(sdef.Region in ::Wuxia.Config.SectRegions))
+				throw "Invalid sect region: " + sid;
+			if (sdef.ShopManuals.len() == 0)
+				throw "Empty ShopManuals: " + sid;
+		}
+		if (sectCount < 44) throw "Expected >= 44 sects, got " + sectCount;
+
+		foreach (reg, _ in ::Wuxia.Config.SectRegions)
+		{
+			local trio = ::Wuxia.SectRelations.pickRegionalTrio(reg);
+			if (trio.len() != 3 || trio[0] == trio[1] || trio[1] == trio[2] || trio[0] == trio[2])
+				throw "Invalid regional trio for " + reg;
+		}
+
+		local ev = ::new("scripts/events/events/wx_event_sect_exchange");
+		if (ev.getID() != "event.wx_sect_exchange" || ev.m.Screens.len() < 7)
+			throw "Invalid upgraded sect exchange event";
 	});
 	::logInfo("[WX-SELFTEST] ================= Result: " + passed + " PASSED, " + failed + " FAILED =================");
 };

@@ -323,6 +323,13 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 				atkBody.setArmor(::Math.max(0, atkBody.getArmor() - agg.ReflectArmorDmg));
 			}
 		}
+		if (agg.FrostChillOnHit && _attacker != null && _attacker.getID() != actor.getID() && _attacker.isAlive() && _skill != null && !_skill.isRanged() && "getSkills" in _attacker && _attacker.getSkills() != null)
+		{
+			local ask = _attacker.getSkills();
+			local ob = ask.getSkillByID("effects.wx_status_offbalance");
+			if (ob == null) ask.add(::new("scripts/skills/effects/wx_status_offbalance"));
+			else ob.resetDuration();
+		}
 
 		// True Qi Shield (阴柔内功护体: 1 Qi mitigates 2 HP damage, capped by QiShieldPct)
 		if (agg.QiShieldPct > 0.0 && _hitInfo.DamageRegular > 0)
@@ -370,6 +377,13 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		}
 		if (_skill.isRanged())
 		{
+			if (agg.FirearmDazePct > 0 && _targetEntity != null && _targetEntity.isAlive() && actor != null && !actor.isAlliedWith(_targetEntity) && ::Math.rand(1, 100) <= agg.FirearmDazePct)
+			{
+				local tsk = _targetEntity.getSkills();
+				local ob = tsk.getSkillByID("effects.wx_status_offbalance");
+				if (ob == null) tsk.add(::new("scripts/skills/effects/wx_status_offbalance"));
+				else ob.resetDuration();
+			}
 			if (agg.SupportShotChance == 0 || this.m.SupportShotUsed || _targetEntity == null || !_targetEntity.isAlive()) return;
 			local shot = _skill.getID();
 			if (shot != "actives.quick_shot" && shot != "actives.aimed_shot" && shot != "actives.shoot_bolt") return;

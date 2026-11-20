@@ -1,5 +1,21 @@
 // Each school fighter uses its native archetype's tactical AI and equipment.
 ::Wuxia.Config.Fighters <- {
+	hammer_adept = {
+		Name = "震岳重锤好手", BaseTroop = "BanditRaider", Weapon = "warhammer", DropChance = 42, IsBoss = false,
+		Manuals = [{ ManualID = "wx_manual_zhenyue_chui", Tier = 2, Weight = 60 }, { ManualID = "wx_manual_tiebushan", Tier = 2, Weight = 40 }]
+	},
+	axe_vanguard = {
+		Name = "劈山巨斧前锋", BaseTroop = "BanditRaider", Weapon = "fighting_axe", DropChance = 42, IsBoss = false,
+		Manuals = [{ ManualID = "wx_manual_pishan_fu", Tier = 2, Weight = 65 }, { ManualID = "wx_manual_xingqi", Tier = 2, Weight = 35 }]
+	},
+	whip_stalker = {
+		Name = "云梦软鞭手", BaseTroop = "BanditRaider", Weapon = "flail", DropChance = 42, IsBoss = false,
+		Manuals = [{ ManualID = "wx_manual_chansi_bian", Tier = 2, Weight = 65 }, { ManualID = "wx_manual_chanzi", Tier = 2, Weight = 35 }]
+	},
+	shadow_dagger = {
+		Name = "幽冥执匕刺客", BaseTroop = "BanditRaider", Weapon = "rondel_dagger", DropChance = 45, IsBoss = false,
+		Manuals = [{ ManualID = "wx_manual_youming_bi", Tier = 2, Weight = 45 }, { ManualID = "wx_manual_fenshui_ci", Tier = 3, Weight = 55 }]
+	},
 	monk_fighter = {
 		Name = "少室戒律武僧", BaseTroop = "BanditRaider", Weapon = "wx_fist_iron", DropChance = 45, IsBoss = false,
 		Manuals = [{ ManualID = "wx_manual_jingang", Tier = 2, Weight = 55 }, { ManualID = "wx_manual_nianhua", Tier = 1, Weight = 20 }, { ManualID = "wx_manual_tiebushan", Tier = 2, Weight = 25 }]
@@ -31,7 +47,12 @@
 };
 
 ::Wuxia.Config.Vendettas <- {
-	wx_wudu_ambushers = { Name = "五毒蛊影追杀队", Troops = ["GoblinAmbusher", "dartist", "GoblinSkirmisher", "GoblinAmbusher"] },
+	wx_zhenyue_hammers     = { Name = "太行震岳问罪队", Troops = ["hammer_adept", "hammer_adept", "escort"] },
+	wx_pishan_axemen       = { Name = "辽东劈山追剿队", Troops = ["axe_vanguard", "axe_vanguard", "BanditRaider"] },
+	wx_jiujie_whips        = { Name = "云梦软鞭缉拿队", Troops = ["whip_stalker", "whip_stalker", "dartist"] },
+	wx_yinsha_assassins    = { Name = "幽冥隐杀刺客团", Troops = ["shadow_dagger", "shadow_dagger", "dartist"] },
+	wx_shenji_gunners      = { Name = "神机营追缉铳队", Troops = ["Gunner", "escort", "BanditMarksman"] },
+	wx_wudu_ambushers      = { Name = "五毒蛊影追杀队", Troops = ["GoblinAmbusher", "dartist", "GoblinSkirmisher", "GoblinAmbusher"] },
 	wx_shaolin_monks = { Name = "少室戒律武僧队", Troops = ["monk_fighter", "monk_fighter", "staff_guard"] },
 	wx_tangmen_skirmishers = { Name = "唐门追影队", Troops = ["dartist", "BanditMarksman", "dartist"] },
 	wx_gaibang_guards = { Name = "丐帮护棒队", Troops = ["staff_guard", "staff_guard", "BanditThug"] },

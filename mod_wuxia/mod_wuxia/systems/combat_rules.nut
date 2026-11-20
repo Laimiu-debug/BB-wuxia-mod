@@ -42,6 +42,11 @@
 		else if (wtName == "Crossbow" && wid.find("crossbow") != null) return true;
 		else if (wtName == "Staff" && (wid == "weapon.wooden_stick" || wid == "weapon.bludgeon" || wid == "weapon.goedendag")) return true;
 		else if (wtName == "Fist" && (wid.find("wx_fist") != null || wid.find("wx_named_fist") != null || cats.find("fist") != null || cats.find("拳") != null || cats.find("掌") != null)) return true;
+		else if (wtName == "Hammer" && (wid.find("hammer") != null || wid == "weapon.military_pick" || wid == "weapon.pickaxe" || wid == "weapon.heavy_mining_pick" || cats.find("hammer") != null || cats.find("锤") != null)) return true;
+		else if (wtName == "Axe" && wid != "weapon.pickaxe" && (wid.find("axe") != null || wid.find("hatchet") != null || wid.find("bardiche") != null || cats.find("axe") != null || cats.find("斧") != null)) return true;
+		else if (wtName == "Flail" && (wid.find("flail") != null || wid.find("whip") != null || cats.find("flail") != null || cats.find("连枷") != null || cats.find("鞭") != null)) return true;
+		else if (wtName == "Dagger" && (wid.find("dagger") != null || wid == "weapon.knife" || wid.find("qatal") != null || wid == "weapon.goblin_notched_blade" || cats.find("dagger") != null || cats.find("匕") != null)) return true;
+		else if (wtName == "Firearm" && (wid.find("handgonne") != null || wid.find("firelance") != null || wid.find("firearm") != null || cats.find("firearm") != null || cats.find("火器") != null || cats.find("火铳") != null)) return true;
 	}
 	return false;
 };
@@ -107,6 +112,8 @@
 		ReflectArmorDmg      = 0,
 		VsUndeadDmg          = 0.0,
 		AntiFearAura         = false,
+		FirearmDazePct       = 0,
+		FrostChillOnHit      = false,
 		InflictOpeningPct    = null,
 		InflictOffBalancePct = null,
 		HasFragmentManual    = false
@@ -160,13 +167,13 @@
 		if ("DirectDmgBonus" in f && f.DirectDmgBonus > agg.DirectDmgBonus) agg.DirectDmgBonus = f.DirectDmgBonus;
 		if ("ArmorPenBonus" in f && f.ArmorPenBonus > agg.DirectDmgBonus) agg.DirectDmgBonus = f.ArmorPenBonus;
 		// These bonuses use the strongest equipped source, including fractional damage.
-		foreach (key in ["AntiInternalInjury", "IgnoreDodgeHalf", "StaffGuard", "PoisonImmune", "AntiFearAura"])
+		foreach (key in ["AntiInternalInjury", "IgnoreDodgeHalf", "StaffGuard", "PoisonImmune", "AntiFearAura", "FrostChillOnHit"])
 			if (key in f && f[key]) agg[key] = true;
 		foreach (key in ["BloodBurstAP", "CounterBonus", "CritHeadBonus", "HitChanceBonus",
 			"MoveAPDiscount", "ThrowingDmgBonus", "ZoCBonusHit", "SupportShotChance",
 			"FastAdaptBonus", "SurroundHitBonus", "GuixiTier", "EmptyOffhandPen",
 			"CommandAuraPct", "RallyBonus", "JingangStunPct", "DisarmHitBonus",
-			"WuduPoisonPct", "VsPoisonedHit", "ReflectArmorDmg", "VsUndeadDmg"])
+			"WuduPoisonPct", "VsPoisonedHit", "ReflectArmorDmg", "VsUndeadDmg", "FirearmDazePct"])
 			if (key in f && f[key] > agg[key]) agg[key] = f[key];
 		if ("InflictOpeningPct" in f && (agg.InflictOpeningPct == null || f.InflictOpeningPct > agg.InflictOpeningPct))
 			agg.InflictOpeningPct = f.InflictOpeningPct;
