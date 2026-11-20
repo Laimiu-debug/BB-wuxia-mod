@@ -117,6 +117,7 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		if (_skillID == "actives.indomitable")      return "scripts/skills/actives/indomitable";
 		if (_skillID == "perk.brawny")              return "scripts/skills/perks/perk_brawny";
 		if (_skillID == "perk.steel_brow")          return "scripts/skills/perks/perk_steel_brow";
+		if (_skillID == "perk.fearsome")            return "scripts/skills/perks/perk_fearsome";
 		if (_skillID == "perk.quick_hands")         return "scripts/skills/perks/perk_quick_hands";
 		if (_skillID == "perk.nine_lives")          return "scripts/skills/perks/wx_manual_nine_lives";
 		if (_skillID == "perk.pathfinder")          return "scripts/skills/perks/wx_manual_pathfinder";
@@ -214,6 +215,16 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		{
 			_properties.SurroundedBonus += agg.SurroundHitBonus;
 		}
+		if (agg.PoisonImmune)
+		{
+			_properties.IsImmuneToPoison = true;
+			if (container != null && container.hasSkill("effects.wx_status_poison_dart"))
+				container.removeByID("effects.wx_status_poison_dart");
+		}
+		if (agg.AntiFearAura && ("MoraleCheckBravery" in _properties) && typeof _properties.MoraleCheckBravery == "array" && _properties.MoraleCheckBravery.len() > 0)
+		{
+			_properties.MoraleCheckBravery[0] += 15;
+		}
 	}
 
 	function onAfterUpdate( _properties )
@@ -259,6 +270,17 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		local f = this.m.CachedAggFlags;
 		if (f == null || _skill == null || !_skill.isAttack() || !_skill.m.IsWeaponSkill) return;
 		local adaptHit = (f.FastAdaptBonus > 0 && this.m.FastAdaptStacks > 0) ? (this.m.FastAdaptStacks * f.FastAdaptBonus) : 0;
+		if (_targetEntity != null)
+		{
+			if (f.VsUndeadDmg > 0.0 && ::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity))
+				_properties.DamageTotalMult *= (1.0 + f.VsUndeadDmg);
+			if (f.VsPoisonedHit > 0 && "getSkills" in _targetEntity && _targetEntity.getSkills() != null)
+			{
+				local tsk = _targetEntity.getSkills();
+				if (tsk.hasSkill("effects.wx_status_poison_dart") || tsk.hasSkill("effects.spider_poison") || tsk.hasSkill("effects.goblin_poison"))
+					adaptHit += f.VsPoisonedHit;
+			}
+		}
 		if (!_skill.isRanged())
 		{
 			_properties.MeleeSkill += f.HitChanceBonus + adaptHit + (this.m.IsIntercepting ? f.ZoCBonusHit : 0);
@@ -285,13 +307,21 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		if (actor == null || this.m.CachedAggFlags == null) return;
 		local agg = this.m.CachedAggFlags;
 
-		// Iron Shirt / Battle Forged heavy armor mitigation
+		// Iron Shirt / Golden Bell heavy armor mitigation & melee armor reflection
 		if (agg.HeavyArmorScale > 0.0)
 		{
 			local totalArmor = actor.getArmor(::Const.BodyPart.Body) + actor.getArmor(::Const.BodyPart.Head);
 			local mult = 1.0 - (totalArmor * agg.HeavyArmorScale * 0.01);
 			if (mult < 0.50) mult = 0.50;
 			_properties.DamageReceivedArmorMult *= mult;
+		}
+		if (agg.ReflectArmorDmg > 0 && _attacker != null && _attacker.getID() != actor.getID() && _attacker.isAlive() && _skill != null && !_skill.isRanged() && "getItems" in _attacker && _attacker.getItems() != null)
+		{
+			local atkBody = _attacker.getItems().getItemAtSlot(::Const.ItemSlot.Body);
+			if (atkBody != null && atkBody.getArmor() > 0)
+			{
+				atkBody.setArmor(::Math.max(0, atkBody.getArmor() - agg.ReflectArmorDmg));
+			}
 		}
 
 		// True Qi Shield (阴柔内功护体: 1 Qi mitigates 2 HP damage, capped by QiShieldPct)
@@ -327,6 +357,17 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		if (_skill.isAttack()) this.m.FastAdaptStacks = 0;
 		local agg = this.m.CachedAggFlags;
 		local actor = this.getContainer().getActor();
+
+		if (agg.WuduPoisonPct > 0 && _damageInflictedHitpoints >= 4 && _targetEntity != null && _targetEntity.isAlive() && actor != null && !actor.isAlliedWith(_targetEntity) && !::Wuxia.CombatRules.isImmuneToMeridianAndPoison(_targetEntity))
+		{
+			if (::Math.rand(1, 100) <= agg.WuduPoisonPct)
+			{
+				local tsk = _targetEntity.getSkills();
+				local p = tsk.getSkillByID("effects.wx_status_poison_dart");
+				if (p == null) tsk.add(::new("scripts/skills/effects/wx_status_poison_dart"));
+				else if ("resetDuration" in p) p.resetDuration();
+			}
+		}
 		if (_skill.isRanged())
 		{
 			if (agg.SupportShotChance == 0 || this.m.SupportShotUsed || _targetEntity == null || !_targetEntity.isAlive()) return;

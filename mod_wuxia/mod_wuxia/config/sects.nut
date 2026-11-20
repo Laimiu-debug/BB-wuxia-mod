@@ -70,5 +70,14 @@
 			{ ManualID = "wx_manual_tiebushan", MinRel = 35, Price = 2300 },
 			{ ManualID = "wx_manual_nianhua",   MinRel = 55, Price = 4600 }
 		]
+	},
+	wudu = {
+		ID = "wudu", Name = "五毒奇门", Description = "盘踞南疆密林的奇门毒派，精研吹箭奇毒、烟幕暗器与百毒不侵之术。",
+		DefaultRel = -10, VendettaRel = -25, VendettaParty = "wx_wudu_ambushers",
+		ShopManuals = [
+			{ ManualID = "wx_manual_xiushou", MinRel = 5,  Price = 350 },
+			{ ManualID = "wx_manual_wudu",    MinRel = 25, Price = 2300 },
+			{ ManualID = "wx_manual_baoyu",   MinRel = 50, Price = 4000 }
+		]
 	}
 };

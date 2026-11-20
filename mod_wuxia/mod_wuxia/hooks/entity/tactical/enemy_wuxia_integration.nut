@@ -44,7 +44,13 @@ local registerEnemyHook = function( _scriptPath, _archetypeKey )
 	});
 };
 
+local hookedScripts = {};
 foreach (key, profile in ::Wuxia.Loot.EnemyLoadouts)
 {
-	registerEnemyHook(profile.Script, key);
+	local sp = ::Wuxia.Loot.resolveEnemyScript(profile);
+	if (sp != null && !(sp in hookedScripts))
+	{
+		hookedScripts[sp] <- true;
+		registerEnemyHook(sp, key);
+	}
 }

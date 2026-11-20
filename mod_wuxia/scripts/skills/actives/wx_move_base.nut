@@ -72,6 +72,8 @@ this.wx_move_base <- this.inherit("scripts/skills/skill", {
 	{
 		if (_target == null || !_target.isAlive() || _effectID == null || _effectScript == null)
 			return;
+		if ((_effectID == "effects.wx_status_acupoint" || _effectID == "effects.wx_status_poison_dart") && ::Wuxia.CombatRules.isImmuneToMeridianAndPoison(_target))
+			return;
 		if (_chanceFlag != null)
 		{
 			local c = this.getContainer().getSkillByID("special.wx_martial_container");

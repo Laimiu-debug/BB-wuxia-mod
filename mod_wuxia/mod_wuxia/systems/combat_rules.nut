@@ -101,6 +101,12 @@
 		RallyBonus           = 0,
 		JingangStunPct       = 0,
 		DisarmHitBonus       = 0,
+		WuduPoisonPct        = 0,
+		PoisonImmune         = false,
+		VsPoisonedHit        = 0,
+		ReflectArmorDmg      = 0,
+		VsUndeadDmg          = 0.0,
+		AntiFearAura         = false,
 		InflictOpeningPct    = null,
 		InflictOffBalancePct = null,
 		HasFragmentManual    = false
@@ -154,12 +160,13 @@
 		if ("DirectDmgBonus" in f && f.DirectDmgBonus > agg.DirectDmgBonus) agg.DirectDmgBonus = f.DirectDmgBonus;
 		if ("ArmorPenBonus" in f && f.ArmorPenBonus > agg.DirectDmgBonus) agg.DirectDmgBonus = f.ArmorPenBonus;
 		// These bonuses use the strongest equipped source, including fractional damage.
-		foreach (key in ["AntiInternalInjury", "IgnoreDodgeHalf", "StaffGuard"])
+		foreach (key in ["AntiInternalInjury", "IgnoreDodgeHalf", "StaffGuard", "PoisonImmune", "AntiFearAura"])
 			if (key in f && f[key]) agg[key] = true;
 		foreach (key in ["BloodBurstAP", "CounterBonus", "CritHeadBonus", "HitChanceBonus",
 			"MoveAPDiscount", "ThrowingDmgBonus", "ZoCBonusHit", "SupportShotChance",
 			"FastAdaptBonus", "SurroundHitBonus", "GuixiTier", "EmptyOffhandPen",
-			"CommandAuraPct", "RallyBonus", "JingangStunPct", "DisarmHitBonus"])
+			"CommandAuraPct", "RallyBonus", "JingangStunPct", "DisarmHitBonus",
+			"WuduPoisonPct", "VsPoisonedHit", "ReflectArmorDmg", "VsUndeadDmg"])
 			if (key in f && f[key] > agg[key]) agg[key] = f[key];
 		if ("InflictOpeningPct" in f && (agg.InflictOpeningPct == null || f.InflictOpeningPct > agg.InflictOpeningPct))
 			agg.InflictOpeningPct = f.InflictOpeningPct;

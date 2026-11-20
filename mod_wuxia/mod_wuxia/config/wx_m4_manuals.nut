@@ -119,3 +119,43 @@
 		{ ExpNeeded = 600, Stats = { MeleeSkill = 7, MeleeDefense = 5 }, GrantSkills = ["actives.wx_fist_acupoint", "actives.wx_fist_disarm"], Flags = { DirectDmgBonus = 0.15, HitChanceBonus = 8, DisarmHitBonus = 10 }, Summary = "武艺 +7，招架 +5，穿甲 +15%，近战命中 +8%，「空手夺白刃」额外 +10 命中！" }
 	]
 };
+
+// =========================================================================
+// 四、M4.2 低魔志怪生态秘籍（五毒奇门毒功 + 炼体金钟横练绝学 + 九幽镇魂孤本）
+// =========================================================================
+
+::Wuxia.Config.Manuals.wx_manual_wudu <- {
+	ID = "wx_manual_wudu", Name = "五毒吹影功", Category = "henglian", Quality = "sect",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_50.png",
+	Description = "南疆五毒奇门秘传毒经：兵刃或暗器见血即染奇瘴剧毒（古墓机关与湘西尸傀无效），修至深处自身百毒不侵。",
+	BasePrice = 2300, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { Initiative = 95 },
+	Levels = [
+		{ ExpNeeded = 0,   Stats = { Initiative = 4 },                   GrantSkills = [], Flags = { WuduPoisonPct = 35 }, Summary = "身法 +4；攻击造成至少 4 点气血伤时，35% 几率染上奇毒（持续损血散气）。" },
+		{ ExpNeeded = 160, Stats = { Initiative = 7, RangedDefense = 2 }, GrantSkills = [], Flags = { WuduPoisonPct = 65, PoisonImmune = true }, Summary = "身法 +7，避暗 +2；染毒几率提至 65%，自身免疫各类蛛毒与奇门暗器毒。" },
+		{ ExpNeeded = 360, Stats = { Initiative = 10, RangedDefense = 4 }, GrantSkills = [], Flags = { WuduPoisonPct = 100, PoisonImmune = true, VsPoisonedHit = 6 }, Summary = "身法 +10，避暗 +4；伤血必染奇毒、百毒不侵，攻击已中毒目标命中额外 +6。" }
+	]
+};
+
+::Wuxia.Config.Manuals.wx_manual_jinzhong <- {
+	ID = "wx_manual_jinzhong", Name = "血煞金钟罩", Category = "henglian", Quality = "secret",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_40.png",
+	Description = "邪派药人魁首与外家大宗师梦寐以求的护体硬功绝学：凝气成钟覆护重甲，受近身重击时反震敌方兵甲。",
+	BasePrice = 4900, FragmentsNeeded = 5, AllowFragmentLearn = true, Requirements = { Hitpoints = 80, Stamina = 100 },
+	Levels = [
+		{ ExpNeeded = 0,   Stats = { Hitpoints = 10, Initiative = -6 },              GrantSkills = ["perk.brawny"], Flags = { HeavyArmorScale = 0.04 }, Summary = "气血 +10，身法 -6；披甲行气减重 30%，按头身总护甲减免护甲损伤。" },
+		{ ExpNeeded = 250, Stats = { Hitpoints = 15, Bravery = 5, Initiative = -8 }, GrantSkills = ["perk.brawny", "actives.indomitable"], Flags = { HeavyArmorScale = 0.05, InjuryThresholdMult = 1.25 }, Summary = "气血 +15，定力 +5；护甲减伤提至战锻满额，外伤门槛 +25%，习得沉岳硬抗。" },
+		{ ExpNeeded = 600, Stats = { Hitpoints = 20, Bravery = 10, Initiative = -10 }, GrantSkills = ["perk.brawny", "actives.indomitable", "perk.steel_brow"], Flags = { HeavyArmorScale = 0.06, InjuryThresholdMult = 1.35, ReflectArmorDmg = 12 }, Summary = "气血 +20，定力 +10；铜头铁额免爆头暴击，护体金钟受近战命中时反震攻击者身甲 12 点！" }
+	]
+};
+
+::Wuxia.Config.Manuals.wx_manual_zhenhun <- {
+	ID = "wx_manual_zhenhun", Name = "九幽镇魂录", Category = "henglian", Quality = "unique",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_27.png",
+	Description = "自前朝玄宫秘冢出土的镇邪奇书孤本：心神坚不可摧，出招直慑生人魂魄，且专破古墓机关与湘西尸傀邪气。",
+	BasePrice = 11800, FragmentsNeeded = 5, AllowFragmentLearn = true, Requirements = { Bravery = 70 },
+	Levels = [
+		{ ExpNeeded = 0,   Stats = { Bravery = 8 },  GrantSkills = [], Flags = { VsUndeadDmg = 0.08 }, Summary = "定力 +8；对古墓机关与湘西尸傀邪祟造成总伤害 +8%。" },
+		{ ExpNeeded = 320, Stats = { Bravery = 14 }, GrantSkills = ["perk.fearsome"], Flags = { VsUndeadDmg = 0.12 }, Summary = "定力 +14；破邪总伤 +12%，习得「九幽慑魂」（伤及生人1点气血即触发战意动摇检定）。" },
+		{ ExpNeeded = 800, Stats = { Bravery = 20 }, GrantSkills = ["perk.fearsome"], Flags = { VsUndeadDmg = 0.18, AntiFearAura = true }, Summary = "定力 +20；破邪总伤 +18%，自身对抗怨灵惊骇等负面战意检定额外 +15 定力！" }
+	]
+};

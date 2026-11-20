@@ -7,6 +7,7 @@
 ::include("mod_wuxia/config/manuals.nut");
 ::include("mod_wuxia/config/wx_m4_manuals.nut");
 ::include("mod_wuxia/config/wx_backgrounds.nut");
+::include("mod_wuxia/config/wx_ecology.nut");
 ::include("mod_wuxia/config/sects.nut");
 ::include("mod_wuxia/config/wx_encounters.nut");
 
@@ -19,6 +20,7 @@
 ::include("mod_wuxia/systems/loot_economy.nut");
 ::include("mod_wuxia/systems/wx_world_encounters.nut");
 ::include("mod_wuxia/systems/wx_background_system.nut");
+::include("mod_wuxia/systems/wx_ecology_system.nut");
 ::include("mod_wuxia/systems/scenario_start.nut");
 ::include("mod_wuxia/systems/selftest.nut");
 

@@ -1,0 +1,136 @@
+// M4.2 Low-Magic Strange-Tales Wuxia Ecology Mapping (Zero Faction ID cost, 100% save & contract compatible)
+
+::Wuxia.Config.EntityNameMap <- {
+	// 1. 绿林山寨与塞外马贼 (Bandits & Nomads)
+	BanditThug           = ["绿林打手", "绿林打手"],
+	BanditPoacher        = ["绿林猎手", "绿林猎手"],
+	BanditMarksman       = ["绿林暗箭手", "绿林暗箭手"],
+	BanditRaider         = ["绿林劫客", "绿林劫客"],
+	BanditLeader         = ["绿林寨主", "绿林寨主"],
+	NomadCutthroat       = ["沙路短刃客", "沙路短刃客"],
+	NomadOutlaw          = ["塞外马贼", "塞外马贼"],
+	NomadSlinger         = ["飞石马贼", "飞石马贼"],
+	NomadArcher          = ["塞外游骑射", "塞外游骑射"],
+	NomadLeader          = ["大漠匪首", "大漠匪首"],
+	Executioner          = ["黑道执刑重斧", "黑道执刑重斧"],
+	DesertStalker        = ["大漠潜猎宗师", "大漠潜猎宗师"],
+	BladeDancer          = ["西域舞刃宗师", "西域舞刃宗师"],
+
+	// 2. 地方藩镇节度使、世家官军、乡勇与南疆军镇 (Military, Militia, Mercs & City-States)
+	Militia              = ["团练乡勇", "团练乡勇"],
+	MilitiaRanged        = ["乡勇弓手", "乡勇弓手"],
+	MilitiaVeteran       = ["精锐团练", "精锐团练"],
+	MilitiaCaptain       = ["团练教头", "团练教头"],
+	Footman              = ["藩镇刀盾步卒", "藩镇刀盾步卒"],
+	Billman              = ["藩镇钩镰戟兵", "藩镇钩镰戟兵"],
+	Arbalester           = ["官军神臂弩手", "官军神臂弩手"],
+	StandardBearer       = ["藩镇掌旗官", "藩镇掌旗官"],
+	Sergeant             = ["藩镇都头", "藩镇都头"],
+	Knight               = ["世家披甲铁卫", "世家披甲铁卫"],
+	Zweihander           = ["世家斩马剑卫", "世家斩马剑卫"],
+	Mercenary            = ["江湖受雇武人", "江湖受雇武人"],
+	MercenaryRanged      = ["江湖受雇远手", "江湖受雇远手"],
+	MasterArcher         = ["百步神射名家", "百步神射名家"],
+	Swordmaster          = ["退隐名剑宿", "退隐名剑宿"],
+	HedgeKnight          = ["独行披甲悍将", "独行披甲悍将"],
+	BountyHunter         = ["江湖捉刀人", "江湖捉刀人"],
+	Slave                = ["军镇苦役卒", "军镇苦役卒"],
+	Conscript            = ["军镇应征卒", "军镇应征卒"],
+	Officer              = ["军镇千总", "军镇千总"],
+	Gunner               = ["神机营火铳手", "神机营火铳手"],
+	Engineer             = ["军镇机巧匠", "军镇机巧匠"],
+	Mortar               = ["神机虎蹲臼炮", "神机虎蹲臼炮"],
+	Assassin             = ["隐杀影卫", "隐杀影卫"],
+	Gladiator            = ["军镇供奉擂师", "军镇供奉擂师"],
+
+	// 3. 五毒奇门 / 密林伏兵 (Goblins)
+	GoblinSkirmisher     = ["五毒奇门游兵", "五毒奇门游兵"],
+	GoblinAmbusher       = ["五毒吹箭毒手", "五毒吹箭毒手"],
+	GoblinShaman         = ["五毒蛊障术士", "五毒蛊障术士"],
+	GoblinOverseer       = ["五毒分坛督主", "五毒分坛督主"],
+	GoblinWolfrider      = ["五毒山狼轻骑", "五毒山狼轻骑"],
+
+	// 4. 关外铁骑战帮 & 邪派炼体药人 (Barbarians & Orcs)
+	BarbarianThrall      = ["关外战帮役卒", "关外战帮役卒"],
+	BarbarianMarauder    = ["关外掠阵武夫", "关外掠阵武夫"],
+	BarbarianChampion    = ["关外重兵誓卫", "关外重兵誓卫"],
+	BarbarianDrummer     = ["关外催战鼓手", "关外催战鼓手"],
+	BarbarianBeastmaster = ["关外驭兽师", "关外驭兽师"],
+	BarbarianMadman      = ["寒渊疯魔武人", "寒渊疯魔武人"],
+	OrcYoung             = ["邪派试药狂徒", "邪派试药狂徒"],
+	OrcBerserker         = ["邪派血狂药人", "邪派血狂药人"],
+	OrcWarrior           = ["邪派重甲药人", "邪派重甲药人"],
+	OrcWarlord           = ["炼体药人总瓢把子", "炼体药人总瓢把子"],
+
+	// 5. 前朝古墓机关人 & 湘西尸傀邪宗 (Ancient Dead & Undead)
+	Zombie               = ["湘西行尸傀儡", "湘西行尸傀儡"],
+	ZombieYeoman         = ["披甲铁尸傀", "披甲铁尸傀"],
+	ZombieKnight         = ["百年铜甲尸将", "百年铜甲尸将"],
+	ZombieBetrayer       = ["镇墓血尸叛将", "镇墓血尸叛将"],
+	ZombieBoss           = ["湘西千年尸王", "湘西千年尸王"],
+	Necromancer          = ["湘西赶尸妖道", "湘西赶尸妖道"],
+	Ghost                = ["荒冢夺魄怨灵", "荒冢夺魄怨灵"],
+	SkeletonLight        = ["前朝古墓卫卒", "前朝古墓卫卒"],
+	SkeletonMedium       = ["前朝古墓甲卫", "前朝古墓甲卫"],
+	SkeletonHeavy        = ["前朝镇陵金甲卫", "前朝镇陵金甲卫"],
+	SkeletonPriest       = ["前朝守陵祭司", "前朝守陵祭司"],
+	SkeletonBoss         = ["前朝镇陵霸主", "前朝镇陵霸主"],
+	Vampire              = ["古墓血影剑魔", "古墓血影剑魔"],
+	FlyingSkull          = ["机关啸骨飞颅", "机关啸骨飞颅"],
+
+	// 6. 山泽异兽 (Beasts)
+	Wardog               = ["护院猎犬", "护院猎犬"],
+	Warhound             = ["关外猛獒", "关外猛獒"],
+	Wolf                 = ["山野恶狼", "山野恶狼"],
+	Direwolf             = ["深山苍狼", "深山苍狼"],
+	Hyena                = ["荒原狂鬣兽", "荒原狂鬣兽"],
+	Serpent              = ["岭南巨蟒", "岭南巨蟒"],
+	Spider               = ["五毒岩腹巨蛛", "五毒岩腹巨蛛"],
+	SpiderEggs           = ["五毒蛛卵囊", "五毒蛛卵囊"],
+	Ghoul                = ["食腐山魈", "食腐山魈"],
+	Alp                  = ["摄魂梦魇魅", "摄魂梦魇魅"],
+	Hexe                 = ["深山蛊婆", "深山蛊婆"],
+	Schrat               = ["千年古木精", "千年古木精"],
+	SchratSmall          = ["藤木精芽", "藤木精芽"],
+	Unhold               = ["雪山白猿巨怪", "雪山白猿巨怪"],
+	UnholdFrost          = ["昆仑寒冰白猿", "昆仑寒冰白猿"],
+	UnholdBog            = ["黑沼巨猿", "黑沼巨猿"],
+	Lindwurm             = ["岭南覆鳞毒蛟", "岭南覆鳞毒蛟"],
+	Kraken               = ["沧渊触龙兽", "沧渊触龙兽"],
+	KrakenTentacle       = ["沧渊巨触", "沧渊巨触"],
+	TricksterGod         = ["寒原灵鹿巨魈", "寒原灵鹿巨魈"]
+};
+
+// Non-destructive Wuxia Bestiary Trophy Mapping (item IDs stay 100% vanilla so all recipes work seamlessly)
+::Wuxia.Config.TrophyMap <- {
+	["misc.unhold_heart"]        = { Name = "白猿心头血核", Desc = "取自雪山白猿巨怪胸腔的炽热血核，生机勃郁，是百工丹房炼制「洗髓丹」的绝品主材。" },
+	["misc.unhold_hide"]         = { Name = "雪山白猿厚皮", Desc = "刀剑难伤的巨猿坚韧厚革，既可缝制内衬护甲，亦可入炉提取护脉胶质炼制「护脉丹」。" },
+	["misc.unhold_bones"]        = { Name = "巨猿铁骨",     Desc = "沉重如生铁的异兽巨骨，百工巧匠常用来加固甲胄或熬炼筋骨药膏。" },
+	["misc.lindwurm_bones"]      = { Name = "岭南毒蛟脊骨", Desc = "覆鳞毒蛟通体最精粹的龙脊大骨，蕴含惊人髓力，是炼制「洗髓丹」不可或缺的奇材。" },
+	["misc.lindwurm_blood"]      = { Name = "毒蛟蚀甲紫血", Desc = "触铁即蚀的霸道蛟血，须以玉瓶封存，百工可用于奇门淬炼。" },
+	["misc.lindwurm_scales"]     = { Name = "覆鳞毒蛟重鳞", Desc = "水火难侵的青黑蛟鳞，缀于衣甲之上可御强弓劲刃。" },
+	["misc.spider_silk"]         = { Name = "五毒岩蛛韧丝", Desc = "采自五毒巨蛛腹囊的雪白柔韧蛛丝，轻若无物且含微寒药性，可织轻甲或辅炼「凝神丸」。" },
+	["misc.poison_gland"]        = { Name = "五毒异兽毒囊", Desc = "完整的异兽剧毒腺囊，以毒攻毒之法可配白猿厚皮炼制「护脉丹」，亦可调制奇毒。" },
+	["misc.ghoul_brain"]         = { Name = "食腐山魈脑髓", Desc = "山魈颅内凝结的奇异髓珠，经丹火去秽存菁后可一次炼出两枚「凝神丸」助长武学火候。" },
+	["misc.ghoul_horn"]          = { Name = "山魈利角",     Desc = "老山魈额顶弯角，质地坚硬，常作江湖猎妖凭证与百工辅料。" },
+	["misc.ghoul_teeth"]         = { Name = "山魈锯齿",     Desc = "布满倒刺的凶兽獠牙，可换取赏银或入药引。" },
+	["misc.werewolf_pelt"]       = { Name = "深山苍狼巨裘", Desc = "剥自凶悍苍狼的厚实毛皮，御寒挡刃，行伍豪客颇喜披挂。" },
+	["misc.hyena_fur"]           = { Name = "荒原狂鬣兽皮", Desc = "大漠狂鬣的粗粝斑纹兽皮，轻便耐磨。" },
+	["misc.serpent_skin"]        = { Name = "岭南巨蟒鳞皮", Desc = "色彩斑斓的巨蟒蜕皮，柔韧滑溜，惯作轻装护具包边。" },
+	["misc.glistening_scales"]   = { Name = "微光蟒鳞",     Desc = "暗处泛着幽泽的异蟒细鳞，市肆药铺收价不菲。" },
+	["misc.heart_of_the_forest"] = { Name = "千年古木灵心", Desc = "千年古木精核心凝结的苍翠木心，生机盎然。" },
+	["misc.glowing_resin"]       = { Name = "古木微光灵脂", Desc = "古木精断枝渗出的莹润琥珀灵脂，气味清冽醒神。" },
+	["misc.witch_hair"]          = { Name = "深山蛊婆发缕", Desc = "缠绕邪异蛊气的枯白发缕，江湖方士常高价收购。" },
+	["misc.parched_skin"]        = { Name = "古墓枯蜕皮",   Desc = "自前朝血影剑魔残躯剥落的干枯皮膜，阴寒刺骨。" },
+	["misc.shimmering_ashes"]    = { Name = "幽冥剑魔残烬", Desc = "古墓剑魔溃散后留下的微光骨灰，蕴含诡异阴气。" },
+	["misc.petrified_scream"]    = { Name = "荒冢凝魄寒晶", Desc = "夺魄怨灵消散时凝结的惨白晶石，握之如坠冰窟。" },
+	["misc.third_eye"]           = { Name = "梦魇额间诡眼", Desc = "摄魂梦魇眉心不腐的第三只眼，暗合奇门神魂之术。" }
+};
+
+// 4 Major Late-Game Jianghu Crises mapped onto vanilla Crisis keys
+::Wuxia.Config.CrisisLore <- {
+	greenskins = { Title = "武林大势：药人战帮联军犯境", Summary = "邪派炼体总瓢把子与五毒奇门合流，驱使成群血狂药人席卷各州村镇！" },
+	undead     = { Title = "武林大势：前朝古墓与湘西尸变", Summary = "地脉阴气暴涨，前朝镇陵金甲卫破封而出，湘西赶尸邪宗趁乱驱尸屠城！" },
+	civilwar   = { Title = "武林大势：藩镇节度使世家纷争", Summary = "朝纲失统，各地藩镇节度使与门阀世家陈兵厮杀，江湖各派皆被卷入战火！" },
+	holywar    = { Title = "武林大势：南北武林道统大战", Summary = "南北群雄与西域军镇因圣迹道统反目成仇，大军压境血染关隘！" }
+};

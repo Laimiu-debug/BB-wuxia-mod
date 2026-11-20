@@ -126,7 +126,7 @@
 		}
 	});
 
-	// 4. Instantiate both scenarios
+	// 4. Instantiate scenarios, blueprints and endgame tournament event
 	local scenarioScripts = [
 		"scripts/scenarios/world/wx_debug_arena",
 		"scripts/scenarios/world/wx_jianghu_start"
@@ -139,6 +139,21 @@
 			if (sc.m.ID == "") throw "Empty scenario ID";
 		});
 	}
+
+	check("Alchemy blueprints, beast trophy remapping and grand tournament event", function() {
+		foreach (bp in ["wx_xisui_blueprint", "wx_ningshen_blueprint", "wx_humai_blueprint"])
+		{
+			local b = ::new("scripts/crafting/blueprints/" + bp);
+			if (b.getID() == "") throw "Empty blueprint ID: " + bp;
+		}
+		local heart = ::new("scripts/items/misc/unhold_heart_item");
+		local brain = ::new("scripts/items/misc/ghoul_brain_item");
+		if (heart.getID() != "misc.unhold_heart" || heart.getName() != "白猿心头血核") throw "Unhold heart remap failed";
+		if (brain.getID() != "misc.ghoul_brain" || brain.getName() != "食腐山魈脑髓") throw "Ghoul brain remap failed";
+
+		local ev = ::new("scripts/events/events/wx_event_grand_tournament");
+		if (ev.getID() != "event.wx_grand_tournament" || ev.m.Screens.len() < 4) throw "Tournament event invalid";
+	});
 
 	// 5. Check the seven slots, manual stat bonuses and combat flags
 	check("7-slot container: manual stats and aggregate combat flags", function() {
@@ -388,6 +403,55 @@
 		if (("WX_ApplyMapping" in s.Bg) && s.Bg.getName() != "退隐剑宗名宿") throw "Swordmaster hook name mismatch";
 		if (::Wuxia.Backgrounds.assignStarterManuals(s.Bro).len() != 2) throw "Tier 2 should get 2 starter manuals";
 		if (s.Container.m.Slots[0].ManualID == null || s.Container.m.Slots[1].ManualID == null) throw "Tier 2 did not fill both Lv1 slots";
+	});
+
+	check("M4.2 Ecology: EntityName table, enemy scripts, undead acupoint immunity and Zhenhun bonus", function() {
+		if (::Wuxia.Ecology.MappedEntityCount < 55)
+			throw "Expected >= 55 mapped EntityNames, got " + ::Wuxia.Ecology.MappedEntityCount;
+		if (::Const.Strings.EntityName[::Const.EntityType.OrcWarlord] != "炼体药人总瓢把子")
+			throw "OrcWarlord name mismatch";
+		if (::Const.Strings.EntityName[::Const.EntityType.SkeletonHeavy] != "前朝镇陵金甲卫")
+			throw "SkeletonHeavy name mismatch";
+
+		foreach (key, profile in ::Wuxia.Loot.EnemyLoadouts)
+		{
+			if (::Wuxia.Loot.resolveEnemyScript(profile) == null)
+				throw "Unresolved EnemyLoadouts script: " + key;
+		}
+		foreach (loc in ["wx_blood_keep", "wx_sword_retreat", "wx_ancient_tomb", "wx_wudu_sanctum"])
+		{
+			local site = ::new("scripts/entity/world/locations/" + loc);
+			if (site.getTypeID() == "") throw "Invalid location: " + loc;
+		}
+
+		// Verify undead/construct target blocks acupoint & dart poison, and receives Zhenhun +18% damage
+		local undeadSkills = {
+			Added = false,
+			function getSkillByID( _id ) { return null; },
+			function hasSkill( _id ) { return false; },
+			function add( _sk ) { this.Added = true; }
+		};
+		local undeadFlags = { function has( _k ) { return _k == "undead"; } };
+		local undeadTarget = {
+			function isAlive() { return true; },
+			function getFlags() { return undeadFlags; },
+			function getSkills() { return undeadSkills; },
+			function getCurrentProperties() { return { IsAffectedByPoison = false, IsAffectedByInjuries = false }; }
+		};
+		local acupointMove = ::new("scripts/skills/actives/wx_fist_acupoint");
+		acupointMove.wxApplyStatusToTarget(undeadTarget, "effects.wx_status_acupoint", "scripts/skills/effects/wx_status_acupoint");
+		if (undeadSkills.Added) throw "Undead should be immune to acupoint status";
+
+		local c = ::new("scripts/skills/special/wx_martial_container");
+		c.m.Slots[3].ManualID = "wx_manual_zhenhun";
+		c.m.Slots[3].Tier = 3;
+		local props = ::Const.CharacterProperties.getClone();
+		c.onUpdate(props);
+		local atkProps = ::Const.CharacterProperties.getClone();
+		local mockAtk = { m = { IsWeaponSkill = true }, function isAttack() { return true; }, function isRanged() { return false; } };
+		c.onAnySkillUsed(mockAtk, undeadTarget, atkProps);
+		if (::Math.abs(atkProps.DamageTotalMult - 1.18) > 0.001)
+			throw "Expected 1.18x VsUndeadDmg, got " + atkProps.DamageTotalMult;
 	});
 	::logInfo("[WX-SELFTEST] ================= Result: " + passed + " PASSED, " + failed + " FAILED =================");
 };

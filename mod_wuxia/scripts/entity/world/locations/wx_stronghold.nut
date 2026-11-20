@@ -37,6 +37,12 @@ this.wx_stronghold <- this.inherit("scripts/entity/world/location", {
 		local pages = ::new("scripts/items/misc/wx_page_item");
 		pages.initPages(def.RewardManual, 2);
 		this.m.Loot.add(pages);
+		if ("ExtraManual" in def && def.ExtraManual != null)
+		{
+			local extra = ::new("scripts/items/misc/wx_page_item");
+			extra.initPages(def.ExtraManual, 1);
+			this.m.Loot.add(extra);
+		}
 		if (def.GivesHerb) this.m.Loot.add(::new("scripts/items/misc/wx_marrow_herb"));
 		this.getFlags().set("wx_garrison_ready", true);
 	}

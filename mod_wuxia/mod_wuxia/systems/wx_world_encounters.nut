@@ -103,16 +103,52 @@
 		::World.Flags.set("wx_last_hunt", _day);
 	}
 
+	function resolveStrongholdFaction( _config, _fallback )
+	{
+		if ("FactionType" in _config && _config.FactionType in ::Const.FactionType)
+		{
+			local f = ::World.FactionManager.getFactionOfType(::Const.FactionType[_config.FactionType]);
+			if (f != null) return f;
+		}
+		return _fallback;
+	}
+
+	function syncCrisisFlags()
+	{
+		local fm = ::World.FactionManager;
+		local activeKey = "";
+		if ("isGreenskinInvasion" in fm && fm.isGreenskinInvasion()) activeKey = "greenskins";
+		else if ("isUndeadScourge" in fm && fm.isUndeadScourge())    activeKey = "undead";
+		else if ("isCivilWar" in fm && fm.isCivilWar())              activeKey = "civilwar";
+		else if ("isHolyWar" in fm && fm.isHolyWar())                activeKey = "holywar";
+
+		local prev = ::World.Flags.get("wx_active_crisis");
+		if (activeKey != "" && prev != activeKey && (activeKey in ::Wuxia.Config.CrisisLore))
+		{
+			::World.Flags.set("wx_active_crisis", activeKey);
+			local lore = ::Wuxia.Config.CrisisLore[activeKey];
+			::logInfo("[mod_wuxia] " + lore.Title + " -> " + lore.Summary);
+		}
+		else if (activeKey == "" && prev != null && prev != "")
+		{
+			::World.Flags.set("wx_active_crisis", "");
+		}
+	}
+
 	function update( _state )
 	{
 		if (_state.getPlayer() == null || ::World.Flags == null || ::World.FactionManager == null) return;
 		local day = ::World.getTime().Days;
 		if (_state.m.WX_EncounterDay == day) return;
-		local faction = ::World.FactionManager.getFactionOfType(::Const.FactionType.Bandits);
-		if (faction == null) return;
+		local banditFaction = ::World.FactionManager.getFactionOfType(::Const.FactionType.Bandits);
+		if (banditFaction == null) return;
 		_state.m.WX_EncounterDay = day;
-		foreach (id, config in ::Wuxia.Config.Strongholds) this.ensureStronghold(id, faction);
-		foreach (id, sect in ::Wuxia.Config.Sects) this.updateVendetta(sect, faction, day);
+		this.syncCrisisFlags();
+		foreach (id, config in ::Wuxia.Config.Strongholds)
+		{
+			this.ensureStronghold(id, this.resolveStrongholdFaction(config, banditFaction));
+		}
+		foreach (id, sect in ::Wuxia.Config.Sects) this.updateVendetta(sect, banditFaction, day);
 	}
 };
 
