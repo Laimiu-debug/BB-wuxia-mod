@@ -28,9 +28,15 @@
 			}
 		};
 
-		CharacterScreenDatasource.prototype.notifyBackendWXCraftPages = function (_entityId, _manualID, _callback) {
+		CharacterScreenDatasource.prototype.notifyBackendWXInfusePage = function (_entityId, _stashIndex, _slotIndex, _callback) {
 			if (this.mSQHandle !== null) {
-				SQ.call(this.mSQHandle, 'onWXCraftPages', [_entityId, _manualID], _callback);
+				SQ.call(this.mSQHandle, 'onWXInfusePage', [_entityId, _stashIndex, _slotIndex], _callback);
+			}
+		};
+
+		CharacterScreenDatasource.prototype.notifyBackendWXCraftPages = function (_entityId, _manualID, _allowWildcard, _confirmed, _callback) {
+			if (this.mSQHandle !== null) {
+				SQ.call(this.mSQHandle, 'onWXCraftPages', [_entityId, _manualID, _allowWildcard ? true : false, _confirmed ? true : false], _callback);
 			}
 		};
 
@@ -70,6 +76,8 @@
 		this.mWXState = null;
 		this.mWXCurrentEntityId = null;
 		this.mWXFilter = 'all';
+		this.mWXWeaponOnly = false;
+		this.mWXSearchQuery = '';
 		this.mWXDragPayload = null;
 		this.mWXWashState = {
 			targetAttrIdx: -1,
@@ -150,6 +158,9 @@
 					'<button type="button" class="wx-filter-btn" data-filter="henglian">横练</button>' +
 					'<button type="button" class="wx-filter-btn" data-filter="page">残页</button>' +
 					'<button type="button" class="wx-filter-btn" data-filter="pill">丹药</button>' +
+					'<span class="wx-filter-spacer"></span>' +
+					'<button type="button" class="wx-filter-btn wx-weapon-toggle" data-wx="weapon-only">适配兵器</button>' +
+					'<input type="text" class="wx-search-input" data-wx="search" placeholder="搜秘籍/词条..." />' +
 				'</div>' +
 				'<div class="wx-stash-grid" data-wx="stash-grid"></div>' +
 			'</div>'
@@ -165,10 +176,26 @@
 		this.mWXRoot.append(this.mWXModal);
 
 		// Bind filter clicks
-		this.mWXDrawer.find('.wx-filter-btn').on('click', function () {
+		this.mWXDrawer.find('.wx-filter-btn[data-filter]').on('click', function () {
 			self.mWXFilter = $(this).attr('data-filter');
-			self.mWXDrawer.find('.wx-filter-btn').removeClass('is-active');
+			self.mWXDrawer.find('.wx-filter-btn[data-filter]').removeClass('is-active');
 			$(this).addClass('is-active');
+			self.wxRenderStashGrid();
+		});
+
+		this.mWXDrawer.find('[data-wx="weapon-only"]').on('click', function () {
+			self.mWXWeaponOnly = !self.mWXWeaponOnly;
+			if (self.mWXWeaponOnly) {
+				$(this).addClass('is-active');
+			} else {
+				$(this).removeClass('is-active');
+			}
+			self.wxRenderStashGrid();
+		});
+
+		this.mWXDrawer.find('[data-wx="search"]').on('keyup change input', function () {
+			var raw = $(this).val() || '';
+			self.mWXSearchQuery = raw.replace(/^\s+|\s+$/g, '').toLowerCase();
 			self.wxRenderStashGrid();
 		});
 
@@ -363,10 +390,28 @@
 	};
 
 	CharacterScreenPerksModule.prototype.wxPassesFilter = function (_it) {
-		if (this.mWXFilter === 'all') return true;
-		if (this.mWXFilter === 'page') return _it.itemKind === 'page';
-		if (this.mWXFilter === 'pill') return _it.itemKind === 'pill_infuse';
-		return _it.itemKind === 'manual' && _it.category === this.mWXFilter;
+		var catOk = false;
+		if (this.mWXFilter === 'all') {
+			catOk = true;
+		} else if (this.mWXFilter === 'page') {
+			catOk = (_it.itemKind === 'page');
+		} else if (this.mWXFilter === 'pill') {
+			catOk = (_it.itemKind === 'pill_infuse');
+		} else {
+			catOk = (_it.itemKind === 'manual' && _it.category === this.mWXFilter);
+		}
+		if (!catOk) return false;
+
+		if (this.mWXWeaponOnly && (_it.itemKind === 'manual' || _it.itemKind === 'page')) {
+			if (!_it.matchesWeapon) return false;
+		}
+
+		if (this.mWXSearchQuery && this.mWXSearchQuery.length > 0) {
+			var q = this.mWXSearchQuery;
+			var hay = ((_it.name || '') + ' ' + (_it.description || '') + ' ' + (_it.tier1Summary || '') + ' ' + (_it.tier3Summary || '') + ' ' + (_it.categoryLabel || '') + ' ' + (_it.qualityLabel || '')).toLowerCase();
+			if (hay.indexOf(q) === -1) return false;
+		}
+		return true;
 	};
 
 	CharacterScreenPerksModule.prototype.wxCreateStashTile = function (_it) {
@@ -374,7 +419,13 @@
 		var qCls = 'wx-q-' + (_it.quality || 'common');
 		var corner = '';
 		if (_it.itemKind === 'page') {
-			corner = '<span class="wx-tile-count' + (_it.canCraft ? ' is-craftable' : '') + '">' + _it.totalPages + '/' + _it.fragmentsNeeded + '</span>';
+			if (_it.canCraft) {
+				corner = '<span class="wx-tile-count is-craftable">' + _it.totalPages + '/' + _it.fragmentsNeeded + '</span>';
+			} else if (_it.canWildcardCraft) {
+				corner = '<span class="wx-tile-count is-wildcard">' + _it.totalPages + '/' + _it.fragmentsNeeded + '补</span>';
+			} else {
+				corner = '<span class="wx-tile-count">' + _it.totalPages + '/' + _it.fragmentsNeeded + '</span>';
+			}
 		} else if (_it.itemKind === 'pill_infuse') {
 			corner = '<span class="wx-tile-count is-pill">+' + _it.expAmount + '</span>';
 		}
@@ -408,29 +459,37 @@
 			self.mWXTooltip.hide();
 		});
 
-		// Right-click shortcut: craft pages if full, or quick-equip into first matching empty slot
+		// Right-click shortcut: craft pages if full (or 2:1 wildcard ready), or quick-equip into first matching empty slot
 		tile.on('contextmenu', function (evt) {
 			evt.preventDefault();
 			if (_it.itemKind === 'page' && _it.canCraft) {
-				self.wxTriggerCraftPages(_it.manualID);
+				self.wxTriggerCraftPages(_it.manualID, false, false);
+				return;
+			}
+			if (_it.itemKind === 'page' && _it.canWildcardCraft) {
+				self.wxTriggerCraftPages(_it.manualID, true, false);
 				return;
 			}
 			var targetIdx = self.wxFindFirstEmptySlotFor(_it);
 			if (targetIdx >= 0) {
 				self.wxHandleDropOnSlot(_it, targetIdx);
 			} else {
-				self.wxShowToast('无空闲匹配插槽，请直接拖拽至目标插槽进行覆盖或灌注。', true);
+				self.wxShowToast('无空闲匹配插槽，请直接拖拽至目标插槽进行参悟、覆盖或灌注。', true);
 			}
 		});
 
-		// Left-click craft shortcut on full page stack
-		if (_it.itemKind === 'page' && _it.canCraft) {
+		// Left-click craft shortcut on full or wildcard-ready page stack
+		if (_it.itemKind === 'page' && (_it.canCraft || _it.canWildcardCraft)) {
 			tile.on('dblclick', function () {
-				self.wxTriggerCraftPages(_it.manualID);
+				self.wxTriggerCraftPages(_it.manualID, !_it.canCraft && _it.canWildcardCraft, false);
 			});
 		}
 
 		return tile;
+	};
+
+	CharacterScreenPerksModule.prototype.wxCanInfusePageOnSlot = function (_item, _slot) {
+		return (_item.itemKind === 'page' && _slot && _slot.unlocked && _slot.manualID !== null && !_slot.isFragment && _slot.tier < 3);
 	};
 
 	CharacterScreenPerksModule.prototype.wxCanDropOnSlot = function (_item, _slotIndex) {
@@ -441,6 +500,9 @@
 
 		if (_item.itemKind === 'pill_infuse') {
 			return (slot.manualID !== null && !slot.isFragment && slot.tier < 3);
+		}
+		if (this.wxCanInfusePageOnSlot(_item, slot)) {
+			return true;
 		}
 		if (_item.itemKind === 'manual' || (_item.itemKind === 'page' && _item.allowFragmentLearn)) {
 			for (var i = 0; i < slot.allowedCategories.length; i++) {
@@ -496,6 +558,21 @@
 			return;
 		}
 
+		var bro = this.mWXState && this.mWXState.brother;
+		var slot = (bro && bro.slots && _slotIndex >= 0 && _slotIndex < bro.slots.length) ? bro.slots[_slotIndex] : null;
+		if (this.wxCanInfusePageOnSlot(_item, slot)) {
+			this.mDataSource.notifyBackendWXInfusePage(entityId, _item.stashIndex, _slotIndex, function (_res) {
+				if (_res && _res.ok) {
+					self.mWXState = _res;
+					self.wxRenderAll();
+					self.wxShowToast(_res.actionMessage, false);
+				} else {
+					self.wxShowToast((_res && _res.reason) ? _res.reason : '参悟残页失败。', true);
+				}
+			});
+			return;
+		}
+
 		var isFrag = (_item.itemKind === 'page');
 		this.wxSubmitEquip(entityId, _item.stashIndex, _slotIndex, isFrag, false);
 	};
@@ -520,17 +597,51 @@
 		});
 	};
 
-	CharacterScreenPerksModule.prototype.wxTriggerCraftPages = function (_manualID) {
+	CharacterScreenPerksModule.prototype.wxTriggerCraftPages = function (_manualID, _allowWildcard, _confirmed) {
 		var self = this;
-		this.mDataSource.notifyBackendWXCraftPages(this.mWXCurrentEntityId, _manualID, function (_res) {
-			if (_res && _res.ok) {
+		this.mDataSource.notifyBackendWXCraftPages(this.mWXCurrentEntityId, _manualID, _allowWildcard, _confirmed, function (_res) {
+			if (!_res) return;
+			if (_res.needsWildcardConfirm && _res.preview) {
+				self.wxOpenWildcardConfirmModal(_res.preview, function () {
+					self.wxTriggerCraftPages(_manualID, true, true);
+				});
+				return;
+			}
+			if (_res.ok) {
 				self.mWXState = _res;
 				self.wxRenderAll();
 				self.wxShowToast(_res.actionMessage, false);
 			} else {
-				self.wxShowToast((_res && _res.reason) ? _res.reason : '拼合失败。', true);
+				self.wxShowToast(_res.reason || '拼合失败。', true);
 			}
 		});
+	};
+
+	CharacterScreenPerksModule.prototype.wxOpenWildcardConfirmModal = function (_p, _onConfirm) {
+		var self = this;
+		var sacText = (_p.sacrificedList && _p.sacrificedList.length > 0) ? _p.sacrificedList.join('、') : ('同阶残页 ×' + _p.spareNeeded);
+		var box = $(
+			'<div class="wx-modal-box">' +
+				'<div class="wx-modal-title">同阶残页融会补缺</div>' +
+				'<div class="wx-modal-body">' +
+					'<p>当前持有《' + _p.manualName + '》残页 ' + _p.ownPages + ' / ' + _p.fragmentsNeeded + ' 张，尚缺 ' + _p.missingPages + ' 张。</p>' +
+					'<p>可按 2:1 融会折算消耗以下 [' + _p.qualityLabel + '] 闲置残页补齐完整秘籍：</p>' +
+					'<p style="color:#ffd88a;">✦ ' + sacText + '</p>' +
+				'</div>' +
+				'<div class="wx-modal-actions">' +
+					'<button type="button" class="wx-btn" data-wx="wild-yes">确认补缺合成</button>' +
+					'<button type="button" class="wx-btn" data-wx="wild-no">取消</button>' +
+				'</div>' +
+			'</div>'
+		);
+		box.find('[data-wx="wild-yes"]').on('click', function () {
+			self.mWXModal.hide().empty();
+			_onConfirm();
+		});
+		box.find('[data-wx="wild-no"]').on('click', function () {
+			self.mWXModal.hide().empty();
+		});
+		this.mWXModal.empty().append(box).show();
 	};
 
 	// ------------------------------------------------------------------------
@@ -556,7 +667,7 @@
 				html += '<div class="wx-tt-tier' + lit + '">' + lv.title + '：' + lv.text + '</div>';
 			}
 			if (!_s.isFragment && _s.tier < 3 && _s.expNeeded > 0) {
-				html += '<div class="wx-tt-exp">当前火候：' + _s.exp + ' / ' + _s.expNeeded + '（可拖拽「凝神丸」灌注）</div>';
+				html += '<div class="wx-tt-exp">当前火候：' + _s.exp + ' / ' + _s.expNeeded + '（可拖入「凝神丸」灌注，或拖入任意闲置「残页」参悟化功）</div>';
 			}
 			if (_s.blockedByReq && _s.missingReqs && _s.missingReqs.length > 0) {
 				html += '<div class="wx-tt-warn">突破三重尚缺：' + _s.missingReqs.join('；') + '</div>';
@@ -573,11 +684,13 @@
 			html += '<div class="wx-tt-tier">三重：' + _it.tier3Summary + '</div>';
 			html += '<div class="wx-tt-exp">拖拽至上方对应武学插槽装配（或右键快装）。</div>';
 		} else if (_it.itemKind === 'page') {
-			html += '<div class="wx-tt-exp">残页进度：' + _it.totalPages + ' / ' + _it.fragmentsNeeded + '</div>';
+			html += '<div class="wx-tt-exp">残页进度：' + _it.totalPages + ' / ' + _it.fragmentsNeeded + '　|　参悟化功：拖入未满重槽位 +' + (_it.infuseBaseExp || 40) + ' 火候（同脉 +25%，同名 +50%）</div>';
 			if (_it.canCraft) {
-				html += '<div class="wx-tt-tier is-unlocked">右键或双击立即拼合完整秘籍！</div>';
+				html += '<div class="wx-tt-tier is-unlocked">✦ 已集齐！右键或双击立即拼合完整秘籍！</div>';
+			} else if (_it.canWildcardCraft) {
+				html += '<div class="wx-tt-tier is-unlocked">✦ 可补缺！右键或双击可用 ' + _it.spareNeeded + ' 张同阶闲置残页（2:1）融会补齐！</div>';
 			} else if (_it.allowFragmentLearn) {
-				html += '<div class="wx-tt-warn">未集齐时拖拽至插槽可冒险「残本强修」（限一重且有走火入魔风险）。</div>';
+				html += '<div class="wx-tt-warn">未集齐时拖入空插槽可冒险「残本强修」（限一重且有行气失控风险）。</div>';
 			}
 		} else if (_it.itemKind === 'pill_infuse') {
 			html += '<div class="wx-tt-tier is-unlocked">拖拽至任意未满重武学插槽，立即灌注 +' + _it.expAmount + ' 火候。</div>';

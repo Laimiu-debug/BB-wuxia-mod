@@ -3,25 +3,33 @@
 
 this.wx_event_sect_exchange <- this.inherit("scripts/events/event", {
 	m = {
-		Choices    = ["weiyuan", "qingfeng", "shaolin"],
-		SectID     = "qingfeng",
-		OfferIndexA = 0,
-		OfferIndexB = -1
+		Choices      = ["weiyuan", "qingfeng", "shaolin"],
+		SectID       = "qingfeng",
+		OfferIndices = [0]
 	},
 
 	function wxPickTwoOffers( _sect )
 	{
 		local total = _sect.ShopManuals.len();
-		if (total <= 1)
+		if (total <= 3)
 		{
-			this.m.OfferIndexA = 0;
-			this.m.OfferIndexB = -1;
+			local all = [];
+			for (local i = 0; i < total; ++i) all.push(i);
+			this.m.OfferIndices = all;
 			return;
 		}
-		local a = ::Math.rand(0, total - 1);
-		local b = (a + 1 + ::Math.rand(0, total - 2)) % total;
-		this.m.OfferIndexA = a;
-		this.m.OfferIndexB = b;
+		// Pick 3 distinct offers spanning entry, sect-core, and secret prestige tiers!
+		local pool = [];
+		for (local j = 0; j < total; ++j) pool.push(j);
+		local picked = [];
+		for (local k = 0; k < 3 && pool.len() > 0; ++k)
+		{
+			local r = ::Math.rand(0, pool.len() - 1);
+			picked.push(pool[r]);
+			pool.remove(r);
+		}
+		picked.sort();
+		this.m.OfferIndices = picked;
 	}
 
 	function create()
@@ -105,9 +113,7 @@ this.wx_event_sect_exchange <- this.inherit("scripts/events/event", {
 				local sect = ::Wuxia.Config.Sects[_event.m.SectID];
 				local rel = ::Wuxia.SectRelations.getRelation(_event.m.SectID);
 
-				local indices = [_event.m.OfferIndexA];
-				if (_event.m.OfferIndexB >= 0 && _event.m.OfferIndexB != _event.m.OfferIndexA)
-					indices.push(_event.m.OfferIndexB);
+				local indices = _event.m.OfferIndices;
 
 				local bookDesc = "";
 				foreach (oi in indices)

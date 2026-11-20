@@ -8,7 +8,7 @@ this.wx_debug_arena <- this.inherit("scripts/scenarios/world/starting_scenario",
 	{
 		this.m.ID = "scenario.wx_debug_arena";
 		this.m.Name = "【调试】演武试剑台";
-		this.m.Description = "[p=c][img]gfx/ui/events/event_80.png[/img][/p][p]武侠 Mod 底座框架测试开局。开局即配备 1/5/9/11 级测试侠客、全套 24 本秘籍、残页与五种核心丹药（含洗髓丹、护脉丹、凝神丸），用于直接检验七大图标插槽拖拽、散功覆盖、火候升重、突破 9 AP 与洗经伐髓。[/p]";
+		this.m.Description = "[p=c][img]gfx/ui/events/event_80.png[/img][/p][p]武侠 Mod 底座框架测试开局。开局即配备 1/5/9/11 级测试侠客、全套 260+ 本武学秘籍、传世历史神兵红武、残页（含满额拼合/同阶补缺/参悟化功样本）与五种核心丹药，用于直接检验七大插槽、组合词条、残页化功与洗经伐髓。[/p]";
 		this.m.Difficulty = 1;
 		this.m.Order = 200;
 	}
@@ -71,11 +71,16 @@ this.wx_debug_arena <- this.inherit("scripts/scenarios/world/starting_scenario",
 			::Wuxia.Slots.equipManual(brothers[0], 1, "wx_manual_qingfeng", false);
 		}
 
-		// Populate Stash with all manuals, paired Fist weapons, pages, and all 5 pills
+		// Populate Stash with all 264 manuals, paired Fist weapons, 8 sample Historical Relic Weapons, pages, and all 5 pills
 		local stash = this.World.Assets.getStash();
-		stash.resize(140);
+		stash.resize(390);
 
-		foreach (wp in ["weapons/wx_fist_wraps", "weapons/wx_fist_iron", "weapons/wx_fist_heavy", "weapons/named/wx_named_fist"])
+		foreach (wp in [
+			"weapons/wx_fist_wraps", "weapons/wx_fist_iron", "weapons/wx_fist_heavy", "weapons/named/wx_named_fist",
+			"weapons/named/wx_relic_taie", "weapons/named/wx_relic_modao", "weapons/named/wx_relic_huaji",
+			"weapons/named/wx_relic_huntiegun", "weapons/named/wx_relic_longlinzhao", "weapons/named/wx_relic_wengjinchui",
+			"weapons/named/wx_relic_yuchang", "weapons/named/wx_relic_zhentiangong"
+		])
 		{
 			stash.add(::new("scripts/items/" + wp));
 		}
@@ -91,10 +96,21 @@ this.wx_debug_arena <- this.inherit("scripts/scenarios/world/starting_scenario",
 			stash.add(mItem);
 		}
 
-		// Sample pages: 3/3 craftable + 3/5 partial for risky fragment learn
+		// Sample pages: 3/3 exact craftable + 2/3 wildcard-craftable + two 1/3 spare sect pages (for 2:1 wildcard & 参悟化功!) + 3/5 secret page
 		local pCraft = ::new("scripts/items/misc/wx_page_item");
 		pCraft.initPages("wx_manual_heifeng", 3);
 		stash.add(pCraft);
+
+		local pWild = ::new("scripts/items/misc/wx_page_item");
+		pWild.initPages("wx_manual_zixia_gong", 2);
+		stash.add(pWild);
+
+		foreach (spID in ["wx_manual_shuofang_jingua", "wx_manual_mobei_taoma_bian"])
+		{
+			local pSp = ::new("scripts/items/misc/wx_page_item");
+			pSp.initPages(spID, 1);
+			stash.add(pSp);
+		}
 
 		local pPartial = ::new("scripts/items/misc/wx_page_item");
 		pPartial.initPages("wx_manual_duanyue", 3);

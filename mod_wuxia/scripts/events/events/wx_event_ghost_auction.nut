@@ -30,9 +30,9 @@ this.wx_event_ghost_auction <- this.inherit("scripts/events/event", {
 							item = ::new("scripts/items/misc/wx_pill_item");
 							item.initPill(_event.m.LotID);
 						}
-						else if (_event.m.LotKind == "named_fist")
+						else if (_event.m.LotKind == "relic_weapon")
 						{
-							item = ::new("scripts/items/weapons/named/wx_named_fist");
+							item = ::new(_event.m.LotID);
 						}
 						else
 						{
@@ -50,21 +50,24 @@ this.wx_event_ghost_auction <- this.inherit("scripts/events/event", {
 			function start( _event )
 			{
 				local roll = ::Math.rand(1, 100);
-				if (roll <= 22)
+				if (roll <= 18)
 				{
 					_event.m.LotKind = "pill";
 					_event.m.LotID = "wx_pill_xisui";
 					_event.m.LotName = "稀世奇药【洗髓丹】";
 					_event.m.BidPrice = 5200;
 				}
-				else if (roll <= 37)
+				else if (roll <= 42)
 				{
-					_event.m.LotKind = "named_fist";
-					_event.m.LotID = "weapon.wx_named_fist";
-					_event.m.LotName = "传世名器【百炼拳掌护手】";
-					_event.m.BidPrice = 5600;
+					local rPool = ::Wuxia.Relics.getRelicIDs();
+					local rid = rPool[::Math.rand(0, rPool.len() - 1)];
+					local rcfg = ::Wuxia.Config.RelicWeapons[rid];
+					_event.m.LotKind = "relic_weapon";
+					_event.m.LotID = rcfg.Script;
+					_event.m.LotName = "传世历史神兵【传世·" + rcfg.Name + "】";
+					_event.m.BidPrice = rcfg.MinValue;
 				}
-				else if (roll <= 55)
+				else if (roll <= 62)
 				{
 					local uniques = ::Wuxia.Loot.getManualIDsByQuality("unique");
 					local mid = uniques[::Math.rand(0, uniques.len() - 1)];

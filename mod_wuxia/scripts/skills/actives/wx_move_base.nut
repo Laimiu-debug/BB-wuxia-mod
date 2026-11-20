@@ -43,7 +43,14 @@ this.wx_move_base <- this.inherit("scripts/skills/skill", {
 		if (this.m.RequiredWeaponTypes.find("Throwing") != null)
 		{
 			local item = this.getContainer().getActor().getItems().getItemAtSlot(::Const.ItemSlot.Mainhand);
-			return item.getAmmoMax() == 0 || item.getAmmo() > 0;
+			return item != null && (item.getAmmoMax() == 0 || item.getAmmo() > 0);
+		}
+		if (this.m.RequiredWeaponTypes.len() == 1 && this.m.RequiredWeaponTypes[0] == "Bow")
+		{
+			local actor = this.getContainer().getActor();
+			if (actor != null && !actor.isPlayerControlled()) return true;
+			local ammo = actor == null ? null : actor.getItems().getItemAtSlot(::Const.ItemSlot.Ammo);
+			return ammo != null && (ammo.getAmmoMax() == 0 || ammo.getAmmo() > 0);
 		}
 		return true;
 	}
@@ -52,8 +59,53 @@ this.wx_move_base <- this.inherit("scripts/skills/skill", {
 	{
 		local item = _user.getItems().getItemAtSlot(::Const.ItemSlot.Mainhand);
 		local hit = this.attackEntity(_user, _target);
-		if (item.getAmmoMax() > 0) item.consumeAmmo();
+		if (item != null && item.getAmmoMax() > 0) item.consumeAmmo();
 		return hit;
+	}
+
+	function wxShootBowAt( _user, _target )
+	{
+		local hit = this.attackEntity(_user, _target);
+		if (_user.isPlayerControlled())
+		{
+			local ammo = _user.getItems().getItemAtSlot(::Const.ItemSlot.Ammo);
+			if (ammo != null && ammo.getAmmoMax() > 0) ammo.consumeAmmo();
+		}
+		return hit;
+	}
+
+	function wxTryKnockback( _user, _target )
+	{
+		if (_user == null || _target == null || !_target.isAlive() || !_user.isPlacedOnMap() || !_target.isPlacedOnMap())
+			return false;
+		local props = _target.getCurrentProperties();
+		if (props.IsImmuneToKnockBackAndGrab || props.IsRooted) return false;
+		local tTile = _target.getTile();
+		local dir = _user.getTile().getDirectionTo(tTile);
+		if (!tTile.hasNextTile(dir)) return false;
+		local dest = tTile.getNextTile(dir);
+		if (dest.IsOccupiedByActor || !dest.IsEmpty || ::Math.abs(dest.Level - tTile.Level) > 1)
+			return false;
+		::Tactical.getNavigator().teleport(_target, dest, null, null, true);
+		return true;
+	}
+
+	function wxTryPullToAdjacent( _user, _target )
+	{
+		if (_user == null || _target == null || !_target.isAlive() || !_user.isPlacedOnMap() || !_target.isPlacedOnMap())
+			return false;
+		local uTile = _user.getTile();
+		local tTile = _target.getTile();
+		if (uTile.getDistanceTo(tTile) <= 1) return false;
+		local props = _target.getCurrentProperties();
+		if (props.IsImmuneToKnockBackAndGrab || props.IsRooted) return false;
+		local dir = uTile.getDirectionTo(tTile);
+		if (!uTile.hasNextTile(dir)) return false;
+		local mid = uTile.getNextTile(dir);
+		if (mid.IsOccupiedByActor || !mid.IsEmpty || ::Math.abs(mid.Level - tTile.Level) > 1)
+			return false;
+		::Tactical.getNavigator().teleport(_target, mid, null, null, true);
+		return true;
 	}
 
 	function getFatigueCost()

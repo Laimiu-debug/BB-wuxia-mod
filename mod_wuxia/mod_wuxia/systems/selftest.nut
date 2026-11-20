@@ -45,9 +45,21 @@
 		"scripts/skills/actives/wx_fist_acupoint",
 		"scripts/skills/actives/wx_fist_disarm",
 		"scripts/skills/actives/wx_hammer_shatter",
+		"scripts/skills/actives/wx_hammer_quake",
 		"scripts/skills/actives/wx_axe_split",
+		"scripts/skills/actives/wx_axe_whirl",
 		"scripts/skills/actives/wx_flail_lash",
-		"scripts/skills/actives/wx_dagger_execute"
+		"scripts/skills/actives/wx_flail_entangle",
+		"scripts/skills/actives/wx_dagger_vital",
+		"scripts/skills/actives/wx_dagger_execute",
+		"scripts/skills/actives/wx_sword_pierce",
+		"scripts/skills/actives/wx_saber_sweep",
+		"scripts/skills/actives/wx_spear_thrust2",
+		"scripts/skills/actives/wx_pole_sweep",
+		"scripts/skills/actives/wx_fist_grapple",
+		"scripts/skills/actives/wx_bow_snipe",
+		"scripts/skills/actives/wx_throw_fan",
+		"scripts/skills/actives/wx_shield_bash_qi"
 	];
 
 	foreach (sp in skillScripts)
@@ -83,22 +95,55 @@
 		});
 	}
 
-	// 3. Instantiate all 3 item classes & test all 24 manuals + 5 pills
-	check("Manual catalog: items, grant scripts and MVP quality counts", function() {
-		local minimum = { common = 8, sect = 8, secret = 5, unique = 3 };
+	// 3. Instantiate all 3 item classes & test all 250+ manuals + AGENTS.md caps + 5 pills
+	check("Manual catalog: 250+ manuals, unique names, KnownFlags & AGENTS.md redlines", function() {
+		local minimum = { common = 50, sect = 90, secret = 50, unique = 15 };
 		local counts = { common = 0, sect = 0, secret = 0, unique = 0 };
+		local totalManuals = 0;
+		local seenNames = {};
 		local grants = {};
+		local stamCap = { common = 15, sect = 25, secret = 35, unique = 40 };
+		local initCap = { common = 12, sect = 18, secret = 24, unique = 30 };
 		local props = ::Const.CharacterProperties.getClone();
 		local c = ::new("scripts/skills/special/wx_martial_container");
 		foreach (mid, def in ::Wuxia.Config.Manuals)
 		{
+			totalManuals += 1;
 			if (mid != def.ID || def.Levels.len() != ::Wuxia.Config.Constants.MaxManualTier) throw mid;
+			if (def.Name in seenNames) throw "Duplicate manual Name: " + def.Name + " (" + mid + ")";
+			seenNames[def.Name] <- mid;
 			counts[def.Quality] += 1;
 			foreach (level in def.Levels)
 			{
 				foreach (stat, value in level.Stats)
 					if (!(stat in props)) throw "Unknown stat: " + stat + " in " + mid;
+				foreach (fk, _ in level.Flags)
+					if (!(fk in ::Wuxia.CombatRules.KnownFlags)) throw "Unknown flag: " + fk + " in " + mid;
 				foreach (id in level.GrantSkills) grants[id] <- true;
+
+				if (def.Category == "neigong")
+				{
+					if (("MeleeSkill" in level.Stats) || ("MeleeDefense" in level.Stats) || ("RangedSkill" in level.Stats))
+						throw "Neigong combat stat forbidden in " + mid;
+					if (("Stamina" in level.Stats) && level.Stats.Stamina > stamCap[def.Quality])
+						throw "Neigong stamina cap exceeded in " + mid;
+					if (("FatigueRecoveryRate" in level.Stats) && level.Stats.FatigueRecoveryRate > 6)
+						throw "Neigong recovery cap exceeded in " + mid;
+				}
+				else if (def.Category == "qinggong")
+				{
+					if (("Initiative" in level.Stats) && level.Stats.Initiative > initCap[def.Quality])
+						throw "Qinggong Init cap exceeded in " + mid;
+					if (("InitToDefRatio" in level.Flags) && level.Flags.InitToDefRatio > (def.Quality == "unique" ? 0.201 : 0.181))
+						throw "Qinggong InitToDefRatio exceeded in " + mid;
+				}
+				else if (def.Category == "henglian")
+				{
+					if (("Hitpoints" in level.Stats) && level.Stats.Hitpoints > 20)
+						throw "Henglian HP cap exceeded in " + mid;
+				}
+				if (("PermanentAPBonus" in level.Flags) && level.Flags.PermanentAPBonus > 1)
+					throw "PermanentAPBonus > 1 in " + mid;
 			}
 			local mItem = ::new("scripts/items/misc/wx_manual_item");
 			mItem.initManual(mid);
@@ -112,13 +157,15 @@
 				pItem.getTooltip();
 			}
 		}
+		if (totalManuals < 250) throw "Expected >= 250 manuals, got " + totalManuals;
 		foreach (quality, count in minimum)
-			if (counts[quality] < count) throw "Missing MVP manuals: " + quality;
+			if (counts[quality] < count) throw "Insufficient manuals for " + quality + ": " + counts[quality];
 		foreach (id, _ in grants)
 		{
 			local path = c.resolveSkillScriptPath(id);
 			if (path == null || ::new(path).getID() != id) throw "Unresolvable skill: " + id;
 		}
+		::logInfo("[WX-SELFTEST] Verified " + totalManuals + " total manuals (common=" + counts.common + ", sect=" + counts.sect + ", secret=" + counts.secret + ", unique=" + counts.unique + ")");
 	});
 
 	check("Instantiate & validate all 5 pills via wx_pill_item", function() {
@@ -485,6 +532,128 @@
 		local ev = ::new("scripts/events/events/wx_event_sect_exchange");
 		if (ev.getID() != "event.wx_sect_exchange" || ev.m.Screens.len() < 7)
 			throw "Invalid upgraded sect exchange event";
+		foreach (sid2, sdef2 in ::Wuxia.Config.Sects)
+			if (sdef2.ShopManuals.len() < 5) throw "Expected >= 5 exclusive manuals in sect " + sid2;
+	});
+
+	check("v0.5.0 Page anti-bloat: 参悟化功 resonance & 2:1 wildcard page completion", function() {
+		// 1. Test Page Infusion (参悟化功) with cross-category, same-category (+25%), and same-manual (+50%)
+		local c = ::new("scripts/skills/special/wx_martial_container");
+		local actorRef = null;
+		local skills = {
+			function getActor() { return actorRef; },
+			function getSkillByID( _id ) { return _id == "special.wx_martial_container" ? c : null; },
+			function hasSkill( _id ) { return false; },
+			function add( _sk ) {},
+			function remove( _sk ) {},
+			function update() {}
+		};
+		c.setContainer(skills);
+		actorRef = {
+			function getSkills() { return skills; },
+			function getItems() { return null; },
+			function getBaseProperties() { return ::Const.CharacterProperties.getClone(); }
+		};
+		c.m.Slots[0].ManualID = "wx_manual_zixia_gong"; // sect neigong (ExpNeeded = 160 for Tier 2)
+		c.m.Slots[0].Tier = 1;
+		c.m.Slots[0].Exp = 0;
+
+		local rCross = ::Wuxia.Mastery.infuseWithPage(actorRef, 0, "wx_manual_qingfeng"); // sect waigong -> 40
+		if (!rCross.Ok || rCross.ExpAmount != 40 || c.m.Slots[0].Exp != 40)
+			throw "Expected +40 cross-category page exp, got " + rCross.ExpAmount;
+
+		local rSameCat = ::Wuxia.Mastery.infuseWithPage(actorRef, 0, "wx_manual_songtao"); // sect neigong -> 50
+		if (!rSameCat.Ok || rSameCat.ExpAmount != 50 || c.m.Slots[0].Exp != 90)
+			throw "Expected +50 same-category page exp, got " + rSameCat.ExpAmount;
+
+		local rSameBook = ::Wuxia.Mastery.infuseWithPage(actorRef, 0, "wx_manual_zixia_gong"); // exact same -> 60 -> total 150
+		if (!rSameBook.Ok || rSameBook.ExpAmount != 60 || c.m.Slots[0].Exp != 150)
+			throw "Expected +60 same-manual page exp, got " + rSameBook.ExpAmount;
+
+		// 2. Test 2:1 Same-Quality Wildcard Page Completion
+		local stash = ::new("scripts/items/stash_container");
+		stash.resize(6);
+		local pOwn = ::new("scripts/items/misc/wx_page_item");
+		pOwn.initPages("wx_manual_zixia_gong", 2); // needs 3, missing 1 -> needs 2 spare sect pages
+		stash.add(pOwn);
+
+		local sp1 = ::new("scripts/items/misc/wx_page_item");
+		sp1.initPages("wx_manual_shuofang_jingua", 1);
+		stash.add(sp1);
+
+		// Only 1 spare page so far -> wildcard must refuse!
+		if (::Wuxia.Slots.craftManualFromStash(stash, "wx_manual_zixia_gong", true).Ok)
+			throw "Wildcard craft should refuse with only 1 spare page";
+
+		local sp2 = ::new("scripts/items/misc/wx_page_item");
+		sp2.initPages("wx_manual_mobei_taoma_bian", 2);
+		stash.add(sp2);
+
+		local preview = ::Wuxia.Slots.previewWildcardCraft(stash, "wx_manual_zixia_gong");
+		if (!preview.ok || !preview.needsWildcard || preview.spareNeeded != 2)
+			throw "Wildcard preview mismatch";
+
+		local res = ::Wuxia.Slots.craftManualFromStash(stash, "wx_manual_zixia_gong", true);
+		if (!res.Ok || !res.UsedWildcard || res.SacrificedCount != 2)
+			throw "Wildcard craft failed";
+		if (stash.getItemByID("misc.wx_manual_item") == null || sp2.getPageCount() != 1)
+			throw "Wildcard craft did not consume smallest 1-page stack first and 1 from sp2";
+	});
+
+	check("v0.5.0 All 37 Historical Famous Rare Weapons instantiate, roll red stats & match families", function() {
+		local relicCount = 0;
+		foreach (rid, cfg in ::Wuxia.Config.RelicWeapons)
+		{
+			relicCount += 1;
+			local w = ::new(cfg.Script);
+			if (w.getID() != "weapon." + rid) throw "Relic ID mismatch: " + w.getID();
+			if (w.getName().find("传世·") != 0) throw "Relic prefix missing: " + w.getName();
+			if (w.m.Icon == "" || w.m.Value < cfg.MinValue) throw "Relic icon/value invalid: " + rid;
+			if (!w.isItemType(::Const.Items.ItemType.Named)) throw "Relic missing Named flag: " + rid;
+			if (!::Wuxia.CombatRules.matchesWeapon(w, [cfg.Family]))
+				throw "Relic did not match expected family " + cfg.Family + ": " + rid;
+			local unrelated = (cfg.Family == "Sword") ? "Hammer" : "Sword";
+			if (::Wuxia.CombatRules.matchesWeapon(w, [unrelated]))
+				throw "Relic falsely matched unrelated family " + unrelated + ": " + rid;
+		}
+		if (relicCount < 35) throw "Expected >= 35 historical relic weapons, got " + relicCount;
+		::logInfo("[WX-SELFTEST] Verified " + relicCount + " Historical Famous Rare Weapons");
+	});
+
+	check("v0.5.0 Composable combat flags aggregate via Math.max without linear inflation", function() {
+		local held = ::new("scripts/items/weapons/named/wx_relic_yuchang");
+		local items = {
+			function getItemAtSlot( _s ) { return _s == ::Const.ItemSlot.Mainhand ? held : null; },
+			function hasBlockedSlot( _s ) { return false; }
+		};
+		local actor = {
+			function getItems() { return items; },
+			function isArmedWithShield() { return false; },
+			function getInitiative() { return 110; }
+		};
+		local skills = { function getActor() { return actor; }, function hasSkill( _id ) { return false; } };
+		local c = ::new("scripts/skills/special/wx_martial_container");
+		c.setContainer(skills);
+		// Equip two manuals that both grant ExecuteLowHpDmg (0.20 and 0.15) -> must take Math.max(0.20), NEVER 0.35!
+		c.m.Slots[0].ManualID = "wx_manual_yinsha_guixi";   c.m.Slots[0].Tier = 3; // ExecuteLowHpDmg = 0.15
+		c.m.Slots[1].ManualID = "wx_manual_kuaiji_zhuanzhu"; c.m.Slots[1].Tier = 3; // ExecuteLowHpDmg = 0.20 (Dagger matches yuchang!)
+		local agg = ::Wuxia.CombatRules.getAggregateFlags(c);
+		if (::Math.abs(agg.ExecuteLowHpDmg - 0.20) > 0.001)
+			throw "ExecuteLowHpDmg stacked instead of Math.max: " + agg.ExecuteLowHpDmg;
+		local props = ::Const.CharacterProperties.getClone();
+		c.onUpdate(props);
+		local lowHpEnemy = {
+			function getHitpoints() { return 30; },
+			function getHitpointsMax() { return 100; },
+			function getArmor( _p ) { return 50; },
+			function getArmorMax( _p ) { return 50; },
+			function getSkills() { return null; }
+		};
+		local atkProps = ::Const.CharacterProperties.getClone();
+		local mockAtk = { m = { IsWeaponSkill = true }, function isAttack() { return true; }, function isRanged() { return false; } };
+		c.onAnySkillUsed(mockAtk, lowHpEnemy, atkProps);
+		if (::Math.abs(atkProps.DamageTotalMult - 1.20) > 0.001)
+			throw "Expected 1.20x ExecuteLowHpDmg on <50% HP target, got " + atkProps.DamageTotalMult;
 	});
 	::logInfo("[WX-SELFTEST] ================= Result: " + passed + " PASSED, " + failed + " FAILED =================");
 };

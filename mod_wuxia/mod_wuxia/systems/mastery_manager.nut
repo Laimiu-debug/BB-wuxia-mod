@@ -198,3 +198,63 @@
 		Missing = res.Missing
 	};
 };
+
+// Infuse 1 spare martial page into an equipped non-fragment manual slot (参悟化功)
+::Wuxia.Mastery.getPageBaseExp <- function( _quality )
+{
+	if (_quality == "unique") return 120;
+	if (_quality == "secret") return 75;
+	if (_quality == "sect")   return 40;
+	return 20;
+};
+
+::Wuxia.Mastery.infuseWithPage <- function( _actor, _slotIndex, _pageManualID )
+{
+	local c = ::Wuxia.Slots.getContainer(_actor);
+	if (c == null || _slotIndex < 0 || _slotIndex >= c.m.Slots.len())
+		return { Ok = false, Reason = "无效槽位。" };
+
+	local pageDef = ::Wuxia.Slots.getManualDef(_pageManualID);
+	if (pageDef == null)
+		return { Ok = false, Reason = "未知武学残页。" };
+
+	local slot = c.m.Slots[_slotIndex];
+	if (slot.ManualID == null || slot.Tier <= 0)
+		return { Ok = false, Reason = "该插槽尚未装配功法，不可参悟化功。" };
+	if (slot.IsFragment)
+		return { Ok = false, Reason = "残本强修止步一重，无法灌注火候。" };
+	if (::Wuxia.Slots.getPracticedDef(c, slot) == null)
+		return { Ok = false, Reason = "此功法已封存，更换较早槽位的同类功法即可恢复。" };
+
+	local def = ::Wuxia.Slots.getManualDef(slot.ManualID);
+	if (def == null || slot.Tier >= def.Levels.len())
+		return { Ok = false, Reason = "该功法已达三重大成，无需继续参悟残页。" };
+
+	local baseExp = ::Wuxia.Mastery.getPageBaseExp(pageDef.Quality);
+	local mult = 1.0;
+	local resonance = "";
+	if (pageDef.ID == def.ID)
+	{
+		mult = 1.5;
+		resonance = "同名印证 (+50%)";
+	}
+	else if (pageDef.Category == def.Category)
+	{
+		mult = 1.25;
+		resonance = "同脉触类 (+25%)";
+	}
+
+	local expAmt = ::Math.max(1, ::Math.floor(baseExp * mult));
+	local res = ::Wuxia.Mastery.addExpToSlot(_actor, _slotIndex, expAmt);
+	return {
+		Ok = true,
+		ManualName = def.Name,
+		PageManualName = pageDef.Name,
+		ExpAmount = expAmt,
+		Resonance = resonance,
+		Advanced = res.Advanced,
+		NewTier = res.NewTier,
+		BlockedByReq = res.BlockedByReq,
+		Missing = res.Missing
+	};
+};

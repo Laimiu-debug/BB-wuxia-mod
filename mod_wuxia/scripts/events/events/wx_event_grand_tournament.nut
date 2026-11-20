@@ -106,7 +106,16 @@ this.wx_event_grand_tournament <- this.inherit("scripts/events/event", {
 					local pill = ::new("scripts/items/misc/wx_pill_item");
 					pill.initPill("wx_pill_xisui");
 					stash.add(pill);
-					rewardText += "与【洗髓丹】一枚";
+					rewardText += "、【洗髓丹】一枚";
+				}
+				if (stash.hasEmptySlot())
+				{
+					local relic = ::Wuxia.Relics.createRandomRelic();
+					if (relic != null)
+					{
+						stash.add(relic);
+						rewardText += "与传世神兵【" + relic.getName() + "】";
+					}
 				}
 
 				this.Text = "[img]gfx/ui/events/event_80.png[/img]" + _event.m.ChampName + " 连破三关，于总擂之上拆解少室金刚掌、破去唐门暴雨针，终以一记绝招震退压轴宿老！满场喝彩如雷，大会盟主亲手奉上彩头（" + rewardText + "）！";

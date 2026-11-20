@@ -44,6 +44,8 @@ this.wx_stronghold <- this.inherit("scripts/entity/world/location", {
 			this.m.Loot.add(extra);
 		}
 		if (def.GivesHerb) this.m.Loot.add(::new("scripts/items/misc/wx_marrow_herb"));
+		local relic = ::Wuxia.Relics.createRandomRelic();
+		if (relic != null) this.m.Loot.add(relic);
 		this.getFlags().set("wx_garrison_ready", true);
 	}
 

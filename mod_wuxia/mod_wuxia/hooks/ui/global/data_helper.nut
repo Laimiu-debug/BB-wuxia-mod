@@ -125,7 +125,7 @@
 	};
 };
 
-::Wuxia.UI.buildStashWuxiaItems <- function()
+::Wuxia.UI.buildStashWuxiaItems <- function( _actor = null )
 {
 	local result = [];
 	local washPillCount = 0;
@@ -138,18 +138,30 @@
 	if (stash == null)
 		return { items = result, washPillCount = 0, protectPillCount = 0 };
 
+	local heldWeapon = (_actor != null && "getItems" in _actor && _actor.getItems() != null)
+		? _actor.getItems().getItemAtSlot(::Const.ItemSlot.Mainhand)
+		: null;
+
 	local items = stash.getItems();
 
-	// Count total pages per ManualID across all stacks for crafting check
+	// Count total pages per ManualID and per Quality across all stacks for exact & 2:1 wildcard crafting checks
 	local pageTotals = {};
+	local qualityPageTotals = {};
 	for (local i = 0; i < items.len(); i = ++i)
 	{
 		local it = items[i];
 		if (it != null && it.getID() == "misc.wx_page_item")
 		{
 			local mid = it.getManualID();
+			local pdef = ::Wuxia.Slots.getManualDef(mid);
+			local cnt = it.getPageCount();
 			if (!(mid in pageTotals)) pageTotals[mid] <- 0;
-			pageTotals[mid] += it.getPageCount();
+			pageTotals[mid] += cnt;
+			if (pdef != null)
+			{
+				if (!(pdef.Quality in qualityPageTotals)) qualityPageTotals[pdef.Quality] <- 0;
+				qualityPageTotals[pdef.Quality] += cnt;
+			}
 		}
 	}
 
@@ -173,6 +185,7 @@
 				quality       = def.Quality,
 				qualityLabel  = ::Wuxia.Text.Qualities[def.Quality],
 				icon          = def.Icon,
+				matchesWeapon = ::Wuxia.CombatRules.matchesWeapon(heldWeapon, def.WeaponTypes),
 				description   = def.Description,
 				tier1Summary  = def.Levels[0].Summary,
 				tier3Summary  = def.Levels[def.Levels.len() - 1].Summary
@@ -183,6 +196,12 @@
 			local def = ::Wuxia.Slots.getManualDef(it.getManualID());
 			if (def == null) continue;
 			local total = (def.ID in pageTotals) ? pageTotals[def.ID] : it.getPageCount();
+			local qTotal = (def.Quality in qualityPageTotals) ? qualityPageTotals[def.Quality] : total;
+			local spareAvail = ::Math.max(0, qTotal - total);
+			local missingOwn = ::Math.max(0, def.FragmentsNeeded - total);
+			local spareNeed = missingOwn * 2;
+			local canExact = (def.FragmentsNeeded > 0 && total >= def.FragmentsNeeded);
+			local canWild  = (!canExact && def.FragmentsNeeded > 0 && total >= 1 && spareAvail >= spareNeed);
 			result.push({
 				stashIndex         = j,
 				itemKind           = "page",
@@ -193,10 +212,14 @@
 				quality            = def.Quality,
 				qualityLabel       = ::Wuxia.Text.Qualities[def.Quality],
 				icon               = def.Icon,
+				matchesWeapon      = ::Wuxia.CombatRules.matchesWeapon(heldWeapon, def.WeaponTypes),
 				pageCount          = it.getPageCount(),
 				totalPages         = total,
 				fragmentsNeeded    = def.FragmentsNeeded,
-				canCraft           = (def.FragmentsNeeded > 0 && total >= def.FragmentsNeeded),
+				canCraft           = canExact,
+				canWildcardCraft   = canWild,
+				spareNeeded        = spareNeed,
+				infuseBaseExp      = ::Wuxia.Mastery.getPageBaseExp(def.Quality),
 				allowFragmentLearn = def.AllowFragmentLearn,
 				description        = def.Description
 			});

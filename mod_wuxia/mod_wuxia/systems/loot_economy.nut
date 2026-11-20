@@ -42,65 +42,72 @@
 	] },
 
 	// M4.2 Ecology Expansion: 塞外马贼 (Nomads)
-	nomad_outlaw = { Troop = "NomadOutlaw", DropChance = 24, IsBoss = false, Manuals = [
-		{ ManualID = "wx_manual_wuhudao",   Tier = 2, Weight = 40 },
-		{ ManualID = "wx_manual_chanzi",    Tier = 2, Weight = 35 },
-		{ ManualID = "wx_manual_jianbu",    Tier = 2, Weight = 25 }
+	nomad_outlaw = { Troop = "NomadOutlaw", DropChance = 26, IsBoss = false, Manuals = [
+		{ ManualID = "wx_manual_hanhai_wandao_ru", Tier = 2, Weight = 25 },
+		{ ManualID = "wx_manual_liusha_bu",        Tier = 2, Weight = 25 },
+		{ ManualID = "wx_manual_liesha_tuna",      Tier = 2, Weight = 25 },
+		{ ManualID = "wx_manual_chanzi",           Tier = 2, Weight = 25 }
 	] },
-	nomad_leader = { Troop = "NomadLeader", DropChance = 65, IsBoss = true, Manuals = [
-		{ ManualID = "wx_manual_heifeng",   Tier = 3, Weight = 40 },
-		{ ManualID = "wx_manual_gufeng",    Tier = 2, Weight = 35 },
-		{ ManualID = "wx_manual_duanyue",   Tier = 2, Weight = 25 }
+	nomad_leader = { Troop = "NomadLeader", DropChance = 68, IsBoss = true, Manuals = [
+		{ ManualID = "wx_manual_hanhai_xinyue",    Tier = 3, Weight = 30 },
+		{ ManualID = "wx_manual_mingzun_huo",      Tier = 2, Weight = 25 },
+		{ ManualID = "wx_manual_hanhai_guke",      Tier = 2, Weight = 25 },
+		{ ManualID = "wx_manual_hanhai_shishen",   Tier = 2, Weight = 20 }
 	] },
-	southern_assassin = { Troop = "Assassin", DropChance = 80, IsBoss = true, Manuals = [
-		{ ManualID = "wx_manual_huifeng",   Tier = 3, Weight = 35 },
-		{ ManualID = "wx_manual_suodi",     Tier = 3, Weight = 35 },
-		{ ManualID = "wx_manual_gufeng",    Tier = 3, Weight = 30 }
+	southern_assassin = { Troop = "Assassin", DropChance = 82, IsBoss = true, Manuals = [
+		{ ManualID = "wx_manual_youming_bi",       Tier = 3, Weight = 30 },
+		{ ManualID = "wx_manual_youming_guibu",    Tier = 3, Weight = 25 },
+		{ ManualID = "wx_manual_yinsha_guixi",     Tier = 3, Weight = 25 },
+		{ ManualID = "wx_manual_mingzun_shenghuoling", Tier = 3, Weight = 20 }
 	] },
 
 	// M4.2 Ecology Expansion: 地方藩镇与军镇高手 (Noble Military & City-State Elites)
 	sergeant = { Troop = "Sergeant", DropChance = 45, IsBoss = false, Manuals = [
-		{ ManualID = "wx_manual_juyiling",  Tier = 2, Weight = 55 },
-		{ ManualID = "wx_manual_songtao",   Tier = 2, Weight = 45 }
+		{ ManualID = "wx_manual_juyiling",         Tier = 2, Weight = 35 },
+		{ ManualID = "wx_manual_baima_zhenshu",    Tier = 2, Weight = 35 },
+		{ ManualID = "wx_manual_luoyang_changfeng", Tier = 2, Weight = 30 }
 	] },
-	knight = { Troop = "Knight", DropChance = 70, IsBoss = true, Manuals = [
-		{ ManualID = "wx_manual_tiebushan", Tier = 3, Weight = 40 },
-		{ ManualID = "wx_manual_jinzhong",  Tier = 2, Weight = 30 },
-		{ ManualID = "wx_manual_weiyuan",   Tier = 3, Weight = 30 }
+	knight = { Troop = "Knight", DropChance = 72, IsBoss = true, Manuals = [
+		{ ManualID = "wx_manual_hengshan_tiebi",   Tier = 3, Weight = 30 },
+		{ ManualID = "wx_manual_yanmen_zhenjun",   Tier = 2, Weight = 25 },
+		{ ManualID = "wx_manual_cuijia_liuhua",    Tier = 2, Weight = 25 },
+		{ ManualID = "wx_manual_shaolin_jinzhong", Tier = 2, Weight = 20 }
 	] },
-	officer = { Troop = "Officer", DropChance = 60, IsBoss = true, Manuals = [
-		{ ManualID = "wx_manual_heifeng",   Tier = 3, Weight = 40 },
-		{ ManualID = "wx_manual_juyiling",  Tier = 2, Weight = 35 },
-		{ ManualID = "wx_manual_gufeng",    Tier = 2, Weight = 25 }
+	officer = { Troop = "Officer", DropChance = 62, IsBoss = true, Manuals = [
+		{ ManualID = "wx_manual_huaiyang_jindao",  Tier = 3, Weight = 30 },
+		{ ManualID = "wx_manual_shazhou_leihuo_chong", Tier = 2, Weight = 25 },
+		{ ManualID = "wx_manual_wuwei_shuaiqi",    Tier = 2, Weight = 20 },
+		{ ManualID = "wx_manual_gufeng",           Tier = 2, Weight = 25 }
 	] },
 	gladiator = { Troop = "Gladiator", DropChance = 55, IsBoss = false, Manuals = [
-		{ ManualID = "wx_manual_jingang",   Tier = 2, Weight = 40 },
-		{ ManualID = "wx_manual_guixi",     Tier = 3, Weight = 30 },
-		{ ManualID = "wx_manual_jinchan",   Tier = 2, Weight = 30 }
+		{ ManualID = "wx_manual_qianjiang_nuchao_zhang", Tier = 2, Weight = 30 },
+		{ ManualID = "wx_manual_shuofang_jingua",  Tier = 2, Weight = 25 },
+		{ ManualID = "wx_manual_lingnan_tengdun",  Tier = 2, Weight = 25 },
+		{ ManualID = "wx_manual_jinchan",          Tier = 2, Weight = 20 }
 	] },
 
 	// M4.2 Ecology Expansion: 关外铁骑战帮 (Barbarians)
 	barbarian_marauder = { Troop = "BarbarianMarauder", DropChance = 28, IsBoss = false, Manuals = [
-		{ ManualID = "wx_manual_xingqi",    Tier = 2, Weight = 40 },
-		{ ManualID = "wx_manual_wuhudao",   Tier = 2, Weight = 35 },
-		{ ManualID = "wx_manual_guixi",     Tier = 2, Weight = 25 }
+		{ ManualID = "wx_manual_heishui_xue",      Tier = 2, Weight = 35 },
+		{ ManualID = "wx_manual_heishui_kuangfu",  Tier = 2, Weight = 35 },
+		{ ManualID = "wx_manual_xueyuan_zong",     Tier = 2, Weight = 30 }
 	] },
-	barbarian_chosen = { Troop = "BarbarianChampion", DropChance = 70, IsBoss = true, Manuals = [
-		{ ManualID = "wx_manual_duanyue",   Tier = 3, Weight = 40 },
-		{ ManualID = "wx_manual_jinzhong",  Tier = 2, Weight = 35 },
-		{ ManualID = "wx_manual_xuesha",    Tier = 2, Weight = 25 }
+	barbarian_chosen = { Troop = "BarbarianChampion", DropChance = 72, IsBoss = true, Manuals = [
+		{ ManualID = "wx_manual_heishui_xueming_fu", Tier = 3, Weight = 35 },
+		{ ManualID = "wx_manual_pishan_kaitian",   Tier = 2, Weight = 30 },
+		{ ManualID = "wx_manual_zhenyue_qianjun",  Tier = 2, Weight = 35 }
 	] },
 
 	// M4.2 Ecology Expansion: 五毒奇门伏兵 (Goblins)
-	goblin_ambusher = { Troop = "GoblinAmbusher", DropChance = 26, IsBoss = false, Manuals = [
-		{ ManualID = "wx_manual_wudu",      Tier = 2, Weight = 45 },
-		{ ManualID = "wx_manual_xiushou",   Tier = 2, Weight = 35 },
-		{ ManualID = "wx_manual_yanxing",   Tier = 1, Weight = 20 }
+	goblin_ambusher = { Troop = "GoblinAmbusher", DropChance = 28, IsBoss = false, Manuals = [
+		{ ManualID = "wx_manual_wudu_chuijian",    Tier = 2, Weight = 35 },
+		{ ManualID = "wx_manual_wudu_shehang",     Tier = 2, Weight = 35 },
+		{ ManualID = "wx_manual_wudu",             Tier = 2, Weight = 30 }
 	] },
-	goblin_overseer = { Troop = "GoblinOverseer", DropChance = 65, IsBoss = true, Manuals = [
-		{ ManualID = "wx_manual_wudu",      Tier = 3, Weight = 50 },
-		{ ManualID = "wx_manual_baoyu",     Tier = 2, Weight = 30 },
-		{ ManualID = "wx_manual_suodi",     Tier = 2, Weight = 20 }
+	goblin_overseer = { Troop = "GoblinOverseer", DropChance = 68, IsBoss = true, Manuals = [
+		{ ManualID = "wx_manual_wudu_wanxian",     Tier = 3, Weight = 35 },
+		{ ManualID = "wx_manual_tangmen_guanyin_lei", Tier = 2, Weight = 35 },
+		{ ManualID = "wx_manual_wudu_jinshe_bian", Tier = 2, Weight = 30 }
 	] },
 
 	// M4.2 Ecology Expansion: 邪派炼体药人 (Orcs)
@@ -301,13 +308,13 @@
 		if (it != null && it.getID() == "misc.wx_manual_item")
 			existingManuals += 1;
 	}
-	if (existingManuals >= 2) return;
+	if (existingManuals >= 3) return;
 
-	// Stock 2 random common manuals (大路货) for early 12-man slot filling
+	// Stock 3 random common manuals (大路货) from the 65+ street/folk manual pool for early 12-man slot filling
 	local commons = ::Wuxia.Loot.getManualIDsByQuality("common");
 	if (commons.len() > 0)
 	{
-		for (local i = 0; i < 2; i = ++i)
+		for (local i = existingManuals; i < 3; i = ++i)
 		{
 			local mid = commons[::Math.rand(0, commons.len() - 1)];
 			local mItem = ::new("scripts/items/misc/wx_manual_item");
@@ -353,5 +360,11 @@
 	if (::Math.rand(1, 100) <= 45)
 	{
 		_stash.add(::new("scripts/items/weapons/wx_fist_heavy"));
+	}
+	// Rare 8% famed weaponsmith roll: stock 1 Historical Famous Rare Weapon (传世神兵红武)!
+	if (::Math.rand(1, 100) <= 8)
+	{
+		local relic = ::Wuxia.Relics.createRandomRelic();
+		if (relic != null) _stash.add(relic);
 	}
 };

@@ -8,6 +8,22 @@
 	local wid = _weapon.getID().tolower();
 	local cats = ("Categories" in _weapon.m && _weapon.m.Categories != null) ? _weapon.m.Categories.tolower() : "";
 
+	if (wid.find("weapon.wx_relic_") == 0 && ("RelicWeapons" in ::Wuxia.Config))
+	{
+		local rKey = wid.slice(7);
+		if (rKey in ::Wuxia.Config.RelicWeapons)
+		{
+			local rFam = ::Wuxia.Config.RelicWeapons[rKey].Family;
+			foreach (wtName in _types)
+			{
+				if (wtName == rFam) return true;
+				if ((rFam == "Saber" || rFam == "Cleaver") && (wtName == "Saber" || wtName == "Cleaver")) return true;
+				if ((rFam == "Spear" || rFam == "Polearm") && (wtName == "Spear" || wtName == "Polearm")) return true;
+			}
+			return false;
+		}
+	}
+
 	foreach (wtName in _types)
 	{
 		// Path 1: MSU WeaponType if MSU is installed
@@ -116,6 +132,29 @@
 		FrostChillOnHit      = false,
 		InflictOpeningPct    = null,
 		InflictOffBalancePct = null,
+		ExecuteLowHpDmg      = 0.0,
+		FirstRoundInit       = 0,
+		FirstRoundHit        = 0,
+		UnbrokenArmorBonus   = 0.0,
+		UnarmoredBonusDmg    = 0.0,
+		BleedOnHitPct        = 0,
+		DazeOnHeavyHitPct    = 0,
+		ExposeOnHitPct       = 0,
+		AcupointOnCritPct    = 0,
+		ShieldBreakBonus     = 0,
+		ShieldDefBonus       = 0,
+		ShieldWallExpert     = false,
+		UnderdogGuard        = false,
+		LoneWolfBonus        = 0,
+		FormationBondDef     = 0,
+		OnKillHealHP         = 0,
+		OnHitDrainQi         = 0,
+		RangedHeadshotBonus  = 0,
+		LongRangeAccBonus    = 0,
+		CloseRangeShotBonus  = 0,
+		NightOwl             = false,
+		DodgeRangedBonus     = 0,
+		TurnStartCleansePct  = 0,
 		HasFragmentManual    = false
 	};
 
@@ -167,13 +206,19 @@
 		if ("DirectDmgBonus" in f && f.DirectDmgBonus > agg.DirectDmgBonus) agg.DirectDmgBonus = f.DirectDmgBonus;
 		if ("ArmorPenBonus" in f && f.ArmorPenBonus > agg.DirectDmgBonus) agg.DirectDmgBonus = f.ArmorPenBonus;
 		// These bonuses use the strongest equipped source, including fractional damage.
-		foreach (key in ["AntiInternalInjury", "IgnoreDodgeHalf", "StaffGuard", "PoisonImmune", "AntiFearAura", "FrostChillOnHit"])
+		foreach (key in ["AntiInternalInjury", "IgnoreDodgeHalf", "StaffGuard", "PoisonImmune",
+			"AntiFearAura", "FrostChillOnHit", "ShieldWallExpert", "UnderdogGuard", "NightOwl"])
 			if (key in f && f[key]) agg[key] = true;
 		foreach (key in ["BloodBurstAP", "CounterBonus", "CritHeadBonus", "HitChanceBonus",
 			"MoveAPDiscount", "ThrowingDmgBonus", "ZoCBonusHit", "SupportShotChance",
 			"FastAdaptBonus", "SurroundHitBonus", "GuixiTier", "EmptyOffhandPen",
 			"CommandAuraPct", "RallyBonus", "JingangStunPct", "DisarmHitBonus",
-			"WuduPoisonPct", "VsPoisonedHit", "ReflectArmorDmg", "VsUndeadDmg", "FirearmDazePct"])
+			"WuduPoisonPct", "VsPoisonedHit", "ReflectArmorDmg", "VsUndeadDmg", "FirearmDazePct",
+			"ExecuteLowHpDmg", "FirstRoundInit", "FirstRoundHit", "UnbrokenArmorBonus",
+			"UnarmoredBonusDmg", "BleedOnHitPct", "DazeOnHeavyHitPct", "ExposeOnHitPct",
+			"AcupointOnCritPct", "ShieldBreakBonus", "ShieldDefBonus", "LoneWolfBonus",
+			"FormationBondDef", "OnKillHealHP", "OnHitDrainQi", "RangedHeadshotBonus",
+			"LongRangeAccBonus", "CloseRangeShotBonus", "DodgeRangedBonus", "TurnStartCleansePct"])
 			if (key in f && f[key] > agg[key]) agg[key] = f[key];
 		if ("InflictOpeningPct" in f && (agg.InflictOpeningPct == null || f.InflictOpeningPct > agg.InflictOpeningPct))
 			agg.InflictOpeningPct = f.InflictOpeningPct;
@@ -184,6 +229,32 @@
 	// Enforce hard permanent AP bonus cap (+2 -> 11 AP max)
 	agg.PermanentAPBonus = ::Math.min(::Wuxia.Config.Constants.MaxPermanentAPBonus, agg.PermanentAPBonus);
 	return agg;
+};
+
+// Canonical whitelist of all recognized manual Flags (validated in selftest.nut to catch any typo!)
+::Wuxia.CombatRules.KnownFlags <- {
+	PermanentAPBonus = true, OnHitQiRegen = true, OnHitQiCap = true, OnDodgeQiRegen = true,
+	OnDodgeQiCap = true, OnKillQiRegen = true, OnKillAPRefund = true, QiShieldPct = true,
+	LightArmorMitigation = true, HeavyArmorScale = true, InitToDefRatio = true,
+	TerrainCostHalved = true, ElevationDiscount = true, QuickHands = true,
+	InjuryThresholdMult = true, WeaponQiDiscount = true, ArmorDmgBonus = true,
+	DirectDmgBonus = true, ArmorPenBonus = true, AntiInternalInjury = true,
+	BloodBurstAP = true, CounterBonus = true, CritHeadBonus = true, HitChanceBonus = true,
+	IgnoreDodgeHalf = true, MoveAPDiscount = true, ThrowingDmgBonus = true, ZoCBonusHit = true,
+	SupportShotChance = true, StaffGuard = true, FastAdaptBonus = true, SurroundHitBonus = true,
+	GuixiTier = true, EmptyOffhandPen = true, CommandAuraPct = true, RallyBonus = true,
+	JingangStunPct = true, DisarmHitBonus = true, WuduPoisonPct = true, PoisonImmune = true,
+	VsPoisonedHit = true, ReflectArmorDmg = true, VsUndeadDmg = true, AntiFearAura = true,
+	FirearmDazePct = true, FrostChillOnHit = true, InflictOpeningPct = true,
+	InflictOffBalancePct = true, ExecuteLowHpDmg = true, FirstRoundInit = true,
+	FirstRoundHit = true, UnbrokenArmorBonus = true, UnarmoredBonusDmg = true,
+	BleedOnHitPct = true, DazeOnHeavyHitPct = true, ExposeOnHitPct = true,
+	AcupointOnCritPct = true, ShieldBreakBonus = true, ShieldDefBonus = true,
+	ShieldWallExpert = true, UnderdogGuard = true, LoneWolfBonus = true,
+	FormationBondDef = true, OnKillHealHP = true, OnHitDrainQi = true,
+	RangedHeadshotBonus = true, LongRangeAccBonus = true, CloseRangeShotBonus = true,
+	NightOwl = true, DodgeRangedBonus = true, TurnStartCleansePct = true,
+	HarmonizeConflict = true, GrantWashChance = true
 };
 
 ::Wuxia.CombatRules.getArmorStaminaPenalty <- function( _actor )

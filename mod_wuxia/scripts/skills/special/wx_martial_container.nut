@@ -11,6 +11,7 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		TemporaryAPOverflow = 0,
 		HitsRegenThisTurn  = 0,
 		DodgeRegenThisTurn = 0,
+		KillHealsThisTurn  = 0,
 		KillAPUsedThisTurn = false,
 		IsIntercepting     = false,
 		SupportShotUsed    = false,
@@ -144,10 +145,18 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		this.m.TemporaryAPOverflow = 0;
 	}
 
+	function wxIsFirstCombatRound()
+	{
+		return ("Tactical" in getroottable()) && ::Tactical != null && ::Tactical.isActive()
+			&& ("TurnSequenceBar" in ::Tactical) && ::Tactical.TurnSequenceBar != null
+			&& ::Tactical.TurnSequenceBar.getCurrentRound() <= 1;
+	}
+
 	function onTurnStart()
 	{
 		this.m.HitsRegenThisTurn = 0;
 		this.m.DodgeRegenThisTurn = 0;
+		this.m.KillHealsThisTurn = 0;
 		this.m.KillAPUsedThisTurn = false;
 		this.m.SupportShotUsed = false;
 
@@ -156,6 +165,18 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		if (actor == null || !actor.isAlive()) return;
 
 		local agg = ::Wuxia.CombatRules.getAggregateFlags(this);
+		if (agg.TurnStartCleansePct > 0 && ::Math.rand(1, 100) <= agg.TurnStartCleansePct)
+		{
+			local sk = this.getContainer();
+			foreach (cid in ["effects.bleeding", "effects.wx_status_poison_dart", "effects.spider_poison", "effects.goblin_poison"])
+			{
+				if (sk.hasSkill(cid)) { sk.removeByID(cid); break; }
+			}
+			if (actor.getHitpoints() < actor.getHitpointsMax())
+			{
+				actor.setHitpoints(::Math.min(actor.getHitpointsMax(), actor.getHitpoints() + 3));
+			}
+		}
 		if (::Wuxia.Slots.hasNeigongConflict(actor))
 		{
 			local resolve = actor.getCurrentProperties().Bravery;
@@ -183,7 +204,26 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 
 		foreach (stat, delta in agg.Stats) _properties[stat] += delta;
 		_properties.MovementAPCostAdditional -= agg.MoveAPDiscount;
-		if (agg.StaffGuard && !container.hasSkill("perk.underdog")) _properties.SurroundedDefense += 5;
+		if ((agg.StaffGuard || agg.UnderdogGuard) && (container == null || !container.hasSkill("perk.underdog")))
+			_properties.SurroundedDefense += 5;
+		if (agg.DodgeRangedBonus > 0)
+			_properties.RangedDefense += agg.DodgeRangedBonus;
+		if (agg.NightOwl && ("IsAffectedByNight" in _properties))
+			_properties.IsAffectedByNight = false;
+		if (agg.FirstRoundInit > 0 && this.wxIsFirstCombatRound())
+			_properties.Initiative += agg.FirstRoundInit;
+		if (actor != null && ("isArmedWithShield" in actor) && actor.isArmedWithShield())
+		{
+			if (agg.ShieldDefBonus > 0)
+			{
+				_properties.MeleeDefense += agg.ShieldDefBonus;
+				_properties.RangedDefense += agg.ShieldDefBonus;
+			}
+			if (agg.ShieldWallExpert && ("IsProficientWithShieldSkills" in _properties))
+			{
+				_properties.IsProficientWithShieldSkills = true;
+			}
+		}
 
 		// Light Armor Mitigation (Nimble-style)
 		if (agg.LightArmorMitigation > 0.0 && actor != null)
@@ -242,26 +282,47 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 			_properties.RangedDefense += defBonus;
 		}
 
-		// Command Aura from nearby allied 《聚义令》 commander within 4 tiles (does not double-stack with vanilla Banner)
-		if ("Tactical" in getroottable() && ::Tactical != null && ::Tactical.isActive() && actor.isPlacedOnMap() && !this.getContainer().hasSkill("effects.player_banner"))
+		// Command Aura, Lone Wolf & Formation Bond positional checks
+		if ("Tactical" in getroottable() && ::Tactical != null && ::Tactical.isActive() && actor.isPlacedOnMap())
 		{
 			local myTile = actor.getTile();
 			local bestResolveBonus = 0;
+			local adjAllies = 0;
+			local within2Allies = 0;
+			local hasBanner = this.getContainer().hasSkill("effects.player_banner");
 			local allies = ::Tactical.Entities.getInstancesOfFaction(actor.getFaction());
 			foreach (ally in allies)
 			{
 				if (ally == null || ally.getID() == actor.getID() || !ally.isAlive() || !ally.isPlacedOnMap()) continue;
+				local dist = myTile.getDistanceTo(ally.getTile());
+				if (dist <= 2) within2Allies += 1;
 				if (ally.getMoraleState() == ::Const.MoraleState.Fleeing) continue;
-				if (myTile.getDistanceTo(ally.getTile()) > 4) continue;
-				local ac = ally.getSkills().getSkillByID("special.wx_martial_container");
-				if (ac != null && ac.m.CachedAggFlags != null && ac.m.CachedAggFlags.CommandAuraPct > 0.0)
+				if (dist == 1) adjAllies += 1;
+				if (!hasBanner && dist <= 4)
 				{
-					local cmdBravery = ally.getBaseProperties().Bravery + (("Bravery" in ac.m.CachedAggFlags.Stats) ? ac.m.CachedAggFlags.Stats.Bravery : 0);
-					local bonus = ::Math.floor(cmdBravery * ac.m.CachedAggFlags.CommandAuraPct);
-					if (bonus > bestResolveBonus) bestResolveBonus = bonus;
+					local ac = ally.getSkills().getSkillByID("special.wx_martial_container");
+					if (ac != null && ac.m.CachedAggFlags != null && ac.m.CachedAggFlags.CommandAuraPct > 0.0)
+					{
+						local cmdBravery = ally.getBaseProperties().Bravery + (("Bravery" in ac.m.CachedAggFlags.Stats) ? ac.m.CachedAggFlags.Stats.Bravery : 0);
+						local bonus = ::Math.floor(cmdBravery * ac.m.CachedAggFlags.CommandAuraPct);
+						if (bonus > bestResolveBonus) bestResolveBonus = bonus;
+					}
 				}
 			}
 			if (bestResolveBonus > 0) _properties.Bravery += bestResolveBonus;
+			if (agg.LoneWolfBonus > 0 && within2Allies == 0)
+			{
+				_properties.MeleeSkill += agg.LoneWolfBonus;
+				_properties.RangedSkill += agg.LoneWolfBonus;
+				_properties.MeleeDefense += agg.LoneWolfBonus;
+				_properties.RangedDefense += agg.LoneWolfBonus;
+			}
+			if (agg.FormationBondDef > 0 && adjAllies >= 2)
+			{
+				_properties.MeleeDefense += agg.FormationBondDef;
+				_properties.RangedDefense += agg.FormationBondDef;
+				_properties.Bravery += agg.FormationBondDef;
+			}
 		}
 	}
 
@@ -270,10 +331,27 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		local f = this.m.CachedAggFlags;
 		if (f == null || _skill == null || !_skill.isAttack() || !_skill.m.IsWeaponSkill) return;
 		local adaptHit = (f.FastAdaptBonus > 0 && this.m.FastAdaptStacks > 0) ? (this.m.FastAdaptStacks * f.FastAdaptBonus) : 0;
+		local firstRoundHit = (f.FirstRoundHit > 0 && this.wxIsFirstCombatRound()) ? f.FirstRoundHit : 0;
 		if (_targetEntity != null)
 		{
 			if (f.VsUndeadDmg > 0.0 && ::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity))
 				_properties.DamageTotalMult *= (1.0 + f.VsUndeadDmg);
+			if (f.ExecuteLowHpDmg > 0.0 && ("getHitpoints" in _targetEntity) && ("getHitpointsMax" in _targetEntity) && _targetEntity.getHitpointsMax() > 0)
+			{
+				if ((_targetEntity.getHitpoints().tofloat() / _targetEntity.getHitpointsMax().tofloat()) < 0.50)
+					_properties.DamageTotalMult *= (1.0 + f.ExecuteLowHpDmg);
+			}
+			if (f.UnbrokenArmorBonus > 0.0 && ("getArmor" in _targetEntity) && ("getArmorMax" in _targetEntity))
+			{
+				local curA = _targetEntity.getArmor(::Const.BodyPart.Body) + _targetEntity.getArmor(::Const.BodyPart.Head);
+				local maxA = _targetEntity.getArmorMax(::Const.BodyPart.Body) + _targetEntity.getArmorMax(::Const.BodyPart.Head);
+				if (maxA >= 80 && curA * 2 >= maxA)
+					_properties.DamageArmorMult *= (1.0 + f.UnbrokenArmorBonus);
+			}
+			if (f.UnarmoredBonusDmg > 0.0 && ("getArmor" in _targetEntity) && _targetEntity.getArmor(::Const.BodyPart.Body) <= 0)
+			{
+				_properties.DamageRegularMult *= (1.0 + f.UnarmoredBonusDmg);
+			}
 			if (f.VsPoisonedHit > 0 && "getSkills" in _targetEntity && _targetEntity.getSkills() != null)
 			{
 				local tsk = _targetEntity.getSkills();
@@ -283,11 +361,19 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		}
 		if (!_skill.isRanged())
 		{
-			_properties.MeleeSkill += f.HitChanceBonus + adaptHit + (this.m.IsIntercepting ? f.ZoCBonusHit : 0);
+			_properties.MeleeSkill += f.HitChanceBonus + adaptHit + firstRoundHit + (this.m.IsIntercepting ? f.ZoCBonusHit : 0);
 			_properties.HitChance[::Const.BodyPart.Head] += f.CritHeadBonus;
 			return;
 		}
-		if (adaptHit > 0) _properties.RangedSkill += adaptHit;
+		if (adaptHit + firstRoundHit > 0) _properties.RangedSkill += adaptHit + firstRoundHit;
+		if (f.RangedHeadshotBonus > 0) _properties.HitChance[::Const.BodyPart.Head] += f.RangedHeadshotBonus;
+		local myActor = this.getContainer() != null ? this.getContainer().getActor() : null;
+		if (myActor != null && _targetEntity != null && ("isPlacedOnMap" in myActor) && myActor.isPlacedOnMap() && ("isPlacedOnMap" in _targetEntity) && _targetEntity.isPlacedOnMap())
+		{
+			local rDist = myActor.getTile().getDistanceTo(_targetEntity.getTile());
+			if (f.LongRangeAccBonus > 0 && rDist >= 4)  _properties.RangedSkill += f.LongRangeAccBonus;
+			if (f.CloseRangeShotBonus > 0 && rDist <= 3) _properties.RangedSkill += f.CloseRangeShotBonus;
+		}
 		if (f.ThrowingDmgBonus > 0) _properties.DamageTotalMult *= 1.0 + f.ThrowingDmgBonus;
 		if (f.IgnoreDodgeHalf && _targetEntity != null && _targetEntity.isPlacedOnMap() && _targetEntity.getTile().IsOccupiedByActor)
 		{
@@ -364,15 +450,58 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		if (_skill.isAttack()) this.m.FastAdaptStacks = 0;
 		local agg = this.m.CachedAggFlags;
 		local actor = this.getContainer().getActor();
+		local validEnemy = (_targetEntity != null && _targetEntity.isAlive() && actor != null && !actor.isAlliedWith(_targetEntity));
 
-		if (agg.WuduPoisonPct > 0 && _damageInflictedHitpoints >= 4 && _targetEntity != null && _targetEntity.isAlive() && actor != null && !actor.isAlliedWith(_targetEntity) && !::Wuxia.CombatRules.isImmuneToMeridianAndPoison(_targetEntity))
+		if (validEnemy && _skill.isAttack())
 		{
-			if (::Math.rand(1, 100) <= agg.WuduPoisonPct)
+			local tsk0 = _targetEntity.getSkills();
+			if (agg.WuduPoisonPct > 0 && _damageInflictedHitpoints >= 4 && !::Wuxia.CombatRules.isImmuneToMeridianAndPoison(_targetEntity))
 			{
-				local tsk = _targetEntity.getSkills();
-				local p = tsk.getSkillByID("effects.wx_status_poison_dart");
-				if (p == null) tsk.add(::new("scripts/skills/effects/wx_status_poison_dart"));
-				else if ("resetDuration" in p) p.resetDuration();
+				if (::Math.rand(1, 100) <= agg.WuduPoisonPct)
+				{
+					local p = tsk0.getSkillByID("effects.wx_status_poison_dart");
+					if (p == null) tsk0.add(::new("scripts/skills/effects/wx_status_poison_dart"));
+					else if ("resetDuration" in p) p.resetDuration();
+				}
+			}
+			if (agg.BleedOnHitPct > 0 && _damageInflictedHitpoints >= 6 && !::Wuxia.CombatRules.isImmuneToMeridianAndPoison(_targetEntity) && ::Math.rand(1, 100) <= agg.BleedOnHitPct)
+			{
+				local bleed = ::new("scripts/skills/effects/bleeding_effect");
+				bleed.setDamage(5);
+				tsk0.add(bleed);
+			}
+			if (agg.ExposeOnHitPct > 0 && ::Math.rand(1, 100) <= agg.ExposeOnHitPct)
+			{
+				local open0 = tsk0.getSkillByID("effects.wx_status_opening");
+				if (open0 == null) tsk0.add(::new("scripts/skills/effects/wx_status_opening"));
+				else open0.resetDuration();
+			}
+			if (agg.AcupointOnCritPct > 0 && !::Wuxia.CombatRules.isImmuneToMeridianAndPoison(_targetEntity))
+			{
+				if ((_bodyPart == ::Const.BodyPart.Head || tsk0.hasSkill("effects.wx_status_opening")) && ::Math.rand(1, 100) <= agg.AcupointOnCritPct)
+				{
+					local acu = tsk0.getSkillByID("effects.wx_status_acupoint");
+					if (acu == null) tsk0.add(::new("scripts/skills/effects/wx_status_acupoint"));
+					else if ("resetDuration" in acu) acu.resetDuration();
+				}
+			}
+			if (!_skill.isRanged())
+			{
+				if (agg.DazeOnHeavyHitPct > 0 && (_damageInflictedHitpoints >= 14 || _damageInflictedArmor >= 28) && ::Math.rand(1, 100) <= agg.DazeOnHeavyHitPct)
+				{
+					local ob0 = tsk0.getSkillByID("effects.wx_status_offbalance");
+					if (ob0 == null) tsk0.add(::new("scripts/skills/effects/wx_status_offbalance"));
+					else ob0.resetDuration();
+				}
+				if (agg.ShieldBreakBonus > 0 && ("isArmedWithShield" in _targetEntity) && _targetEntity.isArmedWithShield())
+				{
+					local sh = _targetEntity.getItems().getItemAtSlot(::Const.ItemSlot.Offhand);
+					if (sh != null) sh.applyShieldDamage(agg.ShieldBreakBonus);
+				}
+				if (agg.OnHitDrainQi > 0 && (_damageInflictedHitpoints >= 1 || _damageInflictedArmor >= 10) && !::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity) && ("getFatigue" in _targetEntity))
+				{
+					_targetEntity.setFatigue(::Math.min(_targetEntity.getFatigueMax(), _targetEntity.getFatigue() + agg.OnHitDrainQi));
+				}
 			}
 		}
 		if (_skill.isRanged())
@@ -417,9 +546,19 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 
 	function onMissed( _attacker, _skill )
 	{
-		if (this.m.CachedAggFlags == null || _skill == null || _skill.isRanged()) return;
+		if (this.m.CachedAggFlags == null || _skill == null) return;
 		local agg = this.m.CachedAggFlags;
 		local actor = this.getContainer().getActor();
+
+		if (_skill.isRanged())
+		{
+			if (agg.DodgeRangedBonus > 0 && this.m.DodgeRegenThisTurn < agg.OnDodgeQiCap)
+			{
+				this.m.DodgeRegenThisTurn += 1;
+				::Wuxia.CombatRules.restoreQi(actor, 2);
+			}
+			return;
+		}
 
 		if (agg.OnDodgeQiRegen > 0 && this.m.DodgeRegenThisTurn < agg.OnDodgeQiCap)
 		{
@@ -438,6 +577,15 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		if (agg.OnKillQiRegen > 0)
 		{
 			::Wuxia.CombatRules.restoreQi(actor, agg.OnKillQiRegen);
+		}
+
+		if (agg.OnKillHealHP > 0 && this.m.KillHealsThisTurn < 2 && (_targetEntity == null || !::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity)))
+		{
+			this.m.KillHealsThisTurn += 1;
+			if (actor.getHitpoints() < actor.getHitpointsMax())
+			{
+				actor.setHitpoints(::Math.min(actor.getHitpointsMax(), actor.getHitpoints() + agg.OnKillHealHP));
+			}
 		}
 
 		// Conditional temporary AP burst on kill (can exceed 11 AP temporarily!)

@@ -232,7 +232,86 @@
 	};
 };
 
-::Wuxia.Slots.craftManualFromStash <- function( _stash, _manualID )
+// Collect sorted candidate spare stacks of the same Quality (smallest PageCount first so 1-page orphans are consumed before 2/3 stacks)
+::Wuxia.Slots.collectSparePageStacks <- function( _stash, _targetManualID, _quality )
+{
+	local list = [];
+	if (_stash == null) return list;
+	local items = _stash.getItems();
+	for (local i = 0; i < items.len(); i = ++i)
+	{
+		local it = items[i];
+		if (it == null || it.getID() != "misc.wx_page_item") continue;
+		local mid = it.getManualID();
+		if (mid == _targetManualID) continue;
+		local odef = ::Wuxia.Slots.getManualDef(mid);
+		if (odef == null || odef.Quality != _quality) continue;
+		list.push({ item = it, count = it.getPageCount(), name = odef.Name, category = odef.Category });
+	}
+	list.sort(function( a, b ) {
+		if (a.count != b.count) return a.count < b.count ? -1 : 1;
+		return a.name <=> b.name;
+	});
+	return list;
+};
+
+::Wuxia.Slots.previewWildcardCraft <- function( _stash, _manualID )
+{
+	if (_stash == null)
+		return { ok = false, reason = "无法访问行囊。" };
+	local def = ::Wuxia.Slots.getManualDef(_manualID);
+	if (def == null || def.FragmentsNeeded <= 0)
+		return { ok = false, reason = "此功法不可由残页拼合。" };
+
+	local totalOwn = 0;
+	foreach (it in _stash.getItems())
+	{
+		if (it != null && it.getID() == "misc.wx_page_item" && it.getManualID() == _manualID)
+			totalOwn += it.getPageCount();
+	}
+	if (totalOwn <= 0)
+		return { ok = false, reason = "至少需持有 1 张本篇残页方可融会补缺。" };
+	if (totalOwn >= def.FragmentsNeeded)
+		return { ok = true, needsWildcard = false, manualID = _manualID, manualName = def.Name };
+
+	local missingOwn = def.FragmentsNeeded - totalOwn;
+	local spareNeeded = missingOwn * 2;
+	local spares = ::Wuxia.Slots.collectSparePageStacks(_stash, _manualID, def.Quality);
+	local availSpare = 0;
+	foreach (sp in spares) availSpare += sp.count;
+	if (availSpare < spareNeeded)
+	{
+		return {
+			ok = false,
+			reason = "同品阶闲置残页不足（尚缺 " + missingOwn + " 张本篇残页，需 " + spareNeeded + " 张同阶残页按 2:1 补缺，当前仅有 " + availSpare + " 张）。"
+		};
+	}
+
+	local rem = spareNeeded;
+	local sacrificedList = [];
+	foreach (sp in spares)
+	{
+		if (rem <= 0) break;
+		local take = ::Math.min(rem, sp.count);
+		sacrificedList.push("《" + sp.name + "》残页 ×" + take);
+		rem -= take;
+	}
+
+	return {
+		ok               = true,
+		needsWildcard    = true,
+		manualID         = _manualID,
+		manualName       = def.Name,
+		qualityLabel     = (def.Quality in ::Wuxia.Text.Qualities) ? ::Wuxia.Text.Qualities[def.Quality] : def.Quality,
+		ownPages         = totalOwn,
+		fragmentsNeeded  = def.FragmentsNeeded,
+		missingPages     = missingOwn,
+		spareNeeded      = spareNeeded,
+		sacrificedList   = sacrificedList
+	};
+};
+
+::Wuxia.Slots.craftManualFromStash <- function( _stash, _manualID, _allowWildcard = false )
 {
 	if (_stash == null)
 		return { Ok = false, Reason = "无法访问行囊。" };
@@ -255,33 +334,85 @@
 		}
 	}
 
-	if (totalPages < def.FragmentsNeeded)
-		return { Ok = false, Reason = "残页不足（当前 " + totalPages + " / " + def.FragmentsNeeded + "）。" };
-
-	local manualItem = ::new("scripts/items/misc/wx_manual_item");
-	manualItem.initManual(_manualID);
-	local remaining = def.FragmentsNeeded;
-	// In a full stash, an exhausted stack can supply the book's slot.
-	local releaseStack = !_stash.isResizable() && !_stash.hasEmptySlot() && replaceable != null;
-	if (releaseStack) _stash.remove(replaceable);
-	if (_stash.add(manualItem) == null)
+	// Path A: Exact own-page crafting (totalPages >= FragmentsNeeded)
+	if (totalPages >= def.FragmentsNeeded)
 	{
-		if (releaseStack) _stash.add(replaceable);
+		local manualItem = ::new("scripts/items/misc/wx_manual_item");
+		manualItem.initManual(_manualID);
+		local remaining = def.FragmentsNeeded;
+		// In a full stash, an exhausted stack can supply the book's slot.
+		local releaseStack = !_stash.isResizable() && !_stash.hasEmptySlot() && replaceable != null;
+		if (releaseStack) _stash.remove(replaceable);
+		if (_stash.add(manualItem) == null)
+		{
+			if (releaseStack) _stash.add(replaceable);
+			return { Ok = false, Reason = "行囊已满，请先腾出一格存放秘籍。" };
+		}
+		if (releaseStack) remaining -= replaceable.getPageCount();
+		foreach (stack in stacks)
+		{
+			if (remaining == 0) break;
+			if (releaseStack && stack == replaceable) continue;
+			local take = ::Math.min(remaining, stack.getPageCount());
+			if (take == stack.getPageCount()) _stash.remove(stack);
+			else stack.addPageCount(-take);
+			remaining -= take;
+		}
+
+		return {
+			Ok = true,
+			ManualName = def.Name,
+			UsedWildcard = false,
+			SacrificedCount = 0
+		};
+	}
+
+	// Path B: 2-for-1 Same-Quality Wildcard Page Completion
+	if (!_allowWildcard)
+		return { Ok = false, Reason = "残页不足（当前 " + totalPages + " / " + def.FragmentsNeeded + "）。" };
+	if (totalPages <= 0)
+		return { Ok = false, Reason = "至少需持有 1 张本篇残页方可进行补缺拼合。" };
+
+	local missingOwn = def.FragmentsNeeded - totalPages;
+	local spareNeeded = missingOwn * 2;
+	local spares = ::Wuxia.Slots.collectSparePageStacks(_stash, _manualID, def.Quality);
+	local availSpare = 0;
+	foreach (sp in spares) availSpare += sp.count;
+	if (availSpare < spareNeeded)
+		return { Ok = false, Reason = "同阶闲置残页不足（差 " + missingOwn + " 张本篇残页，需 " + spareNeeded + " 张同品阶残页补缺）。" };
+
+	// Since totalPages < FragmentsNeeded and totalPages >= 1, stacks[0] is guaranteed to be 100% consumed!
+	local manualItemW = ::new("scripts/items/misc/wx_manual_item");
+	manualItemW.initManual(_manualID);
+	local firstOwn = stacks[0];
+	local releaseOwn = !_stash.isResizable() && !_stash.hasEmptySlot();
+	if (releaseOwn) _stash.remove(firstOwn);
+	if (_stash.add(manualItemW) == null)
+	{
+		if (releaseOwn) _stash.add(firstOwn);
 		return { Ok = false, Reason = "行囊已满，请先腾出一格存放秘籍。" };
 	}
-	if (releaseStack) remaining -= replaceable.getPageCount();
+
 	foreach (stack in stacks)
 	{
-		if (remaining == 0) break;
-		if (releaseStack && stack == replaceable) continue;
-		local take = ::Math.min(remaining, stack.getPageCount());
-		if (take == stack.getPageCount()) _stash.remove(stack);
-		else stack.addPageCount(-take);
-		remaining -= take;
+		if (releaseOwn && stack == firstOwn) continue;
+		_stash.remove(stack);
+	}
+
+	local remSpare = spareNeeded;
+	foreach (sp in spares)
+	{
+		if (remSpare <= 0) break;
+		local takeSp = ::Math.min(remSpare, sp.item.getPageCount());
+		if (takeSp == sp.item.getPageCount()) _stash.remove(sp.item);
+		else sp.item.addPageCount(-takeSp);
+		remSpare -= takeSp;
 	}
 
 	return {
 		Ok = true,
-		ManualName = def.Name
+		ManualName = def.Name,
+		UsedWildcard = true,
+		SacrificedCount = spareNeeded
 	};
 };

@@ -34,7 +34,7 @@
 	{
 		local entityId = (typeof _data == "array") ? _data[0] : _data;
 		local bro = this.WX_findBrotherById(entityId);
-		local stashData = ::Wuxia.UI.buildStashWuxiaItems();
+		local stashData = ::Wuxia.UI.buildStashWuxiaItems(bro);
 		return {
 			ok               = (bro != null),
 			brother          = ::Wuxia.UI.buildBrotherMartialData(bro),
@@ -166,20 +166,81 @@
 		return state;
 	};
 
-	// Craft complete manual from 3/5 pages in stash
-	// _data = [entityId, manualID]
+	// Drag-and-drop 1 martial page onto an equipped non-fragment slot to infuse mastery exp (参悟化功)
+	// _data = [entityId, stashIndex, slotIndex]
+	q.onWXInfusePage <- function( _data )
+	{
+		local entityId   = _data[0];
+		local stashIndex = _data[1];
+		local slotIndex  = _data[2];
+
+		local bro = this.WX_findBrotherById(entityId);
+		local stash = ::World.Assets.getStash();
+		if (bro == null || stash == null)
+			return { ok = false, reason = "未找到侠客或行囊。" };
+
+		local items = stash.getItems();
+		if (stashIndex < 0 || stashIndex >= items.len() || items[stashIndex] == null)
+			return { ok = false, reason = "所选残页已不在行囊中。" };
+
+		local it = items[stashIndex];
+		if (it.getID() != "misc.wx_page_item")
+			return { ok = false, reason = "所选物品不是武学残页。" };
+
+		local res = ::Wuxia.Mastery.infuseWithPage(bro, slotIndex, it.getManualID());
+		if (!res.Ok)
+			return { ok = false, reason = res.Reason };
+
+		it.addPageCount(-1);
+		if (it.getPageCount() <= 0)
+			stash.removeByIndex(stashIndex);
+
+		local resonanceNote = (res.Resonance != "") ? ("（" + res.Resonance + "）") : "";
+		local msg = "参悟《" + res.PageManualName + "》残页" + resonanceNote + "，向《" + res.ManualName + "》注入 " + res.ExpAmount + " 点火候！";
+		if (res.Advanced)
+			msg += " 功法突破至" + ::Wuxia.Text.TierNames[res.NewTier] + "！";
+		else if (res.BlockedByReq)
+			msg += " 火候已满，但尚未满足三重大成门槛。";
+
+		local state = this.onWXGetState(entityId);
+		state.actionMessage <- msg;
+		return state;
+	};
+
+	// Craft complete manual from 3/5 pages in stash (supports 2:1 same-quality wildcard completion)
+	// _data = [entityId, manualID, allowWildcard, confirmed]
 	q.onWXCraftPages <- function( _data )
 	{
-		local entityId = _data[0];
-		local manualID = _data[1];
-		local stash = ::World.Assets.getStash();
+		local entityId      = _data[0];
+		local manualID      = _data[1];
+		local allowWildcard = (_data.len() >= 3) ? _data[2] : false;
+		local confirmed     = (_data.len() >= 4) ? _data[3] : false;
+		local stash         = ::World.Assets.getStash();
 
-		local res = ::Wuxia.Slots.craftManualFromStash(stash, manualID);
+		if (allowWildcard && !confirmed)
+		{
+			local preview = ::Wuxia.Slots.previewWildcardCraft(stash, manualID);
+			if (!preview.ok)
+				return { ok = false, reason = preview.reason };
+			if (preview.needsWildcard)
+			{
+				return {
+					ok                   = false,
+					needsWildcardConfirm = true,
+					preview              = preview
+				};
+			}
+		}
+
+		local res = ::Wuxia.Slots.craftManualFromStash(stash, manualID, allowWildcard);
 		if (!res.Ok)
 			return { ok = false, reason = res.Reason };
 
 		local state = this.onWXGetState(entityId);
-		state.actionMessage <- "残页拼合成功！获得完整秘籍《" + res.ManualName + "》。";
+		if (res.UsedWildcard)
+			state.actionMessage <- "融会补缺成功！额外折算 " + res.SacrificedCount + " 张同阶残页，合成完整秘籍《" + res.ManualName + "》。";
+		else
+			state.actionMessage <- "残页拼合成功！获得完整秘籍《" + res.ManualName + "》。";
 		return state;
 	};
 

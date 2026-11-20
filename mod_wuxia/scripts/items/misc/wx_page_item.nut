@@ -11,7 +11,7 @@ this.wx_page_item <- this.inherit("scripts/items/item", {
 		this.item.create();
 		this.m.ID = "misc.wx_page_item";
 		this.m.Name = "武学残页";
-		this.m.Description = "散落的武学残页。集齐所需张数可在「武学修为」页拼合为完整秘籍，或冒险拖拽进行残本强修（限一重且有走火入魔风险）。";
+		this.m.Description = "散落的武学残页。可在「武学修为」页集齐拼合完整秘籍、以 2 张同阶闲置残页融会补缺，或拖入已装配功法槽「参悟化功」注入火候；亦可冒险拖拽空槽残本强修。";
 		this.m.Icon = "misc/inventory_anatomists_book_02.png";
 		this.m.SlotType = this.Const.ItemSlot.None;
 		this.m.ItemType = this.Const.Items.ItemType.Usable;
