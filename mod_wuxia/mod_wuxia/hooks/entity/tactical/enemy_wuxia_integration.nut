@@ -7,30 +7,44 @@ local registerEnemyHook = function( _scriptPath, _archetypeKey )
 		q.assignRandomEquipment = @(__original) function()
 		{
 			__original();
-			::Wuxia.Loot.applyLoadoutToEnemy(this, _archetypeKey);
+			local key = "WX_SchoolRole" in this.m ? this.m.WX_SchoolRole : _archetypeKey;
+			if (key in ::Wuxia.Config.Fighters)
+			{
+				local fighter = ::Wuxia.Config.Fighters[key];
+				local items = this.getItems();
+				local old = items.getItemAtSlot(::Const.ItemSlot.Mainhand);
+				if (old != null) items.unequip(old);
+				if (key == "dartist")
+				{
+					local quiver = items.getItemAtSlot(::Const.ItemSlot.Ammo);
+					if (quiver != null) items.unequip(quiver);
+				}
+				local w = ::new("scripts/items/weapons/" + fighter.Weapon);
+				if ("getBlockedSlotType" in w && w.getBlockedSlotType() == ::Const.ItemSlot.Offhand)
+				{
+					local off = items.getItemAtSlot(::Const.ItemSlot.Offhand);
+					if (off != null) items.unequip(off);
+				}
+				items.equip(w);
+				this.setName(fighter.Name);
+			}
+			::Wuxia.Loot.applyLoadoutToEnemy(this, key);
 		};
 
 		q.onDeath = @(__original) function( _killer, _skill, _tile, _fatalityType )
 		{
+			local key = "WX_SchoolRole" in this.m ? this.m.WX_SchoolRole : _archetypeKey;
+			local profile = key in ::Wuxia.Config.Fighters ? ::Wuxia.Config.Fighters[key] : ::Wuxia.Loot.EnemyLoadouts[key];
+			local eligible = _tile != null && _killer != null && _killer.isPlayerControlled() && !this.isAlliedWith(_killer)
+				&& ("WX_LoadoutKey" in this.m) && this.m.WX_LoadoutKey == key;
+			local pool = eligible ? ::Wuxia.Loot.getEquippedDropPool(this, profile) : null;
 			__original(_killer, _skill, _tile, _fatalityType);
-			if (_tile != null && _killer != null && _killer.isPlayerControlled())
-			{
-				::Wuxia.Loot.onEnemyKilledDrop(this, _tile);
-			}
+			if (eligible) ::Wuxia.Loot.onEnemyKilledDrop(_tile, profile, pool);
 		};
 	});
 };
 
-local enemyArchetypeList = [
-	["scripts/entity/tactical/enemies/bandit_thug",     "bandit_thug"],
-	["scripts/entity/tactical/enemies/bandit_raider",   "bandit_raider"],
-	["scripts/entity/tactical/enemies/bandit_marksman", "bandit_marksman"],
-	["scripts/entity/tactical/enemies/bandit_leader",   "bandit_leader"],
-	["scripts/entity/tactical/humans/mercenary",        "mercenary"],
-	["scripts/entity/tactical/humans/swordmaster",      "swordmaster"]
-];
-
-foreach (pair in enemyArchetypeList)
+foreach (key, profile in ::Wuxia.Loot.EnemyLoadouts)
 {
-	registerEnemyHook(pair[0], pair[1]);
+	registerEnemyHook(profile.Script, key);
 }

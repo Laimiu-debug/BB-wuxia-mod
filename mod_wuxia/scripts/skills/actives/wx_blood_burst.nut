@@ -9,12 +9,12 @@ this.wx_blood_burst <- this.inherit("scripts/skills/skill", {
 	{
 		this.m.ID = "actives.wx_blood_burst";
 		this.m.Name = "燃血催劲";
-		this.m.Description = "血煞吞元功三重秘法：不耗行动点，燃烧自身 12% 气血，本回合立即临时 +2 AP（可短时突破 11 AP 上限！冷却 3 回合）。";
+		this.m.Description = "燃烧自身 12% 气血，本回合立即临时 +2 AP。下次行动开始时自然回气减半，冷却 3 回合。";
 		this.m.Icon = "skills/active_36.png";
 		this.m.IconDisabled = "skills/active_36_sw.png";
 		this.m.Overlay = "active_36";
 		this.m.SoundOnUse = [
-			"sounds/combat/adrenaline_01.wav"
+			"sounds/combat/perfect_focus_01.wav"
 		];
 		this.m.Type = this.Const.SkillType.Active;
 		this.m.Order = this.Const.SkillOrder.NonTargeted;
@@ -37,6 +37,11 @@ this.wx_blood_burst <- this.inherit("scripts/skills/skill", {
 		return this.skill.isUsable() && this.m.Cooldown <= 0 && actor.getHitpoints() > hpCost + 2;
 	}
 
+	function onUpdate( _properties )
+	{
+		if (this.m.Cooldown == 3) _properties.FatigueRecoveryRateMult *= 0.5;
+	}
+
 	function onTurnStart()
 	{
 		if (this.m.Cooldown > 0) this.m.Cooldown -= 1;
@@ -51,9 +56,12 @@ this.wx_blood_burst <- this.inherit("scripts/skills/skill", {
 	{
 		local hpCost = ::Math.max(6, ::Math.floor(_user.getHitpointsMax() * 0.12));
 		_user.setHitpoints(::Math.max(1, _user.getHitpoints() - hpCost));
-		_user.setActionPoints(_user.getActionPoints() + 2);
+		local c = ::Wuxia.Slots.getContainer(_user);
+		local amount = c.m.CachedAggFlags.BloodBurstAP;
+		c.grantTemporaryAP(amount);
 		this.m.Cooldown = 3;
-		this.Tactical.EventLog.log(::Const.UI.getColorizedEntityName(_user) + " 催动燃血秘法（损耗 " + hpCost + " 气血），本回合临时 +2 AP！");
+		this.getContainer().update();
+		this.Tactical.EventLog.log(::Const.UI.getColorizedEntityName(_user) + " 损耗 " + hpCost + " 气血，本回合临时 +" + amount + " AP！");
 		return true;
 	}
 });

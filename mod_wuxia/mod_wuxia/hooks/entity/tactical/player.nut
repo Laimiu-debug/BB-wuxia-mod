@@ -7,6 +7,8 @@
 		__original(_backgrounds, _addTraits);
 		// Adding a skill triggers an attribute update. Wait until the actor is initialized.
 		::Wuxia.Slots.getContainer(this);
+		::Wuxia.Backgrounds.assignStarterManuals(this);
+		this.m.PerkPoints = 0;
 	};
 
 	q.onDeserialize = @(__original) function( _in )
@@ -15,6 +17,15 @@
 		// The saved skill reads its data before the game binds it to the actor.
 		::Wuxia.Slots.getContainer(this).syncGrantedSkills();
 		this.m.PerkPoints = 0;
+	};
+
+	// The results roster contains participants. World cleanup calls onCombatFinished
+	// again for the whole company, including the reserves.
+	q.onBeforeCombatResult = @(__original) function()
+	{
+		__original();
+		if (this.isAlive() && this.isPlayerControlled() && !this.isGuest())
+			::Wuxia.Mastery.addExpToEquipped(this, 35);
 	};
 
 	q.updateLevel = @(__original) function()

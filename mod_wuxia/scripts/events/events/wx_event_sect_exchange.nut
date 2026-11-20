@@ -26,12 +26,9 @@ this.wx_event_sect_exchange <- this.inherit("scripts/events/event", {
 						local offer = sect.ShopManuals[_event.m.OfferIndex];
 						local rel = ::Wuxia.SectRelations.getRelation(_event.m.SectID);
 						if (rel < offer.MinRel) return "LowRel";
-						if (this.World.Assets.getMoney() < offer.Price) return "NoMoney";
-						this.World.Assets.addMoney(-offer.Price);
 						local mItem = ::new("scripts/items/misc/wx_manual_item");
 						mItem.initManual(offer.ManualID);
-						this.World.Assets.getStash().add(mItem);
-						return "Exchanged";
+						return ::Wuxia.Loot.purchaseEventItem(mItem, offer.Price, "Exchanged");
 					}
 				},
 				{
@@ -45,13 +42,21 @@ this.wx_event_sect_exchange <- this.inherit("scripts/events/event", {
 					}
 				},
 				{
+					Text = "当面撕下门帖（该派交情 -35，交恶后可能遭到追缉）",
+					function getResult( _event )
+					{
+						::Wuxia.SectRelations.addRelation(_event.m.SectID, -35);
+						return "Offended";
+					}
+				},
+				{
 					Text = "拱手辞别。",
 					function getResult( _event ) { return 0; }
 				}
 			],
 			function start( _event )
 			{
-				local keys = ["weiyuan", "qingfeng"];
+				local keys = ::Wuxia.SectRelations.getExchangeSects();
 				_event.m.SectID = keys[::Math.rand(0, keys.len() - 1)];
 				local sect = ::Wuxia.Config.Sects[_event.m.SectID];
 				_event.m.OfferIndex = ::Math.rand(0, sect.ShopManuals.len() - 1);
@@ -94,6 +99,13 @@ this.wx_event_sect_exchange <- this.inherit("scripts/events/event", {
 			function start( _event ) {}
 		});
 
+		this.m.Screens.push(::Wuxia.Loot.makeNoRoomScreen());
+		this.m.Screens.push({
+			ID = "Offended", Text = "传人拾起撕碎的门帖，记下了你们的旗号。这笔账，门中自会有人过问。",
+			Image = "", List = [], Characters = [],
+			Options = [{ Text = "出城。", function getResult( _event ) { return 0; } }],
+			function start( _event ) {}
+		});
 		this.m.Screens.push({
 			ID = "NoMoney",
 			Text = "[img]gfx/ui/events/event_80.png[/img]手头银两不足，只得作罢。",
@@ -107,7 +119,7 @@ this.wx_event_sect_exchange <- this.inherit("scripts/events/event", {
 
 	function onUpdateScore()
 	{
-		if (!this.World.State.isInTown()) return;
+		if (!::Wuxia.Loot.isNearMarketTown() || ::Wuxia.SectRelations.getExchangeSects().len() == 0) return;
 		this.m.Score = 14;
 	}
 });

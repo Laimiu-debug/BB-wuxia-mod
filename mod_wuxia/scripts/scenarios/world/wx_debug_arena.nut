@@ -25,33 +25,43 @@ this.wx_debug_arena <- this.inherit("scripts/scenarios/world/starting_scenario",
 			{ Name = "陈小镖", Level = 1,  Bg = "caravan_hand_background" }
 		];
 
-		for (local i = 0; i < presets.len(); i = ++i)
+		::Wuxia.Backgrounds.SuppressAutoAssign = true;
+		try
 		{
-			local p = presets[i];
-			local bro = roster.create("scripts/entity/tactical/player");
-			bro.setStartValuesEx([p.Bg]);
-			bro.setName(p.Name);
-			bro.setPlaceInFormation(i + 2);
-			bro.m.HireTime = this.Time.getVirtualTimeF();
-
-			// Safely advance level directly without calling updateLevel() in a loop!
-			if (p.Level > 1)
+			for (local i = 0; i < presets.len(); i = ++i)
 			{
-				local extraLevels = p.Level - 1;
-				bro.m.Level = p.Level;
-				bro.m.XP = this.Const.LevelXP[p.Level - 1];
-				bro.m.LevelUps = 0;
-				bro.m.BaseProperties.Hitpoints += extraLevels * 2;
-				bro.m.BaseProperties.Stamina += extraLevels * 3;
-				bro.m.BaseProperties.Bravery += extraLevels * 2;
-				bro.m.BaseProperties.Initiative += extraLevels * 3;
-				bro.m.BaseProperties.MeleeSkill += extraLevels * 3;
-				bro.m.BaseProperties.MeleeDefense += extraLevels * 2;
-				bro.m.Hitpoints = bro.getHitpointsMax();
+				local p = presets[i];
+				local bro = roster.create("scripts/entity/tactical/player");
+				bro.setStartValuesEx([p.Bg]);
+				bro.setName(p.Name);
+				bro.setPlaceInFormation(i + 2);
+				bro.m.HireTime = this.Time.getVirtualTimeF();
+
+				// Safely advance level directly without calling updateLevel() in a loop!
+				if (p.Level > 1)
+				{
+					local extraLevels = p.Level - 1;
+					bro.m.Level = p.Level;
+					bro.m.XP = this.Const.LevelXP[p.Level - 1];
+					bro.m.LevelUps = 0;
+					bro.m.BaseProperties.Hitpoints += extraLevels * 2;
+					bro.m.BaseProperties.Stamina += extraLevels * 3;
+					bro.m.BaseProperties.Bravery += extraLevels * 2;
+					bro.m.BaseProperties.Initiative += extraLevels * 3;
+					bro.m.BaseProperties.MeleeSkill += extraLevels * 3;
+					bro.m.BaseProperties.MeleeDefense += extraLevels * 2;
+					bro.m.Hitpoints = bro.getHitpointsMax();
+				}
+				bro.m.PerkPoints = 0;
+				bro.getSkills().update();
 			}
-			bro.m.PerkPoints = 0;
-			bro.getSkills().update();
 		}
+		catch (err)
+		{
+			::Wuxia.Backgrounds.SuppressAutoAssign = false;
+			throw err;
+		}
+		::Wuxia.Backgrounds.SuppressAutoAssign = false;
 
 		// Equip first hero with starter manuals to showcase loaded slots right away
 		local brothers = roster.getAll();
@@ -61,18 +71,18 @@ this.wx_debug_arena <- this.inherit("scripts/scenarios/world/starting_scenario",
 			::Wuxia.Slots.equipManual(brothers[0], 1, "wx_manual_qingfeng", false);
 		}
 
-		// Populate Stash with all 24 manuals, pages, and all 5 pills
+		// Populate Stash with all manuals, paired Fist weapons, pages, and all 5 pills
 		local stash = this.World.Assets.getStash();
-		stash.resize(120);
+		stash.resize(140);
 
-		local sampleManuals = [
-			"wx_manual_tuna", "wx_manual_xingqi", "wx_manual_jichujian", "wx_manual_wuhudao",
-			"wx_manual_liuheqiang", "wx_manual_jianbu", "wx_manual_yingpi", "wx_manual_xiushou",
-			"wx_manual_songtao", "wx_manual_guiyuan", "wx_manual_qingfeng", "wx_manual_weiyuan",
-			"wx_manual_heifeng", "wx_manual_taxue", "wx_manual_jinchan", "wx_manual_tiebushan",
-			"wx_manual_xuesha", "wx_manual_huifeng", "wx_manual_duanyue", "wx_manual_baoyu", "wx_manual_suodi",
-			"wx_manual_taixu", "wx_manual_lingbo", "wx_manual_tianwai"
-		];
+		foreach (wp in ["weapons/wx_fist_wraps", "weapons/wx_fist_iron", "weapons/wx_fist_heavy", "weapons/named/wx_named_fist"])
+		{
+			stash.add(::new("scripts/items/" + wp));
+		}
+
+		local sampleManuals = [];
+		foreach (id, def in ::Wuxia.Config.Manuals) sampleManuals.push(id);
+		sampleManuals.sort();
 
 		foreach (mid in sampleManuals)
 		{
@@ -120,39 +130,6 @@ this.wx_debug_arena <- this.inherit("scripts/scenarios/world/starting_scenario",
 
 	function onSpawnPlayer()
 	{
-		local settlements = this.World.EntityManager.getSettlements();
-		local randomVillage = settlements[0];
-		foreach (s in settlements)
-		{
-			if (!s.isMilitary() && !s.isIsolatedFromRoads() && s.isAlliedWithPlayer())
-			{
-				randomVillage = s;
-				break;
-			}
-		}
-
-		local spawnTile = randomVillage.getTile();
-		local navSettings = this.World.getNavigator().createSettings();
-		navSettings.ActionPointCosts = this.Const.World.TerrainTypeNavCost_Flat;
-
-		for (local tries = 0; tries < 200; tries = ++tries)
-		{
-			local x = this.Math.rand(this.Math.max(2, spawnTile.SquareCoords.X - 4), this.Math.min(this.Const.World.Settings.SizeX - 2, spawnTile.SquareCoords.X + 4));
-			local y = this.Math.rand(this.Math.max(2, spawnTile.SquareCoords.Y - 4), this.Math.min(this.Const.World.Settings.SizeY - 2, spawnTile.SquareCoords.Y + 4));
-			if (!this.World.isValidTileSquare(x, y)) continue;
-			local tile = this.World.getTileSquare(x, y);
-			if (tile.Type == this.Const.World.TerrainType.Ocean || tile.Type == this.Const.World.TerrainType.Shore || tile.IsOccupied) continue;
-			if (tile.getDistanceTo(spawnTile) <= 1) continue;
-			local path = this.World.getNavigator().findPath(tile, spawnTile, navSettings, 0);
-			if (!path.isEmpty())
-			{
-				spawnTile = tile;
-				break;
-			}
-		}
-
-		this.World.State.m.Player = this.World.spawnEntity("scripts/entity/world/player_party", spawnTile.Coords.X, spawnTile.Coords.Y);
-		this.World.Assets.updateLook(1);
-		this.World.getCamera().setPos(this.World.State.m.Player.getPos());
+		::Wuxia.spawnPlayerNearSettlement();
 	}
 });

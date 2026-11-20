@@ -17,7 +17,7 @@ this.wx_saber_cleave <- this.inherit("scripts/skills/actives/wx_move_base", {
 			"sounds/combat/cleave_02.wav"
 		];
 		this.m.SoundOnHit = [
-			"sounds/combat/cleave_hit_01.wav"
+			"sounds/combat/cleave_hit_hitpoints_01.wav"
 		];
 		this.m.ActionPointCost = 5;
 		this.m.FatigueCost = 18;

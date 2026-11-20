@@ -24,22 +24,22 @@ this.wx_event_ghost_auction <- this.inherit("scripts/events/event", {
 					Text = "直接高价拍下压轴奇珍",
 					function getResult( _event )
 					{
-						if (this.World.Assets.getMoney() < _event.m.BidPrice) return "NoMoney";
-						this.World.Assets.addMoney(-_event.m.BidPrice);
-
+						local item;
 						if (_event.m.LotKind == "pill")
 						{
-							local pill = ::new("scripts/items/misc/wx_pill_item");
-							pill.initPill(_event.m.LotID);
-							this.World.Assets.getStash().add(pill);
+							item = ::new("scripts/items/misc/wx_pill_item");
+							item.initPill(_event.m.LotID);
+						}
+						else if (_event.m.LotKind == "named_fist")
+						{
+							item = ::new("scripts/items/weapons/named/wx_named_fist");
 						}
 						else
 						{
-							local mItem = ::new("scripts/items/misc/wx_manual_item");
-							mItem.initManual(_event.m.LotID);
-							this.World.Assets.getStash().add(mItem);
+							item = ::new("scripts/items/misc/wx_manual_item");
+							item.initManual(_event.m.LotID);
 						}
-						return "Won";
+						return ::Wuxia.Loot.purchaseEventItem(item, _event.m.BidPrice, "Won");
 					}
 				},
 				{
@@ -50,14 +50,21 @@ this.wx_event_ghost_auction <- this.inherit("scripts/events/event", {
 			function start( _event )
 			{
 				local roll = ::Math.rand(1, 100);
-				if (roll <= 25)
+				if (roll <= 22)
 				{
 					_event.m.LotKind = "pill";
 					_event.m.LotID = "wx_pill_xisui";
 					_event.m.LotName = "稀世奇药【洗髓丹】";
 					_event.m.BidPrice = 5200;
 				}
-				else if (roll <= 45)
+				else if (roll <= 37)
+				{
+					_event.m.LotKind = "named_fist";
+					_event.m.LotID = "weapon.wx_named_fist";
+					_event.m.LotName = "传世名器【百炼拳掌护手】";
+					_event.m.BidPrice = 5600;
+				}
+				else if (roll <= 55)
 				{
 					local uniques = ::Wuxia.Loot.getManualIDsByQuality("unique");
 					local mid = uniques[::Math.rand(0, uniques.len() - 1)];
@@ -93,6 +100,7 @@ this.wx_event_ghost_auction <- this.inherit("scripts/events/event", {
 			function start( _event ) {}
 		});
 
+		this.m.Screens.push(::Wuxia.Loot.makeNoRoomScreen());
 		this.m.Screens.push({
 			ID = "NoMoney",
 			Text = "[img]gfx/ui/events/event_45.png[/img]银两不够竞拍价，只能眼睁睁看着奇珍落入他人之手。",

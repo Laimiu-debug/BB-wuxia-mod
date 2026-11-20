@@ -34,11 +34,25 @@
 	return false;
 };
 
+// Older campaigns can carry a third internal or movement manual. Keep its saved
+// mastery intact and let it reactivate when one of the earlier slots is replaced.
+::Wuxia.Slots.getPracticedDef <- function( _container, _slot )
+{
+	local def = ::Wuxia.Slots.getManualDef(_slot.ManualID);
+	if (def == null || _slot.Tier <= 0) return null;
+	if (def.Category != "neigong" && def.Category != "qinggong") return def;
+	local earlier = 0;
+	for (local i = 0; i < _slot.SlotIndex; ++i)
+	{
+		local slot = _container.m.Slots[i], other = ::Wuxia.Slots.getManualDef(slot.ManualID);
+		if (slot.Tier > 0 && other != null && other.Category == def.Category && ++earlier == 2) return null;
+	}
+	return def;
+};
+
 ::Wuxia.Slots.getActorLevel <- function( _actor )
 {
-	if (_actor != null && ("getLevel" in _actor))
-		return _actor.getLevel();
-	return 1;
+	return _actor == null ? 1 : _actor.getLevel();
 };
 
 ::Wuxia.Slots.isSlotUnlocked <- function( _actor, _slotIndex )
@@ -71,7 +85,7 @@
 	foreach (s in c.m.Slots)
 	{
 		if (s.ManualID == null || s.Tier <= 0) continue;
-		local def = ::Wuxia.Slots.getManualDef(s.ManualID);
+		local def = ::Wuxia.Slots.getPracticedDef(c, s);
 		if (def == null) continue;
 		if (def.Category == "neigong" && def.Element != null)
 		{
@@ -107,6 +121,10 @@
 	local def = ::Wuxia.Slots.getManualDef(_manualID);
 	if (def == null)
 		return { Ok = false, Reason = "未知武学秘籍。" };
+	if (typeof _slotIndex != "integer" || _slotIndex < 0 || _slotIndex >= ::Wuxia.Config.SlotLayout.len())
+		return { Ok = false, Reason = "无效的武学槽位。" };
+	local c = ::Wuxia.Slots.getContainer(_actor);
+	if (c == null) return { Ok = false, Reason = "无法读取侠客武学。" };
 
 	if (!::Wuxia.Slots.isSlotUnlocked(_actor, _slotIndex))
 	{
@@ -123,15 +141,20 @@
 	if (_isFragment && !def.AllowFragmentLearn)
 		return { Ok = false, Reason = "此功法无残本强修路径。" };
 
-	local c = ::Wuxia.Slots.getContainer(_actor);
 	local slot = c.m.Slots[_slotIndex];
 
 	// Prevent duplicating the same manual in a different slot
+	local sameCategory = 0;
 	for (local i = 0; i < c.m.Slots.len(); i = ++i)
 	{
-		if (i != _slotIndex && c.m.Slots[i].ManualID == _manualID)
+		if (i == _slotIndex || c.m.Slots[i].ManualID == null) continue;
+		if (c.m.Slots[i].ManualID == _manualID)
 			return { Ok = false, Reason = "角色已在其他槽位修习「" + def.Name + "」。" };
+		local other = ::Wuxia.Slots.getManualDef(c.m.Slots[i].ManualID);
+		if (other != null && other.Category == def.Category) ++sameCategory;
 	}
+	if (sameCategory >= 2 && (def.Category == "neigong" || def.Category == "qinggong"))
+		return { Ok = false, Reason = "一人至多兼修两门内功、两门轻功。" };
 
 	local isOverwrite = (slot.ManualID != null);
 	local oldDef = isOverwrite ? ::Wuxia.Slots.getManualDef(slot.ManualID) : null;
@@ -218,16 +241,16 @@
 	if (def == null || def.FragmentsNeeded <= 0)
 		return { Ok = false, Reason = "此功法不可由残页拼合。" };
 
-	local items = _stash.getItems();
-	local matchingSlots = [];
+	local stacks = [];
+	local replaceable = null;
 	local totalPages = 0;
 
-	for (local i = 0; i < items.len(); i = ++i)
+	foreach (it in _stash.getItems())
 	{
-		local it = items[i];
 		if (it != null && it.getID() == "misc.wx_page_item" && it.getManualID() == _manualID)
 		{
-			matchingSlots.push(i);
+			stacks.push(it);
+			if (it.getPageCount() <= def.FragmentsNeeded) replaceable = it;
 			totalPages += it.getPageCount();
 		}
 	}
@@ -235,24 +258,27 @@
 	if (totalPages < def.FragmentsNeeded)
 		return { Ok = false, Reason = "残页不足（当前 " + totalPages + " / " + def.FragmentsNeeded + "）。" };
 
-	local remainingToConsume = def.FragmentsNeeded;
-	foreach (idx in matchingSlots)
-	{
-		if (remainingToConsume <= 0) break;
-		local it = items[idx];
-		if (it == null) continue;
-		local take = ::Math.min(remainingToConsume, it.getPageCount());
-		it.addPageCount(-take);
-		remainingToConsume -= take;
-		if (it.getPageCount() <= 0)
-		{
-			_stash.removeByIndex(idx);
-		}
-	}
-
 	local manualItem = ::new("scripts/items/misc/wx_manual_item");
 	manualItem.initManual(_manualID);
-	_stash.add(manualItem);
+	local remaining = def.FragmentsNeeded;
+	// In a full stash, an exhausted stack can supply the book's slot.
+	local releaseStack = !_stash.isResizable() && !_stash.hasEmptySlot() && replaceable != null;
+	if (releaseStack) _stash.remove(replaceable);
+	if (_stash.add(manualItem) == null)
+	{
+		if (releaseStack) _stash.add(replaceable);
+		return { Ok = false, Reason = "行囊已满，请先腾出一格存放秘籍。" };
+	}
+	if (releaseStack) remaining -= replaceable.getPageCount();
+	foreach (stack in stacks)
+	{
+		if (remaining == 0) break;
+		if (releaseStack && stack == replaceable) continue;
+		local take = ::Math.min(remaining, stack.getPageCount());
+		if (take == stack.getPageCount()) _stash.remove(stack);
+		else stack.addPageCount(-take);
+		remaining -= take;
+	}
 
 	return {
 		Ok = true,

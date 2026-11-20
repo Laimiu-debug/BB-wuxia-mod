@@ -8,7 +8,7 @@ this.wx_spear_guard <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_spear_guard";
 		this.m.Name = "威远守线刺";
-		this.m.Description = "威远镖局控距枪法：可刺击 1~2 格目标，命中 +10%，命中必令敌手「失衡」（招架 -10、身法 -15）。";
+		this.m.Description = "威远镖局控距枪法。刺击 1~2 格目标时命中 +10%，命中后有机会令敌手「失衡」（招架 -10、身法 -15），概率随功法重数提升。";
 		this.m.Icon = "skills/active_18.png";
 		this.m.IconDisabled = "skills/active_18_sw.png";
 		this.m.Overlay = "active_18";
@@ -41,7 +41,7 @@ this.wx_spear_guard <- this.inherit("scripts/skills/actives/wx_move_base", {
 		local hit = this.attackEntity(_user, target);
 		if (hit && target != null && target.isAlive())
 		{
-			this.wxApplyStatusToTarget(target, "effects.wx_status_offbalance", "scripts/skills/effects/wx_status_offbalance");
+			this.wxApplyStatusToTarget(target, "effects.wx_status_offbalance", "scripts/skills/effects/wx_status_offbalance", "InflictOffBalancePct");
 		}
 		return hit;
 	}

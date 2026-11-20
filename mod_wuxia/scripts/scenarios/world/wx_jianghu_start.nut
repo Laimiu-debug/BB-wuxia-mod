@@ -25,21 +25,31 @@ this.wx_jianghu_start <- this.inherit("scripts/scenarios/world/starting_scenario
 			{ Name = "石大柱", Bg = "militia_background",      Manuals = [[0, "wx_manual_tuna"]] }
 		];
 
-		for (local i = 0; i < starters.len(); i = ++i)
+		::Wuxia.Backgrounds.SuppressAutoAssign = true;
+		try
 		{
-			local st = starters[i];
-			local bro = roster.create("scripts/entity/tactical/player");
-			bro.setStartValuesEx([st.Bg]);
-			bro.setName(st.Name);
-			bro.setPlaceInFormation(i + 2);
-			bro.m.HireTime = this.Time.getVirtualTimeF();
-			bro.m.PerkPoints = 0;
-
-			foreach (pair in st.Manuals)
+			for (local i = 0; i < starters.len(); i = ++i)
 			{
-				::Wuxia.Slots.equipManual(bro, pair[0], pair[1], false);
+				local st = starters[i];
+				local bro = roster.create("scripts/entity/tactical/player");
+				bro.setStartValuesEx([st.Bg]);
+				bro.setName(st.Name);
+				bro.setPlaceInFormation(i + 2);
+				bro.m.HireTime = this.Time.getVirtualTimeF();
+				bro.m.PerkPoints = 0;
+
+				foreach (pair in st.Manuals)
+				{
+					::Wuxia.Slots.equipManual(bro, pair[0], pair[1], false);
+				}
 			}
 		}
+		catch (err)
+		{
+			::Wuxia.Backgrounds.SuppressAutoAssign = false;
+			throw err;
+		}
+		::Wuxia.Backgrounds.SuppressAutoAssign = false;
 
 		// Starter medical pills + 1 spare common manual
 		local stash = this.World.Assets.getStash();
@@ -66,39 +76,6 @@ this.wx_jianghu_start <- this.inherit("scripts/scenarios/world/starting_scenario
 
 	function onSpawnPlayer()
 	{
-		local settlements = this.World.EntityManager.getSettlements();
-		local randomVillage = settlements[0];
-		foreach (s in settlements)
-		{
-			if (!s.isMilitary() && !s.isIsolatedFromRoads() && s.isAlliedWithPlayer())
-			{
-				randomVillage = s;
-				break;
-			}
-		}
-
-		local spawnTile = randomVillage.getTile();
-		local navSettings = this.World.getNavigator().createSettings();
-		navSettings.ActionPointCosts = this.Const.World.TerrainTypeNavCost_Flat;
-
-		for (local tries = 0; tries < 200; tries = ++tries)
-		{
-			local x = this.Math.rand(this.Math.max(2, spawnTile.SquareCoords.X - 4), this.Math.min(this.Const.World.Settings.SizeX - 2, spawnTile.SquareCoords.X + 4));
-			local y = this.Math.rand(this.Math.max(2, spawnTile.SquareCoords.Y - 4), this.Math.min(this.Const.World.Settings.SizeY - 2, spawnTile.SquareCoords.Y + 4));
-			if (!this.World.isValidTileSquare(x, y)) continue;
-			local tile = this.World.getTileSquare(x, y);
-			if (tile.Type == this.Const.World.TerrainType.Ocean || tile.Type == this.Const.World.TerrainType.Shore || tile.IsOccupied) continue;
-			if (tile.getDistanceTo(spawnTile) <= 1) continue;
-			local path = this.World.getNavigator().findPath(tile, spawnTile, navSettings, 0);
-			if (!path.isEmpty())
-			{
-				spawnTile = tile;
-				break;
-			}
-		}
-
-		this.World.State.m.Player = this.World.spawnEntity("scripts/entity/world/player_party", spawnTile.Coords.X, spawnTile.Coords.Y);
-		this.World.Assets.updateLook(1);
-		this.World.getCamera().setPos(this.World.State.m.Player.getPos());
+		::Wuxia.spawnPlayerNearSettlement();
 	}
 });

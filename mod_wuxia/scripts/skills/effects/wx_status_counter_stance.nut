@@ -2,7 +2,7 @@
 
 this.wx_status_counter_stance <- this.inherit("scripts/skills/skill", {
 	m = {
-		CounterHitBonus = 10,
+		IsCountering = false,
 		QiCostPerCounter = 4
 	},
 
@@ -19,9 +19,11 @@ this.wx_status_counter_stance <- this.inherit("scripts/skills/skill", {
 		this.m.IsRemovedAfterBattle = true;
 	}
 
-	function setCounterBonus( _bonus )
+	function onAnySkillUsed( _skill, _targetEntity, _properties )
 	{
-		this.m.CounterHitBonus = _bonus;
+		if (!this.m.IsCountering || _skill == null || _skill.isRanged()) return;
+		local c = this.getContainer().getSkillByID("special.wx_martial_container");
+		if (c != null && c.m.CachedAggFlags != null) _properties.MeleeSkill += c.m.CachedAggFlags.CounterBonus;
 	}
 
 	function onUpdate( _properties )
@@ -31,11 +33,15 @@ this.wx_status_counter_stance <- this.inherit("scripts/skills/skill", {
 
 	function onMissed( _attacker, _skill )
 	{
-		if (_attacker == null || !_attacker.isAlive() || _skill == null || _skill.isRanged())
+		if (_attacker == null || !_attacker.isAlive() || _skill == null || _skill.isRanged() || _skill.isIgnoringRiposte())
 			return;
 
 		local actor = this.getContainer().getActor();
-		if (actor == null || !actor.isAlive()) return;
+		if (actor == null || !actor.isAlive() || this.m.IsCountering) return;
+		local c = this.getContainer().getSkillByID("special.wx_martial_container");
+		if (c == null || c.m.CachedAggFlags == null || c.m.CachedAggFlags.CounterBonus <= 0) return;
+		local active = this.Tactical.TurnSequenceBar.getActiveEntity();
+		if (active == null || active.getID() != _attacker.getID() || actor.isAlliedWith(_attacker)) return;
 		if (actor.getTile().getDistanceTo(_attacker.getTile()) > 1) return;
 
 		local availQi = actor.getFatigueMax() - actor.getFatigue();
@@ -49,7 +55,10 @@ this.wx_status_counter_stance <- this.inherit("scripts/skills/skill", {
 		if (counterSkill != null)
 		{
 			::Wuxia.CombatRules.spendQi(actor, this.m.QiCostPerCounter);
-			counterSkill.useForFree(_attacker.getTile());
+			this.m.IsCountering = true;
+			try { counterSkill.useForFree(_attacker.getTile()); }
+			catch (error) { this.m.IsCountering = false; throw error; }
+			this.m.IsCountering = false;
 		}
 	}
 

@@ -25,48 +25,11 @@ this.wx_move_base <- this.inherit("scripts/skills/skill", {
 
 	function wxHasRequiredWeapon()
 	{
-		if (this.m.RequiredWeaponTypes.len() == 0) return true;
 		local container = this.getContainer();
 		local actor = container == null ? null : container.getActor();
-		if (actor == null) return false;
-		local weapon = actor.getItems().getItemAtSlot(::Const.ItemSlot.Mainhand);
-		if (weapon == null) return false;
-
-		local wid = weapon.getID().tolower();
-		local cats = ("Categories" in weapon.m && weapon.m.Categories != null) ? weapon.m.Categories.tolower() : "";
-
-		foreach (wtName in this.m.RequiredWeaponTypes)
-		{
-			// Path 1: MSU WeaponType if MSU is installed
-			if ("WeaponType" in ::Const.Items && wtName in ::Const.Items.WeaponType)
-			{
-				if ("isWeaponType" in weapon && weapon.isWeaponType(::Const.Items.WeaponType[wtName]))
-					return true;
-			}
-
-			// Path 2: Vanilla zero-MSU weapon matching by English ID & localized/English Categories
-			if (wtName == "Sword")
-			{
-				if (wid.find("sword") != null || wid.find("rapier") != null || wid.find("shamshir") != null || wid.find("falchion") != null || cats.find("sword") != null || cats.find("剑") != null)
-					return true;
-			}
-			else if (wtName == "Cleaver" || wtName == "Saber")
-			{
-				if (wid.find("cleaver") != null || wid.find("scimitar") != null || wid.find("khopesh") != null || wid.find("chopper") != null || wid.find("saber") != null || wid.find("scramasax") != null || cats.find("cleaver") != null || cats.find("刀") != null)
-					return true;
-			}
-			else if (wtName == "Spear" || wtName == "Polearm")
-			{
-				if (wid.find("spear") != null || wid.find("pike") != null || wid.find("bill") != null || wid.find("halberd") != null || wid.find("spetum") != null || wid.find("pole") != null || wid.find("glaive") != null || wid.find("trident") != null || cats.find("spear") != null || cats.find("polearm") != null || cats.find("矛") != null || cats.find("枪") != null || cats.find("长柄") != null)
-					return true;
-			}
-			else if (wtName == "Throwing")
-			{
-				if (wid.find("throwing") != null || wid.find("javelin") != null || wid.find("bolas") != null || cats.find("throwing") != null || cats.find("投掷") != null || cats.find("暗器") != null)
-					return true;
-			}
-		}
-		return false;
+		local items = actor == null ? null : actor.getItems();
+		local weapon = items == null ? null : items.getItemAtSlot(::Const.ItemSlot.Mainhand);
+		return ::Wuxia.CombatRules.matchesWeapon(weapon, this.m.RequiredWeaponTypes);
 	}
 
 	function isHidden()
@@ -76,7 +39,21 @@ this.wx_move_base <- this.inherit("scripts/skills/skill", {
 
 	function isUsable()
 	{
-		return this.skill.isUsable() && this.wxHasRequiredWeapon();
+		if (!this.skill.isUsable() || !this.wxHasRequiredWeapon()) return false;
+		if (this.m.RequiredWeaponTypes.find("Throwing") != null)
+		{
+			local item = this.getContainer().getActor().getItems().getItemAtSlot(::Const.ItemSlot.Mainhand);
+			return item.getAmmoMax() == 0 || item.getAmmo() > 0;
+		}
+		return true;
+	}
+
+	function wxThrowAt( _user, _target )
+	{
+		local item = _user.getItems().getItemAtSlot(::Const.ItemSlot.Mainhand);
+		local hit = this.attackEntity(_user, _target);
+		if (item.getAmmoMax() > 0) item.consumeAmmo();
+		return hit;
 	}
 
 	function getFatigueCost()
@@ -91,10 +68,16 @@ this.wx_move_base <- this.inherit("scripts/skills/skill", {
 		return cost;
 	}
 
-	function wxApplyStatusToTarget( _target, _effectID, _effectScript )
+	function wxApplyStatusToTarget( _target, _effectID, _effectScript, _chanceFlag = null )
 	{
 		if (_target == null || !_target.isAlive() || _effectID == null || _effectScript == null)
 			return;
+		if (_chanceFlag != null)
+		{
+			local c = this.getContainer().getSkillByID("special.wx_martial_container");
+			local chance = c == null || c.m.CachedAggFlags == null ? null : c.m.CachedAggFlags[_chanceFlag];
+			if (chance != null && ::Math.rand(1, 100) > chance) return;
+		}
 		local sk = _target.getSkills();
 		if (sk == null) return;
 		local eff = sk.getSkillByID(_effectID);

@@ -65,7 +65,7 @@
 				}
 
 				item.manualID       = def.ID;
-				item.name           = def.Name;
+				item.name           = def.Name + (::Wuxia.Slots.getPracticedDef(c, s) == null ? "（超出兼修上限，已封存）" : "");
 				item.category       = def.Category;
 				item.categoryLabel  = (def.Category in ::Wuxia.Text.Categories) ? ::Wuxia.Text.Categories[def.Category] : def.Category;
 				item.quality        = def.Quality;
@@ -113,7 +113,7 @@
 		entityId           = _actor.getID(),
 		name               = _actor.getName(),
 		level              = level,
-		actionPointsMax    = _actor.getActionPointsMax(),
+		actionPointsMax    = _actor.getActionPointsMax() - c.m.TemporaryAPOverflow,
 		permanentAPBonus   = c.getPermanentAPBonus(),
 		mainElementLabel   = mainElementLabel,
 		hasConflict        = ::Wuxia.Slots.hasNeigongConflict(_actor),
@@ -245,5 +245,16 @@
 		{
 			_target.wxMartial <- ::Wuxia.UI.buildBrotherMartialData(_entity);
 		}
+	};
+});
+
+::Wuxia.HooksMod.hook("scripts/ui/screens/tactical/modules/turn_sequence_bar/turn_sequence_bar", function( q )
+{
+	q.convertEntityToUIData = @(__original) function( _entity, _isLastEntity = false )
+	{
+		local data = __original(_entity, _isLastEntity);
+		local c = _entity.getSkills().getSkillByID("special.wx_martial_container");
+		data.wxPermanentAP <- data.actionPointsMax - (c == null ? 0 : c.m.TemporaryAPOverflow);
+		return data;
 	};
 });

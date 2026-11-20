@@ -43,10 +43,10 @@
 	},
 	{
 		Index       = 4,
-		SlotType    = "waigong",
-		Label       = "第二外功",
+		SlotType    = "specialization",
+		Label       = "进阶专精",
 		UnlockLevel = 7,
-		AllowedCategories = ["waigong"]
+		AllowedCategories = ["waigong", "henglian"]
 	},
 	{
 		Index       = 5,

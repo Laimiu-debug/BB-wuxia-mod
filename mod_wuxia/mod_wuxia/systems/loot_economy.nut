@@ -2,57 +2,58 @@
 
 ::Wuxia.Loot.EnemyLoadouts <- {
 	// Tier 1: Bandits / Outcasts (大路货)
-	bandit_thug = [
+	bandit_thug = { Script = "scripts/entity/tactical/enemies/bandit_thug", DropChance = 24, IsBoss = false, Manuals = [
 		{ ManualID = "wx_manual_tuna",      Tier = 1, Weight = 40 },
 		{ ManualID = "wx_manual_wuhudao",   Tier = 1, Weight = 35 },
 		{ ManualID = "wx_manual_jichujian", Tier = 1, Weight = 25 }
-	],
-	bandit_raider = [
+	] },
+	bandit_raider = { Script = "scripts/entity/tactical/enemies/bandit_raider", DropChance = 24, IsBoss = false, Manuals = [
 		{ ManualID = "wx_manual_xingqi",    Tier = 1, Weight = 30 },
 		{ ManualID = "wx_manual_wuhudao",   Tier = 2, Weight = 30 },
 		{ ManualID = "wx_manual_heifeng",   Tier = 1, Weight = 25 },
 		{ ManualID = "wx_manual_yingpi",    Tier = 1, Weight = 15 }
-	],
-	bandit_marksman = [
+	] },
+	bandit_marksman = { Script = "scripts/entity/tactical/enemies/bandit_marksman", DropChance = 24, IsBoss = false, Manuals = [
 		{ ManualID = "wx_manual_xiushou",   Tier = 2, Weight = 45 },
 		{ ManualID = "wx_manual_jianbu",    Tier = 1, Weight = 30 },
-		{ ManualID = "wx_manual_baoyu",     Tier = 1, Weight = 25 }
-	],
+		{ ManualID = "wx_manual_baoyu",     Tier = 1, Weight = 25 },
+		{ ManualID = "wx_manual_yanxing",   Tier = 2, Weight = 30 }
+	] },
 	// Tier 2: Elites / Sect Swordsmen / Mercenaries (门派上乘)
-	mercenary = [
+	mercenary = { Script = "scripts/entity/tactical/humans/mercenary", DropChance = 40, IsBoss = false, Manuals = [
 		{ ManualID = "wx_manual_songtao",   Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_weiyuan",   Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_qingfeng",  Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_tiebushan", Tier = 2, Weight = 25 }
-	],
+	] },
 	// Tier 3: Leaders / Bosses (绝学 & 孤本残页 + 洗髓丹)
-	bandit_leader = [
+	bandit_leader = { Script = "scripts/entity/tactical/enemies/bandit_leader", DropChance = 75, IsBoss = true, Manuals = [
 		{ ManualID = "wx_manual_xuesha",    Tier = 2, Weight = 30 },
 		{ ManualID = "wx_manual_duanyue",   Tier = 2, Weight = 35 },
 		{ ManualID = "wx_manual_tiebushan", Tier = 2, Weight = 20 },
 		{ ManualID = "wx_manual_heifeng",   Tier = 3, Weight = 15 }
-	],
-	swordmaster = [
+	] },
+	swordmaster = { Script = "scripts/entity/tactical/humans/swordmaster", DropChance = 75, IsBoss = true, Manuals = [
 		{ ManualID = "wx_manual_guiyuan",   Tier = 3, Weight = 25 },
 		{ ManualID = "wx_manual_huifeng",   Tier = 3, Weight = 30 },
 		{ ManualID = "wx_manual_taxue",     Tier = 3, Weight = 20 },
 		{ ManualID = "wx_manual_jinchan",   Tier = 3, Weight = 15 },
 		{ ManualID = "wx_manual_tianwai",   Tier = 2, Weight = 10 }
-	]
+	] }
 };
 
 ::Wuxia.Loot.applyLoadoutToEnemy <- function( _actor, _archetypeKey )
 {
-	if (_actor == null || !(_archetypeKey in ::Wuxia.Loot.EnemyLoadouts))
-		return;
-
-	local loadout = ::Wuxia.Loot.EnemyLoadouts[_archetypeKey];
+	if (_actor == null) return;
+	local profiles = _archetypeKey in ::Wuxia.Config.Fighters ? ::Wuxia.Config.Fighters : ::Wuxia.Loot.EnemyLoadouts;
+	if (!(_archetypeKey in profiles)) return;
+	local loadout = profiles[_archetypeKey].Manuals;
 	local c = ::Wuxia.Slots.getContainer(_actor);
 	if (c == null) return;
 
 	_actor.m.WX_LoadoutKey <- _archetypeKey;
 
-	// Assign up to 4 manuals into matching slots directly without scatter penalty
+	// Enemy tiers are fixed by archetype. Keep the same category rules as player slots.
 	local usedSlots = {};
 	foreach (entry in loadout)
 	{
@@ -94,21 +95,27 @@
 	return _loadout[0].ManualID;
 };
 
-::Wuxia.Loot.onEnemyKilledDrop <- function( _actor, _tile )
+::Wuxia.Loot.getEquippedDropPool <- function( _actor, _profile )
 {
-	if (_actor == null || _tile == null) return;
-	if (!("WX_LoadoutKey" in _actor.m) || !(_actor.m.WX_LoadoutKey in ::Wuxia.Loot.EnemyLoadouts))
-		return;
+	local pool = [];
+	local c = _actor.getSkills().getSkillByID("special.wx_martial_container");
+	if (c == null) return pool;
+	local equipped = {};
+	foreach (slot in c.m.Slots)
+		if (slot.ManualID != null && slot.Tier > 0) equipped[slot.ManualID] <- true;
+	foreach (entry in _profile.Manuals)
+		if (entry.ManualID in equipped) pool.push(entry);
+	return pool;
+};
 
-	local key = _actor.m.WX_LoadoutKey;
-	local loadout = ::Wuxia.Loot.EnemyLoadouts[key];
-	local isBoss = (key == "bandit_leader" || key == "swordmaster");
+::Wuxia.Loot.onEnemyKilledDrop <- function( _tile, _profile, _pool )
+{
+	local isBoss = _profile.IsBoss;
 
 	// Drop chance: 24% normal martial enemies, 75% elites/bosses
-	local dropChance = isBoss ? 75 : (key == "mercenary" ? 40 : 24);
-	if (::Math.rand(1, 100) <= dropChance)
+	if (_pool.len() > 0 && ::Math.rand(1, 100) <= _profile.DropChance)
 	{
-		local manualID = ::Wuxia.Loot.pickWeightedManual(loadout);
+		local manualID = ::Wuxia.Loot.pickWeightedManual(_pool);
 		local def = ::Wuxia.Slots.getManualDef(manualID);
 		if (def != null)
 		{
@@ -152,6 +159,35 @@
 	return list;
 };
 
+// Random events are scored on the moving world map, including the approach to a town.
+::Wuxia.Loot.isNearMarketTown <- function()
+{
+	local player = ::World.State.getPlayer();
+	if (player == null) return false;
+	local tile = player.getTile();
+	foreach (town in ::World.EntityManager.getSettlements())
+		if (town.isAlliedWithPlayer() && town.getTile().getDistanceTo(tile) <= 2) return true;
+	return false;
+};
+
+::Wuxia.Loot.purchaseEventItem <- function( _item, _price, _successScreen )
+{
+	if (::World.Assets.getMoney() < _price) return "NoMoney";
+	if (::World.Assets.getStash().add(_item) == null) return "NoRoom";
+	::World.Assets.addMoney(-_price);
+	return _successScreen;
+};
+
+::Wuxia.Loot.makeNoRoomScreen <- function()
+{
+	return {
+		ID = "NoRoom", Text = "行囊已满，放不下这件货物。你收起银两，辞别了对方。",
+		Image = "", List = [], Characters = [],
+		Options = [{ Text = "改日再来。", function getResult( _event ) { return 0; } }],
+		function start( _event ) {}
+	};
+};
+
 ::Wuxia.Loot.injectTownShopStock <- function( _stash )
 {
 	if (_stash == null) return;
@@ -178,6 +214,17 @@
 		}
 	}
 
+	// Stock starter paired cloth wraps (麻布缠手) in marketplace if none present
+	local hasWraps = false;
+	foreach (it in _stash.getItems())
+	{
+		if (it != null && it.getID() == "weapon.wx_fist_wraps") { hasWraps = true; break; }
+	}
+	if (!hasWraps)
+	{
+		_stash.add(::new("scripts/items/weapons/wx_fist_wraps"));
+	}
+
 	// Stock core medical & training pills
 	local shopPills = ["wx_pill_jinchuang", "wx_pill_huxin"];
 	if (::Math.rand(1, 100) <= 50) shopPills.push("wx_pill_ningshen");
@@ -186,5 +233,23 @@
 		local p = ::new("scripts/items/misc/wx_pill_item");
 		p.initPill(pid);
 		_stash.add(p);
+	}
+};
+
+::Wuxia.Loot.injectWeaponsmithStock <- function( _stash )
+{
+	if (_stash == null) return;
+	local existingFist = 0;
+	foreach (it in _stash.getItems())
+	{
+		if (it != null && (it.getID() == "weapon.wx_fist_iron" || it.getID() == "weapon.wx_fist_heavy"))
+			existingFist += 1;
+	}
+	if (existingFist >= 1) return;
+
+	_stash.add(::new("scripts/items/weapons/wx_fist_iron"));
+	if (::Math.rand(1, 100) <= 45)
+	{
+		_stash.add(::new("scripts/items/weapons/wx_fist_heavy"));
 	}
 };

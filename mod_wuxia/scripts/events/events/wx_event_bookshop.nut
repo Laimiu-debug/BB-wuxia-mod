@@ -25,7 +25,7 @@ this.wx_event_bookshop <- this.inherit("scripts/events/event", {
 						this.World.Assets.addMoney(-450);
 						foreach (bro in this.World.getPlayerRoster().getAll())
 						{
-							::Wuxia.Mastery.onCombatFinished(bro, 60);
+							::Wuxia.Mastery.addExpToEquipped(bro, 60);
 						}
 						return "Trained";
 					}
@@ -34,12 +34,9 @@ this.wx_event_bookshop <- this.inherit("scripts/events/event", {
 					Text = "买下书肆抄本（350 银两）",
 					function getResult( _event )
 					{
-						if (this.World.Assets.getMoney() < 350) return "NoMoney";
-						this.World.Assets.addMoney(-350);
 						local mItem = ::new("scripts/items/misc/wx_manual_item");
 						mItem.initManual(_event.m.OfferedManualID);
-						this.World.Assets.getStash().add(mItem);
-						return "Bought";
+						return ::Wuxia.Loot.purchaseEventItem(mItem, 350, "Bought");
 					}
 				},
 				{
@@ -82,6 +79,7 @@ this.wx_event_bookshop <- this.inherit("scripts/events/event", {
 			function start( _event ) {}
 		});
 
+		this.m.Screens.push(::Wuxia.Loot.makeNoRoomScreen());
 		this.m.Screens.push({
 			ID = "NoMoney",
 			Text = "[img]gfx/ui/events/event_78.png[/img]摸了摸怀中银袋，眼下盘缠尚不够数，只得作罢。",
@@ -95,7 +93,7 @@ this.wx_event_bookshop <- this.inherit("scripts/events/event", {
 
 	function onUpdateScore()
 	{
-		if (!this.World.State.isInTown()) return;
+		if (!::Wuxia.Loot.isNearMarketTown()) return;
 		this.m.Score = 18;
 	}
 });

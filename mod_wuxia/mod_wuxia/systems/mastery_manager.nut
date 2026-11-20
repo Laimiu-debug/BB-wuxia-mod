@@ -78,7 +78,7 @@
 	if (slot.ManualID == null || slot.Tier <= 0 || slot.IsFragment)
 		return { Advanced = false, BlockedByReq = false, Missing = [] };
 
-	local def = ::Wuxia.Slots.getManualDef(slot.ManualID);
+	local def = ::Wuxia.Slots.getPracticedDef(c, slot);
 	if (def == null || slot.Tier >= def.Levels.len())
 		return { Advanced = false, BlockedByReq = false, Missing = [] };
 
@@ -129,7 +129,7 @@
 	if (slot.ManualID == null || slot.Tier <= 0 || slot.IsFragment)
 		return { Advanced = false };
 
-	local def = ::Wuxia.Slots.getManualDef(slot.ManualID);
+	local def = ::Wuxia.Slots.getPracticedDef(c, slot);
 	if (def == null || slot.Tier >= def.Levels.len())
 		return { Advanced = false };
 
@@ -157,7 +157,7 @@
 	return result;
 };
 
-::Wuxia.Mastery.onCombatFinished <- function( _actor, _baseGain = 35 )
+::Wuxia.Mastery.addExpToEquipped <- function( _actor, _baseGain )
 {
 	local c = ::Wuxia.Slots.getContainer(_actor);
 	if (c == null) return;
@@ -181,6 +181,8 @@
 		return { Ok = false, Reason = "该插槽尚未装配功法。" };
 	if (slot.IsFragment)
 		return { Ok = false, Reason = "残本强修止步一重，无法灌注火候。" };
+	if (::Wuxia.Slots.getPracticedDef(c, slot) == null)
+		return { Ok = false, Reason = "此功法已封存，更换较早槽位的同类功法即可恢复。" };
 
 	local def = ::Wuxia.Slots.getManualDef(slot.ManualID);
 	if (def == null || slot.Tier >= def.Levels.len())

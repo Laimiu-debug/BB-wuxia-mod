@@ -12,9 +12,14 @@
 		{
 			foreach (b in this.m.Buildings)
 			{
-				if (b != null && b.getID() == "building.marketplace" && "Stash" in b.m && b.m.Stash != null)
+				if (b == null || !("Stash" in b.m) || b.m.Stash == null) continue;
+				if (b.getID() == "building.marketplace")
 				{
 					::Wuxia.Loot.injectTownShopStock(b.m.Stash);
+				}
+				else if (b.getID() == "building.weaponsmith")
+				{
+					::Wuxia.Loot.injectWeaponsmithStock(b.m.Stash);
 				}
 			}
 		}

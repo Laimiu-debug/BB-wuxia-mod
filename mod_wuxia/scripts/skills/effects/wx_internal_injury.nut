@@ -71,6 +71,8 @@ this.wx_internal_injury <- this.inherit("scripts/skills/skill", {
 		{
 			ret.push({ id = 10, type = "text", icon = "ui/icons/fatigue.png", text = "[color=" + ::Const.UI.Color.NegativeValue + "]-15%[/color] 内息上限，每回合回气 [color=" + ::Const.UI.Color.NegativeValue + "]-2[/color]" });
 		}
+		if (this.isProtected())
+			ret.push({ id = 13, type = "text", icon = "ui/icons/fatigue.png", text = "松涛心法护脉：上述临时减益减半。" });
 		if (this.m.PermanentScars > 0)
 		{
 			ret.push({ id = 12, type = "text", icon = "ui/icons/fatigue.png", text = "永久暗疾（" + this.m.PermanentScars + " 处）：内息上限永久 [color=" + ::Const.UI.Color.NegativeValue + "]-" + (this.m.PermanentScars * 8) + "[/color]" });
@@ -78,18 +80,26 @@ this.wx_internal_injury <- this.inherit("scripts/skills/skill", {
 		return ret;
 	}
 
+	function isProtected()
+	{
+		local skills = this.getContainer();
+		local c = skills == null ? null : skills.getSkillByID("special.wx_martial_container");
+		return c != null && c.m.CachedAggFlags != null && c.m.CachedAggFlags.AntiInternalInjury;
+	}
+
 	function onUpdate( _properties )
 	{
+		local protected = this.isProtected();
 		if (this.m.Severity >= 2)
 		{
-			_properties.StaminaMult *= 0.70;
-			_properties.HitpointsMult *= 0.85;
-			_properties.FatigueRecoveryRate -= 4;
+			_properties.StaminaMult *= protected ? 0.85 : 0.70;
+			_properties.HitpointsMult *= protected ? 0.925 : 0.85;
+			_properties.FatigueRecoveryRate -= protected ? 2 : 4;
 		}
 		else if (this.m.Severity == 1)
 		{
-			_properties.StaminaMult *= 0.85;
-			_properties.FatigueRecoveryRate -= 2;
+			_properties.StaminaMult *= protected ? 0.925 : 0.85;
+			_properties.FatigueRecoveryRate -= protected ? 1 : 2;
 		}
 		if (this.m.PermanentScars > 0)
 		{

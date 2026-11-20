@@ -88,7 +88,7 @@ this.wx_event_famous_physician <- this.inherit("scripts/events/event", {
 
 	function onUpdateScore()
 	{
-		if (!this.World.State.isInTown()) return;
+		if (!::Wuxia.Loot.isNearMarketTown()) return;
 		local hasInternalNeed = false;
 		foreach (bro in this.World.getPlayerRoster().getAll())
 		{

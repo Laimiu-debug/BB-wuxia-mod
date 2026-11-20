@@ -13,10 +13,10 @@ this.wx_throwing_rain <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.IconDisabled = "skills/active_48_sw.png";
 		this.m.Overlay = "active_48";
 		this.m.SoundOnUse = [
-			"sounds/combat/throw_javelin_01.wav"
+			"sounds/combat/javelin_throw_01.wav"
 		];
 		this.m.SoundOnHit = [
-			"sounds/combat/throw_javelin_hit_01.wav"
+			"sounds/combat/javelin_hit_01.wav"
 		];
 		this.m.IsRanged = true;
 		this.m.IsIgnoredAsAOO = true;
@@ -41,7 +41,7 @@ this.wx_throwing_rain <- this.inherit("scripts/skills/actives/wx_move_base", {
 	function onUse( _user, _targetTile )
 	{
 		local target = _targetTile.getEntity();
-		local hit = this.attackEntity(_user, target);
+		local hit = this.wxThrowAt(_user, target);
 		if (hit && target != null && target.isAlive())
 		{
 			this.wxApplyStatusToTarget(target, "effects.wx_status_poison_dart", "scripts/skills/effects/wx_status_poison_dart");

@@ -1,5 +1,14 @@
 // Lightweight Sect Relations stored in World.Flags (Zero Faction ID cost)
 
+::Wuxia.SectRelations.getExchangeSects <- function()
+{
+	local ids = [];
+	foreach (id, sect in ::Wuxia.Config.Sects)
+		if (sect.ShopManuals.len() > 0) ids.push(id);
+	ids.sort();
+	return ids;
+};
+
 ::Wuxia.SectRelations.getFlagKey <- function( _sectID )
 {
 	return "wx_sect_rel_" + _sectID;

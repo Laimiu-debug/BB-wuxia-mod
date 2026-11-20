@@ -13,7 +13,7 @@ this.wx_sword_tianwai <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.IconDisabled = "skills/active_07_sw.png";
 		this.m.Overlay = "active_52";
 		this.m.SoundOnUse = [
-			"sounds/combat/lunge_01.wav"
+			"sounds/combat/slash_03.wav"
 		];
 		this.m.SoundOnHit = [
 			"sounds/combat/slash_hit_03.wav"

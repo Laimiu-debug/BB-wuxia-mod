@@ -61,9 +61,9 @@
 		AllowFragmentLearn = false,
 		Requirements = {},
 		Levels = [
-			{ ExpNeeded = 0,   Stats = { MeleeSkill = 3 },                      GrantSkills = [], Flags = { WeaponQiDiscount = 0.08 }, Summary = "持剑武艺 +3，剑招内息消耗 -8%。" },
-			{ ExpNeeded = 80,  Stats = { MeleeSkill = 5, MeleeDefense = 2 },    GrantSkills = [], Flags = { WeaponQiDiscount = 0.14 }, Summary = "持剑武艺 +5，招架 +2，剑招消耗 -14%。" },
-			{ ExpNeeded = 180, Stats = { MeleeSkill = 8, MeleeDefense = 4 },    GrantSkills = [], Flags = { WeaponQiDiscount = 0.20 }, Summary = "持剑武艺 +8，招架 +4，剑招消耗 -20%。" }
+			{ ExpNeeded = 0,   Stats = { MeleeSkill = 1 },                      GrantSkills = [], Flags = { WeaponQiDiscount = 0.08 }, Summary = "持剑武艺 +1，剑招内息消耗 -8%。" },
+			{ ExpNeeded = 80,  Stats = { MeleeSkill = 2, MeleeDefense = 1 },    GrantSkills = [], Flags = { WeaponQiDiscount = 0.14 }, Summary = "持剑武艺 +2，招架 +1，剑招消耗 -14%。" },
+			{ ExpNeeded = 180, Stats = { MeleeSkill = 3, MeleeDefense = 2 },    GrantSkills = [], Flags = { WeaponQiDiscount = 0.20 }, Summary = "持剑武艺 +3，招架 +2，剑招消耗 -20%。" }
 		]
 	},
 
@@ -81,9 +81,9 @@
 		AllowFragmentLearn = false,
 		Requirements = {},
 		Levels = [
-			{ ExpNeeded = 0,   Stats = { MeleeSkill = 3 },                      GrantSkills = [], Flags = { ArmorDmgBonus = 0.05 }, Summary = "持刀武艺 +3，破甲伤害 +5%。" },
-			{ ExpNeeded = 80,  Stats = { MeleeSkill = 5 },                      GrantSkills = [], Flags = { ArmorDmgBonus = 0.10, WeaponQiDiscount = 0.10 }, Summary = "持刀武艺 +5，破甲伤害 +10%，刀招消耗 -10%。" },
-			{ ExpNeeded = 180, Stats = { MeleeSkill = 8 },                      GrantSkills = [], Flags = { ArmorDmgBonus = 0.15, WeaponQiDiscount = 0.15 }, Summary = "持刀武艺 +8，破甲伤害 +15%，刀招消耗 -15%。" }
+			{ ExpNeeded = 0,   Stats = { MeleeSkill = 1 },                      GrantSkills = [], Flags = { ArmorDmgBonus = 0.05 }, Summary = "持刀武艺 +1，破甲伤害 +5%。" },
+			{ ExpNeeded = 80,  Stats = { MeleeSkill = 2 },                      GrantSkills = [], Flags = { ArmorDmgBonus = 0.10, WeaponQiDiscount = 0.10 }, Summary = "持刀武艺 +2，破甲伤害 +10%，刀招消耗 -10%。" },
+			{ ExpNeeded = 180, Stats = { MeleeSkill = 3 },                      GrantSkills = [], Flags = { ArmorDmgBonus = 0.15, WeaponQiDiscount = 0.15 }, Summary = "持刀武艺 +3，破甲伤害 +15%，刀招消耗 -15%。" }
 		]
 	},
 
@@ -101,9 +101,9 @@
 		AllowFragmentLearn = false,
 		Requirements = {},
 		Levels = [
-			{ ExpNeeded = 0,   Stats = { MeleeSkill = 3, MeleeDefense = 2 },    GrantSkills = [], Flags = { WeaponQiDiscount = 0.08 }, Summary = "持枪武艺 +3，招架 +2，枪招消耗 -8%。" },
-			{ ExpNeeded = 80,  Stats = { MeleeSkill = 5, MeleeDefense = 3 },    GrantSkills = [], Flags = { WeaponQiDiscount = 0.14 }, Summary = "持枪武艺 +5，招架 +3，枪招消耗 -14%。" },
-			{ ExpNeeded = 180, Stats = { MeleeSkill = 8, MeleeDefense = 5 },    GrantSkills = [], Flags = { WeaponQiDiscount = 0.20 }, Summary = "持枪武艺 +8，招架 +5，枪招消耗 -20%。" }
+			{ ExpNeeded = 0,   Stats = { MeleeSkill = 1, MeleeDefense = 1 },    GrantSkills = [], Flags = { WeaponQiDiscount = 0.08 }, Summary = "持枪武艺 +1，招架 +1，枪招消耗 -8%。" },
+			{ ExpNeeded = 80,  Stats = { MeleeSkill = 2, MeleeDefense = 1 },    GrantSkills = [], Flags = { WeaponQiDiscount = 0.14 }, Summary = "持枪武艺 +2，招架 +1，枪招消耗 -14%。" },
+			{ ExpNeeded = 180, Stats = { MeleeSkill = 3, MeleeDefense = 2 },    GrantSkills = [], Flags = { WeaponQiDiscount = 0.20 }, Summary = "持枪武艺 +3，招架 +2，枪招消耗 -20%。" }
 		]
 	},
 
@@ -121,9 +121,9 @@
 		AllowFragmentLearn = false,
 		Requirements = {},
 		Levels = [
-			{ ExpNeeded = 0,   Stats = { Initiative = 6 },                      GrantSkills = [], Flags = { TerrainCostHalved = true }, Summary = "身法 +6；复杂地形移动内息消耗降低。" },
-			{ ExpNeeded = 80,  Stats = { Initiative = 10 },                     GrantSkills = [], Flags = { TerrainCostHalved = true, ElevationDiscount = true }, Summary = "身法 +10；上下坡行动点消耗 -1。" },
-			{ ExpNeeded = 180, Stats = { Initiative = 15 },                     GrantSkills = [], Flags = { TerrainCostHalved = true, ElevationDiscount = true }, Summary = "身法 +15；全面减免复杂地形移动与内息消耗（相当于原版寻路者）。" }
+			{ ExpNeeded = 0,   Stats = { Initiative = 5 },                      GrantSkills = [], Flags = { TerrainCostHalved = true }, Summary = "身法 +5；复杂地形移动内息消耗降低。" },
+			{ ExpNeeded = 80,  Stats = { Initiative = 8 },                     GrantSkills = [], Flags = { TerrainCostHalved = true, ElevationDiscount = true }, Summary = "身法 +8；上下坡行动点消耗 -1。" },
+			{ ExpNeeded = 180, Stats = { Initiative = 12 },                     GrantSkills = [], Flags = { TerrainCostHalved = true, ElevationDiscount = true }, Summary = "身法 +12；全面减免复杂地形移动与内息消耗（相当于原版寻路者）。" }
 		]
 	},
 
@@ -187,7 +187,7 @@
 		Levels = [
 			{ ExpNeeded = 0,   Stats = { Stamina = 10, Bravery = 5, FatigueRecoveryRate = 2 },  GrantSkills = ["actives.wx_meditate"], Flags = {}, Summary = "内息 +10，定力 +5，回气 +2/回合；解锁调息。" },
 			{ ExpNeeded = 160, Stats = { Stamina = 18, Bravery = 10, FatigueRecoveryRate = 4 }, GrantSkills = ["actives.wx_meditate"], Flags = {}, Summary = "内息 +18，定力 +10，回气 +4/回合。" },
-			{ ExpNeeded = 360, Stats = { Stamina = 25, Bravery = 15, FatigueRecoveryRate = 6 }, GrantSkills = ["actives.wx_meditate"], Flags = { AntiInternalInjury = true }, Summary = "内息 +25，定力 +15，回气 +6/回合，抗内伤与心魔。" }
+			{ ExpNeeded = 360, Stats = { Stamina = 25, Bravery = 15, FatigueRecoveryRate = 6 }, GrantSkills = ["actives.wx_meditate"], Flags = { AntiInternalInjury = true }, Summary = "内息 +25，定力 +15，回气 +6/回合，临时内伤的属性减益与行气失控概率减半。" }
 		]
 	},
 
@@ -225,9 +225,9 @@
 		AllowFragmentLearn = true,
 		Requirements = { MeleeSkill = 65 },
 		Levels = [
-			{ ExpNeeded = 0,   Stats = { MeleeSkill = 5, Initiative = 4 },      GrantSkills = ["actives.wx_sword_combo"], Flags = { InflictOpeningPct = 25 }, Summary = "武艺 +5，身法 +4；解锁主动招式「清风连环剑」（留破绽）。" },
-			{ ExpNeeded = 160, Stats = { MeleeSkill = 8, Initiative = 6 },      GrantSkills = ["actives.wx_sword_combo"], Flags = { InflictOpeningPct = 45, ArmorPenBonus = 0.08 }, Summary = "武艺 +8，身法 +6；破绽率 45%，剑招穿甲 +8%。" },
-			{ ExpNeeded = 360, Stats = { MeleeSkill = 12, Initiative = 10 },    GrantSkills = ["actives.wx_sword_combo"], Flags = { InflictOpeningPct = 65, ArmorPenBonus = 0.12 }, Summary = "武艺 +12，身法 +10；破绽率 65%，剑招穿甲 +12%。" }
+			{ ExpNeeded = 0,   Stats = { MeleeSkill = 2, Initiative = 4 },      GrantSkills = ["actives.wx_sword_combo"], Flags = { InflictOpeningPct = 25 }, Summary = "武艺 +2，身法 +4；解锁主动招式「清风连环剑」（留破绽）。" },
+			{ ExpNeeded = 160, Stats = { MeleeSkill = 3, Initiative = 6 },      GrantSkills = ["actives.wx_sword_combo", "actives.wx_acupoint_strike"], Flags = { InflictOpeningPct = 45, ArmorPenBonus = 0.08 }, Summary = "武艺 +3，身法 +6；可使清风点穴，破绽率 45%，剑招穿甲 +8%。" },
+			{ ExpNeeded = 360, Stats = { MeleeSkill = 5, Initiative = 10 },    GrantSkills = ["actives.wx_sword_combo", "actives.wx_acupoint_strike"], Flags = { InflictOpeningPct = 65, ArmorPenBonus = 0.12 }, Summary = "武艺 +5，身法 +10；可使清风点穴，破绽率 65%，剑招穿甲 +12%。" }
 		]
 	},
 
@@ -245,9 +245,9 @@
 		AllowFragmentLearn = true,
 		Requirements = { MeleeDefense = 15 },
 		Levels = [
-			{ ExpNeeded = 0,   Stats = { MeleeSkill = 4, MeleeDefense = 4 },    GrantSkills = ["actives.wx_spear_guard"], Flags = { InflictOffBalancePct = 30 }, Summary = "武艺 +4，招架 +4；解锁主动招式「威远守线刺」（1~2格致失衡）。" },
-			{ ExpNeeded = 160, Stats = { MeleeSkill = 7, MeleeDefense = 7 },    GrantSkills = ["actives.wx_spear_guard"], Flags = { InflictOffBalancePct = 50, ZoCBonusHit = 10 }, Summary = "武艺 +7，招架 +7；借机拦截命中 +10%，失衡率 50%。" },
-			{ ExpNeeded = 360, Stats = { MeleeSkill = 10, MeleeDefense = 10 },  GrantSkills = ["actives.wx_spear_guard"], Flags = { InflictOffBalancePct = 70, ZoCBonusHit = 15 }, Summary = "武艺 +10，招架 +10；借机拦截命中 +15%，失衡率 70%。" }
+			{ ExpNeeded = 0,   Stats = { MeleeSkill = 2, MeleeDefense = 1 },    GrantSkills = ["actives.wx_spear_guard"], Flags = { InflictOffBalancePct = 30 }, Summary = "武艺 +2，招架 +1；解锁主动招式「威远守线刺」（1~2格致失衡）。" },
+			{ ExpNeeded = 160, Stats = { MeleeSkill = 4, MeleeDefense = 2 },    GrantSkills = ["actives.wx_spear_guard"], Flags = { InflictOffBalancePct = 50, ZoCBonusHit = 10 }, Summary = "武艺 +4，招架 +2；借机拦截命中 +10%，失衡率 50%。" },
+			{ ExpNeeded = 360, Stats = { MeleeSkill = 5, MeleeDefense = 3 },  GrantSkills = ["actives.wx_spear_guard"], Flags = { InflictOffBalancePct = 70, ZoCBonusHit = 15 }, Summary = "武艺 +5，招架 +3；借机拦截命中 +15%，失衡率 70%。" }
 		]
 	},
 
@@ -265,9 +265,9 @@
 		AllowFragmentLearn = true,
 		Requirements = { MeleeSkill = 65 },
 		Levels = [
-			{ ExpNeeded = 0,   Stats = { MeleeSkill = 5 },                      GrantSkills = ["actives.wx_saber_cleave"], Flags = { ArmorDmgBonus = 0.12 }, Summary = "武艺 +5；解锁主动招式「劈空重斩」（高破甲流血）。" },
-			{ ExpNeeded = 160, Stats = { MeleeSkill = 8 },                      GrantSkills = ["actives.wx_saber_cleave"], Flags = { ArmorDmgBonus = 0.20, DirectDmgBonus = 0.08 }, Summary = "武艺 +8；破甲 +20%，穿甲 +8%。" },
-			{ ExpNeeded = 360, Stats = { MeleeSkill = 12 },                     GrantSkills = ["actives.wx_saber_cleave"], Flags = { ArmorDmgBonus = 0.28, DirectDmgBonus = 0.14 }, Summary = "武艺 +12；破甲 +28%，穿甲 +14%，重击易致深创。" }
+			{ ExpNeeded = 0,   Stats = { MeleeSkill = 2 },                      GrantSkills = ["actives.wx_saber_cleave"], Flags = { ArmorDmgBonus = 0.11 }, Summary = "武艺 +2；解锁主动招式「劈空重斩」（高破甲流血）。" },
+			{ ExpNeeded = 160, Stats = { MeleeSkill = 3 },                      GrantSkills = ["actives.wx_saber_cleave"], Flags = { ArmorDmgBonus = 0.18, DirectDmgBonus = 0.08 }, Summary = "武艺 +3；破甲 +18%，穿甲 +8%。" },
+			{ ExpNeeded = 360, Stats = { MeleeSkill = 5 },                     GrantSkills = ["actives.wx_saber_cleave"], Flags = { ArmorDmgBonus = 0.25, DirectDmgBonus = 0.14 }, Summary = "武艺 +5；破甲 +25%，穿甲 +14%，重击易致深创。" }
 		]
 	},
 
@@ -285,9 +285,9 @@
 		AllowFragmentLearn = true,
 		Requirements = { Initiative = 105 },
 		Levels = [
-			{ ExpNeeded = 0,   Stats = { Initiative = 10 },                     GrantSkills = [], Flags = { TerrainCostHalved = true }, Summary = "身法 +10；减免地形移动消耗。" },
-			{ ExpNeeded = 160, Stats = { Initiative = 15 },                     GrantSkills = [], Flags = { TerrainCostHalved = true, InitToDefRatio = 0.12 }, Summary = "身法 +15；当前有效身法的 12% 转化为招架与避暗（轻装专属收益）。" },
-			{ ExpNeeded = 360, Stats = { Initiative = 20 },                     GrantSkills = ["actives.footwork"], Flags = { TerrainCostHalved = true, InitToDefRatio = 0.15 }, Summary = "身法 +20；身法转化率提至 15%；解锁无视控制区脱身步法。" }
+			{ ExpNeeded = 0,   Stats = { Initiative = 9 },                     GrantSkills = [], Flags = { TerrainCostHalved = true }, Summary = "身法 +9；减免地形移动消耗。" },
+			{ ExpNeeded = 160, Stats = { Initiative = 14 },                     GrantSkills = [], Flags = { TerrainCostHalved = true, InitToDefRatio = 0.12 }, Summary = "身法 +14；当前有效身法的 12% 转化为招架与避暗（轻装专属收益）。" },
+			{ ExpNeeded = 360, Stats = { Initiative = 18 },                     GrantSkills = ["actives.footwork"], Flags = { TerrainCostHalved = true, InitToDefRatio = 0.15 }, Summary = "身法 +18；身法转化率提至 15%；解锁无视控制区脱身步法。" }
 		]
 	},
 
@@ -325,9 +325,9 @@
 		AllowFragmentLearn = true,
 		Requirements = { Hitpoints = 70 },
 		Levels = [
-			{ ExpNeeded = 0,   Stats = { Hitpoints = 8, Initiative = -5 },      GrantSkills = [], Flags = { HeavyArmorScale = 0.03 }, Summary = "气血 +8，身法 -5；按头身总护甲减免护甲伤害。" },
-			{ ExpNeeded = 160, Stats = { Hitpoints = 14, Initiative = -8 },     GrantSkills = [], Flags = { HeavyArmorScale = 0.04 }, Summary = "气血 +14，身法 -8；重甲护身减伤强化。" },
-			{ ExpNeeded = 360, Stats = { Hitpoints = 20, Initiative = -10 },    GrantSkills = [], Flags = { HeavyArmorScale = 0.05, InjuryThresholdMult = 1.25 }, Summary = "气血 +20，身法 -10；满额铁布衫减伤（相当于原版战锻）+ 抗外伤阈值 +25%。" }
+			{ ExpNeeded = 0,   Stats = { Hitpoints = 8, Initiative = -5 },      GrantSkills = ["perk.brawny"], Flags = { HeavyArmorScale = 0.03 }, Summary = "气血 +8，身法 -5；按头身总护甲减免护甲伤害。披甲行气使头身负重减轻 30%。" },
+			{ ExpNeeded = 160, Stats = { Hitpoints = 14, Initiative = -8 },     GrantSkills = ["perk.brawny", "actives.indomitable"], Flags = { HeavyArmorScale = 0.04 }, Summary = "气血 +14，身法 -8；重甲护身减伤强化。披甲行气减轻负重 30%，可用沉岳架势抗击退、震慑。" },
+			{ ExpNeeded = 360, Stats = { Hitpoints = 20, Initiative = -10 },    GrantSkills = ["perk.brawny", "actives.indomitable", "perk.steel_brow"], Flags = { HeavyArmorScale = 0.05, InjuryThresholdMult = 1.25 }, Summary = "气血 +20，身法 -10；满额铁布衫减伤（相当于原版战锻）+ 抗外伤阈值 +25%。披甲行气减轻负重 30%，铜头铁额免除爆头额外伤害，可用沉岳架势。" }
 		]
 	},
 
@@ -369,9 +369,9 @@
 		AllowFragmentLearn = true,
 		Requirements = { MeleeSkill = 80, MeleeDefense = 25 },
 		Levels = [
-			{ ExpNeeded = 0,   Stats = { MeleeSkill = 6, MeleeDefense = 5 },    GrantSkills = ["actives.wx_sword_counter"], Flags = { CounterBonus = 10 }, Summary = "武艺 +6，招架 +5；解锁「回锋架势」（敌近战落空自动反击）。" },
-			{ ExpNeeded = 250, Stats = { MeleeSkill = 10, MeleeDefense = 8 },   GrantSkills = ["actives.wx_sword_counter", "actives.wx_sword_combo"], Flags = { CounterBonus = 15, DirectDmgBonus = 0.12 }, Summary = "武艺 +10，招架 +8；反击命中 +15%，穿甲 +12%。" },
-			{ ExpNeeded = 600, Stats = { MeleeSkill = 15, MeleeDefense = 12 },  GrantSkills = ["actives.wx_sword_counter", "actives.wx_sword_combo"], Flags = { CounterBonus = 20, DirectDmgBonus = 0.18 }, Summary = "武艺 +15，招架 +12；反击命中 +20%，穿甲 +18%。" }
+			{ ExpNeeded = 0,   Stats = { MeleeSkill = 3, MeleeDefense = 2 },    GrantSkills = ["actives.wx_sword_counter"], Flags = { CounterBonus = 10 }, Summary = "武艺 +3，招架 +2；解锁「回锋架势」（敌近战落空自动反击）。" },
+			{ ExpNeeded = 250, Stats = { MeleeSkill = 5, MeleeDefense = 3 },   GrantSkills = ["actives.wx_sword_counter", "actives.wx_sword_combo"], Flags = { CounterBonus = 15, DirectDmgBonus = 0.10 }, Summary = "武艺 +5，招架 +3；反击命中 +15%，穿甲 +10%。" },
+			{ ExpNeeded = 600, Stats = { MeleeSkill = 7, MeleeDefense = 5 },  GrantSkills = ["actives.wx_sword_counter", "actives.wx_sword_combo"], Flags = { CounterBonus = 20, DirectDmgBonus = 0.15 }, Summary = "武艺 +7，招架 +5；反击命中 +20%，穿甲 +15%。" }
 		]
 	},
 
@@ -389,9 +389,9 @@
 		AllowFragmentLearn = true,
 		Requirements = { MeleeSkill = 80, Stamina = 105 },
 		Levels = [
-			{ ExpNeeded = 0,   Stats = { MeleeSkill = 6 },                      GrantSkills = ["actives.wx_saber_duanyue"], Flags = { ArmorDmgBonus = 0.15 }, Summary = "武艺 +6；解锁绝学重招「断岳狂斩」（高伤高破甲致失衡）。" },
-			{ ExpNeeded = 250, Stats = { MeleeSkill = 10 },                     GrantSkills = ["actives.wx_saber_duanyue"], Flags = { ArmorDmgBonus = 0.22, OnKillAPRefund = 2 }, Summary = "武艺 +10；刀招击杀每回合首次返还 +2 AP。" },
-			{ ExpNeeded = 600, Stats = { MeleeSkill = 14 },                     GrantSkills = ["actives.wx_saber_duanyue"], Flags = { ArmorDmgBonus = 0.30, OnKillAPRefund = 3 }, Summary = "武艺 +14；破甲 +30%，刀招击杀每回合首次返还 +3 AP（短时可破 12 AP）。" }
+			{ ExpNeeded = 0,   Stats = { MeleeSkill = 3 },                      GrantSkills = ["actives.wx_saber_duanyue"], Flags = { ArmorDmgBonus = 0.13 }, Summary = "武艺 +3；解锁绝学重招「断岳狂斩」（高伤高破甲致失衡）。" },
+			{ ExpNeeded = 250, Stats = { MeleeSkill = 5 },                     GrantSkills = ["actives.wx_saber_duanyue", "actives.wx_poise_charge"], Flags = { ArmorDmgBonus = 0.18, OnKillAPRefund = 2 }, Summary = "武艺 +5；可沉刀蓄势，刀招击杀每回合首次返还 +2 AP。" },
+			{ ExpNeeded = 600, Stats = { MeleeSkill = 7 },                     GrantSkills = ["actives.wx_saber_duanyue", "actives.wx_poise_charge"], Flags = { ArmorDmgBonus = 0.25, OnKillAPRefund = 3 }, Summary = "武艺 +7；破甲 +25%，可沉刀蓄势，刀招击杀每回合首次返还 +3 AP（短时可破 12 AP）。" }
 		]
 	},
 
@@ -409,9 +409,9 @@
 		AllowFragmentLearn = true,
 		Requirements = { RangedSkill = 75 },
 		Levels = [
-			{ ExpNeeded = 0,   Stats = { RangedSkill = 8 },                     GrantSkills = ["actives.wx_throwing_rain"], Flags = { ThrowingDmgBonus = 0.15 }, Summary = "射艺 +8；解锁「暴雨毒针」（3 AP 疾射附暗器剧毒）。" },
-			{ ExpNeeded = 250, Stats = { RangedSkill = 12, Initiative = 6 },    GrantSkills = ["actives.wx_throwing_rain"], Flags = { ThrowingDmgBonus = 0.25, DirectDmgBonus = 0.15 }, Summary = "射艺 +12，身法 +6；暗器伤害 +25%，穿甲 +15%。" },
-			{ ExpNeeded = 600, Stats = { RangedSkill = 16, Initiative = 10 },   GrantSkills = ["actives.wx_throwing_rain"], Flags = { ThrowingDmgBonus = 0.35, DirectDmgBonus = 0.22, IgnoreDodgeHalf = true }, Summary = "射艺 +16，身法 +10；暗器伤害 +35%，穿甲 +22%，专破轻装闪避。" }
+			{ ExpNeeded = 0,   Stats = { RangedSkill = 4 },                     GrantSkills = ["actives.wx_throwing_rain"], Flags = { ThrowingDmgBonus = 0.15 }, Summary = "射艺 +4；解锁「暴雨毒针」（3 AP 疾射附暗器剧毒）。" },
+			{ ExpNeeded = 250, Stats = { RangedSkill = 5, Initiative = 6 },    GrantSkills = ["actives.wx_throwing_rain", "actives.wx_smoke_cast"], Flags = { ThrowingDmgBonus = 0.25, DirectDmgBonus = 0.10 }, Summary = "射艺 +5，身法 +6；可掷烟蔽目，暗器伤害 +25%，穿甲 +10%。" },
+			{ ExpNeeded = 600, Stats = { RangedSkill = 7, Initiative = 10 },   GrantSkills = ["actives.wx_throwing_rain", "actives.wx_smoke_cast"], Flags = { ThrowingDmgBonus = 0.35, DirectDmgBonus = 0.15, IgnoreDodgeHalf = true }, Summary = "射艺 +7，身法 +10；可掷烟蔽目，暗器伤害 +35%，穿甲 +15%，专破轻装闪避。" }
 		]
 	},
 
@@ -429,9 +429,9 @@
 		AllowFragmentLearn = true,
 		Requirements = { Initiative = 115 },
 		Levels = [
-			{ ExpNeeded = 0,   Stats = { Initiative = 14 },                     GrantSkills = [], Flags = { TerrainCostHalved = true }, Summary = "身法 +14，减免地形移动消耗。" },
-			{ ExpNeeded = 250, Stats = { Initiative = 20 },                     GrantSkills = ["actives.footwork"], Flags = { TerrainCostHalved = true, InitToDefRatio = 0.15 }, Summary = "身法 +20，解锁脱身步法与身法转防御。" },
-			{ ExpNeeded = 600, Stats = { Initiative = 28 },                     GrantSkills = ["actives.footwork", "actives.rotation"], Flags = { TerrainCostHalved = true, InitToDefRatio = 0.18, MoveAPDiscount = 1 }, Summary = "身法 +28，解锁脱身与换位身法，大幅强化切阵机动。" }
+			{ ExpNeeded = 0,   Stats = { Initiative = 12 },                     GrantSkills = [], Flags = { TerrainCostHalved = true }, Summary = "身法 +12，减免地形移动消耗。" },
+			{ ExpNeeded = 250, Stats = { Initiative = 17 },                     GrantSkills = ["actives.footwork"], Flags = { TerrainCostHalved = true, InitToDefRatio = 0.15 }, Summary = "身法 +17，解锁脱身步法与身法转防御。" },
+			{ ExpNeeded = 600, Stats = { Initiative = 24 },                     GrantSkills = ["actives.footwork", "actives.rotation"], Flags = { TerrainCostHalved = true, InitToDefRatio = 0.18, MoveAPDiscount = 1 }, Summary = "身法 +24，解锁脱身与换位身法，大幅强化切阵机动。" }
 		]
 	},
 
@@ -473,9 +473,9 @@
 		AllowFragmentLearn = true,
 		Requirements = { Initiative = 125 },
 		Levels = [
-			{ ExpNeeded = 0,   Stats = { Initiative = 16 },                     GrantSkills = [], Flags = { TerrainCostHalved = true, InitToDefRatio = 0.14 }, Summary = "身法 +16，地形减耗，身法 14% 转招架/避暗。" },
-			{ ExpNeeded = 320, Stats = { Initiative = 24 },                     GrantSkills = ["actives.footwork"], Flags = { TerrainCostHalved = true, InitToDefRatio = 0.18 }, Summary = "身法 +24，身法 18% 转招架/避暗，解锁无视控制区步法。" },
-			{ ExpNeeded = 800, Stats = { Initiative = 35 },                     GrantSkills = ["actives.footwork"], Flags = { TerrainCostHalved = true, InitToDefRatio = 0.22, PermanentAPBonus = 1 }, Summary = "身法 +35，身法 22% 转招架/避暗；常驻行动点 +1（上限 11）！" }
+			{ ExpNeeded = 0,   Stats = { Initiative = 14 },                     GrantSkills = [], Flags = { TerrainCostHalved = true, InitToDefRatio = 0.13 }, Summary = "身法 +14，地形减耗，身法 13% 转招架/避暗。" },
+			{ ExpNeeded = 320, Stats = { Initiative = 21 },                     GrantSkills = ["actives.footwork"], Flags = { TerrainCostHalved = true, InitToDefRatio = 0.16 }, Summary = "身法 +21，身法 16% 转招架/避暗，解锁无视控制区步法。" },
+			{ ExpNeeded = 800, Stats = { Initiative = 30 },                     GrantSkills = ["actives.footwork"], Flags = { TerrainCostHalved = true, InitToDefRatio = 0.20, PermanentAPBonus = 1 }, Summary = "身法 +30，身法 20% 转招架/避暗；常驻行动点 +1（上限 11）！" }
 		]
 	},
 
@@ -493,9 +493,9 @@
 		AllowFragmentLearn = true,
 		Requirements = { MeleeSkill = 90, Initiative = 110 },
 		Levels = [
-			{ ExpNeeded = 0,   Stats = { MeleeSkill = 8 },                      GrantSkills = ["actives.wx_sword_combo"], Flags = { DirectDmgBonus = 0.12 }, Summary = "武艺 +8，剑招穿甲 +12%。" },
-			{ ExpNeeded = 320, Stats = { MeleeSkill = 14, MeleeDefense = 6 },   GrantSkills = ["actives.wx_sword_combo"], Flags = { DirectDmgBonus = 0.20, HitChanceBonus = 8 }, Summary = "武艺 +14，招架 +6；剑招穿甲 +20%，命中 +8%。" },
-			{ ExpNeeded = 800, Stats = { MeleeSkill = 20, MeleeDefense = 10 },  GrantSkills = ["actives.wx_sword_combo", "actives.wx_sword_tianwai"], Flags = { DirectDmgBonus = 0.30, HitChanceBonus = 12, CritHeadBonus = 15 }, Summary = "武艺 +20，招架 +10；解锁孤本杀招「天外一剑」（7 AP 两格穿甲剑气）！" }
+			{ ExpNeeded = 0,   Stats = { MeleeSkill = 4 },                      GrantSkills = ["actives.wx_sword_combo"], Flags = { DirectDmgBonus = 0.08 }, Summary = "武艺 +4，剑招穿甲 +8%。" },
+			{ ExpNeeded = 320, Stats = { MeleeSkill = 7, MeleeDefense = 4 },   GrantSkills = ["actives.wx_sword_combo"], Flags = { DirectDmgBonus = 0.13, HitChanceBonus = 8 }, Summary = "武艺 +7，招架 +4；剑招穿甲 +13%，命中 +8%。" },
+			{ ExpNeeded = 800, Stats = { MeleeSkill = 10, MeleeDefense = 6 },  GrantSkills = ["actives.wx_sword_combo", "actives.wx_sword_tianwai"], Flags = { DirectDmgBonus = 0.20, HitChanceBonus = 12, CritHeadBonus = 15 }, Summary = "武艺 +10，招架 +6；解锁孤本杀招「天外一剑」（7 AP 两格穿甲剑气）！" }
 		]
 	}
 };

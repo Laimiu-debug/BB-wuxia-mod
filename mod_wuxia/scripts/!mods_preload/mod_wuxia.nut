@@ -1,7 +1,7 @@
 ::Wuxia <- {
 	ID = "mod_wuxia",
 	Name = "武侠江湖 (BB Wuxia)",
-	Version = "0.1.0",
+	Version = "0.2.0",
 	SchemaVersion = 1,
 	Config = {},
 	Text = {},
@@ -38,3 +38,12 @@
 
 	::logInfo("[mod_wuxia] Loaded v" + ::Wuxia.Version + " successfully (Pure Modern Hooks, Perkless 7-Slot Architecture).");
 });
+
+if ("QueueBucket" in ::Hooks && "AfterHooks" in ::Hooks.QueueBucket)
+{
+	::Wuxia.HooksMod.queue(function()
+	{
+		if (::Wuxia.Debug && "SelfTest" in ::Wuxia)
+			::Wuxia.SelfTest.runAll();
+	}, ::Hooks.QueueBucket.AfterHooks);
+}

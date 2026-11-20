@@ -16,9 +16,16 @@ this.wx_status_poise_charge <- this.inherit("scripts/skills/skill", {
 		this.m.IsRemovedAfterBattle = true;
 	}
 
+	function isActiveAttack( _skill )
+	{
+		if (_skill == null || !_skill.isAttack()) return false;
+		local active = this.Tactical.TurnSequenceBar.getActiveEntity();
+		return active != null && active.getID() == this.getContainer().getActor().getID();
+	}
+
 	function onAnySkillUsed( _skill, _targetEntity, _properties )
 	{
-		if (_skill != null && _skill.isAttack())
+		if (this.isActiveAttack(_skill))
 		{
 			_properties.MeleeSkill += 15;
 			_properties.RangedSkill += 15;
@@ -28,12 +35,12 @@ this.wx_status_poise_charge <- this.inherit("scripts/skills/skill", {
 
 	function onTargetHit( _skill, _targetEntity, _bodyPart, _damageInflictedHitpoints, _damageInflictedArmor )
 	{
-		if (_skill != null && _skill.isAttack()) this.removeSelf();
+		if (this.isActiveAttack(_skill)) this.removeSelf();
 	}
 
 	function onTargetMissed( _skill, _targetEntity )
 	{
-		if (_skill != null && _skill.isAttack()) this.removeSelf();
+		if (this.isActiveAttack(_skill)) this.removeSelf();
 	}
 
 	function onDamageReceived( _attacker, _damageHitpoints, _damageArmor )

@@ -13,6 +13,18 @@
 	return cnt;
 };
 
+::Wuxia.MarrowWash.refreshFutureRolls <- function( _actor, _attr )
+{
+	// The vanilla player pre-rolls level-ups in queues. Index 0 is the next choice.
+	local values = _actor.m.Attributes[_attr];
+	local pending = _actor.m.LevelUps;
+	local end = ::Math.min(values.len(), pending + ::Math.max(0, ::Const.XP.MaxLevelWithPerkpoints - _actor.getLevel()));
+	local stars = _actor.m.Talents[_attr];
+	local range = ::Const.AttributesLevelUp[_attr];
+	for (local i = pending; i < end; ++i)
+		values[i] = ::Math.rand(range.Min + (stars == 3 ? 2 : stars), range.Max + (stars == 3 ? 1 : 0));
+};
+
 ::Wuxia.MarrowWash.getPrepBonus <- function( _actor, _useProtectPill )
 {
 	local bonus = 0;
@@ -120,14 +132,10 @@
 		if (preview.IsReplaceMode && preview.ReplaceAttrIdx >= 0)
 		{
 			_actor.m.Talents[preview.ReplaceAttrIdx] = 0;
+			::Wuxia.MarrowWash.refreshFutureRolls(_actor, preview.ReplaceAttrIdx);
 		}
 		_actor.m.Talents[_targetAttrIdx] = preview.NextStar;
-
-		// Refresh future attribute level up values if method exists on player
-		if ("fillAttributeLevelUpValues" in _actor)
-		{
-			_actor.fillAttributeLevelUpValues(::Const.XP.MaxLevelWithPerkpoints - _actor.getLevel());
-		}
+		::Wuxia.MarrowWash.refreshFutureRolls(_actor, _targetAttrIdx);
 
 		return {
 			Ok = true,

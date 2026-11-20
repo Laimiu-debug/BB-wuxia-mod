@@ -63,7 +63,7 @@ def run_smoke_test(wait_seconds: int = 120, keep_open: bool = False) -> int:
     updated = False
     while time.time() < deadline:
         time.sleep(1.5)
-        if not updated and (time.time() - last_launch) >= 6.0 and not game.is_game_running():
+        if not updated and (time.time() - last_launch) >= 15.0 and not game.is_game_running():
             print("[TEST] No game process yet; retrying the launch...")
             subprocess.Popen([str(exe_path)], cwd=str(exe_path.parent))
             last_launch = time.time()

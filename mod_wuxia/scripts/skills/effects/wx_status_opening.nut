@@ -10,8 +10,8 @@ this.wx_status_opening <- this.inherit("scripts/skills/skill", {
 		this.m.ID = "effects.wx_status_opening";
 		this.m.Name = "破绽";
 		this.m.Description = "招式露隙，下次承受攻击时受到的伤害提高 15%。";
-		this.m.Icon = "skills/status_effect_79.png";
-		this.m.IconMini = "status_effect_79_mini";
+		this.m.Icon = "skills/status_effect_78.png";
+		this.m.IconMini = "status_effect_78_mini";
 		this.m.Type = this.Const.SkillType.StatusEffect;
 		this.m.IsActive = false;
 		this.m.IsStacking = false;
