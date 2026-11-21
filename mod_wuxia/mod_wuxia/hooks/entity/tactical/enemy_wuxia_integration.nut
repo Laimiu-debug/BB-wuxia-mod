@@ -1,4 +1,4 @@
-// Hook vanilla enemy archetypes to equip matching Wuxia loadouts & drop matching manuals/pages on death
+// Hook vanilla enemy archetypes to equip matching Wuxia loadouts, mount bespoke/1000-Faces busts & drop manuals/pages on death
 
 local registerEnemyHook = function( _scriptPath, _archetypeKey )
 {
@@ -7,20 +7,24 @@ local registerEnemyHook = function( _scriptPath, _archetypeKey )
 		q.assignRandomEquipment = @(__original) function()
 		{
 			__original();
-			local key = "WX_SchoolRole" in this.m ? this.m.WX_SchoolRole : _archetypeKey;
+			local key = ("WX_SchoolRole" in this.m) ? this.m.WX_SchoolRole : _archetypeKey;
+			local profile = (key in ::Wuxia.Config.Fighters)
+				? ::Wuxia.Config.Fighters[key]
+				: ((key in ::Wuxia.Loot.EnemyLoadouts) ? ::Wuxia.Loot.EnemyLoadouts[key] : null);
+
 			if (key in ::Wuxia.Config.Fighters)
 			{
 				local fighter = ::Wuxia.Config.Fighters[key];
 				local items = this.getItems();
 				local old = items.getItemAtSlot(::Const.ItemSlot.Mainhand);
 				if (old != null) items.unequip(old);
-				if (key == "dartist")
+				if (fighter.Weapon == "javelin")
 				{
 					local quiver = items.getItemAtSlot(::Const.ItemSlot.Ammo);
 					if (quiver != null) items.unequip(quiver);
 				}
 				local w = ::new("scripts/items/weapons/" + fighter.Weapon);
-				if ("getBlockedSlotType" in w && w.getBlockedSlotType() == ::Const.ItemSlot.Offhand)
+				if (::Wuxia.hasMember(w, "getBlockedSlotType") && w.getBlockedSlotType() == ::Const.ItemSlot.Offhand)
 				{
 					local off = items.getItemAtSlot(::Const.ItemSlot.Offhand);
 					if (off != null) items.unequip(off);
@@ -28,18 +32,29 @@ local registerEnemyHook = function( _scriptPath, _archetypeKey )
 				items.equip(w);
 				this.setName(fighter.Name);
 			}
-			::Wuxia.Loot.applyLoadoutToEnemy(this, key);
+
+			if (profile != null && ("CustomBust" in profile) && profile.CustomBust != null && profile.CustomBust != "")
+			{
+				::Wuxia.Appearance.applyCustomEnemyBust(this, profile.CustomBust);
+			}
+			::Wuxia.Armory.syncActorHandheldAndArmor(this);
+			if (profile != null) ::Wuxia.Loot.applyLoadoutToEnemy(this, key);
 		};
 
 		q.onDeath = @(__original) function( _killer, _skill, _tile, _fatalityType )
 		{
-			local key = "WX_SchoolRole" in this.m ? this.m.WX_SchoolRole : _archetypeKey;
-			local profile = key in ::Wuxia.Config.Fighters ? ::Wuxia.Config.Fighters[key] : ::Wuxia.Loot.EnemyLoadouts[key];
-			local eligible = _tile != null && _killer != null && _killer.isPlayerControlled() && !this.isAlliedWith(_killer)
+			local key = ("WX_SchoolRole" in this.m) ? this.m.WX_SchoolRole : _archetypeKey;
+			local profile = (key in ::Wuxia.Config.Fighters)
+				? ::Wuxia.Config.Fighters[key]
+				: ((key in ::Wuxia.Loot.EnemyLoadouts) ? ::Wuxia.Loot.EnemyLoadouts[key] : null);
+			local killedByPlayer = _killer != null && _killer.isPlayerControlled() && !this.isAlliedWith(_killer);
+			local eligible = profile != null && _tile != null && killedByPlayer
 				&& ("WX_LoadoutKey" in this.m) && this.m.WX_LoadoutKey == key;
 			local pool = eligible ? ::Wuxia.Loot.getEquippedDropPool(this, profile) : null;
 			__original(_killer, _skill, _tile, _fatalityType);
 			if (eligible) ::Wuxia.Loot.onEnemyKilledDrop(_tile, profile, pool);
+			if (killedByPlayer && ("SectRelations" in ::Wuxia) && ("onCombatActorSlain" in ::Wuxia.SectRelations))
+				::Wuxia.SectRelations.onCombatActorSlain(this, profile != null && profile.IsBoss);
 		};
 	});
 };
@@ -52,5 +67,13 @@ foreach (key, profile in ::Wuxia.Loot.EnemyLoadouts)
 	{
 		hookedScripts[sp] <- true;
 		registerEnemyHook(sp, key);
+	}
+}
+foreach (extraSp in ["scripts/entity/tactical/enemies/skeleton_boss", "scripts/entity/tactical/enemies/zombie_betrayer"])
+{
+	if (!(extraSp in hookedScripts))
+	{
+		hookedScripts[extraSp] <- true;
+		registerEnemyHook(extraSp, "");
 	}
 }

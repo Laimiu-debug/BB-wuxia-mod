@@ -41,7 +41,7 @@ this.wx_event_sect_exchange <- this.inherit("scripts/events/event", {
 		// Screen A: Choose which of the 3 local/roaming sect tables to approach!
 		this.m.Screens.push({
 			ID = "A",
-			Text = "",
+			Text = "[img]gfx/ui/events/wx_ev_01.png[/img]迎风茶楼二层人声鼎沸，刀剑兵刃斜靠桌畔，今日楼中坐着三拨不同门户的江湖传人。",
 			Image = "",
 			List = [],
 			Characters = [],
@@ -86,7 +86,7 @@ this.wx_event_sect_exchange <- this.inherit("scripts/events/event", {
 				while (trio.len() < 3) trio.push("weiyuan");
 				_event.m.Choices = trio;
 
-				this.Text = "[img]gfx/ui/events/event_80.png[/img]行至【" + regionLabel + "】地界城池，迎风茶楼二层人声鼎沸，刀剑兵刃斜靠桌畔。跑堂茶博士低声指点——今日楼中恰好坐着三拨不同门户的江湖传人，正欲寻哪一桌递帖叙话？";
+				this.Text = "[img]gfx/ui/events/wx_ev_01.png[/img]行至【" + regionLabel + "】地界城池，迎风茶楼二层人声鼎沸，刀剑兵刃斜靠桌畔。跑堂茶博士低声指点——今日楼中恰好坐着三拨不同门户的江湖传人，正欲寻哪一桌递帖叙话？";
 
 				for (local i = 0; i < 3; i = ++i)
 				{
@@ -163,13 +163,13 @@ this.wx_event_sect_exchange <- this.inherit("scripts/events/event", {
 					function getResult( _ev ) { return 0; }
 				});
 
-				this.Text = "[img]gfx/ui/events/event_80.png[/img]你来到【" + sect.Name + "】传人席前抱拳落座（当前交情：" + rel + "）。\n\n" + sect.Description + "\n\n对方抚掌笑道：『既是有缘相会，敝门此行携有抄本：" + bookDesc + "。不知诸位意欲何为？』";
+				this.Text = "[img]gfx/ui/events/wx_ev_01.png[/img]你来到【" + sect.Name + "】传人席前抱拳落座（当前交情：" + rel + "）。\n\n" + sect.Description + "\n\n对方抚掌笑道：『既是有缘相会，敝门此行携有抄本：" + bookDesc + "。不知诸位意欲何为？』";
 			}
 		});
 
 		this.m.Screens.push({
 			ID = "Exchanged",
-			Text = "[img]gfx/ui/events/event_80.png[/img]银货两讫，对方郑重将本门武学抄本交托予你，并叮嘱切莫轻传宵小。",
+			Text = "[img]gfx/ui/events/wx_ev_01.png[/img]银货两讫，对方郑重将本门武学抄本交托予你，并叮嘱切莫轻传宵小。",
 			Image = "", List = [], Characters = [],
 			Options = [{ Text = "抱拳谢过。", function getResult( _event ) { return 0; } }],
 			function start( _event ) {}
@@ -177,7 +177,7 @@ this.wx_event_sect_exchange <- this.inherit("scripts/events/event", {
 
 		this.m.Screens.push({
 			ID = "Befriended",
-			Text = "[img]gfx/ui/events/event_80.png[/img]一席好酒畅谈武林掌故，双方引为知己，门派交情大增（+20）！",
+			Text = "[img]gfx/ui/events/wx_ev_01.png[/img]一席好酒畅谈武林掌故，双方引为知己，门派交情大增（+20）！",
 			Image = "", List = [], Characters = [],
 			Options = [{ Text = "后会有期。", function getResult( _event ) { return 0; } }],
 			function start( _event ) {}
@@ -185,7 +185,7 @@ this.wx_event_sect_exchange <- this.inherit("scripts/events/event", {
 
 		this.m.Screens.push({
 			ID = "LowRel",
-			Text = "[img]gfx/ui/events/event_80.png[/img]对方微微摇头：『贵队与敝派尚欠渊源，门中真传功法恕难轻授，不妨日后多走动往来。』",
+			Text = "[img]gfx/ui/events/wx_ev_01.png[/img]对方微微摇头：『贵队与敝派尚欠渊源，门中真传功法恕难轻授，不妨日后多走动往来。』",
 			Image = "", List = [], Characters = [],
 			Options = [{ Text = "来日方长。", function getResult( _event ) { return 0; } }],
 			function start( _event ) {}
@@ -201,7 +201,7 @@ this.wx_event_sect_exchange <- this.inherit("scripts/events/event", {
 		});
 		this.m.Screens.push({
 			ID = "NoMoney",
-			Text = "[img]gfx/ui/events/event_80.png[/img]手头银两不足，只得作罢。",
+			Text = "[img]gfx/ui/events/wx_ev_01.png[/img]手头银两不足，只得作罢。",
 			Image = "", List = [], Characters = [],
 			Options = [{ Text = "告辞。", function getResult( _event ) { return 0; } }],
 			function start( _event ) {}

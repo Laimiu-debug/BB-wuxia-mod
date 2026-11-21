@@ -7,19 +7,25 @@ this.wx_dagger_vital <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_dagger_vital";
+		this.m.WX_VfxBrush <- "wx_vfx_04";
+		this.m.WX_AnimID <- "wx_anim_33";
+		this.m.WX_AnimMode <- "twin_fang";
+		this.m.WX_ChoreoID <- "wx_dagger_vital";
 		this.m.Name = "分水断脉刺";
 		this.m.Description = "贴身短刃疾挑敌手腕脉气门：命中 +10、穿甲 +10%，击中生人附加割裂流血并震散其 12 点内息。";
 		this.m.KilledString = "短刺挑断大筋";
-		this.m.Icon = "skills/active_202.png";
-		this.m.IconDisabled = "skills/active_202_sw.png";
-		this.m.Overlay = "active_202";
+		this.m.Icon = "skills/wx_dagger_vital.png";
+		this.m.IconDisabled = "skills/wx_dagger_vital_sw.png";
+		this.m.Overlay = "wx_ov_wx_dagger_vital";
 		this.m.SoundOnUse = [
-			"sounds/combat/dagger_01.wav",
-			"sounds/combat/dagger_02.wav"
+			"sounds/combat/stab_01.wav",
+			"sounds/combat/stab_02.wav",
+			"sounds/combat/stab_03.wav"
 		];
 		this.m.SoundOnHit = [
-			"sounds/combat/dagger_hit_01.wav",
-			"sounds/combat/dagger_hit_02.wav"
+			"sounds/combat/stab_hit_01.wav",
+			"sounds/combat/stab_hit_02.wav",
+			"sounds/combat/stab_hit_03.wav"
 		];
 		this.m.ActionPointCost = 4;
 		this.m.FatigueCost = 14;
@@ -42,6 +48,7 @@ this.wx_dagger_vital <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local target = _targetTile.getEntity();
 		local hit = this.attackEntity(_user, target);
 		if (hit && target != null && target.isAlive() && !::Wuxia.CombatRules.isImmuneToMeridianAndPoison(target))

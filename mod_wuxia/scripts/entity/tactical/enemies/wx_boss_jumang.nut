@@ -1,4 +1,4 @@
-// Shan Hai Jing Apex Boss Entity: 【山海神木】都广野·句芒建木王
+// Shan Hai Jing Apex Boss Entity (中山经): 【山海神木】都广野·句芒建木王
 
 this.wx_boss_jumang <- this.inherit("scripts/entity/tactical/enemies/schrat", {
 	m = {},

@@ -1,9 +1,9 @@
 // Marrow Wash (洗经伐髓): Talent Star upgrade (1->2: 30%, 2->3: 15%) & Star Replace (0->1: 45%)
-// Strictly enforces vanilla max 3 attributes with stars.
+// Strictly enforces vanilla max 3 attributes with stars; supports 护脉丹 (+5%) & 山海造化护脉金丹 (+9%, zero shock).
 
 ::Wuxia.MarrowWash.countStarredAttributes <- function( _actor )
 {
-	if (_actor == null || !("m" in _actor) || !("Talents" in _actor.m))
+	if (_actor == null || !::Wuxia.Appearance.hasMember(_actor, "m") || !::Wuxia.Appearance.hasMember(_actor.m, "Talents"))
 		return 0;
 	local cnt = 0;
 	foreach (st in _actor.m.Talents)
@@ -15,7 +15,6 @@
 
 ::Wuxia.MarrowWash.refreshFutureRolls <- function( _actor, _attr )
 {
-	// The vanilla player pre-rolls level-ups in queues. Index 0 is the next choice.
 	local values = _actor.m.Attributes[_attr];
 	local pending = _actor.m.LevelUps;
 	local end = ::Math.min(values.len(), pending + ::Math.max(0, ::Const.XP.MaxLevelWithPerkpoints - _actor.getLevel()));
@@ -25,7 +24,27 @@
 		values[i] = ::Math.rand(range.Min + (stars == 3 ? 2 : stars), range.Max + (stars == 3 ? 1 : 0));
 };
 
-::Wuxia.MarrowWash.getPrepBonus <- function( _actor, _useProtectPill )
+::Wuxia.MarrowWash.resolveBestProtectPillDef <- function()
+{
+	if ("World" in getroottable() && ::World != null && ::World.Assets != null && ::World.Assets.getStash() != null)
+	{
+		local items = ::World.Assets.getStash().getItems();
+		local hasZaohua = false;
+		foreach (it in items)
+		{
+			if (it != null && it.getID() == "misc.wx_pill_item" && it.getPillID() == "wx_pill_zaohua")
+			{
+				hasZaohua = true;
+				break;
+			}
+		}
+		if (hasZaohua && ("wx_pill_zaohua" in ::Wuxia.Config.Pills))
+			return ::Wuxia.Config.Pills.wx_pill_zaohua;
+	}
+	return ("wx_pill_humai" in ::Wuxia.Config.Pills) ? ::Wuxia.Config.Pills.wx_pill_humai : null;
+};
+
+::Wuxia.MarrowWash.getPrepBonus <- function( _actor, _useProtectPill, _protectDef = null )
 {
 	local bonus = 0;
 	local b = _actor.getBaseProperties();
@@ -49,10 +68,12 @@
 		bonus += c.m.Slots[0].Tier * 2;
 	}
 
-	// Protect Pill contribution: +5%
+	// Protect Pill contribution: +5% (护脉丹) or +9% (山海造化护脉金丹)
 	if (_useProtectPill)
 	{
-		bonus += ::Wuxia.Config.MarrowWash.ProtectPillChanceBonus;
+		local pDef = _protectDef != null ? _protectDef : ::Wuxia.MarrowWash.resolveBestProtectPillDef();
+		local pBonus = (pDef != null && ("ProtectBonus" in pDef)) ? pDef.ProtectBonus : ::Wuxia.Config.MarrowWash.ProtectPillChanceBonus;
+		bonus += pBonus;
 	}
 
 	return ::Math.min(::Wuxia.Config.MarrowWash.MaxPrepBonus, bonus);
@@ -60,7 +81,7 @@
 
 ::Wuxia.MarrowWash.getPreview <- function( _actor, _targetAttrIdx, _replaceAttrIdx = -1, _useProtectPill = false )
 {
-	if (_actor == null || !("Talents" in _actor.m))
+	if (_actor == null || !::Wuxia.Appearance.hasMember(_actor, "m") || !::Wuxia.Appearance.hasMember(_actor.m, "Talents"))
 		return { Ok = false, Reason = "无法读取角色根骨信息。" };
 
 	if (_targetAttrIdx < 0 || _targetAttrIdx >= 8)
@@ -87,8 +108,9 @@
 		}
 	}
 
+	local pDef = _useProtectPill ? ::Wuxia.MarrowWash.resolveBestProtectPillDef() : null;
 	local baseChance = ::Wuxia.Config.MarrowWash.BaseChance[curStar];
-	local prepBonus = ::Wuxia.MarrowWash.getPrepBonus(_actor, _useProtectPill);
+	local prepBonus = ::Wuxia.MarrowWash.getPrepBonus(_actor, _useProtectPill, pDef);
 	local finalChance = ::Math.min(85, baseChance + prepBonus);
 	local permRisk = (curStar >= 1 && !_useProtectPill) ? ::Wuxia.Config.MarrowWash.HighStarPermInjuryPct : 0;
 
@@ -104,7 +126,8 @@
 		BaseChance = baseChance,
 		PrepBonus = prepBonus,
 		FinalChance = finalChance,
-		PermInjuryRisk = permRisk
+		PermInjuryRisk = permRisk,
+		AvoidShock = (pDef != null && ("AvoidShock" in pDef) && pDef.AvoidShock)
 	};
 };
 
@@ -146,6 +169,17 @@
 		};
 	}
 
+	if (("AvoidShock" in preview) && preview.AvoidShock)
+	{
+		return {
+			Ok = true,
+			Succeeded = false,
+			Roll = roll,
+			Chance = preview.FinalChance,
+			Message = "洗髓药力未能冲开「" + preview.TargetAttrName + "」关窍，幸得【山海造化护脉金丹】护持心脉，全身经脉毫发无伤！"
+		};
+	}
+
 	// Failure: Apply heavy internal shock + chance of permanent injury on high-star attempt without protection
 	local skills = _actor.getSkills();
 	local inj = skills.getSkillByID("effects.wx_internal_injury");
@@ -154,26 +188,22 @@
 		inj = ::new("scripts/skills/effects/wx_internal_injury");
 		skills.add(inj);
 	}
-	inj.applySeverity(2, ::Wuxia.Config.MarrowWash.ShockDurationDays);
+	inj.applyHeavyShock();
 
 	local gotPerm = false;
 	if (preview.PermInjuryRisk > 0 && ::Math.rand(1, 100) <= preview.PermInjuryRisk)
 	{
+		inj.applyPermanentDamage();
 		gotPerm = true;
-		// Apply a permanent internal defect using vanilla permanent injury or dedicated hidden penalty
-		inj.addPermanentMeridianScar();
 	}
+	skills.update();
 
-	_actor.getSkills().update();
-
+	local failMsg = "洗髓药力冲关受阻，陷入「经脉震荡」" + (gotPerm ? "，更留下永久「经脉暗疾」！" : "（静养或服护心丹可愈）。");
 	return {
 		Ok = true,
 		Succeeded = false,
 		Roll = roll,
 		Chance = preview.FinalChance,
-		GotPermanentInjury = gotPerm,
-		Message = gotPerm
-			? "洗经伐髓失败！真气逆冲引发「经脉震荡」，并留下永久经脉暗疾！"
-			: "洗经伐髓失败！真气逆冲引发「经脉震荡」，需以护心丹或名医调养数日。"
+		Message = failMsg
 	};
 };

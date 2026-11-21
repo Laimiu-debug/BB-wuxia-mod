@@ -7,19 +7,25 @@ this.wx_dagger_execute <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_dagger_execute";
+		this.m.WX_VfxBrush <- "wx_vfx_30";
+		this.m.WX_AnimID <- "wx_anim_62";
+		this.m.WX_AnimMode <- "night_exec";
+		this.m.WX_ChoreoID <- "wx_dagger_execute";
 		this.m.Name = "追魂透骨刺";
 		this.m.Description = "幽冥隐杀楼绝命短刃：穿甲率 +15%；若目标处于「破绽 / 失衡 / 点穴 / 眩晕 / 困网」任一受制状态，命中额外 +12 且总伤害暴涨 35%！";
 		this.m.KilledString = "短刃透心毙命";
-		this.m.Icon = "skills/active_202.png";
-		this.m.IconDisabled = "skills/active_202_sw.png";
-		this.m.Overlay = "active_202";
+		this.m.Icon = "skills/wx_dagger_execute.png";
+		this.m.IconDisabled = "skills/wx_dagger_execute_sw.png";
+		this.m.Overlay = "wx_ov_wx_dagger_execute";
 		this.m.SoundOnUse = [
-			"sounds/combat/dagger_01.wav",
-			"sounds/combat/dagger_02.wav"
+			"sounds/combat/stab_01.wav",
+			"sounds/combat/stab_02.wav",
+			"sounds/combat/stab_03.wav"
 		];
 		this.m.SoundOnHit = [
-			"sounds/combat/dagger_hit_01.wav",
-			"sounds/combat/dagger_hit_02.wav"
+			"sounds/combat/stab_hit_01.wav",
+			"sounds/combat/stab_hit_02.wav",
+			"sounds/combat/stab_hit_03.wav"
 		];
 		this.m.ActionPointCost = 4;
 		this.m.FatigueCost = 16;
@@ -33,7 +39,7 @@ this.wx_dagger_execute <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function wxIsTargetVulnerable( _target )
 	{
-		if (_target == null || !("getSkills" in _target) || _target.getSkills() == null) return false;
+		if (_target == null || !(::Wuxia.hasMember(_target, "getSkills")) || _target.getSkills() == null) return false;
 		local sk = _target.getSkills();
 		return sk.hasSkill("effects.wx_status_opening")
 			|| sk.hasSkill("effects.wx_status_offbalance")
@@ -59,6 +65,7 @@ this.wx_dagger_execute <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		return this.attackEntity(_user, _targetTile.getEntity());
 	}
 });

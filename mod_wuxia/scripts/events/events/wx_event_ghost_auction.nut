@@ -30,7 +30,7 @@ this.wx_event_ghost_auction <- this.inherit("scripts/events/event", {
 							item = ::new("scripts/items/misc/wx_pill_item");
 							item.initPill(_event.m.LotID);
 						}
-						else if (_event.m.LotKind == "relic_weapon")
+						else if (_event.m.LotKind == "relic_weapon" || _event.m.LotKind == "shanhai_item")
 						{
 							item = ::new(_event.m.LotID);
 						}
@@ -52,19 +52,46 @@ this.wx_event_ghost_auction <- this.inherit("scripts/events/event", {
 				local roll = ::Math.rand(1, 100);
 				if (roll <= 18)
 				{
+					local pOpts = [
+						["wx_pill_xisui", "稀世奇药【洗髓丹】", 5200],
+						["wx_pill_zijin", "仙品圣丹【太虚紫金大丹】", 3400],
+						["wx_pill_zaohua", "护脉圣药【山海造化护脉金丹】", 3100],
+						["wx_pill_shennong", "救命仙药【神农百草返魂丹】", 2700]
+					];
+					local pPick = pOpts[::Math.rand(0, pOpts.len() - 1)];
 					_event.m.LotKind = "pill";
-					_event.m.LotID = "wx_pill_xisui";
-					_event.m.LotName = "稀世奇药【洗髓丹】";
-					_event.m.BidPrice = 5200;
+					_event.m.LotID = pPick[0];
+					_event.m.LotName = pPick[1];
+					_event.m.BidPrice = pPick[2];
 				}
-				else if (roll <= 42)
+				else if (roll <= 32)
+				{
+					local sovPool = ::Wuxia.ShanHai.getSovereignCoreIDs();
+					if (sovPool.len() > 0)
+					{
+						local cid = sovPool[::Math.rand(0, sovPool.len() - 1)];
+						local ccfg = ::Wuxia.Config.ShanHaiCores[cid];
+						_event.m.LotKind = "shanhai_item";
+						_event.m.LotID = "scripts/items/misc/" + cid;
+						_event.m.LotName = "太古神丹" + ccfg.Name;
+						_event.m.BidPrice = ccfg.Value + 900;
+					}
+					else
+					{
+						_event.m.LotKind = "pill";
+						_event.m.LotID = "wx_pill_xisui";
+						_event.m.LotName = "稀世奇药【洗髓丹】";
+						_event.m.BidPrice = 5200;
+					}
+				}
+				else if (roll <= 52)
 				{
 					local rPool = ::Wuxia.Relics.getRelicIDs();
 					local rid = rPool[::Math.rand(0, rPool.len() - 1)];
 					local rcfg = ::Wuxia.Config.RelicWeapons[rid];
 					_event.m.LotKind = "relic_weapon";
 					_event.m.LotID = rcfg.Script;
-					_event.m.LotName = "传世历史神兵【传世·" + rcfg.Name + "】";
+					_event.m.LotName = (("IsShanHai" in rcfg && rcfg.IsShanHai) ? "山海神兵" : "传世神兵") + "【传世·" + rcfg.Name + "】";
 					_event.m.BidPrice = rcfg.MinValue;
 				}
 				else if (roll <= 62)
@@ -88,14 +115,14 @@ this.wx_event_ghost_auction <- this.inherit("scripts/events/event", {
 					_event.m.BidPrice = 4800;
 				}
 
-				this.Text = "[img]gfx/ui/events/event_45.png[/img]子夜三更，无常鬼市灯火幽微。戴着青铜面具的司仪揭开红绸，台下各路豪客顿时屏息——今晚压轴之物竟是 " + _event.m.LotName + "！几轮竞价过后，眼下只需出到 " + _event.m.BidPrice + " 银两便可一锤定音。";
+				this.Text = "[img]gfx/ui/events/wx_ev_04.png[/img]子夜三更，无常鬼市灯火幽微。戴着青铜面具的司仪揭开红绸，台下各路豪客顿时屏息——今晚压轴之物竟是 " + _event.m.LotName + "！几轮竞价过后，眼下只需出到 " + _event.m.BidPrice + " 银两便可一锤定音。";
 				this.Options[0].Text = "豪掷 " + _event.m.BidPrice + " 银两拍下 " + _event.m.LotName;
 			}
 		});
 
 		this.m.Screens.push({
 			ID = "Won",
-			Text = "[img]gfx/ui/events/event_45.png[/img]铜锣三响，压轴奇珍归入囊中！四周投来数道灼热目光，你们压低斗笠迅速隐入夜色。",
+			Text = "[img]gfx/ui/events/wx_ev_04.png[/img]铜锣三响，压轴奇珍归入囊中！四周投来数道灼热目光，你们压低斗笠迅速隐入夜色。",
 			Image = "",
 			List = [],
 			Characters = [],
@@ -106,7 +133,7 @@ this.wx_event_ghost_auction <- this.inherit("scripts/events/event", {
 		this.m.Screens.push(::Wuxia.Loot.makeNoRoomScreen());
 		this.m.Screens.push({
 			ID = "NoMoney",
-			Text = "[img]gfx/ui/events/event_45.png[/img]银两不够竞拍价，只能眼睁睁看着奇珍落入他人之手。",
+			Text = "[img]gfx/ui/events/wx_ev_04.png[/img]银两不够竞拍价，只能眼睁睁看着奇珍落入他人之手。",
 			Image = "",
 			List = [],
 			Characters = [],

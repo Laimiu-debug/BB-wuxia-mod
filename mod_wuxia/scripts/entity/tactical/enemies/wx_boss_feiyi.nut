@@ -1,4 +1,4 @@
-// Shan Hai Jing Apex Boss Entity: 【山海凶兽】太华山·六足肥遗王
+// Shan Hai Jing Apex Boss Entity (西山经): 【山海凶兽】太华山·六足肥遗王
 
 this.wx_boss_feiyi <- this.inherit("scripts/entity/tactical/enemies/lindwurm", {
 	m = {},

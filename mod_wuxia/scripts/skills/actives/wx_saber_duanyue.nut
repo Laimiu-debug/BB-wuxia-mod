@@ -7,11 +7,15 @@ this.wx_saber_duanyue <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_saber_duanyue";
+		this.m.WX_VfxBrush <- "wx_vfx_05";
+		this.m.WX_AnimID <- "wx_anim_44";
+		this.m.WX_AnimMode <- "leap_cleave";
+		this.m.WX_ChoreoID <- "wx_saber_duanyue";
 		this.m.Name = "断岳狂斩";
 		this.m.Description = "断岳狂刀杀招：伤害 +30%、破甲 +30%，并易致敌「失衡」；配合本门心劲斩杀可立返 3 AP！";
-		this.m.Icon = "skills/active_34.png";
-		this.m.IconDisabled = "skills/active_34_sw.png";
-		this.m.Overlay = "active_34";
+		this.m.Icon = "skills/wx_saber_duanyue.png";
+		this.m.IconDisabled = "skills/wx_saber_duanyue_sw.png";
+		this.m.Overlay = "wx_ov_wx_saber_duanyue";
 		this.m.SoundOnUse = [
 			"sounds/combat/cleave_03.wav"
 		];
@@ -37,6 +41,7 @@ this.wx_saber_duanyue <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local target = _targetTile.getEntity();
 		local hit = this.attackEntity(_user, target);
 		if (hit && target != null && target.isAlive())

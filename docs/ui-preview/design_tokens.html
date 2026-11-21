@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>武侠 Mod · 设计令牌 v2（原版同构）</title>
+<link rel="stylesheet" href="wx_vanilla_kit.css">
+<style>
+html { font-size: 12px; }
+body { margin: 0; background: #1e1610 url("_vanilla/gfx/ui/skin/dialog_background_01.png") center top / 120rem auto; font-family: 'FreeUniversal', 'BB Han', sans-serif; font-size: 1.4rem; line-height: 1.5; color: #d7b174; text-shadow: 1px 1px 1px #000; }
+.page { width: 112rem; margin: 0 auto; padding: 3rem 2rem 6rem 2rem; }
+h1 { margin: 0; font-family: 'BB Han Serif', serif; font-weight: 600; font-size: 3.4rem; color: #dda21f; text-shadow: 1px 1px rgba(0,0,0,0.5), -1px -1px #000; }
+.lead { margin: 0.6rem 0 2.4rem 0; color: #bd9d71; font-style: italic; font-size: 1.5rem; }
+h2 { margin: 3.2rem 0 0.4rem 0; font-family: 'BB Han Serif', serif; font-weight: 600; font-size: 2.4rem; color: #dda21f; text-shadow: 1px 1px rgba(0,0,0,0.5), -1px -1px #000; }
+h2 + p { margin: 0 0 1.2rem 0; color: #bd9d71; font-style: italic; }
+.panel { position: relative; padding: 1.8rem 2rem; margin-bottom: 1.2rem; background: url("_vanilla/gfx/ui/skin/dialog_panel_01.png") 0 0 / 100% 100%; }
+.panel h3 { margin: 0 0 0.8rem 0; font-size: 1.6rem; font-weight: normal; color: #dda21f; }
+.row:after { content: ''; display: block; clear: both; }
+.c2 { float: left; width: 49%; margin-right: 2%; } .c2:nth-child(2n) { margin-right: 0; }
+.vline { margin: 1.4rem 0; }
+table { width: 100%; border-collapse: collapse; font-size: 1.35rem; }
+th { text-align: left; padding: 0.5rem 0.8rem; color: #dda21f; font-weight: normal; border-bottom: 1px solid #5a4325; }
+td { padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(90,67,37,0.5); vertical-align: middle; }
+td code, p code, li code { font: 1.2rem Consolas, monospace; color: #e8c880; text-shadow: none; }
+.sw { display: inline-block; width: 2.6rem; height: 2.6rem; vertical-align: middle; margin-right: 0.8rem; box-shadow: 0 0 0 1px #000; }
+ul { margin: 0.2rem 0; padding-left: 1.6rem; } li { margin-bottom: 0.3rem; }
+b { font-weight: normal; color: #dda21f; }
+.bad { color: #CD2626; }
+.cmp td:first-child { width: 22%; color: #dda21f; }
+.demo-tip { box-sizing: border-box; position: relative; display: block; width: 31.5rem; padding: 1.5rem 1.2rem 1.4rem 1.2rem; font-size: 1.4rem; line-height: 2rem; color: #010035; text-shadow: none; background: url("_vanilla/gfx/ui/skin/tooltip_315_top.png") top / 31.5rem 1.3rem no-repeat, url("_vanilla/gfx/ui/skin/tooltip_315_bottom.png") bottom / 31.5rem 55.3rem no-repeat; }
+.demo-tip .tt { font-family: 'BB Han Serif', serif; font-weight: 600; font-size: 1.8rem; line-height: 2.4rem; }
+.demo-tip .ts { font-style: italic; color: #3a2f4f; margin-bottom: 0.4rem; }
+.demo-tip .tr { position: relative; padding-left: 2.6rem; } .demo-tip .tr img { position: absolute; left: 0; top: 0.1rem; width: 2rem; height: 2rem; }
+.demo-tip .pos { color: #135213; } .demo-tip .neg { color: #8f1e1e; } .demo-tip .hint { margin-top: 0.4rem; font-size: 1.3rem; color: #4a3f5f; }
+.demo-pop { position: relative; width: 52rem; padding: 2.4rem 3rem 2rem 3rem; background: url("_vanilla/gfx/ui/skin/popup_background_600x300.png") 0 0 / 100% 100%; }
+.demo-pop .ph { text-align: center; font-size: 2.2rem; margin-bottom: 1rem; }
+.demo-pop .pf { margin-top: 1.4rem; text-align: center; } .demo-pop .pf .vb { margin: 0 0.4rem; }
+.slots .vslot { float: none; display: inline-block; vertical-align: top; margin-right: 0.6rem; }
+.skillbar { white-space: nowrap; }
+.skillbar .sk { position: relative; display: inline-block; width: 5.4rem; height: 5.4rem; margin-right: 0.3rem; background: url("_vanilla/gfx/ui/skin/tactical_skill_bg.png") 0 0 / 100% 100%; }
+.skillbar .sk img { position: absolute; left: 0.45rem; top: 0.45rem; width: 4.5rem; height: 4.5rem; }
+.skillbar .sk span { position: absolute; right: 0.3rem; bottom: 0.1rem; font-size: 1.2rem; color: #d6dbe9; text-shadow: 1px 1px 1px #000, -1px -1px 1px #000; }
+.listrow { position: relative; height: 7.2rem; padding: 1.1rem 1.4rem 0 8.4rem; margin-bottom: 0.4rem; background: url("_vanilla/gfx/ui/skin/list_item_01.png") 0 0 / 100% 100%; }
+.listrow:hover { background-image: url("_vanilla/gfx/ui/skin/list_item_01_hovered.png"); }
+.listrow .vslot { position: absolute; left: 1rem; top: 0.4rem; }
+.listrow .r { position: absolute; right: 1.6rem; top: 1.4rem; }
+.toc { position: fixed; right: 1.4rem; top: 3rem; width: 15rem; padding: 1.2rem 1rem; background: url("_vanilla/gfx/ui/skin/dialog_panel_01.png") 0 0 / 100% 100%; }
+.toc a { display: block; padding: 0.3rem 0.6rem; color: #d7b174; text-decoration: none; font-size: 1.3rem; } .toc a:hover { color: #dda21f; }
+@media (max-width: 1500px) { .toc { display: none; } }
+</style>
+</head>
+<body>
+<div class="toc">
+	<a href="#why">一 · 为什么突兀</a><a href="#rule">二 · 总原则</a><a href="#color">三 · 原版色板</a><a href="#type">四 · 字体字号</a><a href="#kit">五 · 贴图组件</a><a href="#screens">六 · 全局落点</a><a href="#todo">七 · 现有 mod 改动清单</a>
+	<a href="character_screen.html" style="margin-top:0.8rem">→ 人物界面 v2</a><a href="design_tokens_v1.html">→ 旧版令牌（v1）</a>
+</div>
+<div class="page">
+	<h1>设计令牌 v2 · 原版同构</h1>
+	<p class="lead">外壳一律用原版贴图与原版字色，武侠只放在内容上——玩家从大地图点进人物界面，不应感觉换了一个游戏。</p>
+
+	<h2 id="why">一 · 为什么 v1（以及现有 mod 皮肤）显得突兀</h2>
+	<p>逐项对照原版 data_001.dat 里的 ui/colors.css、ui/fonts.css 与 gfx/ui/skin 贴图</p>
+	<div class="panel"><table class="cmp">
+		<tr><th>维度</th><th>原版</th><th>v1 / 现有 mod</th></tr>
+		<tr><td>底色明度与色温</td><td>暖棕皮革，约 <code>#2d2117</code>，有明显颗粒与压边</td><td class="bad">近黑冷乌木 <code>#15100b</code>（现有 wx_background_inventory 同样偏冷偏黑）</td></tr>
+		<tr><td>文字颜色</td><td>橙金 <code>#dda21f</code> / 浅褐 <code>#d7b174</code> / 斜体褐 <code>#bd9d71</code> / 红 <code>#CD2626</code>，统一 1px 黑投影</td><td class="bad">骨白、石青、琥珀、蓝紫品阶色——原版里都不存在</td></tr>
+		<tr><td>控件</td><td>位图贴图：凸起的 button_01~05、button_tab、压花 list_item、格位 inventory_slot、橙色光晕 inventory_highlight</td><td class="bad">1px 细线框、胶囊标签、开关、分段按钮——像网页后台</td></tr>
+		<tr><td>信息密度</td><td>正文 1.4~1.8rem，元素稀疏，细节全进提示框</td><td class="bad">正文 1.1rem，卡片 + 角标 + 进度条层层叠</td></tr>
+		<tr><td>阅读面</td><td>提示框是<b>浅色羊皮纸 + 深蓝墨字 #010035</b>；弹窗是<b>木板 + 铁角</b></td><td class="bad">v1 把提示框做成深色；现有 mod 在面板里整面铺浅宣纸 <code>#eae0c8</code></td></tr>
+		<tr><td>天赋页手法</td><td>圆形图标直接摆在底上，选中=细金圈，锁定=33% 透明</td><td class="bad">方框卡片 + 自绘八角铜盘</td></tr>
+	</table></div>
+
+	<h2 id="rule">二 · 总原则：外壳原版，内容武侠</h2>
+	<p>每个界面元素先问"原版用什么画它"，有就直接用同名贴图；只有内容层才换成武侠</p>
+	<div class="row">
+		<div class="c2"><div class="panel"><h3>外壳（保持原版）</h3><ul>
+			<li>背景、面板、按钮、页签、格位、列表框、滚动条、勾选框、输入框、进度条</li>
+			<li>提示框羊皮纸、弹窗木板、升级弹窗的行结构</li>
+			<li>字色字号、投影、选中 / 悬停 / 禁用的表现方式</li>
+			<li>交互：左键查看、右键快捷、拖拽、橙色光晕＝可以操作</li></ul></div></div>
+		<div class="c2"><div class="panel"><h3>内容（武侠化）</h3><ul>
+			<li>武学 / 招式 / 丹药 / 典籍图标（mod 已有美术）</li>
+			<li>标题用宋体（汉化包自带 Noto Serif SC，对应原版 Cinzel）</li>
+			<li>称谓：穴位、重数、火候、散功、内息、藏经阁</li>
+			<li>少量点缀：经络金线（原版 line_gold.png）、角色纹章</li>
+			<li><span class="bad">不再新增</span>任何底色、描边色、语义色</li></ul></div></div>
+	</div>
+
+	<h2 id="color">三 · 原版色板</h2>
+	<p>全部取自原版 ui/colors.css 与 Squirrel 常量；mod 只使用这些值</p>
+	<div class="row">
+		<div class="c2"><div class="panel"><h3>深色底上的文字</h3><table>
+			<tr><td><span class="sw" style="background:#dda21f"></span><code>#dda21f</code></td><td>标题 · 数值 · 按钮字 · 人名</td></tr>
+			<tr><td><span class="sw" style="background:#d7b174"></span><code>#d7b174</code></td><td>标签 · 正文</td></tr>
+			<tr><td><span class="sw" style="background:#bd9d71"></span><code>#bd9d71</code></td><td>说明（斜体）</td></tr>
+			<tr><td><span class="sw" style="background:#a7a7a7"></span><code>#a7a7a7</code></td><td>禁用</td></tr>
+			<tr><td><span class="sw" style="background:#CD2626"></span><code>#CD2626</code></td><td>负值 · 警告（散功、换兵）</td></tr>
+			<tr><td><span class="sw" style="background:#d6dbe9"></span><code>#d6dbe9</code></td><td>格位数量角标</td></tr>
+			<tr><td><span class="sw" style="background:rgb(129,50,24)"></span><code>rgb(129,50,24)</code></td><td>按钮选中底色 / 选中行</td></tr>
+		</table></div></div>
+		<div class="c2"><div class="panel"><h3>羊皮纸上的文字（提示框 / 事件）</h3><table>
+			<tr><td><span class="sw" style="background:#010035"></span><code>#010035</code></td><td>墨字（标题与正文）</td></tr>
+			<tr><td><span class="sw" style="background:#135213"></span><code>#135213</code></td><td>正值（Const.UI.Color.PositiveValue）</td></tr>
+			<tr><td><span class="sw" style="background:#8f1e1e"></span><code>#8f1e1e</code></td><td>负值（Const.UI.Color.NegativeValue）</td></tr>
+		</table>
+		<div class="vline"></div><h3>资源条（原版贴图，勿重绘）</h3><table>
+			<tr><td><span class="sw" style="background:#712223"></span>inventory_bar_fill_health_127</td><td>气血</td></tr>
+			<tr><td><span class="sw" style="background:#1b6ba5"></span>inventory_bar_fill_fatigue_127</td><td>内息（=疲劳，正向显示）</td></tr>
+			<tr><td><span class="sw" style="background:#aa541e"></span>inventory_bar_fill_action_127</td><td>行动力</td></tr>
+			<tr><td><span class="sw" style="background:#48751d"></span>inventory_bar_fill_morale_127</td><td>战意</td></tr>
+		</table></div></div>
+	</div>
+
+	<h2 id="type">四 · 字体与字号</h2>
+	<p>中文沿用汉化包已加载的两套字体，不再额外打包 14MB 的明刻体</p>
+	<div class="panel"><table>
+		<tr><th>用途</th><th>字体</th><th>字号</th><th>示例</th></tr>
+		<tr><td>人物名 / 弹窗标题</td><td>Noto Serif SC SemiBold（≈ Cinzel-Bold）</td><td>2.2rem</td><td class="t-title" style="font-size:2.2rem">洗经伐髓</td></tr>
+		<tr><td>页签 / 书名</td><td>同上</td><td>1.6~1.9rem</td><td class="t-title" style="font-size:1.8rem">《清风连环剑》</td></tr>
+		<tr><td>正文 / 标签</td><td>FreeUniversal（拉丁数字）+ Noto Sans SC</td><td>1.4rem</td><td>武艺 +4　招架 +2　身法 112</td></tr>
+		<tr><td>说明</td><td>同上，斜体</td><td>1.35~1.4rem</td><td class="c-desc">清风剑派入室弟子的看家剑法。</td></tr>
+		<tr><td>角标</td><td>同上</td><td>1.2~1.3rem（最小）</td><td><span class="c-stack">3/5　二重　×2</span></td></tr>
+	</table></div>
+
+	<h2 id="kit">五 · 贴图组件清单</h2>
+	<p>左列为原版文件名（游戏内 coui://gfx/ui/skin/ 下直接引用），右列为实际效果</p>
+	<div class="panel"><table>
+		<tr><th>组件</th><th>原版贴图</th><th>尺寸 (rem)</th><th>效果</th></tr>
+		<tr><td>主按钮</td><td><code>button_01_default / hovered / inactive</code></td><td>17.5 × 4.3</td><td><span class="vb vb1">洗经伐髓</span> <span class="vb vb1 dis">不可用</span></td></tr>
+		<tr><td>短按钮</td><td><code>button_02_*</code></td><td>9.8 × 4.3</td><td><span class="vb vb2">研习</span> <span class="vb vb2 sel">已习</span></td></tr>
+		<tr><td>图标按钮（筛选）</td><td><code>button_03_*</code> + 原版 buttons/filter_*.png 或武学纹章</td><td>5.2 × 4.1</td><td><span class="vb vb3"><img class="flat" src="_vanilla/gfx/ui/buttons/filter_all.png"></span><span class="vb vb3 sel"><img src="../../mod_wuxia/gfx/ui/perks/wx_emblem_neigong.png"></span><span class="vb vb3"><img src="../../mod_wuxia/gfx/ui/perks/wx_emblem_sword.png"></span></td></tr>
+		<tr><td>页签</td><td><code>button_tab_default / hovered</code></td><td>17.4 × 4.3</td><td><span class="vb vtab">兵甲行囊</span><span class="vb vtab sel">武学修为</span></td></tr>
+		<tr><td>格位 / 可操作光晕 / 选中圈</td><td><code>inventory_slot</code> · <code>inventory_highlight</code> · <code>perks/selection_frame</code></td><td>6.4~7.4</td><td class="slots"><span class="vslot"><img class="it" src="../../mod_wuxia/gfx/ui/items/misc/wx_book_waigong_secret.png"><span class="amt">2</span></span><span class="vslot"><span class="hl"></span><img class="it" src="../../mod_wuxia/gfx/ui/items/misc/wx_page_sect.png"><span class="amt">3/3</span></span><span class="vslot sel-frame"><img class="it round" src="../../mod_wuxia/gfx/ui/perks/wx_perk_neigong_yin.png"><span class="amt">二重</span></span><span class="vslot dim"><img class="it round" src="../../mod_wuxia/gfx/ui/perks/wx_emblem_saber.png"></span></td></tr>
+		<tr><td>属性条</td><td><code>inventory_bar_empty_127</code> + <code>inventory_bar_fill_*_127</code></td><td>12.7 × 2.2</td><td><div class="vbar" style="display:inline-block"><div class="f fat" style="width:73%"></div><div class="v">70 / 96</div></div></td></tr>
+		<tr><td>经验 / 火候条</td><td><code>inventory_bar_experience_empty / fill</code></td><td>19.6 × 2.6（可缩）</td><td><div class="vxp" style="width:16rem;display:inline-block"><div class="f" style="width:58%"></div></div></td></tr>
+		<tr><td>勾选 / 输入</td><td><code>iCheck/flat/orange</code> · <code>text_input_300x40_*</code></td><td>2.0 · 30 × 4</td><td><span class="vchk on"><i></i>自动入阁</span>　<input class="vinput" placeholder="搜秘籍"></td></tr>
+		<tr><td>分隔线</td><td><code>line_gold</code></td><td>— × 0.3</td><td><div class="vline" style="width:30rem;margin:0"></div></td></tr>
+		<tr><td>阅读面板</td><td><code>dialog_panel_01</code></td><td>拉伸</td><td>本页所有面板即此贴图</td></tr>
+	</table></div>
+
+	<h2 id="screens">六 · 全局界面落点</h2>
+	<p>以下全部是原版现成的形态，mod 只往里填武侠内容</p>
+	<div class="row">
+		<div class="c2">
+			<div class="demo-tip">
+				<div class="tt">《回锋惊鸿剑》</div><div class="ts">绝学 · 外功 · 剑 · 藏经阁 1 册</div>
+				<div>剑出如惊鸿回锋，后发先至，以反击架势见长。</div>
+				<div class="tr"><img src="_vanilla/gfx/ui/icons/melee_skill.png">大成：武艺 <span class="pos">+7</span>，招架 <span class="pos">+5</span></div>
+				<div class="tr"><img src="_vanilla/gfx/ui/icons/initiative.png">门槛：身法 <span class="neg">106</span> / 115</div>
+				<div class="hint">右键：传授林沧海</div>
+			</div>
+			<p class="c-desc" style="margin-top:0.8rem"><b>提示框</b>：保持原版羊皮纸 + 墨字。武学的三重效果、门槛、来源都放这里，界面本体只放图标。</p>
+		</div>
+		<div class="c2">
+			<div class="demo-pop">
+				<div class="ph t-title">换装调息</div>
+				<div>将以《游侠佩剑术》替换《清风连环剑》。<br><span class="c-neg">散功调息 2 天</span>：内息上限 -15，回气 -3。<br><span class="c-desc">《清风连环剑》的二重小成会永久保留。</span></div>
+				<div class="pf"><span class="vb vb1">确定</span><span class="vb vb1">取消</span></div>
+			</div>
+			<p class="c-desc" style="margin-top:0.8rem"><b>弹窗</b>：原版 popup_background 木板 + 铁角，标题宋体橙金，按钮 button_01。替换现有宣纸弹窗与"朱砂印关闭"。</p>
+		</div>
+	</div>
+	<div class="row" style="margin-top:1.4rem">
+		<div class="c2"><div class="panel"><h3>商肆 / 战利品列表（原版 list_item_01）</h3>
+			<div class="listrow"><span class="vslot"><img class="it" src="../../mod_wuxia/gfx/ui/items/misc/wx_book_qinggong_sect.png"></span><div class="c-title">《踏雪无痕》</div><div class="c-desc">门派上乘 · 轻功　藏经阁尚无此书</div><span class="r c-title">2,200 <img src="_vanilla/gfx/ui/icons/asset_money.png" style="width:2rem;vertical-align:middle"></span></div>
+			<div class="listrow"><span class="vslot"><span class="hl"></span><img class="it" src="../../mod_wuxia/gfx/ui/items/misc/wx_page_sect.png"><span class="amt">3/3</span></span><div class="c-title">《黑风劈空刀》残页</div><div class="c-desc">凑齐可装帧成书</div><span class="r c-title">420 <img src="_vanilla/gfx/ui/icons/asset_money.png" style="width:2rem;vertical-align:middle"></span></div>
+			<p class="c-desc">「新篇 / 阁藏」不再用彩色胶囊：未收藏的书写进描述，可拼合的残页用原版橙色光晕。</p>
+		</div></div>
+		<div class="c2"><div class="panel"><h3>战斗技能栏（原版 tactical_skill_bg）</h3>
+			<div class="skillbar">
+				<span class="sk"><img src="../../mod_wuxia/gfx/ui/skills/wx_sword_combo.png"><span>4</span></span><span class="sk"><img src="../../mod_wuxia/gfx/ui/skills/wx_sword_pierce.png"><span>4</span></span><span class="sk"><img src="../../mod_wuxia/gfx/ui/skills/wx_qinggong_zongyue.png"><span>3</span></span><span class="sk"><img src="../../mod_wuxia/gfx/ui/skills/wx_meditate.png"><span>4</span></span><span class="sk" style="opacity:.4"><img src="../../mod_wuxia/gfx/ui/skills/wx_saber_cleave.png"><span>4</span></span>
+			</div>
+			<p class="c-desc">内息消耗与四脉归属放进技能提示框（原版就这样显示疲劳消耗）；技能图标外框不再加四色描边。AP 条沿用原版 action 条，9/10/11 只在数字上体现。</p>
+		</div></div>
+	</div>
+
+	<h2 id="todo">七 · 现有 mod 改动清单（建议）</h2>
+	<p>按"回归原版贴图"的方向，涉及的现有文件与选择器</p>
+	<div class="panel"><table>
+		<tr><th>文件 / 选择器</th><th>现状</th><th>建议</th></tr>
+		<tr><td><code>wx_global_theme.css</code> · <code>.character-screen-statuetes</code></td><td>替换为冷黑乌木 + 武将雕像底图</td><td>改用 <code>tools/build_wx_character_bg_v2.py</code> 生成的新底图：中间原版棕色面板 + 放大的武侠雕像（尺度同原版，只露半身）</td></tr>
+		<tr><td><code>wx_global_theme.css</code> · 页签 <code>.tab-button</code></td><td>wx_btn_tab_* 紫檀页签</td><td>删除，使用原版 button_tab</td></tr>
+		<tr><td><code>wx_global_theme.css</code> · 进度条</td><td>wx_bar_qi / hp / ap 青色系</td><td>内息改用原版 fatigue 蓝条（只是方向反转），其余删除覆盖</td></tr>
+		<tr><td><code>mod_wuxia.css</code> · <code>.wx-panel</code> / <code>.wx-lib-panel</code></td><td>整面浅宣纸 #eae0c8 + 深墨字</td><td>去掉底色，内容直接画在原版背景上；字色换原版三档</td></tr>
+		<tr><td><code>mod_wuxia.css</code> · <code>.wx-btn*</code> / <code>.wx-tag</code> / <code>.wx-status-pill</code></td><td>CSS 自绘按钮与彩色胶囊</td><td>改用原版 <code>createTextButton(文字, 回调, 类名, 1|2|3)</code> 生成按钮；胶囊改为纯文字 + 原版红/金</td></tr>
+		<tr><td><code>mod_wuxia.css</code> · 字号 1.04~1.18rem</td><td>偏小</td><td>正文 ≥ 1.4rem，角标 ≥ 1.2rem</td></tr>
+		<tr><td><code>.wx-modal-*</code> · <code>.wx-cinnabar-close-btn</code></td><td>宣纸弹窗 + 朱砂关闭</td><td>改用原版 <code>createPopupDialog</code>（木板 popup + button_01）</td></tr>
+		<tr><td><code>.wx-sect-dialog</code>（江湖名刺）</td><td>宣纸长卷</td><td>改为原版 dialog_background + list_item 列表（同原版势力关系界面）</td></tr>
+		<tr><td><code>.wx-item-slot-badge</code></td><td>彩色胶囊角标</td><td>改为原版数量角标样式（白字黑描边）+ 橙色光晕</td></tr>
+	</table>
+	<p class="c-desc" style="margin-top:1rem">原版控件函数（createTextButton / createImageButton / createList / createPopupDialog）自带全部贴图与交互，优先调用它们，而不是手写 div + CSS。</p></div>
+</div>
+</body>
+</html>

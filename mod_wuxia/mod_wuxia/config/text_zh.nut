@@ -37,6 +37,23 @@
 		yin     = "阴柔",
 		evil    = "邪功"
 	},
+	WeaponTypeNames = {
+		Sword    = "剑",
+		Saber    = "战刀",
+		Cleaver  = "战刀",
+		Spear    = "枪矛",
+		Polearm  = "长戟大刀",
+		Staff    = "棍杖",
+		Fist     = "拳掌护手",
+		Hammer   = "重锤",
+		Axe      = "大斧",
+		Flail    = "软鞭连枷",
+		Dagger   = "短匕分水刺",
+		Throwing = "奇门暗器",
+		Bow      = "弓",
+		Crossbow = "强弩",
+		Firearm  = "神机火器"
+	},
 	TierNames = [
 		"未修习",
 		"一重·入门",

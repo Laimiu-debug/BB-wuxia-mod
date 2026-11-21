@@ -1,4 +1,4 @@
-// Shan Hai Jing Apex Boss Entity: 【山海凶兽】苍梧渊·吞象巴蛇王
+// Shan Hai Jing Apex Boss Entity (南山经): 【山海凶兽】苍梧渊·吞象巴蛇王
 
 this.wx_boss_bashe <- this.inherit("scripts/entity/tactical/enemies/serpent", {
 	m = {},

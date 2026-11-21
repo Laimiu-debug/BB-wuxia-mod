@@ -25,7 +25,21 @@ this.wx_stronghold <- this.inherit("scripts/entity/world/location", {
 	function onInit()
 	{
 		this.location.onInit();
-		this.addSprite("body").setBrush(::Wuxia.Config.Strongholds[this.m.WX_Site].Brush);
+		local b = ::Wuxia.Config.Strongholds[this.m.WX_Site].Brush;
+		if ("doesBrushExist" in getroottable() && !::doesBrushExist(b))
+		{
+			local pool = [
+				"wx_lair_kaiming", "wx_lair_jinwu", "wx_lair_zouyu", "wx_lair_gonggong",
+				"wx_lair_wuluo", "wx_lair_siwang", "wx_lair_jiufeng", "wx_lair_mingshe",
+				"wx_lair_huashe", "wx_lair_fuzhu", "wx_lair_chenghuang", "wx_lair_dangkang",
+				"wx_lair_boshi", "wx_lair_jiao", "wx_lair_bingyi", "wx_lair_qiangliang"
+			];
+			local h = 0;
+			local k = (this.m.WX_Site != null) ? ("" + this.m.WX_Site) : "x";
+			for (local i = 0; i < k.len(); i = ++i) h = (h * 31 + k[i]) & 0x3FFFFFFF;
+			b = pool[h % pool.len()];
+		}
+		this.addSprite("body").setBrush(b);
 	}
 
 	function onSpawned()
@@ -43,9 +57,21 @@ this.wx_stronghold <- this.inherit("scripts/entity/world/location", {
 			extra.initPages(def.ExtraManual, 1);
 			this.m.Loot.add(extra);
 		}
-		if (def.GivesHerb) this.m.Loot.add(::new("scripts/items/misc/wx_marrow_herb"));
-		local relic = ::Wuxia.Relics.createRandomRelic();
-		if (relic != null) this.m.Loot.add(relic);
+		local isSH = ("IsShanHai" in def) && def.IsShanHai;
+		if (def.GivesHerb && (isSH || ::Math.rand(1, 100) <= 40))
+			this.m.Loot.add(::new("scripts/items/misc/wx_marrow_herb"));
+		if (isSH)
+		{
+			local shHerb = ::Wuxia.ShanHai.createRandomHerb(true);
+			if (shHerb != null) this.m.Loot.add(shHerb);
+			local shRelic = (::Math.rand(1, 100) <= 68) ? ::Wuxia.Relics.createRandomShanHaiRelic() : ::Wuxia.Relics.createRandomRelic();
+			if (shRelic != null) this.m.Loot.add(shRelic);
+		}
+		else if (::Math.rand(1, 100) <= 30)
+		{
+			local relic = ::Wuxia.Relics.createRandomRelic();
+			if (relic != null) this.m.Loot.add(relic);
+		}
 		this.getFlags().set("wx_garrison_ready", true);
 	}
 

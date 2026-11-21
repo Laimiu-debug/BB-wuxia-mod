@@ -7,11 +7,15 @@ this.wx_sword_tianwai <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_sword_tianwai";
+		this.m.WX_VfxBrush <- "wx_vfx_07";
+		this.m.WX_AnimID <- "wx_anim_02";
+		this.m.WX_AnimMode <- "flying_虹";
+		this.m.WX_ChoreoID <- "wx_sword_tianwai";
 		this.m.Name = "天外一剑";
 		this.m.Description = "剑道极境孤本绝招：消耗 7 AP 与 36 内息，贯出两格剑气直透经脉（伤害 +25%，额外穿甲 +20%，并留破绽）。";
-		this.m.Icon = "skills/active_07.png";
-		this.m.IconDisabled = "skills/active_07_sw.png";
-		this.m.Overlay = "active_52";
+		this.m.Icon = "skills/wx_sword_tianwai.png";
+		this.m.IconDisabled = "skills/wx_sword_tianwai_sw.png";
+		this.m.Overlay = "wx_ov_wx_sword_tianwai";
 		this.m.SoundOnUse = [
 			"sounds/combat/slash_03.wav"
 		];
@@ -38,6 +42,7 @@ this.wx_sword_tianwai <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local target = _targetTile.getEntity();
 		local hit = this.attackEntity(_user, target);
 		if (hit && target != null && target.isAlive())

@@ -1,0 +1,1570 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>武侠 Mod · 人物界面三页签 UI 预览</title>
+<link rel="stylesheet" href="wx_tokens.css">
+<style>
+/* ============================================================================
+ * 布局层（只用 absolute / float / inline-block，可直接迁入 CoherentUI）
+ * 预览以 1rem = 20px 设计后整体 transform 缩放，规避中文 Chrome 最小字号钳制。
+ * ============================================================================ */
+html { font-size: 20px; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #060403; }
+body {
+	background: radial-gradient(ellipse at 50% 40%, #2a2016 0%, #120d09 55%, #050302 100%);
+}
+#stage { position: absolute; left: 0; top: 0; width: 142.1rem; height: 90.6rem; transform-origin: 0 0; }
+.cs {
+	position: absolute; left: 0; top: 0; width: 142.1rem; height: 90.6rem;
+	background: url("../../mod_wuxia/gfx/ui/wx_skin/wx_background_inventory.png") no-repeat 0 0;
+	background-size: 142.1rem 90.6rem;
+}
+.area { position: absolute; }
+.grid-on .area, .grid-on .zone { outline: 1px dashed rgba(111,179,154,0.75); }
+.grid-on .area:after, .grid-on .zone:after {
+	content: attr(data-dim); position: absolute; right: 0; top: 0; z-index: 99; padding: 0 0.3rem;
+	font: bold 0.9rem/1.3rem monospace; color: #9fd6c1; background: rgba(0,0,0,0.75); pointer-events: none;
+}
+.zone { position: absolute; }
+
+/* 滚动条（预览仿 aciScrollBar 细金条） */
+.scroll { overflow-y: auto; overflow-x: hidden; }
+.scroll::-webkit-scrollbar { width: 0.6rem; }
+.scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.35); }
+.scroll::-webkit-scrollbar-thumb { background: var(--wx-gold-700); border: 1px solid var(--wx-gold-600); }
+
+/* ---------------- 预览工具条（占用背景图顶部空白，不属于游戏界面） ---------------- */
+.pv-bar { position: absolute; left: 21.5rem; right: 17.9rem; top: 3.2rem; height: 6rem; }
+.pv-title { float: left; }
+.pv-title h1 { margin: 0; font-family: var(--wx-font-title); font-weight: normal; font-size: 2.6rem; line-height: 3.2rem; color: var(--wx-gold-200); letter-spacing: 0.1em; text-shadow: 0 2px 6px #000; }
+.pv-title p { margin: 0; font-size: 1.1rem; color: var(--wx-text-dim); }
+.pv-tools { float: right; padding-top: 1.4rem; }
+.pv-tools .wx-btn { margin-left: 0.4rem; }
+.pv-notes {
+	position: absolute; right: 1.2rem; top: 10.4rem; width: 30rem; z-index: 800; display: none;
+	max-height: 76rem; padding: 1rem 1.2rem; font-size: 1.1rem; line-height: 1.65rem;
+	background: rgba(14,10,7,0.97); border: 1px solid var(--wx-gold-500); box-shadow: 0 6px 24px rgba(0,0,0,0.9);
+}
+.pv-notes h3 { margin: 0.6rem 0 0.3rem 0; font-family: var(--wx-font-title); font-weight: normal; font-size: 1.6rem; color: var(--wx-gold-300); }
+.pv-notes ul { margin: 0; padding-left: 1.3rem; }
+.pv-notes li { margin-bottom: 0.25rem; }
+.pv-notes b { color: var(--wx-text-hi); }
+
+/* ============================================================================
+ * 左栏：人物抬头
+ * ============================================================================ */
+.lh { left: 21.5rem; top: 12.9rem; width: 33.4rem; height: 8.2rem; }
+.lh-crest { position: absolute; left: 0.8rem; top: 0.9rem; width: 6.2rem; height: 6.2rem; }
+.lh-crest img { width: 100%; height: 100%; }
+.lh-name { position: absolute; left: 7.6rem; top: 0.6rem; font-size: 2.3rem; line-height: 3rem; color: var(--wx-gold-200); text-shadow: 0 2px 3px #000; }
+.lh-sub { position: absolute; left: 7.6rem; top: 3.5rem; font-size: 1.08rem; color: var(--wx-text-dim); white-space: nowrap; }
+.lh-lvl {
+	position: absolute; right: 0.9rem; top: 0.8rem; width: 4.8rem; height: 4.8rem; border-radius: 50%; text-align: center;
+	background: radial-gradient(circle at 50% 35%, #3b2a18, #140e09); border: 1px solid var(--wx-gold-500);
+	box-shadow: inset 0 0 0 3px #140e09, inset 0 0 0 4px var(--wx-gold-700), 0 2px 5px #000;
+}
+.lh-lvl span { display: block; font-size: 2.2rem; line-height: 3.3rem; color: var(--wx-gold-200); }
+.lh-lvl em { display: block; margin-top: -0.7rem; font-style: normal; font-size: 0.95rem; color: var(--wx-text-dim); }
+.lh-xp { position: absolute; left: 7.6rem; right: 6.6rem; top: 5.6rem; }
+.lh-xptext { position: absolute; left: 7.6rem; right: 6.6rem; top: 6.25rem; font-size: 0.95rem; color: var(--wx-text-mute); text-align: right; }
+
+/* ============================================================================
+ * 左栏：纸娃娃
+ * ============================================================================ */
+.doll { left: 21.5rem; top: 21.3rem; width: 33.4rem; height: 34.2rem; }
+.doll .wx-slot { position: absolute; }
+.doll .wx-slot.is-empty > img.wx-item { opacity: 0.22; }
+.doll .tall { height: 10.6rem; }
+.doll .tall > img.wx-item { top: 16%; height: 68%; }
+.doll .bag { width: 5.2rem; height: 5.2rem; }
+.doll-tag { position: absolute; font-size: 0.95rem; color: var(--wx-text-mute); text-align: center; width: 6.2rem; }
+.doll-top { position: absolute; left: 0.8rem; right: 0.8rem; top: 0.8rem; height: 2.4rem; }
+.doll-top .wx-btn { float: left; }
+.doll-top .weight { float: right; font-size: 1rem; line-height: 2.4rem; color: var(--wx-text-dim); }
+
+/* 左栏：特质与状态 */
+.traits { left: 21.5rem; top: 55.7rem; width: 33.4rem; height: 8.8rem; padding: 0.5rem 0.9rem; }
+.traits .wx-skill { width: 3.6rem; height: 3.6rem; margin-top: 0.3rem; }
+
+/* 左栏：属性 */
+.stats { left: 21.5rem; top: 64.7rem; width: 33.4rem; height: 25.4rem; padding: 1rem 0.5rem 0 0.7rem; }
+.st-col { float: left; width: 15.7rem; }
+.st-col + .st-col { margin-left: 0.5rem; }
+.st-row { position: relative; height: 3.75rem; cursor: default; }
+.st-row img.ico { position: absolute; left: 0; top: 0.35rem; width: 2.1rem; height: 2.1rem; }
+.st-row .lbl { position: absolute; left: 2.5rem; top: 0; font-size: 0.95rem; line-height: 1.2rem; color: var(--wx-text-dim); }
+.st-row .wx-bar { position: absolute; left: 2.5rem; top: 1.25rem; width: 10.3rem; }
+.st-row img.star { position: absolute; left: 13.1rem; top: 1.35rem; height: 1.3rem; }
+.st-row:hover .lbl { color: var(--wx-gold-300); }
+
+/* ============================================================================
+ * 右栏：顶栏三页签
+ * ============================================================================ */
+.rh { left: 55.1rem; top: 12.9rem; width: 69.1rem; height: 3.6rem; }
+.rh-tabs { position: absolute; left: 10rem; right: 5rem; bottom: 0; text-align: center; white-space: nowrap; }
+.rh-left { position: absolute; left: 0.7rem; top: 0.55rem; }
+.rh-left .wx-btn { padding: 0 0.5rem; margin-right: 0.2rem; }
+.rh-close { position: absolute; right: 0.8rem; top: 0.5rem; }
+.rh-close .wx-seal-close { width: 2.5rem; height: 2.5rem; line-height: 2.25rem; transform: none; }
+
+.rb { left: 55.1rem; top: 16.7rem; width: 69.1rem; height: 47.8rem; }
+.pane { position: absolute; left: 0.6rem; top: 0.6rem; right: 0.6rem; bottom: 0.6rem; display: none; }
+.pane.is-on { display: block; }
+
+/* ---------------- 页签一：兵甲行囊 ---------------- */
+.inv-grid { position: absolute; left: 0; top: 0; right: 0; bottom: 4.6rem; padding: 0.1rem 0 0 0.25rem; }
+.inv-grid .wx-slot { width: 5.98rem; height: 5.98rem; margin: 0 0.08rem 0.1rem 0; float: left; cursor: pointer; }
+.inv-grid .wx-slot.is-dim { opacity: 0.25; }
+.inv-foot { position: absolute; left: 0; right: 0; bottom: 0; height: 4.2rem; padding: 0.8rem 0.6rem 0 0.6rem; border-top: 1px solid var(--wx-gold-700); }
+.inv-cap { float: left; width: 12rem; margin-right: 1rem; }
+.inv-cap .t { font-size: 0.95rem; color: var(--wx-text-dim); line-height: 1.2rem; }
+.inv-cap .wx-bar { height: 1.2rem; margin-top: 0.2rem; }
+.inv-cap .wx-bar .wx-val { line-height: 1.05rem; font-size: 0.95rem; }
+.inv-filters { float: left; margin-top: -0.1rem; }
+.inv-foot .wx-btn { float: right; }
+
+/* ---------------- 页签二：武学修为 ---------------- */
+.wx-status { left: 0; top: 0; right: 0; height: 2.8rem; line-height: 2.8rem; white-space: nowrap; }
+.ap-pips { display: inline-block; vertical-align: middle; height: 2rem; line-height: 2rem; padding: 0 0.6rem 0 0.4rem; margin-right: 0.5rem; background: var(--wx-wood-950); border: 1px solid var(--wx-gold-800); box-shadow: var(--wx-shadow-well); cursor: default; }
+.ap-pips img { width: 1.5rem; height: 1.5rem; vertical-align: middle; margin: -0.2rem 0.35rem 0 0; }
+.ap-pips i { display: inline-block; vertical-align: middle; width: 0.75rem; height: 1.15rem; margin-right: 0.12rem; background: var(--wx-bar-ap); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3); margin-top: -0.15rem; }
+.ap-pips i.is-perm { background: var(--wx-gold-200); box-shadow: 0 0 0.35rem rgba(247,231,184,0.8); }
+.ap-pips i.is-cap { background: transparent; border: 1px dashed var(--wx-gold-700); width: 0.75rem; }
+.ap-pips b { margin-left: 0.4rem; color: var(--wx-gold-300); font-size: var(--wx-fs-small); }
+.wx-status .right { position: absolute; right: 0; top: 0; }
+
+.meridian { left: 0; top: 3.2rem; right: 0; height: 13.4rem; background: rgba(0,0,0,0.28); border: 1px solid var(--wx-gold-800); box-shadow: inset 0 0 2rem rgba(0,0,0,0.6); }
+.mer-line { position: absolute; height: 2px; top: 6.4rem; background: var(--wx-gold-500); box-shadow: 0 0 0.4rem rgba(216,179,106,0.5); }
+.mer-line.is-dim { background: none; border-top: 2px dotted var(--wx-gold-700); box-shadow: none; }
+.mer-group { position: absolute; top: 0.35rem; height: 1.4rem; line-height: 1.2rem; text-align: center; font-size: 0.95rem; color: var(--wx-text-mute); letter-spacing: 0.3em; border-top: 1px solid var(--wx-gold-800); }
+.mer-col { position: absolute; top: 1.7rem; width: 8.6rem; height: 11.5rem; text-align: center; cursor: pointer; border: 1px solid transparent; }
+.mer-col:hover { background: rgba(216,179,106,0.05); border-color: var(--wx-gold-800); }
+.mer-col.is-sel { background: rgba(216,179,106,0.09); border-color: var(--wx-gold-600); }
+.mer-col.is-sel:before { content: ''; position: absolute; left: 50%; top: -0.1rem; margin-left: -0.45rem; border: 0.45rem solid transparent; border-top-color: var(--wx-gold-400); }
+.mer-col.is-drop-ok { border: 1px dashed var(--wx-jade-400); background: rgba(74,140,117,0.16); }
+.mer-col.is-drop-no { opacity: 0.35; }
+.mer-role { height: 1.5rem; line-height: 1.5rem; font-size: 1rem; font-weight: bold; color: var(--wx-text-dim); white-space: nowrap; }
+.mer-col.is-dantian .mer-role { color: var(--wx-gold-300); }
+.mer-box { position: relative; width: 6.2rem; height: 6.2rem; margin: 0.1rem auto 0 auto; background: url("../../mod_wuxia/gfx/ui/wx_skin/wx_slot_acupoint.png") no-repeat center; background-size: 100% 100%; }
+.mer-col.is-dantian .mer-box { width: 6.8rem; height: 6.8rem; margin-top: -0.2rem; background-image: url("../../mod_wuxia/gfx/ui/wx_skin/wx_slot_dantian.png"); }
+.mer-box img.ic { position: absolute; left: 0.75rem; top: 0.75rem; width: 4.7rem; height: 4.7rem; border-radius: 50%; }
+.mer-col.is-dantian .mer-box img.ic { left: 0.9rem; top: 0.9rem; width: 5rem; height: 5rem; }
+.mer-box.is-off img.ic { opacity: 0.4; filter: grayscale(0.8); }
+.mer-box .plus { display: block; line-height: 6.2rem; font-size: 2.4rem; color: var(--wx-gold-700); }
+.mer-box.is-ready .plus { color: var(--wx-jade-400); text-shadow: var(--wx-glow-jade); }
+.mer-box.is-locked { opacity: 0.55; }
+.mer-box .lock { display: block; padding-top: 1.6rem; font-family: var(--wx-font-title); font-size: 1.5rem; line-height: 1.6rem; color: var(--wx-text-mute); }
+.mer-box .lock small { display: block; font-family: var(--wx-font-body); font-size: 0.95rem; }
+.mer-box .wx-badge { z-index: 4; }
+.mer-tiers { height: 1.1rem; line-height: 1.1rem; margin-top: 0.2rem; }
+.mer-col.is-dantian .mer-tiers { margin-top: -0.25rem; }
+.mer-exp { width: 6.2rem; height: 0.55rem; margin: 0.2rem auto 0 auto; }
+.mer-name { height: 1.7rem; line-height: 1.7rem; margin-top: 0.05rem; padding: 0 0.2rem; font-size: 1.1rem; font-weight: bold; color: var(--wx-text-hi); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mer-name.is-empty { font-weight: normal; color: var(--wx-text-mute); }
+.mer-name.is-ready { color: var(--wx-jade-300); }
+
+.moves { left: 0; top: 17rem; width: 40.4rem; height: 5rem; padding: 0.55rem 0.6rem; background: rgba(0,0,0,0.22); border: 1px solid var(--wx-gold-800); white-space: nowrap; overflow: hidden; }
+.moves .lab { display: inline-block; vertical-align: middle; width: 3.6rem; margin-right: 0.4rem; text-align: center; line-height: 1.4rem; }
+.moves .lab b { display: block; font-size: 1.05rem; color: var(--wx-gold-300); }
+.moves .lab span { font-size: 0.95rem; color: var(--wx-text-mute); }
+.moves .empty-cap { display: inline-block; vertical-align: middle; width: 3.8rem; height: 3.8rem; margin-right: 0.35rem; border: 1px dashed var(--wx-gold-800); }
+.passives { left: 41rem; top: 17rem; right: 0; height: 5rem; padding: 0.3rem 0.7rem; background: rgba(0,0,0,0.22); border: 1px solid var(--wx-gold-800); }
+.passives .hd { height: 1.5rem; line-height: 1.5rem; font-size: 0.95rem; color: var(--wx-text-mute); white-space: nowrap; }
+.passives .hd b { color: var(--wx-gold-300); font-size: 1rem; margin-right: 0.4rem; }
+.pv-stat { float: left; width: 33.3%; height: 1.55rem; line-height: 1.55rem; font-size: 1.02rem; white-space: nowrap; cursor: default; }
+.pv-stat span { color: var(--wx-text-dim); margin-right: 0.3rem; }
+.pv-stat b { color: var(--wx-pos); }
+.pv-stat b.is-cap { color: var(--wx-amber-400); }
+.pv-stat:hover span { color: var(--wx-gold-300); }
+
+.lower-l { left: 0; top: 22.6rem; width: 40.4rem; bottom: 0; }
+.shelf-bar { position: absolute; left: 0; right: 0; top: 0; height: 2.6rem; border-bottom: 1px solid var(--wx-gold-800); white-space: nowrap; }
+.shelf-bar .r { position: absolute; right: 0; top: 0.05rem; }
+.shelf-bar .wx-input { width: 8.6rem; height: 2.3rem; margin-left: 0.4rem; }
+.shelf-hint { position: absolute; left: 0; right: 0; top: 2.9rem; height: 2rem; line-height: 2rem; padding: 0 0.6rem; font-size: 1rem; color: var(--wx-text-dim); background: rgba(31,61,51,0.35); border-left: 3px solid var(--wx-jade-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shelf-hint b { color: var(--wx-jade-300); }
+.shelf-hint.is-lock { background: rgba(0,0,0,0.3); border-left-color: var(--wx-gold-700); }
+.shelf-list { position: absolute; left: 0; right: 0; top: 5.3rem; bottom: 0; padding-right: 0.3rem; }
+
+.mcard {
+	position: relative; float: left; width: 19.5rem; height: 5.4rem; margin: 0 0.4rem 0.4rem 0; padding: 0.55rem 0.6rem 0 5.6rem;
+	background: var(--wx-wood-800); border: 1px solid var(--wx-gold-800); border-left: 3px solid var(--wx-gold-800); cursor: pointer;
+	transition: background-color var(--wx-dur-fast);
+}
+.mcard:nth-child(2n) { margin-right: 0; }
+.mcard:hover { background: var(--wx-wood-750); border-color: var(--wx-gold-700); }
+.mcard.is-insp { border-color: var(--wx-gold-500); box-shadow: inset 0 0 0 1px rgba(216,179,106,0.25); }
+.mcard.is-fit { border-left-color: var(--wx-jade-400); }
+.mcard.is-unfit { opacity: 0.5; }
+.mcard .ic { position: absolute; left: 0.55rem; top: 0.5rem; width: 4.3rem; height: 4.3rem; }
+.mcard .ic img { position: absolute; left: 0.25rem; top: 0.25rem; width: 3.7rem; height: 3.7rem; }
+.mcard .ic.round { border-radius: 50%; }
+.mcard .nm { font-size: 1.15rem; font-weight: bold; color: var(--wx-text-hi); line-height: 1.6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 3.6rem; }
+.mcard .sb { font-size: 0.95rem; color: var(--wx-text-dim); line-height: 1.35rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 3.6rem; }
+.mcard .pr { margin-top: 0.2rem; white-space: nowrap; height: 1.2rem; line-height: 1.2rem; font-size: 0.95rem; color: var(--wx-text-mute); }
+.mcard .pr .wx-bar-thin { display: inline-block; vertical-align: middle; width: 5.6rem; margin: -0.1rem 0.4rem 0 0.2rem; }
+.mcard .act { position: absolute; right: 0.5rem; top: 0.55rem; }
+.mcard .seal-tag {
+	position: absolute; right: 0.5rem; top: 0.55rem; width: 2.6rem; padding: 0.15rem 0; text-align: center;
+	font-family: var(--wx-font-title); font-size: 1.05rem; line-height: 1.2rem; color: var(--wx-gold-200);
+	border: 1px solid var(--wx-gold-500); background: rgba(216,179,106,0.1);
+}
+.shelf-empty { padding: 3rem 2rem; text-align: center; color: var(--wx-text-mute); font-size: 1.1rem; line-height: 1.8rem; }
+
+.insp-wx { left: 41rem; top: 22.6rem; right: 0; bottom: 0; }
+
+/* ---------------- 页签三：藏经阁 ---------------- */
+.lib-top { left: 0; top: 0; right: 0; height: 3.2rem; line-height: 3.2rem; white-space: nowrap; border-bottom: 1px solid var(--wx-gold-800); }
+.lib-top .ttl { display: inline-block; vertical-align: middle; font-size: 1.9rem; color: var(--wx-gold-200); margin: 0 0.8rem 0 0.2rem; }
+.lib-top .right { position: absolute; right: 0; top: 0; }
+.lib-top .right > * { margin-left: 0.5rem; }
+.lib-idx { left: 0; top: 3.8rem; width: 10.2rem; bottom: 0; padding: 0.2rem 0.4rem 0 0; border-right: 1px solid var(--wx-gold-800); }
+.idx-h { margin: 0.5rem 0 0.15rem 0.5rem; font-size: 0.95rem; color: var(--wx-text-mute); letter-spacing: 0.25em; }
+.idx-i { position: relative; height: 2.25rem; line-height: 2.25rem; padding: 0 0.5rem 0 0.9rem; font-size: 1.08rem; color: var(--wx-text-dim); cursor: pointer; white-space: nowrap; border-left: 2px solid transparent; }
+.idx-i:hover { color: var(--wx-text-hi); background: rgba(216,179,106,0.05); }
+.idx-i.is-on { color: var(--wx-gold-200); border-left-color: var(--wx-gold-400); background: rgba(216,179,106,0.1); }
+.idx-i .n { position: absolute; right: 0.4rem; top: 0; color: var(--wx-text-mute); font-size: 0.95rem; }
+.idx-i .dot { display: inline-block; width: 0.65rem; height: 0.65rem; margin: -0.1rem 0.45rem 0 0; vertical-align: middle; transform: rotate(45deg); }
+.lib-idx .wx-check { display: block; margin: 0.45rem 0 0 0.9rem; font-size: 1.02rem; }
+
+.lib-mid { left: 10.8rem; top: 3.8rem; width: 30.2rem; bottom: 0; }
+.lib-tool { position: absolute; left: 0; right: 0; top: 0; height: 2.6rem; white-space: nowrap; }
+.lib-tool .wx-input { width: 12.4rem; height: 2.4rem; }
+.lib-tool .r { position: absolute; right: 0; top: 0; }
+.seg { display: inline-block; vertical-align: middle; border: 1px solid var(--wx-gold-700); }
+.seg span { display: inline-block; height: 2.2rem; line-height: 2.2rem; padding: 0 0.6rem; font-size: 1rem; font-weight: bold; color: var(--wx-text-dim); cursor: pointer; }
+.seg span.is-on { background: rgba(216,179,106,0.15); color: var(--wx-gold-200); }
+.lib-grid { position: absolute; left: 0; right: 0; top: 3rem; bottom: 0; padding-right: 0.3rem; }
+
+.lcard {
+	position: relative; float: left; width: 14.4rem; height: 6.1rem; margin: 0 0.4rem 0.4rem 0; padding: 0.55rem 0.5rem 0 5.6rem;
+	background: var(--wx-wood-800); border: 1px solid var(--wx-gold-800); cursor: pointer;
+}
+.lcard:nth-child(2n) { margin-right: 0; }
+.lcard:hover { background: var(--wx-wood-750); border-color: var(--wx-gold-700); }
+.lcard.is-insp { border-color: var(--wx-gold-500); box-shadow: inset 0 0 0 1px rgba(216,179,106,0.25); }
+.lcard.is-learned { opacity: 0.55; }
+.lcard .wx-slot { position: absolute; left: 0.5rem; top: 0.5rem; width: 4.8rem; height: 4.8rem; }
+.lcard .nm { font-size: 1.12rem; font-weight: bold; color: var(--wx-text-hi); line-height: 1.55rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lcard .sb { font-size: 0.95rem; line-height: 1.35rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--wx-text-dim); }
+.lcard .st { font-size: 0.95rem; line-height: 1.5rem; white-space: nowrap; overflow: hidden; color: var(--wx-text-mute); }
+.lcard .st.ok { color: var(--wx-jade-300); }
+.lcard .st.hot { color: var(--wx-cinnabar-300); font-weight: bold; }
+.pips { display: inline-block; vertical-align: middle; margin: -0.15rem 0.3rem 0 0; }
+.pips i { display: inline-block; width: 0.8rem; height: 0.8rem; margin-right: 0.12rem; background: var(--wx-wood-950); border: 1px solid var(--wx-gold-700); }
+.pips i.on { background: #5d87ad; border-color: #9cc3e6; }
+.pips.is-ready i.on { background: var(--wx-cinnabar-400); border-color: #f0a08a; }
+
+/* 书架视图：线装书脊 + 竖排题签（逐字换行，旧 WebKit 安全） */
+.shelf-row { position: relative; height: 14.4rem; padding: 0.4rem 0 0 0.3rem; white-space: nowrap; }
+.shelf-row:after { content: ''; position: absolute; left: 0; right: 0; bottom: 0.4rem; height: 0.85rem; background: linear-gradient(to bottom, #5a3d24, #2b1c10); border-top: 1px solid #8a6438; box-shadow: 0 0.3rem 0.5rem rgba(0,0,0,0.7); }
+.spine {
+	position: relative; display: inline-block; vertical-align: bottom; width: 2.65rem; height: 12.6rem; margin-right: 0.18rem; cursor: pointer;
+	border: 1px solid rgba(0,0,0,0.7); box-shadow: inset 0.25rem 0 0.3rem rgba(255,255,255,0.08), inset -0.3rem 0 0.4rem rgba(0,0,0,0.45);
+}
+.spine:hover { transform: translateY(-0.4rem); }
+.spine.is-insp { transform: translateY(-0.7rem); box-shadow: 0 0 0 1px var(--wx-gold-300), var(--wx-glow-gold); }
+.spine.q-common { background: #6e604a; }
+.spine.q-sect   { background: #2c4766; }
+.spine.q-secret { background: #4b2f66; }
+.spine.q-unique { background: #7d5a1b; background-image: linear-gradient(to right, rgba(255,220,140,0.15), rgba(0,0,0,0.15)); }
+.spine.is-page { width: 2.2rem; height: 10.6rem; background: #c9b791 !important; border-top: 2px dashed #8a7650; }
+.spine .stitch { position: absolute; right: 0.25rem; top: 0.6rem; bottom: 0.6rem; width: 0; border-right: 1px dashed rgba(255,240,210,0.35); }
+.spine .slip { position: absolute; left: 0.4rem; top: 0.8rem; width: 1.55rem; padding: 0.25rem 0; background: #e8dcc0; border: 1px solid #8f7650; text-align: center; font-family: var(--wx-font-title); font-size: 1.05rem; line-height: 1.15rem; color: #22170f; white-space: normal; }
+.spine.is-page .slip { left: 0.25rem; background: transparent; border: none; color: #3a2a18; }
+.spine .cnt { position: absolute; left: 0; right: 0; bottom: 0.3rem; text-align: center; font-size: 0.95rem; font-weight: bold; color: #f3e8cf; text-shadow: 0 1px 2px #000; }
+.spine.is-page .cnt { color: #5a1d12; text-shadow: none; }
+.spine .learned-dot { position: absolute; left: 50%; bottom: 1.8rem; margin-left: -0.45rem; width: 0.9rem; height: 0.9rem; border-radius: 50%; background: var(--wx-jade-400); box-shadow: var(--wx-glow-jade); }
+.spine.is-ready { box-shadow: 0 0 0 1px var(--wx-cinnabar-400), var(--wx-glow-cinnabar); }
+
+.insp-lib { left: 41.5rem; top: 3.8rem; right: 0; bottom: 0; }
+
+/* ============================================================================
+ * 右下：出战阵型 2×9
+ * ============================================================================ */
+.roster { left: 55.1rem; top: 64.7rem; width: 69.1rem; height: 25.4rem; padding: 1.1rem 0 0 0.95rem; }
+.ro-cell { position: relative; float: left; width: 7.2rem; height: 11.3rem; margin: 0 0.3rem 0.5rem 0; overflow: hidden; cursor: pointer; }
+.ro-cell.is-sel { border-color: var(--wx-gold-300); box-shadow: var(--wx-shadow-well), 0 0 0 1px var(--wx-gold-400), var(--wx-glow-gold); }
+.ro-cell svg { position: absolute; left: 0.2rem; top: 0.6rem; width: 6.8rem; height: 9rem; }
+.ro-cell .nm { position: absolute; left: 0; right: 0; bottom: 0; height: 1.9rem; line-height: 1.9rem; text-align: center; font-size: 1rem; font-weight: bold; color: var(--wx-text); background: rgba(0,0,0,0.72); border-top: 1px solid var(--wx-gold-800); white-space: nowrap; overflow: hidden; }
+.ro-cell.is-sel .nm { color: var(--wx-gold-200); }
+.ro-cell .lv { position: absolute; left: 0.25rem; top: 0.25rem; min-width: 1.7rem; height: 1.7rem; line-height: 1.55rem; text-align: center; font-size: 0.95rem; font-weight: bold; color: var(--wx-gold-200); background: #140e09; border: 1px solid var(--wx-gold-600); border-radius: 50%; z-index: 2; }
+.ro-cell .mood { position: absolute; right: 0.35rem; top: 0.4rem; width: 0.8rem; height: 0.8rem; border-radius: 50%; z-index: 2; box-shadow: 0 0 0.3rem currentColor; }
+.ro-cell .up { position: absolute; right: 0.2rem; top: 1.5rem; z-index: 2; font-size: 1rem; font-weight: bold; color: var(--wx-gold-200); background: var(--wx-cinnabar-500); padding: 0 0.25rem; border-radius: 0.15rem; }
+.ro-cell.is-empty { cursor: default; opacity: 0.6; }
+.ro-row-tag { position: absolute; right: 0.6rem; font-size: 0.95rem; color: var(--wx-text-mute); }
+
+/* ============================================================================
+ * 弹窗内部：洗经伐髓 / 换装 / 灌注
+ * ============================================================================ */
+.wash-l { float: left; width: 34rem; }
+.wash-r { float: right; width: 21rem; padding: 0.9rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid var(--wx-gold-800); }
+.wash-step { margin: 0.2rem 0 0.5rem 0; font-size: 1.05rem; font-weight: bold; color: var(--wx-gold-300); }
+.attr-t {
+	position: relative; float: left; width: 16.7rem; height: 3.4rem; margin: 0 0.5rem 0.5rem 0; padding: 0 0.8rem;
+	line-height: 3.4rem; background: var(--wx-wood-800); border: 1px solid var(--wx-gold-800); cursor: pointer; white-space: nowrap;
+}
+.attr-t:nth-child(2n) { margin-right: 0; }
+.attr-t:hover { border-color: var(--wx-gold-600); background: var(--wx-wood-750); }
+.attr-t .an { font-size: 1.15rem; font-weight: bold; color: var(--wx-text-hi); }
+.attr-t .av { margin-left: 0.4rem; color: var(--wx-text-dim); font-size: 1rem; }
+.attr-t img { position: absolute; right: 0.7rem; top: 1rem; height: 1.35rem; }
+.attr-t .none { position: absolute; right: 0.8rem; top: 0; font-size: 0.95rem; color: var(--wx-text-mute); }
+.attr-t.is-sel { border-color: var(--wx-gold-400); background: #3a2a17; box-shadow: var(--wx-glow-gold); }
+.attr-t.is-rep { border-color: var(--wx-cinnabar-400); background: rgba(94,26,17,0.6); }
+.attr-t.is-max { opacity: 0.45; cursor: default; }
+.odds-big { font-family: var(--wx-font-title); font-size: 4.4rem; line-height: 5rem; color: var(--wx-gold-200); text-align: center; }
+.odds-cap { text-align: center; font-size: 1rem; color: var(--wx-text-dim); margin-bottom: 0.6rem; }
+.odds-row { font-size: 1.02rem; line-height: 1.65rem; white-space: nowrap; }
+.odds-row span { float: right; }
+.risk { margin-top: 0.6rem; padding: 0.5rem 0.7rem; font-size: 1rem; line-height: 1.55rem; color: #f0b4a2; background: rgba(94,26,17,0.45); border-left: 3px solid var(--wx-cinnabar-400); }
+.swap-row { height: 10.6rem; text-align: center; white-space: nowrap; }
+.swap-row .wx-slot { width: 6.4rem; height: 6.4rem; border-radius: 50%; }
+.swap-row .arrow { display: inline-block; vertical-align: top; margin: 2rem 1.6rem 0 1.6rem; font-size: 2rem; color: var(--wx-gold-400); }
+.swap-cap { display: inline-block; vertical-align: top; width: 12rem; text-align: center; }
+.swap-cap .n { margin-top: 0.3rem; font-size: 1.1rem; font-weight: bold; color: var(--wx-text-hi); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.swap-cap .s { font-size: 0.95rem; color: var(--wx-text-dim); }
+.note-box { margin-top: 0.8rem; padding: 0.6rem 0.8rem; font-size: 1.05rem; line-height: 1.65rem; background: rgba(0,0,0,0.3); border-left: 3px solid var(--wx-amber-400); }
+.note-box.ok { border-left-color: var(--wx-jade-400); }
+.pick-row { position: relative; height: 4.6rem; margin-bottom: 0.4rem; padding: 0.5rem 0.8rem 0 5.2rem; background: var(--wx-wood-800); border: 1px solid var(--wx-gold-800); cursor: pointer; }
+.pick-row:hover { border-color: var(--wx-gold-500); background: var(--wx-wood-750); }
+.pick-row .wx-slot { position: absolute; left: 0.5rem; top: 0.4rem; width: 3.8rem; height: 3.8rem; }
+.pick-row .n { font-weight: bold; color: var(--wx-text-hi); }
+.pick-row .s { font-size: 0.98rem; color: var(--wx-text-dim); }
+.pick-row .g { position: absolute; right: 1rem; top: 1.2rem; font-weight: bold; color: var(--wx-jade-300); }
+
+/* 拖拽幽灵 */
+.drag-ghost { position: absolute; z-index: 980; width: 5rem; height: 5rem; margin: -2.5rem 0 0 -2.5rem; pointer-events: none; border-radius: 50%; border: 1px solid var(--wx-jade-400); box-shadow: var(--wx-glow-jade); background: #000; opacity: 0.92; }
+.drag-ghost img { width: 100%; height: 100%; border-radius: 50%; }
+</style>
+</head>
+<body>
+<div id="stage">
+	<div class="cs wx-root" id="cs">
+
+		<!-- 预览工具条（非游戏界面） -->
+		<div class="pv-bar">
+			<div class="pv-title">
+				<h1>人物界面 · 三页签重制预览</h1>
+				<p>乌木为骨 · 鎏金为界 · 骨白为文 · 朱砂为印 · 石青为气 —— 数据均为模拟，可直接点按 / 拖拽 / 右键体验交互</p>
+			</div>
+			<div class="pv-tools">
+				<div class="wx-btn wx-btn-sm" data-act="pv-notes">设计说明</div>
+				<div class="wx-btn wx-btn-sm" data-act="pv-grid">布局网格</div>
+				<div class="wx-btn wx-btn-sm" data-act="pv-reset">重置数据</div>
+				<a class="wx-btn wx-btn-sm wx-btn-primary" href="design_tokens_v1.html" style="text-decoration:none;">设计令牌 / 组件库 →</a>
+			</div>
+		</div>
+		<div class="pv-notes scroll" id="pv-notes"></div>
+
+		<!-- 左栏 -->
+		<div class="area lh" id="lh" data-dim="33.4×8.2rem"></div>
+		<div class="area doll" id="doll" data-dim="33.4×34.2rem"></div>
+		<div class="area traits" id="traits" data-dim="33.4×8.8rem"></div>
+		<div class="area stats" id="stats" data-dim="33.4×25.4rem"></div>
+
+		<!-- 右栏 -->
+		<div class="area rh" data-dim="69.1×3.6rem">
+			<div class="rh-left" id="rh-left"></div>
+			<div class="rh-tabs" id="rh-tabs"></div>
+			<div class="rh-close"><div class="wx-seal-close" data-tip="close">×</div></div>
+		</div>
+		<div class="area rb" data-dim="69.1×47.8rem">
+			<div class="pane" id="pane-inv">
+				<div class="inv-grid scroll" id="inv-grid"></div>
+				<div class="inv-foot" id="inv-foot"></div>
+			</div>
+			<div class="pane" id="pane-wx">
+				<div class="zone wx-status" id="wx-status" data-dim="67.9×2.8"></div>
+				<div class="zone meridian" id="meridian" data-dim="67.9×13.4"></div>
+				<div class="zone moves" id="moves" data-dim="40.4×5.0"></div>
+				<div class="zone passives" id="passives" data-dim="26.9×5.0"></div>
+				<div class="zone lower-l" data-dim="40.4×24.0">
+					<div class="shelf-bar" id="shelf-bar"></div>
+					<div class="shelf-hint" id="shelf-hint"></div>
+					<div class="shelf-list scroll" id="shelf-list"></div>
+				</div>
+				<div class="zone wx-inspector insp-wx" id="insp-wx" data-dim="26.9×24.0"></div>
+			</div>
+			<div class="pane" id="pane-lib">
+				<div class="zone lib-top" id="lib-top" data-dim="67.9×3.2"></div>
+				<div class="zone lib-idx scroll" id="lib-idx" data-dim="10.2×42.8"></div>
+				<div class="zone lib-mid" data-dim="30.2×42.8">
+					<div class="lib-tool" id="lib-tool"></div>
+					<div class="lib-grid scroll" id="lib-grid"></div>
+				</div>
+				<div class="zone wx-inspector insp-lib" id="insp-lib" data-dim="26.4×42.8"></div>
+			</div>
+		</div>
+		<div class="area roster" id="roster" data-dim="69.1×25.4rem"></div>
+	</div>
+</div>
+
+<script>
+window.onerror = function (msg, src, line) {
+	var d = document.createElement('div');
+	d.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99999;padding:6px 10px;background:#7a1d12;color:#fff;font:12px monospace;';
+	d.textContent = 'JS 错误：' + msg + ' @' + line;
+	document.body.appendChild(d);
+};
+</script>
+<script>
+/* ============================================================================
+ * 预览逻辑 —— 刻意保持 ES3 写法（var / function / 字符串拼接），便于搬进游戏
+ * ============================================================================ */
+(function () {
+	'use strict';
+
+	var G = '../../mod_wuxia/gfx/';
+	var CN = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一'];
+	var SCALE = 1;
+
+	function $(id) { return document.getElementById(id); }
+	function esc(s) { return String(s === null || s === undefined ? '' : s).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split('"').join('&quot;'); }
+	function upTo(el, attr) { while (el && el !== document) { if (el.getAttribute && el.getAttribute(attr) !== null) return el; el = el.parentNode; } return null; }
+	function clone(o) { return JSON.parse(JSON.stringify(o)); }
+	function vertical(s, max) { var out = ''; var n = Math.min(s.length, max); for (var i = 0; i < n; i++) out += s.charAt(i) + '<br>'; if (s.length > max) out += '…'; return out; }
+
+	/* ------------------------------------------------------------------------
+	 * 字典
+	 * ------------------------------------------------------------------------ */
+	var CAT = {
+		neigong:  { label: '内功心法', short: '内功', color: '#e3b85a', emblem: 'ui/perks/wx_emblem_neigong.png' },
+		waigong:  { label: '外功套路', short: '外功', color: '#cf5f3f', emblem: 'ui/perks/wx_emblem_sword.png' },
+		qinggong: { label: '轻功身法', short: '轻功', color: '#57bfb4', emblem: 'ui/perks/wx_emblem_qinggong.png' },
+		henglian: { label: '横练杂学', short: '横练', color: '#b98d55', emblem: 'ui/perks/wx_emblem_henglian.png' }
+	};
+	var QUAL = {
+		common: { label: '大路货', seal: '大路', rank: 1, exp: [0, 80, 180], pages: 0 },
+		sect:   { label: '门派上乘', seal: '上乘', rank: 2, exp: [0, 160, 360], pages: 3 },
+		secret: { label: '绝学', seal: '绝学', rank: 3, exp: [0, 240, 520], pages: 5 },
+		unique: { label: '江湖孤本', seal: '孤本', rank: 4, exp: [0, 320, 700], pages: 5 }
+	};
+	var EL = { zheng: '中正', yang: '阳刚', yin: '阴柔', xie: '邪功' };
+	var WPN = { sword: '剑', saber: '刀', pole: '枪', ranged: '暗器' };
+	var TIER_NAME = ['未习', '一重 · 入门', '二重 · 小成', '三重 · 大成'];
+	var STAT_LABEL = { MeleeSkill: '武艺', MeleeDefense: '招架', RangedSkill: '射艺', Initiative: '身法', Stamina: '内息', Recovery: '回气', DirectDmg: '穿甲', InitToDef: '身法转防', QiShield: '真气护体', Nimble: '卸力' };
+	var STAT_PCT = { DirectDmg: 1, InitToDef: 1, QiShield: 1, Nimble: 1 };
+
+	function mv(id, name, ap, qi, desc) { return { id: id, name: name, icon: 'ui/skills/wx_' + id + '.png', ap: ap, qi: qi, desc: desc }; }
+
+	var M = {
+		guiyuan: { name: '归元阴诀', cat: 'neigong', q: 'sect', el: 'yin', icon: 'ui/perks/wx_perk_neigong_yin.png', allowFrag: true,
+			desc: '峨眉后山静室所传阴柔心法，以柔化刚、以静制动，敌招落空之际反哺内息。',
+			tiers: ['内息 +10；习得「调息吐纳」；敌方近战落空回复内息 3。', '内息 +18，回气 +2；解锁「真气护体」：受气血伤时以 1:2 扣内息抵消 25% 伤害。', '内息 +25，回气 +3；真气护体提升至 30%，落空回复内息 5。'],
+			stats: [{ Stamina: 10 }, { Stamina: 18, Recovery: 2, QiShield: 25 }, { Stamina: 25, Recovery: 3, QiShield: 30 }],
+			req: { '定力': 50 }, moves: [[mv('meditate', '调息吐纳', 4, 0, '回复已耗内息 25%，当回合招架 -5。')], [], []], team: ['柳青眉'] },
+		qingfeng: { name: '清风连环剑', cat: 'waigong', q: 'sect', wpn: 'sword', icon: 'ui/perks/wx_emblem_sword.png', allowFrag: true,
+			desc: '清风剑派入室弟子的看家剑法，三剑一气呵成，专寻对手招架间隙。',
+			tiers: ['武艺 +2；习得「清风三连」。', '武艺 +4，招架 +2；习得「寻隙刺」；连击命中令目标陷入「破绽」15%。', '武艺 +5，招架 +3，穿甲 +10%；习得「回风拂柳」反击架势。'],
+			stats: [{ MeleeSkill: 2 }, { MeleeSkill: 4, MeleeDefense: 2 }, { MeleeSkill: 5, MeleeDefense: 3, DirectDmg: 10 }],
+			req: { '武艺': 78, '身法': 110 },
+			moves: [[mv('sword_combo', '清风三连', 4, 18, '对同一目标连刺三剑，每剑 45% 伤害。')], [mv('sword_pierce', '寻隙刺', 4, 15, '命中率 +10%，命中令目标「破绽」：下次受击招架 -10。')], [mv('sword_counter', '回风拂柳', 3, 20, '进入反击架势，本轮首次被近战落空时还击一剑。')]],
+			team: ['柳青眉', '韩老剑'] },
+		taxue: { name: '踏雪无痕', cat: 'qinggong', q: 'sect', icon: 'ui/perks/wx_perk_qinggong.png', allowFrag: true,
+			desc: '天山派轻身功夫，踏雪不留痕，身法越高、闪避越妙。',
+			tiers: ['身法 +9；复杂地形移动减耗。', '身法 +14；按有效身法 15% 转化为招架/避暗；每回合可无视控制区脱身一次。', '身法 +18；习得「踏雪纵跃」短距位移。'],
+			stats: [{ Initiative: 9 }, { Initiative: 14, InitToDef: 15 }, { Initiative: 18, InitToDef: 15 }],
+			req: { '身法': 105 }, moves: [[], [], [mv('qinggong_zongyue', '踏雪纵跃', 3, 15, '越过一格跃至两格外空地，无视控制区。')]], team: [] },
+		jinchan: { name: '金蝉卸力', cat: 'henglian', q: 'sect', icon: 'ui/perks/wx_perk_henglian.png', allowFrag: true,
+			desc: '借衣袂翻飞卸去刀兵劲力的轻装保命术，甲越轻越妙。',
+			tiers: ['头身衣甲负重 ≤ 15 时，气血实伤 -25%。', '气血实伤 -35%。', '气血实伤 -40%，超重衰减放缓；与真气护体合计封顶 60%。'],
+			stats: [{ Nimble: 25 }, { Nimble: 35 }, { Nimble: 40 }], req: {}, moves: [[], [], []], team: ['白鹞子'] },
+		youxia: { name: '游侠佩剑术', cat: 'waigong', q: 'common', wpn: 'sword', icon: 'ui/perks/wx_emblem_sword.png',
+			desc: '南北仗剑游侠防身的基本格刺剑法，攻守均衡且善寻破绽。',
+			tiers: ['武艺 +1，招架 +1。', '武艺 +2，招架 +1；普攻留破绽 15%。', '武艺 +3，招架 +2；普攻留破绽 25%。'],
+			stats: [{ MeleeSkill: 1, MeleeDefense: 1 }, { MeleeSkill: 2, MeleeDefense: 1 }, { MeleeSkill: 3, MeleeDefense: 2 }], req: {}, moves: [[], [], []], team: ['马三刀', '小六子', '方不平'] },
+		cuqian: { name: '粗浅吐纳', cat: 'neigong', q: 'common', el: 'zheng', icon: 'ui/perks/wx_perk_neigong_harmony.png',
+			desc: '江湖上人人会两手的呼吸法门，胜在中正平和、可配任何辅修。',
+			tiers: ['内息 +5；习得「调息吐纳」。', '内息 +10，回气 +1。', '内息 +15，回气 +2。'],
+			stats: [{ Stamina: 5 }, { Stamina: 10, Recovery: 1 }, { Stamina: 15, Recovery: 2 }], req: {}, moves: [[mv('meditate', '调息吐纳', 4, 0, '回复已耗内息 25%。')], [], []], team: ['赵铁柱', '石敢当', '周大锤'] },
+		wuhu: { name: '五虎断门刀', cat: 'waigong', q: 'common', wpn: 'saber', icon: 'ui/perks/wx_emblem_saber.png',
+			desc: '镖局护院人人会使的刀法，大开大合，劈砍有力。',
+			tiers: ['武艺 +1；习得「断门劈」。', '武艺 +2；破甲 +10%。', '武艺 +3；破甲 +16%。'],
+			stats: [{ MeleeSkill: 1 }, { MeleeSkill: 2 }, { MeleeSkill: 3 }], req: {}, moves: [[mv('saber_cleave', '断门劈', 4, 14, '重劈一刀，破甲 +20%。')], [], []], team: ['马三刀'] },
+		xiushou: { name: '袖手暗器', cat: 'henglian', q: 'common', icon: 'ui/perks/wx_perk_tactics.png',
+			desc: '袖里藏针的小把戏，出手快、不占兵器槽。',
+			tiers: ['射艺 +1；习得「袖底针」。', '射艺 +2；换手不耗行动力。', '射艺 +3；袖底针 2 格内命中 +10%。'],
+			stats: [{ RangedSkill: 1 }, { RangedSkill: 2 }, { RangedSkill: 3 }], req: {}, moves: [[mv('throw_duzhen', '袖底针', 3, 10, '射程 3，命中令目标轻微中毒。')], [], []], team: [] },
+		/* --- 以下为藏经阁未习 --- */
+		songtao: { name: '松涛心法', cat: 'neigong', q: 'sect', el: 'zheng', icon: 'ui/perks/wx_perk_neigong_harmony.png', allowFrag: true,
+			desc: '松风观道人观松涛悟出的中正心法，回气绵长，可与任意内功调和。',
+			tiers: ['内息 +10；习得「调息吐纳」。', '内息 +18，回气 +4；抗内伤。', '内息 +25，回气 +6；可调和相克辅修。'],
+			stats: [{ Stamina: 10 }, { Stamina: 18, Recovery: 4 }, { Stamina: 25, Recovery: 6 }], req: { '定力': 45 }, moves: [[mv('meditate', '调息吐纳', 4, 0, '')], [], []], team: ['慧明'] },
+		tiebu: { name: '铁布衫', cat: 'henglian', q: 'sect', icon: 'ui/perks/wx_emblem_henglian.png', allowFrag: true,
+			desc: '少林外家硬功，披重甲行气如常，重兵爆头亦能硬扛。',
+			tiers: ['气血 +8；按护甲厚度减免损甲。', '气血 +14；「披甲行气」：头身甲内息/身法负重惩罚 -25%。', '气血 +20；「铜头铁额」：免疫爆头额外暴击倍率。'],
+			stats: [{}, {}, {}], req: { '气血': 60 }, moves: [[], [], []], team: ['周大锤', '石敢当'] },
+		huifeng: { name: '回锋惊鸿剑', cat: 'waigong', q: 'secret', wpn: 'sword', icon: 'ui/perks/wx_emblem_sword.png', allowFrag: true,
+			desc: '剑出如惊鸿回锋，后发先至。以反击架势见长，大成可发三格剑气。',
+			tiers: ['武艺 +3；习得「惊鸿回锋」反击架势。', '武艺 +5，招架 +3；反击伤害 +20%。', '武艺 +7，招架 +5；习得「剑气横江」三格直线剑气。'],
+			stats: [{}, {}, {}], req: { '武艺': 80, '身法': 115 }, moves: [[], [], []], team: [] },
+		suodi: { name: '缩地成寸', cat: 'qinggong', q: 'secret', icon: 'ui/perks/wx_perk_qinggong.png', allowFrag: true,
+			desc: '传说中的缩地法门，一步数丈，主动短距跃迁。',
+			tiers: ['身法 +12；习得「缩地」两格跃迁。', '身法 +18；身法 18% 转双防。', '身法 +24；缩地冷却 -1 回合。'],
+			stats: [{}, {}, {}], req: { '身法': 120 }, moves: [[], [], []], team: [] },
+		liuhe: { name: '六合基础枪', cat: 'waigong', q: 'common', wpn: 'pole', icon: 'ui/perks/wx_emblem_pole.png',
+			desc: '军中枪棒教头传授的基本枪法，两格刺击，守线稳健。',
+			tiers: ['武艺 +1。', '武艺 +2；两格刺击命中 +5%。', '武艺 +3；矛墙拦截省气。'], stats: [{}, {}, {}], req: {}, moves: [[], [], []], team: ['赵铁柱'] },
+		taixu: { name: '太虚真经', cat: 'neigong', q: 'unique', el: 'zheng', icon: 'ui/perks/wx_perk_neigong_harmony.png', allowFrag: true,
+			desc: '失传百年的道门孤本，大成者常驻多一口真气（+1 AP），且可调和一切相克内功。',
+			tiers: ['内息 +15，回气 +2。', '内息 +25，回气 +4；可调和相克辅修。', '内息 +40，回气 +6；常驻行动力 +1；获得 1 次洗髓契机。'],
+			stats: [{}, {}, {}], req: { '定力': 70, '内息': 120 }, moves: [[], [], []], team: [] },
+		xuesha: { name: '血煞吞元功', cat: 'neigong', q: 'secret', el: 'xie', icon: 'ui/perks/wx_perk_neigong_evil.png', allowFrag: true,
+			desc: '血煞帮镇帮邪功，击杀回气、燃血换力，滚雪球极强而易遭反噬。',
+			tiers: ['内息 +15；击杀回复内息 15。', '内息 +25；习得「燃血」：耗气血换临时 +2 AP（冷却 3 回合）。', '内息 +40；击杀回复内息 25。'],
+			stats: [{}, {}, {}], req: { '定力': 40 }, moves: [[], [], []], team: [] },
+		tianwai: { name: '天外一剑', cat: 'waigong', q: 'unique', wpn: 'sword', icon: 'ui/perks/wx_emblem_sword.png', allowFrag: true,
+			desc: '剑出天外，不可捉摸。7 AP 高穿甲清场大招，江湖孤本。',
+			tiers: ['武艺 +4；穿甲 +10%。', '武艺 +7，招架 +4；穿甲 +15%。', '武艺 +10，招架 +6；穿甲 +20%；习得「天外一剑」。'],
+			stats: [{}, {}, {}], req: { '武艺': 90, '身法': 125 }, moves: [[], [], []], team: [] },
+		heifeng: { name: '黑风劈空刀', cat: 'waigong', q: 'sect', wpn: 'saber', icon: 'ui/perks/wx_emblem_saber.png', allowFrag: true,
+			desc: '黑风寨刀手的劈空刀法，破甲流血，凶悍异常。',
+			tiers: ['武艺 +2；破甲 +12%。', '武艺 +4；命中流血 25%。', '武艺 +5；破甲 +24%。'], stats: [{}, {}, {}], req: { '武艺': 65 }, moves: [[], [], []], team: [] },
+		weiyuan: { name: '威远护镖枪', cat: 'waigong', q: 'sect', wpn: 'pole', icon: 'ui/perks/wx_emblem_pole.png', allowFrag: true,
+			desc: '威远镖局总镖头的护镖枪法，守线拦人，令冲阵者失衡。',
+			tiers: ['武艺 +2；矛墙命中令目标失衡。', '武艺 +4，招架 +2。', '武艺 +5，招架 +3；守线免围攻惩罚。'], stats: [{}, {}, {}], req: { '武艺': 62 }, moves: [[], [], []], team: [] },
+		baoyu: { name: '暴雨暗器谱', cat: 'waigong', q: 'secret', wpn: 'ranged', icon: 'ui/perks/wx_emblem_ranged.png', allowFrag: true,
+			desc: '唐门外传的暗器总谱，毒针连发、烟幕遁形。',
+			tiers: ['射艺 +3；习得「毒针连发」。', '射艺 +5；习得「烟幕」。', '射艺 +7；毒针穿甲 +15%。'], stats: [{}, {}, {}], req: { '射艺': 60 }, moves: [[], [], []], team: [] },
+		juyi: { name: '聚义令', cat: 'henglian', q: 'sect', icon: 'ui/perks/wx_perk_tactics.png', allowFrag: true,
+			desc: '绿林总瓢把子的号令之术，手持本命兵器亦可振奋军心（对标 Rally）。',
+			tiers: ['习得「振臂一呼」：消耗内息稳固周围同袍战意。', '定力 +5；号令范围 +1。', '清除动摇/崩溃；对尸傀邪祟恐惧免疫光环。'], stats: [{}, {}, {}], req: { '定力': 60 }, moves: [[], [], []], team: [] }
+	};
+
+	var PILLS = {
+		ningshen: { name: '凝神丸', icon: 'ui/items/consumables/wx_pill_ningshen.png', kind: 'infuse', gain: 80, desc: '为已装功法灌注 80 点火候。' },
+		huxin:    { name: '护心丹', icon: 'ui/items/consumables/wx_pill_huxin.png', kind: 'heal_internal', desc: '立即化解散功调息与轻度内伤。' },
+		jinchuang:{ name: '金疮散', icon: 'ui/items/consumables/wx_pill_jinchuang.png', kind: 'heal_external', desc: '敷治一处外伤，休养时间减半。' },
+		xisui:    { name: '洗髓丹', icon: 'ui/items/consumables/wx_pill_xisui.png', kind: 'wash', desc: '触发一次洗经伐髓（冲星 / 易筋换星）。' },
+		humai:    { name: '护脉丹', icon: 'ui/items/consumables/wx_pill_humai.png', kind: 'protect', desc: '洗髓前服用：成功率 +5%，免除失败永久暗疾风险。' }
+	};
+
+	var INITIAL = {
+		bro: {
+			name: '林沧海', level: 7, bg: '走镖趟子手', sect: '威远镖局', wage: 22, xp: 1420, xpNext: 2000,
+			attrs: ['气血', '内息', '定力', '身法', '武艺', '射艺', '招架', '避暗'],
+			base: [62, 108, 44, 112, 71, 38, 9, 6], talents: [0, 1, 0, 2, 2, 0, 0, 0],
+			hp: 62, qiUsed: 26, weapon: 'sword', ap: 9, apPerm: 0,
+			scatter: 2, wounds: ['左臂割伤'],
+			slots: [
+				{ label: '主修内功', role: '丹田 · 主修', unlock: 1, cats: ['neigong'], m: 'guiyuan' },
+				{ label: '基础外功', role: '基础外功', unlock: 1, cats: ['waigong'], m: 'qingfeng' },
+				{ label: '轻功身法', role: '轻功身法', unlock: 3, cats: ['qinggong'], m: 'taxue' },
+				{ label: '横练杂学', role: '横练杂学', unlock: 5, cats: ['henglian'], m: 'jinchan' },
+				{ label: '进阶专精', role: '进阶 · 外/横', unlock: 7, cats: ['waigong', 'henglian'], m: null },
+				{ label: '自由穴', role: '自由 · 九级', unlock: 9, cats: ['neigong', 'waigong', 'qinggong', 'henglian'], m: null },
+				{ label: '宗师穴', role: '宗师 · 十一级', unlock: 11, cats: ['neigong', 'waigong', 'qinggong', 'henglian'], m: null }
+			],
+			learned: {
+				guiyuan: { tier: 2, exp: 120 }, qingfeng: { tier: 2, exp: 210 }, taxue: { tier: 1, exp: 60 }, jinchan: { tier: 3, exp: 0 },
+				youxia: { tier: 3, exp: 0 }, cuqian: { tier: 3, exp: 0 }, wuhu: { tier: 1, exp: 30 }, xiushou: { tier: 2, exp: 70 }
+			}
+		},
+		lib: [
+			{ kind: 'manual', id: 'taixu', count: 1 }, { kind: 'manual', id: 'huifeng', count: 1 }, { kind: 'manual', id: 'suodi', count: 1 },
+			{ kind: 'manual', id: 'baoyu', count: 1 }, { kind: 'manual', id: 'songtao', count: 1 }, { kind: 'manual', id: 'tiebu', count: 2 },
+			{ kind: 'manual', id: 'juyi', count: 1 }, { kind: 'manual', id: 'qingfeng', count: 1 }, { kind: 'manual', id: 'liuhe', count: 3 },
+			{ kind: 'manual', id: 'youxia', count: 2 }, { kind: 'manual', id: 'cuqian', count: 1 },
+			{ kind: 'page', id: 'tianwai', count: 2 }, { kind: 'page', id: 'xuesha', count: 4 }, { kind: 'page', id: 'heifeng', count: 3 },
+			{ kind: 'page', id: 'huifeng', count: 2 }, { kind: 'page', id: 'weiyuan', count: 1 }, { kind: 'page', id: 'guiyuan', count: 1 }
+		],
+		pills: { ningshen: 3, huxin: 2, jinchuang: 4, xisui: 1, humai: 1 },
+		autoStore: true,
+		stashBooks: 5
+	};
+
+	var D = clone(INITIAL);
+	var S = {
+		tab: 'wx', selSlot: 4, shelf: 'learned', cat: null, search: '', insp: { kind: 'slot', idx: 4 },
+		lib: { kind: 'all', cat: null, q: null, wpnOnly: false, unlearned: false, search: '', view: 'card', sort: 'rank', insp: null },
+		invFilter: 'all', grid: false
+	};
+
+	/* ------------------------------------------------------------------------
+	 * 推导
+	 * ------------------------------------------------------------------------ */
+	function bro() { return D.bro; }
+	function needExp(id, tier) { var q = QUAL[M[id].q]; return tier >= 3 ? 0 : q.exp[tier]; }
+	function equippedSlotOf(id) { var s = bro().slots; for (var i = 0; i < s.length; i++) if (s[i].m === id) return i; return -1; }
+	function slotUnlocked(i) { return bro().level >= bro().slots[i].unlock; }
+	function catCount(cat, exceptIdx) { var n = 0, s = bro().slots; for (var i = 0; i < s.length; i++) { if (i !== exceptIdx && s[i].m && M[s[i].m].cat === cat) n++; } return n; }
+	function wpnOk(id) { var m = M[id]; return !m.wpn || m.wpn === bro().weapon; }
+
+	function canFit(id, idx) {
+		var s = bro().slots[idx], m = M[id];
+		if (!slotUnlocked(idx)) return { ok: false, why: '穴位尚未贯通（' + s.unlock + ' 级）' };
+		if (s.cats.indexOf(m.cat) < 0) return { ok: false, why: '此穴只可装配：' + catsLabel(s.cats) };
+		var eq = equippedSlotOf(id);
+		if (eq >= 0 && eq !== idx) return { ok: false, why: '已装于穴' + CN[eq + 1] };
+		if ((m.cat === 'neigong' || m.cat === 'qinggong') && catCount(m.cat, idx) >= 2) return { ok: false, why: '全身最多 2 门' + CAT[m.cat].short };
+		return { ok: true };
+	}
+	function catsLabel(cats) { if (cats.length === 4) return '任意武学'; var a = []; for (var i = 0; i < cats.length; i++) a.push(CAT[cats[i]].label); return a.join(' / '); }
+	function bestSlotFor(id) { var s = bro().slots; for (var i = 0; i < s.length; i++) { if (!s[i].m && canFit(id, i).ok) return i; } for (i = 0; i < s.length; i++) { if (canFit(id, i).ok) return i; } return -1; }
+
+	function attrVal(name) {
+		var i = bro().attrs.indexOf(name); if (i < 0) return 0;
+		var v = bro().base[i], p = passives();
+		var map = { '武艺': 'MeleeSkill', '招架': 'MeleeDefense', '射艺': 'RangedSkill', '身法': 'Initiative', '内息': 'Stamina' };
+		if (map[name] && p[map[name]]) v += p[map[name]].v;
+		return v;
+	}
+
+	/* 同系被动取最高（Math.max），辅修第二内功按 50% 折算 */
+	function passives() {
+		var out = {}, s = bro().slots;
+		for (var i = 0; i < s.length; i++) {
+			if (!s[i].m) continue;
+			var id = s[i].m, m = M[id], l = bro().learned[id];
+			if (!l || !wpnOk(id)) continue;
+			var st = m.stats[l.tier - 1] || {};
+			var halve = (m.cat === 'neigong' && i !== 0);
+			for (var k in st) {
+				if (!st.hasOwnProperty(k)) continue;
+				var v = st[k]; if (halve && (k === 'Stamina' || k === 'Recovery')) v = Math.floor(v / 2);
+				if (!out[k]) out[k] = { v: v, src: m.name, others: [] };
+				else if (v > out[k].v) { out[k].others.push(out[k].src + ' ' + out[k].v); out[k].v = v; out[k].src = m.name; }
+				else out[k].others.push(m.name + ' ' + v);
+			}
+		}
+		return out;
+	}
+	function activeMoves() {
+		var res = [], seen = {}, s = bro().slots;
+		for (var i = 0; i < s.length; i++) {
+			if (!s[i].m) continue;
+			var id = s[i].m, m = M[id], l = bro().learned[id];
+			for (var t = 0; t < l.tier; t++) {
+				var arr = m.moves[t] || [];
+				for (var j = 0; j < arr.length; j++) { if (seen[arr[j].id]) continue; seen[arr[j].id] = 1; res.push({ mv: arr[j], cat: m.cat, src: m.name, ok: wpnOk(id) }); }
+			}
+		}
+		return res;
+	}
+	function libItem(kind, id) { for (var i = 0; i < D.lib.length; i++) if (D.lib[i].kind === kind && D.lib[i].id === id) return D.lib[i]; return null; }
+	function pagesNeed(id) { return QUAL[M[id].q].pages; }
+	function idlePagesSameQ(id) { var q = M[id].q, n = 0; for (var i = 0; i < D.lib.length; i++) { var it = D.lib[i]; if (it.kind === 'page' && it.id !== id && M[it.id].q === q) n += it.count; } return n; }
+	function pageState(it) { var need = pagesNeed(it.id); if (it.count >= need) return 'craft'; if (it.count + Math.floor(idlePagesSameQ(it.id) / 2) >= need) return 'wild'; return 'none'; }
+	function craftableCount() { var n = 0; for (var i = 0; i < D.lib.length; i++) if (D.lib[i].kind === 'page' && pageState(D.lib[i]) === 'craft') n++; return n; }
+	function readySlotHint(idx) {
+		var s = bro().slots[idx]; if (!slotUnlocked(idx) || s.m) return false;
+		for (var id in bro().learned) if (bro().learned.hasOwnProperty(id) && equippedSlotOf(id) < 0 && canFit(id, idx).ok) return true;
+		return false;
+	}
+	function damageReduction() { var p = passives(); var q = p.QiShield ? p.QiShield.v : 0, n = p.Nimble ? p.Nimble.v : 0; var raw = 1 - (1 - q / 100) * (1 - n / 100); return { raw: Math.round(raw * 100), capped: Math.min(60, Math.round(raw * 100)) }; }
+
+	/* ------------------------------------------------------------------------
+	 * 悬浮提示
+	 * ------------------------------------------------------------------------ */
+	var TIPS = {};
+	var tipSeq = 0;
+	function tip(data) { tipSeq++; TIPS['t' + tipSeq] = data; return ' data-tip="t' + tipSeq + '"'; }
+	var STATIC_TIPS = {
+		close: { title: '关闭', body: '返回大地图（Esc）。三页签内不再各自放「× 返回」按钮，统一由此关闭。' }
+	};
+	var tipEl = document.createElement('div');
+	tipEl.className = 'wx-tooltip wx-root';
+	tipEl.style.display = 'none';
+	document.body.appendChild(tipEl);
+	function showTip(key, x, y) {
+		var t = TIPS[key] || STATIC_TIPS[key]; if (!t) return;
+		var h = '<div class="wx-tt-head">' + esc(t.title) + (t.sub ? '<div class="wx-tt-sub">' + esc(t.sub) + '</div>' : '') + '</div><div class="wx-tt-body">';
+		if (t.body) h += t.body;
+		if (t.rows) for (var i = 0; i < t.rows.length; i++) h += '<div class="wx-tt-row">' + (t.rows[i].icon ? '<img src="' + G + t.rows[i].icon + '">' : '') + t.rows[i].html + '</div>';
+		h += '</div>' + (t.foot ? '<div class="wx-tt-foot">' + t.foot + '</div>' : '');
+		tipEl.innerHTML = h; tipEl.style.display = 'block';
+		tipEl.style.transform = 'scale(' + SCALE + ')'; tipEl.style.transformOrigin = '0 0';
+		moveTip(x, y);
+	}
+	function moveTip(x, y) {
+		var w = tipEl.offsetWidth * SCALE, h = tipEl.offsetHeight * SCALE;
+		var lx = x + 18, ly = y + 18;
+		if (lx + w > window.innerWidth - 6) lx = x - w - 12;
+		if (ly + h > window.innerHeight - 6) ly = Math.max(6, window.innerHeight - h - 6);
+		tipEl.style.left = lx + 'px'; tipEl.style.top = ly + 'px';
+	}
+	function hideTip() { tipEl.style.display = 'none'; }
+
+	/* ------------------------------------------------------------------------
+	 * 通用：图标格 / 三重菱 / 品阶印
+	 * ------------------------------------------------------------------------ */
+	function tiersHtml(tier, frag) { var h = '<span class="wx-tiers">'; for (var i = 1; i <= 3; i++) h += '<i class="' + (i <= tier ? (frag ? 'is-frag' : 'is-lit') : '') + '"></i>'; return h + '</span>'; }
+	function qSeal(q) { var s = QUAL[q].seal; return '<span class="wx-q-seal q-' + q + '">' + s.charAt(0) + '<br>' + s.charAt(1) + '</span>'; }
+	function bookIcon(id, page) { var m = M[id]; return 'ui/items/misc/' + (page ? 'wx_page_' + m.q : 'wx_book_' + m.cat + '_' + m.q) + '.png'; }
+	function subLine(id) { var m = M[id]; return QUAL[m.q].label + ' · ' + CAT[m.cat].short + (m.wpn ? ' · ' + WPN[m.wpn] : '') + (m.el ? ' · ' + EL[m.el] : ''); }
+	function expBar(id, l) {
+		var need = needExp(id, l.tier);
+		if (l.frag) return '<div class="wx-bar wx-bar-thin"><div class="wx-fill" style="width:100%;background:var(--wx-amber-600)"></div></div>';
+		if (!need) return '<div class="wx-bar wx-bar-thin"><div class="wx-fill" style="width:100%;background:var(--wx-gold-400)"></div></div>';
+		return '<div class="wx-bar wx-bar-thin"><div class="wx-fill" style="width:' + Math.min(100, Math.floor(l.exp / need * 100)) + '%;background:var(--wx-jade-500)"></div></div>';
+	}
+
+	/* ------------------------------------------------------------------------
+	 * 左栏
+	 * ------------------------------------------------------------------------ */
+	function renderLeft() {
+		var b = bro();
+		$('lh').innerHTML =
+			'<div class="lh-crest"><img src="' + G + 'ui/icons/wx_crest_longhu.png"></div>' +
+			'<div class="lh-name wx-title-font">' + esc(b.name) + '</div>' +
+			'<div class="lh-sub">' + esc(b.bg) + ' · ' + esc(b.sect) + ' · 日薪 ' + b.wage + ' 两</div>' +
+			'<div class="lh-lvl"' + tip({ title: '第 ' + b.level + ' 级', body: '下一级（8 级）：' + '<span class="wx-gold">八维摇点 3 项</span>；偶数级为功法突破节点。<br>9 级贯通<b class="wx-jade">自由穴</b>（可辅修第二门内功）。' }) + '><span class="wx-title-font">' + CN[b.level] + '</span><em>级</em></div>' +
+			'<div class="lh-xp wx-bar wx-bar-thin"><div class="wx-fill" style="width:' + Math.floor(b.xp / b.xpNext * 100) + '%;background:var(--wx-bar-xp)"></div></div>' +
+			'<div class="lh-xptext">阅历 ' + b.xp + ' / ' + b.xpNext + '</div>';
+
+		$('doll').innerHTML =
+			'<div class="doll-top"><div class="wx-btn wx-btn-sm wx-btn-ghost"' + tip({ title: '铜镜易容', body: '更换发型、胡须、面相与衣着染色。' }) + '><img src="' + G + 'ui/wx_icons/wx_glyph_mirror.png">易容</div>' +
+			'<span class="weight"' + tip({ title: '衣甲负重', body: '头甲 4 + 身甲 11 = <b>15</b><br>内息上限 <span class="wx-neg">-15</span> · 身法 <span class="wx-neg">-15</span><br><span class="wx-jade">≤ 15：《金蝉卸力》生效</span>' }) + '>负重 <b class="wx-hi">15</b> · <span class="wx-jade">卸力生效</span></span></div>' +
+			dollSlot('ui/items/helmets/wx_char_hat_bamboo.png', 13.6, 3.6, '', '斗笠', '头甲 90 / 105') +
+			dollSlot('ui/items/weapons/melee/wx_wpn_sword_03.png', 4.2, 8.4, 'tall', '青锋剑', '伤害 35~45 · 穿甲 20% · 剑') +
+			dollSlot(null, 23.0, 8.4, 'tall', '副手（空）', '单手剑空副手：双握 +25% 伤害', 'ui/wx_icons/wx_slot_offhand.png') +
+			dollSlot('ui/items/armor/wx_char_robe_swordsman.png', 13.6, 12.4, '', '青衫劲装', '身甲 140 / 160 · 负重 11') +
+			dollSlot('ui/items/accessory/wx_acc_wuzhiqi.png', 4.2, 20.2, '', '五芝香囊', '定力 +5') +
+			dollSlot(null, 23.0, 20.2, '', '弹药（空）', '', 'ui/wx_icons/wx_slot_ammo.png') +
+			bagSlot(0, 'ui/items/consumables/wx_pill_jinchuang.png', '金疮散') + bagSlot(1, 'ui/items/tools/wx_tool_smoke_bomb.png', '烟丸') + bagSlot(2, null) + bagSlot(3, null);
+
+		var st = [];
+		st.push({ icon: 'ui/skills/wx_status_meridian_harmony.png', t: '内息调和', b: '主修《归元阴诀》（阴柔），暂无辅修，无相克风险。' });
+		if (b.scatter > 0) st.push({ icon: 'ui/skills/wx_scatter_weakness.png', t: '散功调息 · ' + b.scatter + ' 天', b: '换装功法后的短暂虚弱：内息上限 -15、回气 -3。<br><span class="wx-jade">服「护心丹」可立即化解。</span>' });
+		for (var w = 0; w < b.wounds.length; w++) st.push({ icon: 'ui/skills/wx_status_opening.png', t: '外伤 · ' + b.wounds[w], b: '武艺 -5，招架 -5，休养 3 天。<br><span class="wx-jade">敷「金疮散」休养减半。</span>' });
+		st.push({ icon: 'ui/perks/wx_emblem_odd.png', t: '特质 · 悟性过人', b: '功法火候获取 +15%。' });
+		st.push({ icon: 'ui/perks/wx_perk_tactics.png', t: '特质 · 江湖老手', b: '定力 +5；夜战无惩罚。' });
+		var th = '<div class="wx-sec-title">特质 · 状态</div>';
+		for (var i = 0; i < st.length; i++) th += '<span class="wx-skill"' + tip({ title: st[i].t, body: st[i].b }) + '><img src="' + G + st[i].icon + '"></span>';
+		$('traits').innerHTML = th;
+
+		var qiMax = attrVal('内息') - 15 - (b.scatter > 0 ? 15 : 0);
+		var L = [
+			{ n: '头甲', ic: 'wx_icon_armor_head', v: 90, max: 105, c: 'armor' },
+			{ n: '身甲', ic: 'wx_icon_armor_body', v: 140, max: 160, c: 'armor' },
+			{ n: '气血', ic: 'wx_icon_health', v: b.hp, max: b.hp, c: 'hp', t: 0 },
+			{ n: '内息 · 可用 / 上限', ic: 'wx_icon_qi', v: qiMax - b.qiUsed, max: qiMax, c: 'qi', t: 1, tipb: '内息 = 原版疲劳的<b>正向显示</b>：条越满越能出招。<br>先天 ' + b.base[1] + ' · 内功 <span class="wx-pos">+' + (attrVal('内息') - b.base[1]) + '</span> · 负重 <span class="wx-neg">-15</span>' + (b.scatter ? ' · 散功 <span class="wx-neg">-15</span>' : '') },
+			{ n: '定力', ic: 'wx_icon_bravery', v: attrVal('定力'), max: 100, c: 'neutral', t: 2 },
+			{ n: '战意', ic: 'wx_icon_morale', v: '稳定', max: 1, c: 'morale', pct: 60 }
+		];
+		var R = [
+			{ n: '身法', ic: 'wx_icon_initiative', v: attrVal('身法') - 15, max: 160, c: 'neutral', t: 3 },
+			{ n: '武艺', ic: 'wx_icon_melee_skill', v: attrVal('武艺') - (b.wounds.length ? 5 : 0), max: 110, c: 'neutral', t: 4 },
+			{ n: '射艺', ic: 'wx_icon_ranged_skill', v: attrVal('射艺'), max: 110, c: 'neutral', t: 5 },
+			{ n: '招架', ic: 'wx_icon_melee_def', v: attrVal('招架') - (b.wounds.length ? 5 : 0), max: 60, c: 'neutral', t: 6 },
+			{ n: '避暗', ic: 'wx_icon_ranged_def', v: attrVal('避暗'), max: 60, c: 'neutral', t: 7 },
+			{ n: '行动力', ic: 'wx_icon_ap', v: b.ap + b.apPerm, max: 11, c: 'ap' }
+		];
+		function rows(arr) {
+			var h = '';
+			for (var i = 0; i < arr.length; i++) {
+				var r = arr[i];
+				var pct = r.pct !== undefined ? r.pct : Math.max(4, Math.min(100, Math.round((typeof r.v === 'number' ? r.v : 0) / r.max * 100)));
+				var val = (r.c === 'hp' || r.c === 'armor' || r.c === 'qi') ? (r.v + ' / ' + r.max) : r.v;
+				var star = (r.t !== undefined && b.talents[r.t] > 0) ? '<img class="star" src="' + G + 'ui/wx_icons/wx_talent_' + b.talents[r.t] + '.png">' : '';
+				var tb = r.tipb || ('当前 ' + val + (r.t !== undefined ? '<br>先天根骨：' + (b.talents[r.t] ? b.talents[r.t] + ' 星' : '无星') + '（升级时摇点下限更高）' : ''));
+				h += '<div class="st-row"' + tip({ title: r.n, body: tb }) + '><img class="ico" src="' + G + 'ui/wx_icons/' + r.ic + '.png"><div class="lbl">' + r.n + '</div>' +
+					'<div class="wx-bar"><div class="wx-fill ' + r.c + '" style="width:' + pct + '%"></div><div class="wx-val">' + val + '</div></div>' + star + '</div>';
+			}
+			return h;
+		}
+		$('stats').innerHTML = '<div class="st-col">' + rows(L) + '</div><div class="st-col">' + rows(R) + '</div>';
+	}
+	function dollSlot(icon, x, y, cls, name, desc, ghost) {
+		return '<div class="wx-slot ' + cls + (icon ? '' : ' is-empty') + '" style="left:' + x + 'rem;top:' + y + 'rem;"' + tip({ title: name, body: desc || '空' }) + '><img class="wx-item" src="' + G + (icon || ghost) + '"></div>';
+	}
+	function bagSlot(i, icon, name) {
+		return '<div class="wx-slot bag' + (icon ? '' : ' is-empty') + '" style="left:' + (5.55 + i * 5.7) + 'rem;top:28.4rem;"' + tip({ title: icon ? name : '行囊（空）', body: icon ? '战斗中可取用（2 AP）' : '可放入丹药、暗器或工具' }) + '>' + (icon ? '<img class="wx-item" src="' + G + icon + '">' : '<img class="wx-item" src="' + G + 'ui/wx_icons/wx_slot_bag.png">') + '</div>';
+	}
+
+	/* ------------------------------------------------------------------------
+	 * 右下阵型
+	 * ------------------------------------------------------------------------ */
+	var ROSTER = [
+		['林沧海', 7, '#3d5a6b', '#d8b36a'], ['赵铁柱', 9, '#5a3d2b', '#8fbf6a', 1], ['孙二娘', 6, '#6b2e2e', '#8fbf6a'], ['慧明', 5, '#7a5a2a', '#d8b36a'], ['柳青眉', 8, '#2e4a3d', '#8fbf6a'],
+		['石敢当', 4, '#4a4a3a', '#e0a548'], ['韩老剑', 11, '#3a3a4a', '#8fbf6a'], ['周大锤', 7, '#5a4a2a', '#d8b36a'], null,
+		['马三刀', 6, '#4a2e22', '#d8573f'], ['小六子', 2, '#3a4a2e', '#8fbf6a'], ['方不平', 3, '#2e3a4a', '#d8b36a'], ['白鹞子', 5, '#4a3a5a', '#8fbf6a'], null, null, null, null, null
+	];
+	function bust(c) {
+		return '<svg viewBox="0 0 68 90"><defs><radialGradient id="g" cx="50%" cy="30%" r="70%"><stop offset="0" stop-color="#3a2c1f"/><stop offset="1" stop-color="#0d0906"/></radialGradient></defs>' +
+			'<rect width="68" height="90" fill="url(#g)"/>' +
+			'<path d="M8 90 C10 66 22 60 34 60 C46 60 58 66 60 90 Z" fill="' + c + '" opacity="0.9"/>' +
+			'<path d="M24 62 L34 74 L44 62" fill="none" stroke="#000" stroke-opacity="0.35" stroke-width="2"/>' +
+			'<ellipse cx="34" cy="40" rx="12" ry="14" fill="#c9a882"/>' +
+			'<path d="M21 36 C21 22 47 22 47 36 C44 30 24 30 21 36 Z" fill="#1b130d"/>' +
+			'<path d="M30 20 C30 14 38 14 38 20 Z" fill="#1b130d"/></svg>';
+	}
+	function renderRoster() {
+		var h = '';
+		for (var i = 0; i < ROSTER.length; i++) {
+			var r = ROSTER[i];
+			if (!r) { h += '<div class="ro-cell wx-well is-empty"></div>'; continue; }
+			h += '<div class="ro-cell wx-well' + (i === 0 ? ' is-sel' : '') + '"' + tip({ title: r[0], sub: '第 ' + r[1] + ' 级', body: i === 0 ? '当前查看' : '点击切换（预览中仅林沧海有完整数据）' }) + '>' +
+				bust(r[2]) + '<span class="lv">' + r[1] + '</span><span class="mood" style="background:' + r[3] + ';color:' + r[3] + '"></span>' +
+				(r[4] ? '<span class="up">升</span>' : '') + '<div class="nm">' + r[0] + '</div></div>';
+		}
+		$('roster').innerHTML = h + '<div class="clear"></div>';
+	}
+
+	/* ------------------------------------------------------------------------
+	 * 右栏顶栏
+	 * ------------------------------------------------------------------------ */
+	function renderHeader() {
+		var readyN = 0; for (var i = 0; i < bro().slots.length; i++) if (readySlotHint(i)) readyN++;
+		var cc = craftableCount();
+		$('rh-tabs').innerHTML =
+			'<div class="wx-tab' + (S.tab === 'inv' ? ' is-active' : '') + '" data-act="tab" data-v="inv">兵甲行囊</div>' +
+			'<div class="wx-tab' + (S.tab === 'wx' ? ' is-active' : '') + '" data-act="tab" data-v="wx">武学修为' + (readyN ? '<span class="wx-tab-badge is-jade"' + tip({ title: '有空穴可配', body: readyN + ' 个已贯通的空穴位，已习武学中有可装入的功法。' }) + '>' + readyN + '</span>' : '') + '</div>' +
+			'<div class="wx-tab' + (S.tab === 'lib' ? ' is-active' : '') + '" data-act="tab" data-v="lib">藏经阁' + (cc ? '<span class="wx-tab-badge"' + tip({ title: '残页可拼合', body: cc + ' 部秘籍的残页已凑齐，可装帧成书。' }) + '>' + cc + '</span>' : '') + '</div>';
+		$('rh-left').innerHTML = S.tab === 'inv'
+			? '<div class="wx-btn wx-btn-sm"' + tip({ title: '整理仓库', body: '按类别与品阶自动排序（原版功能）' }) + '>整理</div><div class="wx-btn wx-btn-sm"' + tip({ title: '地面 / 仓库', body: '切换战场地面物品（原版功能）' }) + '>地面</div>'
+			: '';
+		var ids = ['inv', 'wx', 'lib'];
+		for (i = 0; i < ids.length; i++) $('pane-' + ids[i]).className = 'pane' + (S.tab === ids[i] ? ' is-on' : '');
+	}
+
+	/* ------------------------------------------------------------------------
+	 * 页签一：兵甲行囊
+	 * ------------------------------------------------------------------------ */
+	var STASH = [
+		['ui/items/weapons/melee/wx_wpn_sword_05.png', 'w', '寒铁长剑'], ['ui/items/weapons/melee/wx_wpn_saber_02.png', 'w', '雁翎刀'], ['ui/items/weapons/melee/wx_wpn_spear_03.png', 'w', '白蜡杆枪'],
+		['ui/items/weapons/named/wx_relic_chengying.png', 'w', '承影（名器）', 'unique'], ['ui/items/weapons/ranged/wx_wpn_bow_01.png', 'w', '猎弓'], ['ui/items/weapons/ranged/wx_wpn_xbow_01.png', 'w', '神臂弩'],
+		['ui/items/weapons/melee/wx_wpn_pole_02.png', 'w', '朴刀'], ['ui/items/weapons/melee/wx_fist_iron.png', 'w', '精铁指虎'],
+		['ui/items/armor/wx_body_sect_03.png', 'a', '门派劲装'], ['ui/items/armor/wx_body_hvy_02.png', 'a', '札甲'], ['ui/items/armor/wx_body_civ_04.png', 'a', '粗布短打'],
+		['ui/items/helmets/wx_hat_03.png', 'a', '毡帽'], ['ui/items/helmets/wx_hat_07.png', 'a', '铁盔'], ['ui/items/shields/wx_shd_02.png', 'a', '藤牌'],
+		['book:baoyu', 'b'], ['book:songtao', 'b'], ['book:weiyuan', 'b'], ['page:tianwai', 'b'], ['page:heifeng', 'b'],
+		['ui/items/consumables/wx_pill_ningshen.png', 'p', '凝神丸 ×3'], ['ui/items/consumables/wx_pill_huxin.png', 'p', '护心丹 ×2'], ['ui/items/consumables/wx_pill_jinchuang.png', 'p', '金疮散 ×4'],
+		['ui/items/consumables/wx_pill_xisui.png', 'p', '洗髓丹', 'secret'], ['ui/items/consumables/wx_pill_humai.png', 'p', '护脉丹'],
+		['ui/items/tools/wx_tool_smoke_bomb.png', 's', '烟丸'], ['ui/items/tools/wx_tool_fire_bomb.png', 's', '霹雳火'], ['ui/items/ammo/wx_ammo_arrows.png', 's', '羽箭'],
+		['ui/items/misc/wx_marrow_herb.png', 's', '洗髓草（奇材）'], ['ui/items/accessory/wx_acc_jiuwei.png', 'a', '九尾狐裘']
+	];
+	function renderInv() {
+		var h = '', used = 0;
+		for (var i = 0; i < 117; i++) {
+			var it = STASH[i];
+			if (!it) { h += '<div class="wx-slot"></div>'; continue; }
+			used++;
+			var dim = (S.invFilter !== 'all' && S.invFilter !== it[1]) ? ' is-dim' : '';
+			if (it[0].indexOf('book:') === 0 || it[0].indexOf('page:') === 0) {
+				var isPage = it[0].indexOf('page:') === 0, id = it[0].split(':')[1], m = M[id];
+				var badge, li = libItem(isPage ? 'page' : 'manual', id);
+				if (isPage) { var have = (li ? li.count : 0) + 1; badge = '<span class="wx-badge tl ' + (have >= pagesNeed(id) ? 'is-ready' : 'is-page') + '">' + (have >= pagesNeed(id) ? '可拼' : have + '/' + pagesNeed(id)) + '</span>'; }
+				else badge = bro().learned[id] ? '<span class="wx-badge tl is-owned">已习</span>' : (li ? '<span class="wx-badge tl is-owned">阁藏</span>' : '<span class="wx-badge tl is-new">新篇</span>');
+				h += '<div class="wx-slot q-' + m.q + dim + '"' + tip({ title: '《' + m.name + '》' + (isPage ? '残页' : ''), sub: subLine(id), body: isPage ? '藏经阁现有同名残页 ' + (li ? li.count : 0) + ' 张，需 ' + pagesNeed(id) + ' 张装帧成书。' : (li ? '藏经阁已藏 ' + li.count + ' 册。' : '<span class="wx-jade">藏经阁尚无此书——新篇！</span>') + '<br>右键：给当前侠客研读。', foot: '「典籍入阁」可一键收入藏经阁（不占仓库格）' }) + '>' + badge + '<img class="wx-item" src="' + G + bookIcon(id, isPage) + '"></div>';
+			} else {
+				h += '<div class="wx-slot' + (it[3] ? ' q-' + it[3] : '') + dim + '"' + tip({ title: it[2], body: '原版物品提示内容' }) + '><img class="wx-item" src="' + G + it[0] + '"></div>';
+			}
+		}
+		$('inv-grid').innerHTML = h;
+		var f = [['all', '全部'], ['w', '兵刃'], ['a', '衣甲'], ['p', '丹药'], ['b', '典籍'], ['s', '杂物']], fh = '';
+		for (i = 0; i < f.length; i++) fh += '<span class="wx-subtab' + (S.invFilter === f[i][0] ? ' is-active' : '') + '" data-act="inv-f" data-v="' + f[i][0] + '">' + f[i][1] + '</span>';
+		$('inv-foot').innerHTML =
+			'<div class="inv-cap"><div class="t">战团仓库</div><div class="wx-bar"><div class="wx-fill neutral" style="width:' + Math.round(used / 117 * 100) + '%"></div><div class="wx-val">' + used + ' / 117</div></div></div>' +
+			'<div class="inv-filters">' + fh + '</div>' +
+			'<div class="wx-btn wx-btn-primary' + (D.stashBooks ? '' : ' is-disabled') + '" data-act="store-books"' + tip({ title: '典籍入阁', body: '把仓库中所有秘籍与残页收入「藏经阁」，释放仓库格位。<br>需要变卖时可在藏经阁随时取出。' }) + '><img src="' + G + 'ui/items/misc/wx_book_neigong_sect.png">典籍入阁' + (D.stashBooks ? '<span class="wx-count">' + D.stashBooks + '</span>' : '') + '</div>';
+	}
+
+	/* ------------------------------------------------------------------------
+	 * 页签二：武学修为
+	 * ------------------------------------------------------------------------ */
+	function renderWx() { renderWxStatus(); renderMeridian(); renderMoves(); renderShelf(); renderWxInspector(); }
+
+	function renderWxStatus() {
+		var b = bro(), ap = b.ap + b.apPerm, h = '';
+		h += '<span class="ap-pips"' + tip({ title: '行动力 ' + ap + ' AP', body: '常人基准 9 AP；常驻上限 <b>11 AP</b>（仅江湖孤本三重大成各 +1）。<br>虚线格 = 尚可突破的上限。' }) + '><img src="' + G + 'ui/wx_icons/wx_icon_ap.png">';
+		for (var i = 0; i < 11; i++) h += '<i class="' + (i < b.ap ? '' : (i < ap ? 'is-perm' : 'is-cap')) + '"></i>';
+		h += '<b>' + ap + ' AP</b></span>';
+		var main = b.slots[0].m ? M[b.slots[0].m] : null;
+		h += '<span class="wx-chip"' + tip({ title: '主修路数', body: main ? '《' + main.name + '》· ' + EL[main.el] + '<br>阴柔：敌方近战落空回复内息；二重起「真气护体」。' : '尚未主修内功' }) + '><span style="color:var(--wx-el-' + (main ? main.el : 'zheng') + ')">◆</span> ' + (main ? EL[main.el] : '未修') + '</span>';
+		h += '<span class="wx-chip is-ok"' + tip({ title: '内息调和', body: '主辅内功无相克。9 级自由穴辅修阳刚类内功将触发「内息逆冲」风险。' }) + '>内息调和</span>';
+		if (b.scatter > 0) h += '<span class="wx-chip is-danger is-clickable" data-act="heal" data-v="huxin"' + tip({ title: '散功调息 · ' + b.scatter + ' 天', body: '内息上限 -15、回气 -3。<br>点击服用「护心丹」（余 ' + D.pills.huxin + ' 颗）立即化解。' }) + '>散功 ' + b.scatter + ' 天' + (D.pills.huxin ? '<span class="wx-chip-act">服丹</span>' : '') + '</span>';
+		if (b.wounds.length) h += '<span class="wx-chip is-warn is-clickable" data-act="heal" data-v="jinchuang"' + tip({ title: '外伤 ×' + b.wounds.length, body: b.wounds.join('、') + '<br>点击敷「金疮散」（余 ' + D.pills.jinchuang + '）。' }) + '>外伤 ×' + b.wounds.length + (D.pills.jinchuang ? '<span class="wx-chip-act">敷药</span>' : '') + '</span>';
+		var washN = D.pills.xisui;
+		h += '<div class="right"><div class="wx-btn ' + (washN ? 'wx-btn-seal' : '') + '" data-act="open-wash"' + tip({ title: '洗经伐髓', body: '冲星：1★→2★ 30%，2★→3★ 15%；易筋换星 0★→1★ 45%。<br>筹备加成最多 +20%。失败必受「经脉震荡」。' }) + '><img src="' + G + 'ui/items/consumables/wx_pill_xisui.png">洗经伐髓' + (washN ? '<span class="wx-count">' + washN + '</span>' : '') + '</div></div>';
+		$('wx-status').innerHTML = h;
+	}
+
+	var COL_W = 8.6;
+	function colLeft(i) { var gaps = [0, 1, 0.4, 0.4, 1, 1, 0.4]; var x = 1.75; for (var k = 0; k < i; k++) x += COL_W + gaps[k + 1]; return x; }
+	function renderMeridian() {
+		var b = bro(), h = '';
+		var groups = [[0, 0, '本源'], [1, 3, '专修'], [4, 4, '进阶'], [5, 6, '自由']];
+		for (var g = 0; g < groups.length; g++) { var x1 = colLeft(groups[g][0]), x2 = colLeft(groups[g][1]) + COL_W; h += '<div class="mer-group" style="left:' + (x1 + 0.4) + 'rem;width:' + (x2 - x1 - 0.8) + 'rem">' + groups[g][2] + '</div>'; }
+		for (var i = 0; i < 6; i++) {
+			var a = colLeft(i) + COL_W / 2 + (i === 0 ? 3.4 : 3.1), c = colLeft(i + 1) + COL_W / 2 - 3.1;
+			h += '<div class="mer-line' + (slotUnlocked(i + 1) ? '' : ' is-dim') + '" style="left:' + a + 'rem;width:' + (c - a) + 'rem"></div>';
+		}
+		for (i = 0; i < b.slots.length; i++) {
+			var s = b.slots[i], un = slotUnlocked(i), cls = 'mer-col' + (i === 0 ? ' is-dantian' : '') + (i === S.selSlot ? ' is-sel' : '');
+			var box = '', tiers = '', exp = '', name = '', nameCls = 'mer-name';
+			var tipd;
+			if (!un) {
+				box = '<div class="mer-box is-locked"><span class="lock">' + CN[s.unlock] + '<small>级贯通</small></span></div>';
+				name = '未贯通'; nameCls += ' is-empty';
+				tipd = { title: s.label + ' · 未贯通', body: '升至 <b>' + s.unlock + ' 级</b>自动贯通（还差 ' + (s.unlock - b.level) + ' 级）。<br>可配：' + catsLabel(s.cats) };
+			} else if (s.m) {
+				var m = M[s.m], l = b.learned[s.m], off = !wpnOk(s.m);
+				box = '<div class="mer-box' + (off ? ' is-off' : '') + '"><img class="ic" src="' + G + m.icon + '">' + (off ? '<span class="wx-badge br is-page" style="background:#3a2a10;border-color:#e0a548;color:#f5d79a">换兵</span>' : '') + (l.frag ? '<span class="wx-badge tr is-ready">残</span>' : '') + '</div>';
+				tiers = tiersHtml(l.tier, l.frag); exp = expBar(s.m, l); name = m.name;
+				tipd = { title: '《' + m.name + '》', sub: subLine(s.m) + ' · ' + TIER_NAME[l.tier], body: (off ? '<span class="wx-amber">当前主手非' + WPN[m.wpn] + '，被动与招式暂不生效。</span><br>' : '') + m.tiers[l.tier - 1] + (needExp(s.m, l.tier) ? '<br><span class="wx-jade">火候 ' + l.exp + ' / ' + needExp(s.m, l.tier) + '</span>' : ''), foot: '左键查看 · 右键卸下 · 拖入功法可替换' };
+			} else {
+				var ready = readySlotHint(i);
+				box = '<div class="mer-box' + (ready ? ' is-ready' : '') + '"><span class="plus">＋</span></div>';
+				name = ready ? '可配功' : '空穴'; nameCls += ready ? ' is-ready' : ' is-empty';
+				tipd = { title: s.label + ' · 空穴', body: '可配：' + catsLabel(s.cats) + (ready ? '<br><span class="wx-jade">已习武学中有可装入的功法。</span>' : ''), foot: '空穴装入免费，不触发散功调息' };
+			}
+			h += '<div class="' + cls + '" style="left:' + colLeft(i) + 'rem" data-act="slot" data-v="' + i + '" data-slot-idx="' + i + '"' + tip(tipd) + '>' +
+				'<div class="mer-role">' + s.role + '</div>' + box +
+				'<div class="mer-tiers">' + tiers + '</div><div class="mer-exp">' + exp + '</div><div class="' + nameCls + '">' + esc(name) + '</div></div>';
+		}
+		$('meridian').innerHTML = h;
+	}
+
+	function renderMoves() {
+		var mv = activeMoves(), h = '<span class="lab"><b>招式</b><span>' + mv.length + ' / 9</span></span>';
+		for (var i = 0; i < mv.length; i++) {
+			var x = mv[i];
+			h += '<span class="wx-skill' + (x.ok ? '' : ' is-off') + '"' + tip({ title: x.mv.name, sub: '出自《' + x.src + '》', body: x.mv.desc + (x.ok ? '' : '<br><span class="wx-amber">未持对应兵刃，战斗中不可用。</span>'), rows: [{ icon: 'ui/wx_icons/wx_icon_ap.png', html: '行动力 <b class="wx-gold">' + x.mv.ap + '</b>' }, { icon: 'ui/wx_icons/wx_icon_qi.png', html: '内息 <b class="wx-jade">' + x.mv.qi + '</b>' }] }) + '>' +
+				'<img src="' + G + x.mv.icon + '"><span class="wx-cat-tick" style="border-color:' + CAT[x.cat].color + ' transparent transparent transparent"></span>' +
+				'<span class="wx-cost-ap">' + x.mv.ap + '</span>' + (x.mv.qi ? '<span class="wx-cost-qi">' + x.mv.qi + '</span>' : '') + '</span>';
+		}
+		for (i = mv.length; i < 6; i++) h += '<span class="empty-cap"></span>';
+		$('moves').innerHTML = h;
+
+		var p = passives(), keys = ['MeleeSkill', 'MeleeDefense', 'Initiative', 'Stamina', 'Recovery', 'InitToDef'], ph = '<div class="hd"><b>常驻被动</b>同系多本取最高 · 不叠加</div>';
+		for (i = 0; i < keys.length; i++) {
+			var k = keys[i], e = p[k];
+			ph += '<div class="pv-stat"' + tip({ title: STAT_LABEL[k] + (e ? ' +' + e.v + (STAT_PCT[k] ? '%' : '') : ''), body: e ? '生效来源：《' + e.src + '》' + (e.others.length ? '<br><span class="wx-mute">未计入（取最高）：' + e.others.join('、') + '</span>' : '') : '暂无来源' }) + '><span>' + STAT_LABEL[k] + '</span>' + (e ? '<b>+' + e.v + (STAT_PCT[k] ? '%' : '') + '</b>' : '<b class="wx-mute">—</b>') + '</div>';
+		}
+		var dr = damageReduction();
+		$('passives').innerHTML = ph + '<div class="clear"></div>';
+		// 减伤合计放进提示中，避免第三行
+		var hd = $('passives').firstChild;
+		hd.innerHTML += ' · <span' + tip({ title: '气血实伤减免 ' + dr.capped + '%', body: '真气护体 ' + (p.QiShield ? p.QiShield.v : 0) + '% × 卸力 ' + (p.Nimble ? p.Nimble.v : 0) + '%（乘算）= ' + dr.raw + '%<br>轻装双减伤硬封顶 <b>60%</b>' + (dr.raw > 60 ? '，<span class="wx-amber">已触顶</span>' : '') }) + ' style="color:' + (dr.raw >= 60 ? 'var(--wx-amber-400)' : 'var(--wx-pos)') + ';cursor:default">减伤 ' + dr.capped + '% / 60</span>';
+	}
+
+	function shelfItems() {
+		var out = [], q = S.search, id;
+		function pass(id) { var m = M[id]; if (S.cat && m.cat !== S.cat) return false; if (q && m.name.indexOf(q) < 0) return false; return true; }
+		if (S.shelf === 'learned') {
+			for (id in bro().learned) if (bro().learned.hasOwnProperty(id) && pass(id)) out.push({ type: 'learned', id: id });
+			out.sort(function (a, b) { var ea = equippedSlotOf(a.id), eb = equippedSlotOf(b.id); if ((ea >= 0) !== (eb >= 0)) return ea >= 0 ? -1 : 1; return QUAL[M[b.id].q].rank - QUAL[M[a.id].q].rank; });
+		} else if (S.shelf === 'vault') {
+			for (var i = 0; i < D.lib.length; i++) { var it = D.lib[i]; if (it.kind === 'manual' && !bro().learned[it.id] && pass(it.id)) out.push({ type: 'vault', id: it.id, count: it.count }); }
+		} else {
+			for (var p in D.pills) if (D.pills.hasOwnProperty(p) && D.pills[p] > 0) out.push({ type: 'pill', id: p, count: D.pills[p] });
+		}
+		return out;
+	}
+	function renderShelf() {
+		var learnedN = 0; for (var k in bro().learned) if (bro().learned.hasOwnProperty(k)) learnedN++;
+		var vaultN = 0; for (var i = 0; i < D.lib.length; i++) if (D.lib[i].kind === 'manual' && !bro().learned[D.lib[i].id]) vaultN++;
+		var pillN = 0; for (var p in D.pills) if (D.pills.hasOwnProperty(p)) pillN += D.pills[p];
+		var cats = ['neigong', 'waigong', 'qinggong', 'henglian'], ch = '';
+		for (i = 0; i < cats.length; i++) ch += '<span class="wx-icon-toggle' + (S.cat === cats[i] ? ' is-on' : '') + '" data-act="cat" data-v="' + cats[i] + '"' + tip({ title: '只看' + CAT[cats[i]].label, body: '再次点击取消筛选' }) + '><img src="' + G + CAT[cats[i]].emblem + '"></span>';
+		$('shelf-bar').innerHTML =
+			'<span class="wx-subtab' + (S.shelf === 'learned' ? ' is-active' : '') + '" data-act="shelf" data-v="learned">已习武学<span class="wx-n">' + learnedN + '</span></span>' +
+			'<span class="wx-subtab' + (S.shelf === 'vault' ? ' is-active' : '') + '" data-act="shelf" data-v="vault"' + tip({ title: '阁藏直学', body: '藏经阁里本人尚未习得的整本秘籍：研习（消耗 1 册）后直接装入选中穴位。' }) + '>阁藏直学<span class="wx-n">' + vaultN + '</span></span>' +
+			'<span class="wx-subtab' + (S.shelf === 'pill' ? ' is-active' : '') + '" data-act="shelf" data-v="pill">随身灵丹<span class="wx-n">' + pillN + '</span></span>' +
+			'<span class="r">' + (S.shelf === 'pill' ? '' : ch) + '<input class="wx-input" id="shelf-search" placeholder="搜功法" value="' + esc(S.search) + '"></span>';
+
+		var sel = bro().slots[S.selSlot], hint = $('shelf-hint');
+		if (S.shelf === 'pill') { hint.className = 'shelf-hint'; hint.innerHTML = '凝神丸可拖到穴位或点「灌注」为<b>穴' + CN[S.selSlot + 1] + '</b>功法增长火候；护心丹 / 金疮散点击即服。'; }
+		else if (!slotUnlocked(S.selSlot)) { hint.className = 'shelf-hint is-lock'; hint.innerHTML = '穴' + CN[S.selSlot + 1] + '「' + sel.label + '」尚未贯通（' + sel.unlock + ' 级）—— 列表不做适配高亮'; }
+		else hint.innerHTML = '正在为 <b>穴' + CN[S.selSlot + 1] + ' · ' + sel.label + '</b> 配功 —— 可装：' + catsLabel(sel.cats) + ' · 也可直接拖卡片到穴位', hint.className = 'shelf-hint';
+
+		var items = shelfItems(), h = '';
+		for (i = 0; i < items.length; i++) h += shelfCard(items[i]);
+		if (!items.length) h = '<div class="shelf-empty">' + (S.shelf === 'vault' ? '藏经阁中没有本人未习的整本秘籍。<br>击败强敌、造访书肆所得秘籍会自动归入藏经阁。' : '没有符合筛选的条目。') + '</div>';
+		$('shelf-list').innerHTML = h + '<div class="clear"></div>';
+		bindInputs();
+	}
+	function shelfCard(it) {
+		var unlockedSel = slotUnlocked(S.selSlot), h, fit, insp;
+		if (it.type === 'pill') {
+			var p = PILLS[it.id];
+			insp = S.insp.kind === 'pill' && S.insp.id === it.id;
+			var act = p.kind === 'infuse' ? '<div class="wx-btn wx-btn-sm wx-btn-primary act" data-act="infuse-pill" data-v="' + it.id + '">灌注</div>' : (p.kind === 'heal_internal' || p.kind === 'heal_external') ? '<div class="wx-btn wx-btn-sm act" data-act="heal" data-v="' + it.id + '">服用</div>' : (p.kind === 'wash' ? '<div class="wx-btn wx-btn-sm act" data-act="open-wash">洗髓</div>' : '');
+			return '<div class="mcard' + (insp ? ' is-insp' : '') + '" data-act="insp" data-k="pill" data-v="' + it.id + '"' + (p.kind === 'infuse' ? ' data-drag="pill:' + it.id + '"' : '') + '><div class="ic wx-slot q-sect"><img src="' + G + p.icon + '"></div>' +
+				'<div class="nm">' + p.name + '</div><div class="sb">×' + it.count + ' · 战团仓库</div><div class="pr">' + p.desc + '</div>' + act + '</div>';
+		}
+		var id = it.id, m = M[id];
+		var l = it.type === 'learned' ? bro().learned[id] : null;
+		var eq = l ? equippedSlotOf(id) : -1;
+		fit = unlockedSel ? canFit(id, S.selSlot).ok : true;
+		var fitCls = !unlockedSel ? '' : (eq >= 0 ? '' : (fit ? ' is-fit' : ' is-unfit'));
+		insp = (S.insp.kind === it.type && S.insp.id === id);
+		var right;
+		if (eq >= 0) right = '<span class="seal-tag">穴' + CN[eq + 1] + '</span>';
+		else if (it.type === 'learned') right = (fit && unlockedSel) ? '<div class="wx-btn wx-btn-sm wx-btn-primary act" data-act="equip" data-v="' + id + '">装入</div>' : '';
+		else right = (fit && unlockedSel) ? '<div class="wx-btn wx-btn-sm wx-btn-primary act" data-act="learn-equip" data-v="' + id + '">习并装</div>' : '<span class="act wx-mute" style="font-size:0.95rem">×' + it.count + '</span>';
+		var pr = l ? (tiersHtml(l.tier, l.frag) + (needExp(id, l.tier) ? expBar(id, l) + l.exp + '/' + needExp(id, l.tier) : ' <span class="wx-gold" style="margin-left:0.3rem">大成</span>')) + (!wpnOk(id) ? ' <span class="wx-amber">· 需' + WPN[m.wpn] + '</span>' : '')
+			: ('<span>' + reqSummary(id) + '</span>');
+		return '<div class="mcard' + fitCls + (insp ? ' is-insp' : '') + '" data-act="insp" data-k="' + it.type + '" data-v="' + id + '" data-drag="' + it.type + ':' + id + '">' +
+			'<div class="ic wx-slot round q-' + m.q + '"><img src="' + G + m.icon + '"></div>' +
+			'<div class="nm">《' + m.name + '》</div><div class="sb"><span class="q-text-' + m.q + '">' + QUAL[m.q].label + '</span> · ' + CAT[m.cat].short + (m.wpn ? ' · ' + WPN[m.wpn] : '') + (m.el ? ' · ' + EL[m.el] : '') + '</div>' +
+			'<div class="pr">' + pr + '</div>' + right + '</div>';
+	}
+	function reqSummary(id) {
+		var r = M[id].req, a = [], bad = 0;
+		for (var k in r) if (r.hasOwnProperty(k)) { var ok = attrVal(k) >= r[k]; if (!ok) bad++; a.push('<span class="' + (ok ? 'wx-pos' : 'wx-neg') + '">' + k + r[k] + '</span>'); }
+		return a.length ? '大成门槛 ' + a.join(' ') : '<span class="wx-dim">无门槛</span>';
+	}
+
+	/* 详览台 */
+	function inspectorFor(id, mode) {
+		var m = M[id], l = bro().learned[id], tier = l ? l.tier : 0, h = '';
+		h += '<div class="wx-tiqian"><div class="wx-tq-icon"><img src="' + G + (mode === 'lib' ? bookIcon(id, false) : m.icon) + '"></div>' +
+			'<div class="wx-tq-name">《' + m.name + '》</div><div class="wx-tq-meta">' + subLine(id) + '</div>' +
+			'<div class="wx-tq-meta">' + (l ? (equippedSlotOf(id) >= 0 ? '装于穴' + CN[equippedSlotOf(id) + 1] + ' · ' : '已习 · ') + TIER_NAME[tier] : '本人未习') + '</div>' + qSeal(m.q) + '<div class="clear"></div></div>';
+		if (m.wpn) h += '<div class="wx-insp-line">' + (wpnOk(id) ? '<span class="wx-jade">◆ 契合当前主手：' + WPN[m.wpn] + '</span>' : '<span class="wx-amber">◆ 当前主手非' + WPN[m.wpn] + '：被动与招式暂不生效</span>') + '</div>';
+		h += '<div class="wx-insp-desc">' + esc(m.desc) + '</div>';
+		h += '<div class="wx-sec-title">三重境界</div><div class="wx-tierline">';
+		var tn = ['一重 · 入门', '二重 · 小成', '三重 · 大成'];
+		for (var t = 1; t <= 3; t++) {
+			var cls = t <= tier ? 'is-done' : (t === tier + 1 && l ? 'is-next' : '');
+			var extra = '';
+			if (cls === 'is-next' && !l.frag) { var need = needExp(id, tier); extra = '<div class="wx-bar wx-bar-thin"><div class="wx-fill" style="width:' + Math.floor(l.exp / need * 100) + '%;background:var(--wx-jade-500)"></div></div><span class="wx-jade" style="font-size:0.95rem">火候 ' + l.exp + ' / ' + need + '</span>'; }
+			if (t === 3 && l && l.frag) extra = '<div class="wx-amber" style="font-size:0.95rem">残本止步一重，研读整本可无损补全</div>';
+			h += '<div class="wx-tl-item ' + cls + '"><span class="wx-tl-head">' + tn[t - 1] + '</span><br>' + m.tiers[t - 1] + extra + '</div>';
+		}
+		h += '</div>';
+		var r = m.req, rk = [];
+		for (var k in r) if (r.hasOwnProperty(k)) rk.push(k);
+		if (rk.length) {
+			h += '<div class="wx-sec-title">大成门槛<span class="wx-sec-sub">突破三重所需</span></div>';
+			for (var i = 0; i < rk.length; i++) { var v = attrVal(rk[i]), ok = v >= r[rk[i]]; h += '<div class="wx-req"><span class="' + (ok ? 'ok' : 'bad') + '">' + (ok ? '✓' : '✗') + '</span> ' + rk[i] + ' <b class="wx-hi">' + v + '</b> / ' + r[rk[i]] + (ok ? '' : ' <span class="wx-mute">（差 ' + (r[rk[i]] - v) + '）</span>') + '</div>'; }
+		}
+		if (m.team && m.team.length) h += '<div class="wx-sec-title" style="margin-top:0.5rem">同袍已习</div><div class="wx-insp-line wx-dim">' + m.team.join('、') + '</div>';
+		return h;
+	}
+	function renderWxInspector() {
+		var body = '', foot = '', ins = S.insp, b = bro();
+		if (ins.kind === 'slot') {
+			var s = b.slots[ins.idx];
+			if (s.m) {
+				body = inspectorFor(s.m, 'slot');
+				var l = b.learned[s.m];
+				foot = (l.tier < 3 && !l.frag ? '<div class="wx-btn wx-btn-primary" data-act="open-infuse">灌注火候</div>' : '') + '<div class="wx-btn" data-act="unequip" data-v="' + ins.idx + '">卸下</div>';
+			} else {
+				var un = slotUnlocked(ins.idx), fitN = 0, vaultN = 0;
+				for (var id in b.learned) if (b.learned.hasOwnProperty(id) && equippedSlotOf(id) < 0 && un && canFit(id, ins.idx).ok) fitN++;
+				for (var i = 0; i < D.lib.length; i++) if (D.lib[i].kind === 'manual' && !b.learned[D.lib[i].id] && un && canFit(D.lib[i].id, ins.idx).ok) vaultN++;
+				body = '<div class="wx-tiqian"><div class="wx-tq-icon" style="background:#1a120c url(' + G + 'ui/wx_skin/wx_slot_acupoint.png) center/100% no-repeat"></div><div class="wx-tq-name">穴' + CN[ins.idx + 1] + ' · ' + s.label + '</div><div class="wx-tq-meta">' + (un ? '已贯通 · 空穴' : s.unlock + ' 级贯通 · 还差 ' + (s.unlock - b.level) + ' 级') + '</div><div class="clear"></div></div>' +
+					'<div class="wx-insp-line">可配：<b>' + catsLabel(s.cats) + '</b></div>' +
+					(un ? '<div class="wx-insp-line">已习中可装 <b class="wx-jade">' + fitN + '</b> 部 · 阁藏可直学 <b class="wx-jade">' + vaultN + '</b> 部</div>' : '') +
+					'<div class="wx-rule"></div><div class="wx-sec-title">装配规则</div>' +
+					'<div class="wx-insp-line wx-dim">• 全身内功 <b>' + catCount('neigong', -1) + '</b> / 2 · 轻功 <b>' + catCount('qinggong', -1) + '</b> / 2</div>' +
+					'<div class="wx-insp-line wx-dim">• 空穴装入免费；换装 / 卸下触发 1~4 天「散功调息」，重数火候永久保留</div>' +
+					'<div class="wx-insp-line wx-dim">• 同系常驻被动取最高，不叠加；辅修内功内息/回气按 50% 折算</div>';
+				foot = un ? '<div class="wx-btn" data-act="shelf" data-v="learned">看已习</div><div class="wx-btn wx-btn-primary" data-act="shelf" data-v="vault">阁藏直学' + (vaultN ? '<span class="wx-count">' + vaultN + '</span>' : '') + '</div>' : '';
+			}
+		} else if (ins.kind === 'learned' || ins.kind === 'vault') {
+			body = inspectorFor(ins.id, ins.kind);
+			var eq = equippedSlotOf(ins.id), un2 = slotUnlocked(S.selSlot), sel = b.slots[S.selSlot];
+			if (ins.kind === 'learned') {
+				if (eq >= 0) foot = '<div class="wx-btn" data-act="unequip" data-v="' + eq + '">从穴' + CN[eq + 1] + '卸下</div>';
+				else { var f = un2 ? canFit(ins.id, S.selSlot) : { ok: false, why: '选中穴位未贯通' }; foot = f.ok ? '<div class="wx-btn wx-btn-primary" data-act="equip" data-v="' + ins.id + '">' + (sel.m ? '替换穴' + CN[S.selSlot + 1] : '装入穴' + CN[S.selSlot + 1]) + '</div>' : '<span class="wx-mute" style="font-size:1rem;line-height:2.4rem">' + f.why + '</span>'; }
+			} else {
+				var f2 = un2 ? canFit(ins.id, S.selSlot) : { ok: false, why: '选中穴位未贯通' };
+				foot = '<div class="wx-btn" data-act="learn-only" data-v="' + ins.id + '">只研习</div>' + (f2.ok ? '<div class="wx-btn wx-btn-primary" data-act="learn-equip" data-v="' + ins.id + '">习并装入穴' + CN[S.selSlot + 1] + '</div>' : '');
+			}
+		} else if (ins.kind === 'pill') {
+			var p = PILLS[ins.id];
+			body = '<div class="wx-tiqian"><div class="wx-tq-icon"><img src="' + G + p.icon + '"></div><div class="wx-tq-name">' + p.name + '</div><div class="wx-tq-meta">随身灵丹 · 仓库 ×' + D.pills[ins.id] + '</div><div class="clear"></div></div><div class="wx-insp-desc">' + p.desc + '</div>';
+		}
+		$('insp-wx').innerHTML = '<div class="wx-insp-body scroll">' + body + '</div><div class="wx-insp-foot">' + foot + '</div>';
+	}
+
+	/* ------------------------------------------------------------------------
+	 * 页签三：藏经阁
+	 * ------------------------------------------------------------------------ */
+	function libFiltered() {
+		var L = S.lib, out = [];
+		for (var i = 0; i < D.lib.length; i++) {
+			var it = D.lib[i], m = M[it.id];
+			if (L.kind === 'manual' && it.kind !== 'manual') continue;
+			if (L.kind === 'page' && it.kind !== 'page') continue;
+			if (L.cat && m.cat !== L.cat) continue;
+			if (L.q && m.q !== L.q) continue;
+			if (L.wpnOnly && m.wpn && m.wpn !== bro().weapon) continue;
+			if (L.unlearned && bro().learned[it.id]) continue;
+			if (L.search && m.name.indexOf(L.search) < 0) continue;
+			out.push(it);
+		}
+		out.sort(function (a, b) {
+			if (L.sort === 'craft') { var ca = a.kind === 'page' && pageState(a) !== 'none' ? 1 : 0, cb = b.kind === 'page' && pageState(b) !== 'none' ? 1 : 0; if (ca !== cb) return cb - ca; }
+			if (L.sort === 'cat' && M[a.id].cat !== M[b.id].cat) return M[a.id].cat < M[b.id].cat ? -1 : 1;
+			var r = QUAL[M[b.id].q].rank - QUAL[M[a.id].q].rank; if (r) return r;
+			return a.kind === b.kind ? 0 : (a.kind === 'manual' ? -1 : 1);
+		});
+		return out;
+	}
+	function renderLib() {
+		var manN = 0, pageN = 0, i;
+		for (i = 0; i < D.lib.length; i++) { if (D.lib[i].kind === 'manual') manN += D.lib[i].count; else pageN += D.lib[i].count; }
+		var cc = craftableCount();
+		$('lib-top').innerHTML =
+			'<span class="ttl wx-title-font">藏经阁</span>' +
+			'<span class="wx-chip">馆藏 <b class="wx-hi">' + manN + '</b> 册</span><span class="wx-chip">残页 <b class="wx-hi">' + pageN + '</b> 张</span>' +
+			'<span class="wx-chip"' + tip({ title: '传授对象', body: '「研习」将把秘籍传给当前查看的侠客。点击下方阵型头像可切换。' }) + '>传授 · <b class="wx-gold">' + bro().name + '</b></span>' +
+			'<span class="right">' +
+			'<span class="wx-switch' + (D.autoStore ? ' is-on' : '') + '" data-act="auto"' + tip({ title: '自动入阁', body: '战利品、商肆购入的秘籍与残页自动收入藏经阁，不占仓库格。' }) + '><span class="wx-track"><span class="wx-knob"></span></span>自动入阁</span>' +
+			'<span class="wx-btn' + (D.stashBooks ? '' : ' is-disabled') + '" data-act="store-books">收纳仓库典籍' + (D.stashBooks ? '<span class="wx-count">' + D.stashBooks + '</span>' : '') + '</span>' +
+			'<span class="wx-btn wx-btn-seal' + (cc ? '' : ' is-disabled') + '" data-act="craft-all">一键拼合' + (cc ? '<span class="wx-count">' + cc + '</span>' : '') + '</span>' +
+			'<span class="wx-btn wx-btn-ghost"' + tip({ title: '江湖名刺', body: '查看 44 家宗门交情、寻仇红线与秘籍收录进度。' }) + '><img src="' + G + 'ui/wx_icons/wx_glyph_sect_token.png">名刺</span>' +
+			'</span>';
+
+		function cnt(fn) { var n = 0; for (var j = 0; j < D.lib.length; j++) if (fn(D.lib[j])) n++; return n; }
+		var L = S.lib, ih = '<div class="idx-h">书目</div>';
+		var kinds = [['all', '全部'], ['manual', '整本秘籍'], ['page', '残页']];
+		for (i = 0; i < kinds.length; i++) { var kk = kinds[i][0]; ih += '<div class="idx-i' + (L.kind === kk ? ' is-on' : '') + '" data-act="lib-kind" data-v="' + kk + '">' + kinds[i][1] + '<span class="n">' + cnt(function (it) { return kk === 'all' || it.kind === kk; }) + '</span></div>'; }
+		ih += '<div class="idx-h">四脉</div>';
+		var cats = ['neigong', 'waigong', 'qinggong', 'henglian'];
+		for (i = 0; i < cats.length; i++) { var c = cats[i]; ih += '<div class="idx-i' + (L.cat === c ? ' is-on' : '') + '" data-act="lib-cat" data-v="' + c + '"><span class="dot" style="background:' + CAT[c].color + '"></span>' + CAT[c].label + '<span class="n">' + cnt(function (it) { return M[it.id].cat === c; }) + '</span></div>'; }
+		ih += '<div class="idx-h">品阶</div>';
+		var qs = ['unique', 'secret', 'sect', 'common'];
+		for (i = 0; i < qs.length; i++) { var q = qs[i]; ih += '<div class="idx-i' + (L.q === q ? ' is-on' : '') + '" data-act="lib-q" data-v="' + q + '"><span class="dot" style="background:var(--wx-q-' + q + ')"></span>' + QUAL[q].label + '<span class="n">' + cnt(function (it) { return M[it.id].q === q; }) + '</span></div>'; }
+		ih += '<div class="idx-h">条件</div>' +
+			'<span class="wx-check' + (L.wpnOnly ? ' is-on' : '') + '" data-act="lib-wpn"><span class="wx-box"></span>契合兵刃</span>' +
+			'<span class="wx-check' + (L.unlearned ? ' is-on' : '') + '" data-act="lib-unl"><span class="wx-box"></span>仅看未习</span>';
+		$('lib-idx').innerHTML = ih;
+
+		var sorts = { rank: '按品阶', cat: '按四脉', craft: '可拼优先' };
+		$('lib-tool').innerHTML = '<input class="wx-input" id="lib-search" placeholder="搜秘籍 / 残页" value="' + esc(L.search) + '">' +
+			'<span class="r"><span class="wx-btn wx-btn-sm wx-btn-ghost" data-act="lib-sort">' + sorts[L.sort] + ' ▾</span> ' +
+			'<span class="seg"><span class="' + (L.view === 'card' ? 'is-on' : '') + '" data-act="lib-view" data-v="card">卷册</span><span class="' + (L.view === 'shelf' ? 'is-on' : '') + '" data-act="lib-view" data-v="shelf">书架</span></span></span>';
+
+		var items = libFiltered(), gh = '';
+		if (!L.insp && items.length) L.insp = items[0].kind + ':' + items[0].id;
+		if (L.view === 'card') { for (i = 0; i < items.length; i++) gh += libCard(items[i]); gh += '<div class="clear"></div>'; }
+		else {
+			var perRow = 10, row = '';
+			for (i = 0; i < items.length; i++) { row += libSpine(items[i]); if ((i + 1) % perRow === 0 || i === items.length - 1) { gh += '<div class="shelf-row">' + row + '</div>'; row = ''; } }
+		}
+		if (!items.length) gh = '<div class="shelf-empty">藏经阁中暂无符合筛选的秘籍或残页。</div>';
+		$('lib-grid').innerHTML = gh;
+		renderLibInspector();
+		bindInputs();
+	}
+	function libCard(it) {
+		var m = M[it.id], key = it.kind + ':' + it.id, learned = !!bro().learned[it.id], st, badge;
+		if (it.kind === 'manual') {
+			badge = '<span class="wx-badge br is-owned">×' + it.count + '</span>';
+			st = learned ? '<div class="st">' + bro().name + '已习</div>' : '<div class="st ok">可传授' + (m.team.length ? ' · 队中 ' + m.team.length + ' 人会' : '') + '</div>';
+		} else {
+			var need = pagesNeed(it.id), ps = pageState(it), pip = '<span class="pips' + (ps === 'craft' ? ' is-ready' : '') + '">';
+			for (var i = 0; i < need; i++) pip += '<i class="' + (i < it.count ? 'on' : '') + '"></i>';
+			pip += '</span>';
+			badge = '<span class="wx-badge br ' + (ps === 'craft' ? 'is-ready' : 'is-page') + '">' + (ps === 'craft' ? '可拼' : it.count + '/' + need) + '</span>';
+			st = '<div class="st' + (ps === 'craft' ? ' hot' : (ps === 'wild' ? ' ok' : '')) + '">' + pip + (ps === 'craft' ? '凑齐' : ps === 'wild' ? '可补缺' : '') + '</div>';
+		}
+		return '<div class="lcard' + (it.kind === 'manual' && learned ? ' is-learned' : '') + (S.lib.insp === key ? ' is-insp' : '') + '" data-act="lib-insp" data-v="' + key + '">' +
+			'<div class="wx-slot q-' + m.q + '"><img class="wx-item" src="' + G + bookIcon(it.id, it.kind === 'page') + '">' + badge + '</div>' +
+			'<div class="nm">' + (it.kind === 'page' ? m.name : '《' + m.name + '》') + '</div>' +
+			'<div class="sb">' + (it.kind === 'page' ? '<span style="color:#9cc3e6">残页</span> · ' : '') + '<span class="q-text-' + m.q + '">' + QUAL[m.q].label + '</span> · ' + CAT[m.cat].short + (m.wpn ? ' · ' + WPN[m.wpn] : '') + '</div>' + st + '</div>';
+	}
+	function libSpine(it) {
+		var m = M[it.id], key = it.kind + ':' + it.id, isPage = it.kind === 'page', ps = isPage ? pageState(it) : '';
+		return '<span class="spine q-' + m.q + (isPage ? ' is-page' : '') + (ps === 'craft' ? ' is-ready' : '') + (S.lib.insp === key ? ' is-insp' : '') + '" data-act="lib-insp" data-v="' + key + '"' +
+			tip({ title: (isPage ? '' : '《') + m.name + (isPage ? ' · 残页' : '》'), sub: subLine(it.id), body: isPage ? '残页 ' + it.count + ' / ' + pagesNeed(it.id) : '馆藏 ×' + it.count + (bro().learned[it.id] ? '<br><span class="wx-jade">' + bro().name + '已习</span>' : '') }) + '>' +
+			(isPage ? '' : '<span class="stitch"></span>') + '<span class="slip">' + vertical(m.name, isPage ? 6 : 7) + '</span>' +
+			(bro().learned[it.id] && !isPage ? '<span class="learned-dot"></span>' : '') +
+			'<span class="cnt">' + (isPage ? it.count + '/' + pagesNeed(it.id) : '×' + it.count) + '</span></span>';
+	}
+	function renderLibInspector() {
+		var key = S.lib.insp, body = '', foot = '';
+		if (!key) { $('insp-lib').innerHTML = '<div class="wx-insp-body"><div class="shelf-empty">点击左侧秘籍或残页查看详情</div></div>'; return; }
+		var kind = key.split(':')[0], id = key.split(':')[1], it = libItem(kind, id);
+		if (!it) { S.lib.insp = null; $('insp-lib').innerHTML = '<div class="wx-insp-body"><div class="shelf-empty">该条目已不在藏经阁中</div></div>'; return; }
+		var m = M[id], learned = bro().learned[id];
+		body = inspectorFor(id, 'lib');
+		if (kind === 'manual') {
+			body = body.replace('<div class="wx-insp-desc">', '<div class="wx-insp-line">馆藏 <b>×' + it.count + '</b> · 估价 <b class="wx-gold">' + (QUAL[m.q].rank * 1100) + '</b> 两</div><div class="wx-insp-desc">');
+			if (learned && learned.frag) foot = '<div class="wx-btn" data-act="lib-withdraw">取出</div><div class="wx-btn wx-btn-primary" data-act="lib-learn">补全残本</div>';
+			else if (learned) foot = '<div class="wx-btn" data-act="lib-withdraw">取出至仓库</div><div class="wx-btn is-disabled">' + bro().name + '已习</div>';
+			else foot = '<div class="wx-btn" data-act="lib-withdraw">取出</div><div class="wx-btn wx-btn-primary" data-act="lib-learn">研习 · 传授' + bro().name + '</div>';
+		} else {
+			var need = pagesNeed(id), ps = pageState(it), pip = '<span class="pips' + (ps === 'craft' ? ' is-ready' : '') + '" style="margin-left:0.3rem">';
+			for (var i = 0; i < need; i++) pip += '<i class="' + (i < it.count ? 'on' : '') + '"></i>';
+			pip += '</span>';
+			body = body.replace('<div class="wx-insp-desc">', '<div class="wx-insp-line">残页 <b>' + it.count + ' / ' + need + '</b>' + pip + (ps === 'wild' ? '<br><span class="wx-jade">可用同阶闲置残页 2:1 补缺（另有 ' + idlePagesSameQ(id) + ' 张同阶残页）</span>' : '') + '</div><div class="wx-insp-desc">');
+			foot = '<div class="wx-btn wx-btn-sm" data-act="lib-infuse"' + tip({ title: '化功参悟', body: '消耗 1 张残页，为选中穴位同名功法 +40 火候；无同名则 +20。' }) + '>化功</div>';
+			if (m.allowFrag && !learned) foot += '<div class="wx-btn wx-btn-sm" data-act="lib-fraglearn">残本强修</div>';
+			if (ps === 'craft') foot += '<div class="wx-btn wx-btn-sm wx-btn-seal" data-act="lib-craft">装帧成书</div>';
+			else if (ps === 'wild') foot += '<div class="wx-btn wx-btn-sm wx-btn-primary" data-act="lib-wild">2:1 补缺</div>';
+		}
+		$('insp-lib').innerHTML = '<div class="wx-insp-body scroll">' + body + '</div><div class="wx-insp-foot">' + foot + '</div>';
+	}
+
+	/* ------------------------------------------------------------------------
+	 * 弹窗 & 提示
+	 * ------------------------------------------------------------------------ */
+	var modalEl = null;
+	function openModal(o) {
+		closeModal();
+		var bd = document.createElement('div'); bd.className = 'wx-backdrop';
+		var w = o.width || 44, fh = '';
+		for (var i = 0; i < (o.foot || []).length; i++) fh += '<div class="wx-btn ' + (o.foot[i].cls || '') + '" data-mf="' + i + '">' + o.foot[i].label + '</div>';
+		bd.innerHTML = '<div class="wx-modal" style="width:' + w + 'rem;margin-left:' + (-w / 2) + 'rem;"><div class="wx-modal-head">' + o.title + (o.sub ? '<span class="wx-mh-sub">' + o.sub + '</span>' : '') +
+			'<div class="wx-seal-close" data-mclose="1">×</div></div><div class="wx-modal-body">' + o.body + '<div class="clear"></div></div>' + (fh ? '<div class="wx-modal-foot">' + fh + '</div>' : '') + '</div>';
+		$('cs').appendChild(bd);
+		var box = bd.firstChild; box.style.marginTop = (-box.offsetHeight / 2) + 'px';
+		bd.onclick = function (e) {
+			var t = e.target;
+			if (t === bd || upTo(t, 'data-mclose')) { closeModal(); return; }
+			var f = upTo(t, 'data-mf'); if (f && !/is-disabled/.test(f.className)) { var idx = +f.getAttribute('data-mf'); if (o.foot[idx].fn) o.foot[idx].fn(bd); else closeModal(); return; }
+			if (o.onClick) o.onClick(e, bd);
+		};
+		modalEl = bd;
+		return bd;
+	}
+	function closeModal() { if (modalEl) { modalEl.parentNode.removeChild(modalEl); modalEl = null; } }
+	var toastTimer = null, toastEl = null;
+	function toast(msg, err) {
+		if (!toastEl) { toastEl = document.createElement('div'); $('cs').appendChild(toastEl); }
+		toastEl.className = 'wx-toast' + (err ? ' is-error' : '');
+		toastEl.style.top = '17.6rem'; toastEl.innerHTML = msg; toastEl.style.display = 'block';
+		toastEl.style.marginLeft = (-toastEl.offsetWidth / 2) + 'px'; toastEl.style.left = '89.65rem';
+		if (toastTimer) clearTimeout(toastTimer);
+		toastTimer = setTimeout(function () { toastEl.style.display = 'none'; }, 3200);
+	}
+
+	/* ------------------------------------------------------------------------
+	 * 行为
+	 * ------------------------------------------------------------------------ */
+	function doEquip(id, idx, fromVault) {
+		var b = bro(), s = b.slots[idx], f = canFit(id, idx);
+		if (s.m === id) { toast('《' + M[id].name + '》已在此穴', true); return; }
+		if (!f.ok) { toast(f.why, true); return; }
+		function apply() {
+			if (fromVault) { var li = libItem('manual', id); li.count--; if (li.count <= 0) D.lib.splice(D.lib.indexOf(li), 1); b.learned[id] = { tier: 1, exp: 0 }; }
+			var old = s.m; s.m = id;
+			if (old) b.scatter = Math.max(b.scatter, 2);
+			S.insp = { kind: 'slot', idx: idx }; S.selSlot = idx;
+			toast('《' + M[id].name + '》' + (old ? '替换《' + M[old].name + '》，' : '') + '装入穴' + CN[idx + 1] + ' · ' + s.label + (old ? '（散功调息 2 天）' : ''));
+			renderAll();
+		}
+		if (s.m || fromVault) {
+			var old = s.m, l = old ? b.learned[old] : null;
+			var body = '<div class="swap-row">' +
+				(old ? '<span class="swap-cap"><span class="wx-slot q-' + M[old].q + '"><img class="wx-item" src="' + G + M[old].icon + '"></span><div class="n">《' + M[old].name + '》</div><div class="s">' + TIER_NAME[l.tier] + '</div></span><span class="arrow">➜</span>'
+					: '<span class="swap-cap"><span class="wx-slot q-' + M[id].q + '"><img class="wx-item" src="' + G + bookIcon(id) + '"></span><div class="n">藏经阁 ×' + libItem('manual', id).count + '</div><div class="s">消耗 1 册</div></span><span class="arrow">➜</span>') +
+				'<span class="swap-cap"><span class="wx-slot q-' + M[id].q + '"><img class="wx-item" src="' + G + M[id].icon + '"></span><div class="n">《' + M[id].name + '》</div><div class="s">穴' + CN[idx + 1] + ' · ' + s.label + '</div></span></div>';
+			if (old) body += '<div class="note-box">换装触发 <b class="wx-amber">散功调息 2 天</b>：内息上限 -15、回气 -3（服「护心丹」可立即化解）。</div><div class="note-box ok">《' + M[old].name + '》的 <b>' + TIER_NAME[l.tier] + (needExp(old, l.tier) ? ' · 火候 ' + l.exp + '/' + needExp(old, l.tier) : '') + '</b> 将完整保留在已习武学中。</div>';
+			if (fromVault) body += '<div class="note-box ok">研习后永久加入 ' + b.name + ' 的「已习武学」，以后换下也不会丢失。</div>';
+			openModal({ title: old ? '换装调息' : '研习并装入', sub: old ? '已练重数永久保留' : '', width: 40, body: body,
+				foot: [{ label: '取消' }, { label: old ? '确认换装' : '研习并装入', cls: 'wx-btn-primary', fn: function () { closeModal(); apply(); } }] });
+		} else apply();
+	}
+	function doUnequip(idx) {
+		var s = bro().slots[idx]; if (!s.m) return;
+		var m = M[s.m], l = bro().learned[s.m];
+		openModal({ title: '卸下功法', width: 38, body: '<div class="swap-row"><span class="swap-cap"><span class="wx-slot q-' + m.q + '"><img class="wx-item" src="' + G + m.icon + '"></span><div class="n">《' + m.name + '》</div><div class="s">穴' + CN[idx + 1] + ' · ' + TIER_NAME[l.tier] + '</div></span></div>' +
+			'<div class="note-box">卸下触发 <b class="wx-amber">散功调息 2 天</b>。</div><div class="note-box ok">重数与火候永久保留，可随时再装回。</div>',
+			foot: [{ label: '取消' }, { label: '确认卸下', cls: 'wx-btn-primary', fn: function () { closeModal(); s.m = null; bro().scatter = Math.max(bro().scatter, 2); toast('已卸下《' + m.name + '》· 火候保留'); renderAll(); } }] });
+	}
+	function addExp(id, gain) {
+		var l = bro().learned[id], m = M[id], msg = '《' + m.name + '》火候 +' + gain;
+		if (l.tier >= 3 || l.frag) { toast('《' + m.name + '》' + (l.frag ? '为残本，无法灌注' : '已臻大成'), true); return false; }
+		l.exp += gain;
+		var need = needExp(id, l.tier);
+		if (l.exp >= need) {
+			if (l.tier === 2) {
+				var r = m.req, bad = []; for (var k in r) if (r.hasOwnProperty(k) && attrVal(k) < r[k]) bad.push(k + ' ' + attrVal(k) + '/' + r[k]);
+				if (bad.length) { l.exp = need; toast(msg + ' · 火候已满，但大成门槛未达：' + bad.join('；'), true); return true; }
+			}
+			l.exp -= need; l.tier++; msg += ' · <span class="wx-gold">突破至' + TIER_NAME[l.tier] + '！</span>';
+		}
+		toast(msg); return true;
+	}
+	function openInfuse() {
+		var s = bro().slots[S.selSlot]; if (!s.m) { toast('选中穴位没有功法', true); return; }
+		var m = M[s.m], rows = '';
+		if (D.pills.ningshen) rows += '<div class="pick-row" data-pick="pill"><span class="wx-slot q-sect"><img class="wx-item" src="' + G + PILLS.ningshen.icon + '"></span><div class="n">凝神丸 ×' + D.pills.ningshen + '</div><div class="s">战团仓库</div><span class="g">+80 火候</span></div>';
+		var pg = libItem('page', s.m);
+		if (pg) rows += '<div class="pick-row" data-pick="page"><span class="wx-slot q-' + m.q + '"><img class="wx-item" src="' + G + bookIcon(s.m, true) + '"></span><div class="n">《' + m.name + '》残页 ×' + pg.count + '</div><div class="s">藏经阁 · 同名残页化功</div><span class="g">+40 火候</span></div>';
+		if (!rows) rows = '<div class="shelf-empty">仓库没有凝神丸，藏经阁也没有同名残页。</div>';
+		openModal({ title: '灌注火候', sub: '《' + m.name + '》· 穴' + CN[S.selSlot + 1], width: 40, body: rows, foot: [{ label: '关闭' }],
+			onClick: function (e) { var r = upTo(e.target, 'data-pick'); if (!r) return; var w = r.getAttribute('data-pick');
+				if (w === 'pill') { if (addExp(s.m, 80)) D.pills.ningshen--; } else { if (addExp(s.m, 40)) { pg.count--; if (pg.count <= 0) D.lib.splice(D.lib.indexOf(pg), 1); } }
+				closeModal(); renderAll(); } });
+	}
+
+	/* 洗经伐髓 */
+	function openWash() {
+		if (!D.pills.xisui) { toast('仓库没有「洗髓丹」', true); return; }
+		var W = { target: -1, rep: -1, protect: false };
+		var b = bro();
+		function starCount() { var n = 0; for (var i = 0; i < 8; i++) if (b.talents[i] > 0) n++; return n; }
+		function calc() {
+			if (W.target < 0) return null;
+			var t = b.talents[W.target], base, type;
+			if (t === 0) { base = 45; type = starCount() >= 3 ? '易筋换星 0★→1★' : '开星 0★→1★'; }
+			else if (t === 1) { base = 30; type = '冲星 1★→2★'; } else { base = 15; type = '冲星 2★→3★'; }
+			var bonus = [['定力 ' + attrVal('定力'), Math.min(5, Math.floor(attrVal('定力') / 12))], ['气血健康', b.wounds.length ? 0 : 3], ['主修内功 ' + (b.slots[0].m ? CN[b.learned[b.slots[0].m].tier] + '重' : '无'), b.slots[0].m ? b.learned[b.slots[0].m].tier * 2 : 0], ['护脉丹', W.protect ? 5 : 0]];
+			var sum = 0; for (var i = 0; i < bonus.length; i++) sum += bonus[i][1];
+			var cap = Math.min(20, sum);
+			return { type: type, base: base, bonus: bonus, sum: cap, total: base + cap, needRep: t === 0 && starCount() >= 3, risk: (t >= 1 && !W.protect) ? '15% 留下永久暗疾' : '无永久暗疾风险' };
+		}
+		function body() {
+			var h = '<div class="wash-l"><div class="wash-step">一、选择冲击的目标属性</div>';
+			for (var i = 0; i < 8; i++) {
+				var t = b.talents[i], max = t >= 3;
+				h += '<div class="attr-t' + (W.target === i ? ' is-sel' : '') + (max ? ' is-max' : '') + '" data-wt="' + i + '"><span class="an">' + b.attrs[i] + '</span><span class="av">' + b.base[i] + '</span>' + (t ? '<img src="' + G + 'ui/wx_icons/wx_talent_' + t + '.png">' : '<span class="none">无星</span>') + '</div>';
+			}
+			var c = calc();
+			if (c && c.needRep) {
+				h += '<div class="clear"></div><div class="wash-step" style="margin-top:0.4rem">二、已有 3 项带星，选择要洗去的旧星（易筋换星）</div>';
+				for (i = 0; i < 8; i++) if (b.talents[i] > 0) h += '<div class="attr-t' + (W.rep === i ? ' is-rep' : '') + '" data-wr="' + i + '"><span class="an">' + b.attrs[i] + '</span><span class="av">' + b.base[i] + '</span><img src="' + G + 'ui/wx_icons/wx_talent_' + b.talents[i] + '.png"></div>';
+			}
+			h += '<div class="clear"></div><span class="wx-check' + (W.protect ? ' is-on' : '') + (D.pills.humai ? '' : ' is-disabled') + '" data-wp="1" style="margin-top:0.4rem"><span class="wx-box"></span>辅服「护脉丹」（余 ' + D.pills.humai + '）：成功率 +5%，免除永久暗疾</span></div>';
+			h += '<div class="wash-r">';
+			if (!c) h += '<div class="odds-big" style="color:var(--wx-text-mute)">—</div><div class="odds-cap">请选择目标属性</div>';
+			else {
+				h += '<div class="odds-big">' + c.total + '%</div><div class="odds-cap">' + c.type + '</div>';
+				h += '<div class="odds-row">基础成功率<span>' + c.base + '%</span></div>';
+				for (i = 0; i < c.bonus.length; i++) h += '<div class="odds-row wx-dim">' + c.bonus[i][0] + '<span class="' + (c.bonus[i][1] ? 'wx-pos' : 'wx-mute') + '">+' + c.bonus[i][1] + '%</span></div>';
+				h += '<div class="wx-rule"></div><div class="odds-row">筹备加成（封顶 20%）<span class="wx-pos">+' + c.sum + '%</span></div>';
+				h += '<div class="risk">失败：必受「经脉震荡」3 天（气血 / 内息上限大降）<br>' + c.risk + '</div>';
+			}
+			h += '<div class="odds-row wx-dim" style="margin-top:0.6rem">消耗：洗髓丹 ×1（余 ' + D.pills.xisui + '）</div></div>';
+			return h;
+		}
+		function ready() { var c = calc(); return c && (!c.needRep || W.rep >= 0); }
+		function refresh(bd) { bd.querySelector('.wx-modal-body').innerHTML = body() + '<div class="clear"></div>'; var ex = bd.querySelector('[data-mf="1"]'); ex.className = 'wx-btn wx-btn-seal' + (ready() ? '' : ' is-disabled'); var bx = bd.firstChild; bx.style.marginTop = (-bx.offsetHeight / 2) + 'px'; }
+		var bd = openModal({ title: '洗经伐髓', sub: '重塑先天根骨 · 每人至多 3 项带星', width: 60, body: body(),
+			foot: [{ label: '取消' }, { label: '开始洗髓', cls: 'wx-btn-seal is-disabled', fn: function () {
+				var c = calc(); D.pills.xisui--; if (W.protect) D.pills.humai--;
+				var ok = Math.random() * 100 < c.total; closeModal();
+				if (ok) { if (c.needRep) b.talents[W.rep] = 0; b.talents[W.target]++; toast('洗髓成功！' + b.attrs[W.target] + ' 根骨升至 ' + b.talents[W.target] + ' 星'); }
+				else toast('洗髓失败 · 经脉震荡 3 天' + (W.protect ? '（护脉丹护住经脉，无暗疾）' : ''), true);
+				renderAll();
+			} }],
+			onClick: function (e, bd) {
+				var t = upTo(e.target, 'data-wt'), r = upTo(e.target, 'data-wr'), p = upTo(e.target, 'data-wp');
+				if (t && !/is-max/.test(t.className)) { W.target = +t.getAttribute('data-wt'); W.rep = -1; refresh(bd); }
+				else if (r) { W.rep = +r.getAttribute('data-wr'); refresh(bd); }
+				else if (p && D.pills.humai) { W.protect = !W.protect; refresh(bd); }
+			} });
+		refresh(bd);
+		var box = bd.firstChild; box.style.marginTop = (-box.offsetHeight / 2) + 'px';
+	}
+
+	/* 藏经阁行为 */
+	function libAct(a) {
+		var key = S.lib.insp; if (!key) return;
+		var kind = key.split(':')[0], id = key.split(':')[1], it = libItem(kind, id), m = M[id], b = bro();
+		function consume(n) { it.count -= n; if (it.count <= 0) { D.lib.splice(D.lib.indexOf(it), 1); } }
+		if (a === 'lib-learn') {
+			if (b.learned[id] && b.learned[id].frag) { b.learned[id].frag = false; consume(1); toast('《' + m.name + '》残本已补全，可继续修炼至三重'); }
+			else { b.learned[id] = { tier: 1, exp: 0 }; consume(1); toast(b.name + ' 研习《' + m.name + '》· 已加入已习武学'); }
+		} else if (a === 'lib-withdraw') { consume(1); toast('已取出《' + m.name + '》' + (kind === 'page' ? '残页' : '') + '至战团仓库'); }
+		else if (a === 'lib-craft') { consume(pagesNeed(id)); var mi = libItem('manual', id); if (mi) mi.count++; else D.lib.unshift({ kind: 'manual', id: id, count: 1 }); S.lib.insp = 'manual:' + id; toast('残页装帧成书：《' + m.name + '》'); }
+		else if (a === 'lib-wild') {
+			var miss = pagesNeed(id) - it.count, burn = miss * 2, donors = [];
+			for (var i = 0; i < D.lib.length && burn > 0; i++) { var d = D.lib[i]; if (d.kind === 'page' && d.id !== id && M[d.id].q === m.q) { var use = Math.min(d.count, burn); donors.push('《' + M[d.id].name + '》×' + use); } }
+			openModal({ title: '2:1 同阶补缺', width: 40, body: '<div class="note-box">为装帧《' + m.name + '》（差 ' + miss + ' 页），将消耗同阶闲置残页 <b>' + (miss * 2) + '</b> 张：<br>' + donors.join('、') + '</div>',
+				foot: [{ label: '取消' }, { label: '确认融会成书', cls: 'wx-btn-seal', fn: function () {
+					var need2 = miss * 2;
+					for (var j = D.lib.length - 1; j >= 0 && need2 > 0; j--) { var dd = D.lib[j]; if (dd.kind === 'page' && dd.id !== id && M[dd.id].q === m.q) { var u = Math.min(dd.count, need2); dd.count -= u; need2 -= u; if (dd.count <= 0) D.lib.splice(j, 1); } }
+					D.lib.splice(D.lib.indexOf(it), 1); var mi2 = libItem('manual', id); if (mi2) mi2.count++; else D.lib.unshift({ kind: 'manual', id: id, count: 1 });
+					S.lib.insp = 'manual:' + id; closeModal(); toast('融会补缺成书：《' + m.name + '》'); renderAll(); } }] });
+			return;
+		} else if (a === 'lib-infuse') {
+			var sm = b.slots[S.selSlot].m;
+			if (!sm) { toast('请先在「武学修为」选中一个已装功法的穴位', true); return; }
+			var gain = sm === id ? 40 : 20;
+			if (addExp(sm, gain)) consume(1);
+		} else if (a === 'lib-fraglearn') {
+			openModal({ title: '残本强修', width: 40, body: '<div class="note-box">消耗 1 张《' + m.name + '》残页，让 ' + b.name + ' 强行记下残缺口诀。</div><div class="risk">• 残本最高止步一重<br>• 装槽实战有小概率行气不畅散逸内息<br>• 日后研读同名整本可无损补全</div>',
+				foot: [{ label: '取消' }, { label: '确认强修', cls: 'wx-btn-seal', fn: function () { b.learned[id] = { tier: 1, exp: 0, frag: true }; consume(1); closeModal(); toast(b.name + ' 强修《' + m.name + '》残本'); renderAll(); } }] });
+			return;
+		}
+		renderAll();
+	}
+
+	/* ------------------------------------------------------------------------
+	 * 渲染总入口 & 事件
+	 * ------------------------------------------------------------------------ */
+	function renderAll() {
+		TIPS = {}; tipSeq = 0; hideTip();
+		renderLeft(); renderRoster(); renderHeader(); renderInv(); renderWx(); renderLib();
+		$('cs').className = 'cs wx-root' + (S.grid ? ' grid-on' : '');
+		bindInputs();
+	}
+	function bindInputs() {
+		var si = $('shelf-search'); if (si) si.oninput = function () { S.search = si.value.replace(/^\s+|\s+$/g, ''); renderShelf(); var n = $('shelf-search'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); bindInputs(); };
+		var li = $('lib-search'); if (li) li.oninput = function () { S.lib.search = li.value.replace(/^\s+|\s+$/g, ''); S.lib.insp = null; renderLib(); var n = $('lib-search'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); bindInputs(); };
+	}
+
+	document.addEventListener('click', function (e) {
+		if (dragMoved) { dragMoved = false; return; }
+		if (modalEl && modalEl.contains(e.target)) return;
+		var el = upTo(e.target, 'data-act'); if (!el) return;
+		var a = el.getAttribute('data-act'), v = el.getAttribute('data-v');
+		if (/is-disabled/.test(el.className)) return;
+		switch (a) {
+			case 'tab': S.tab = v; renderAll(); break;
+			case 'slot': S.selSlot = +v; S.insp = { kind: 'slot', idx: +v }; if (S.shelf === 'pill') S.shelf = 'learned'; renderWx(); renderHeader(); break;
+			case 'shelf': S.shelf = v; renderWx(); bindInputs(); break;
+			case 'cat': S.cat = S.cat === v ? null : v; renderShelf(); bindInputs(); break;
+			case 'insp': S.insp = { kind: el.getAttribute('data-k'), id: v }; renderShelf(); renderWxInspector(); bindInputs(); break;
+			case 'equip':
+				var tgt = canFit(v, S.selSlot).ok ? S.selSlot : bestSlotFor(v);
+				if (tgt < 0) toast('没有可装入的空闲 / 兼容穴位', true); else doEquip(v, tgt, false);
+				break;
+			case 'learn-equip': doEquip(v, S.selSlot, true); break;
+			case 'learn-only': var li2 = libItem('manual', v); bro().learned[v] = { tier: 1, exp: 0 }; li2.count--; if (li2.count <= 0) D.lib.splice(D.lib.indexOf(li2), 1); S.insp = { kind: 'learned', id: v }; toast('研习《' + M[v].name + '》· 已加入已习武学'); renderAll(); break;
+			case 'unequip': doUnequip(+v); break;
+			case 'open-infuse': openInfuse(); break;
+			case 'infuse-pill': var sm = bro().slots[S.selSlot].m; if (!sm) { toast('请先选中一个已装功法的穴位', true); break; } if (addExp(sm, 80)) D.pills.ningshen--; renderAll(); break;
+			case 'heal':
+				if (!D.pills[v]) { toast('仓库没有「' + PILLS[v].name + '」', true); break; }
+				if (v === 'huxin') { if (!bro().scatter) { toast('当前没有散功或内伤', true); break; } bro().scatter = 0; D.pills.huxin--; toast('服下护心丹 · 散功调息已化解'); }
+				else if (v === 'jinchuang') { if (!bro().wounds.length) { toast('当前没有外伤', true); break; } bro().wounds.shift(); D.pills.jinchuang--; toast('敷上金疮散 · 外伤痊愈'); }
+				renderAll(); break;
+			case 'open-wash': openWash(); break;
+			case 'store-books': if (D.stashBooks) { toast('已将仓库中 ' + D.stashBooks + ' 件典籍收入藏经阁'); D.stashBooks = 0; var keep = []; for (var si = 0; si < STASH.length; si++) if (STASH[si][1] !== 'b') keep.push(STASH[si]); STASH = keep; renderAll(); } break;
+			case 'auto': D.autoStore = !D.autoStore; renderLib(); bindInputs(); break;
+			case 'craft-all': var n = 0; for (var i = D.lib.length - 1; i >= 0; i--) { var it = D.lib[i]; if (it.kind === 'page' && pageState(it) === 'craft') { var need = pagesNeed(it.id); it.count -= need; var mi = libItem('manual', it.id); if (mi) mi.count++; else D.lib.push({ kind: 'manual', id: it.id, count: 1 }); if (it.count <= 0) D.lib.splice(D.lib.indexOf(it), 1); n++; } } toast('一键拼合 ' + n + ' 部秘籍'); S.lib.insp = null; renderAll(); break;
+			case 'lib-kind': S.lib.kind = v; S.lib.insp = null; renderLib(); bindInputs(); break;
+			case 'lib-cat': S.lib.cat = S.lib.cat === v ? null : v; S.lib.insp = null; renderLib(); bindInputs(); break;
+			case 'lib-q': S.lib.q = S.lib.q === v ? null : v; S.lib.insp = null; renderLib(); bindInputs(); break;
+			case 'lib-wpn': S.lib.wpnOnly = !S.lib.wpnOnly; S.lib.insp = null; renderLib(); bindInputs(); break;
+			case 'lib-unl': S.lib.unlearned = !S.lib.unlearned; S.lib.insp = null; renderLib(); bindInputs(); break;
+			case 'lib-view': S.lib.view = v; renderLib(); bindInputs(); break;
+			case 'lib-sort': S.lib.sort = { rank: 'cat', cat: 'craft', craft: 'rank' }[S.lib.sort]; renderLib(); bindInputs(); break;
+			case 'lib-insp': S.lib.insp = v; renderLib(); bindInputs(); break;
+			case 'lib-learn': case 'lib-withdraw': case 'lib-craft': case 'lib-wild': case 'lib-infuse': case 'lib-fraglearn': libAct(a); break;
+			case 'inv-f': S.invFilter = v; renderInv(); break;
+			case 'pv-grid': S.grid = !S.grid; renderAll(); break;
+			case 'pv-reset': D = clone(INITIAL); S.selSlot = 4; S.insp = { kind: 'slot', idx: 4 }; S.lib.insp = null; toast('数据已重置'); renderAll(); break;
+			case 'pv-notes': var pn = $('pv-notes'); pn.style.display = pn.style.display === 'block' ? 'none' : 'block'; break;
+		}
+	});
+
+	document.addEventListener('contextmenu', function (e) {
+		var col = upTo(e.target, 'data-slot-idx');
+		if (col) { e.preventDefault(); var idx = +col.getAttribute('data-slot-idx'); if (bro().slots[idx].m) doUnequip(idx); return; }
+		var card = upTo(e.target, 'data-drag');
+		if (card) { e.preventDefault(); var p = card.getAttribute('data-drag').split(':'); if (p[0] === 'learned' && equippedSlotOf(p[1]) < 0) { var bi = canFit(p[1], S.selSlot).ok ? S.selSlot : bestSlotFor(p[1]); if (bi >= 0) doEquip(p[1], bi, false); else toast('没有可装入的空闲 / 兼容穴位', true); } else if (p[0] === 'learned') doUnequip(equippedSlotOf(p[1])); }
+	});
+
+	/* 悬浮提示 */
+	var curTip = null;
+	document.addEventListener('mousemove', function (e) {
+		if (drag) { dragMove(e); return; }
+		var t = upTo(e.target, 'data-tip');
+		var key = t ? t.getAttribute('data-tip') : null;
+		if (key !== curTip) { curTip = key; if (key) showTip(key, e.clientX, e.clientY); else hideTip(); }
+		else if (key) moveTip(e.clientX, e.clientY);
+	});
+
+	/* 拖拽：卡片 → 穴位 */
+	var drag = null, dragMoved = false;
+	document.addEventListener('mousedown', function (e) {
+		if (e.button !== 0) return;
+		var c = upTo(e.target, 'data-drag'); if (!c) return;
+		var actEl = upTo(e.target, 'data-act'); if (actEl && actEl !== c) return; /* 点在卡片内按钮上，不触发拖拽 */
+		var p = c.getAttribute('data-drag').split(':');
+		drag = { type: p[0], id: p[1], x: e.clientX, y: e.clientY, started: false, ghost: null };
+	});
+	function stageXY(e) { var r = $('stage').getBoundingClientRect(); return { x: (e.clientX - r.left) / SCALE, y: (e.clientY - r.top) / SCALE }; }
+	function dragMove(e) {
+		if (!drag.started) {
+			if (Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) < 6) return;
+			drag.started = true; hideTip();
+			var icon = drag.type === 'pill' ? PILLS[drag.id].icon : M[drag.id].icon;
+			drag.ghost = document.createElement('div'); drag.ghost.className = 'drag-ghost'; drag.ghost.innerHTML = '<img src="' + G + icon + '">';
+			$('cs').appendChild(drag.ghost);
+			var cols = document.querySelectorAll('.mer-col');
+			for (var i = 0; i < cols.length; i++) {
+				var ok = drag.type === 'pill' ? !!bro().slots[i].m : canFit(drag.id, i).ok;
+				cols[i].className += ok ? ' is-drop-ok' : ' is-drop-no';
+			}
+		}
+		var p = stageXY(e); drag.ghost.style.left = p.x / 20 + 'rem'; drag.ghost.style.top = p.y / 20 + 'rem';
+	}
+	document.addEventListener('mouseup', function (e) {
+		if (!drag) return;
+		var d = drag; drag = null;
+		if (!d.started) return;
+		dragMoved = true; setTimeout(function () { dragMoved = false; }, 0);
+		d.ghost.parentNode.removeChild(d.ghost);
+		var col = upTo(document.elementFromPoint(e.clientX, e.clientY), 'data-slot-idx');
+		if (col) {
+			var idx = +col.getAttribute('data-slot-idx');
+			if (d.type === 'pill') { S.selSlot = idx; var sm = bro().slots[idx].m; if (!sm) toast('此穴没有功法可灌注', true); else if (addExp(sm, 80)) D.pills.ningshen--; renderAll(); return; }
+			doEquip(d.id, idx, d.type === 'vault');
+		}
+		renderMeridian();
+	});
+
+	/* 设计说明 */
+	$('pv-notes').innerHTML =
+		'<h3>为什么原版界面「不对味」</h3><ul>' +
+		'<li>旧版二、三页签整面铺<b>浅色宣纸</b>，嵌在乌木 + 鎏金的原版框里像贴了一张网页；本稿把宣纸收缩成<b>题签</b>（详览台书名条），面板回到乌木。</li>' +
+		'<li>旧版绿 / 蓝 / 紫 / 红胶囊同时出现，语义色泛滥。本稿只保留四种语义：<b>鎏金</b>=选中/结构、<b>石青</b>=内息/可装配、<b>朱砂</b>=高风险唯一主按钮、<b>琥珀</b>=警示。</li>' +
+		'<li>「× 返回」在页签内重复出现且与顶栏关闭冲突，已移除；江湖名刺收归藏经阁顶栏。</li></ul>' +
+		'<h3>武学修为</h3><ul>' +
+		'<li><b>经络图</b>：7 穴按「本源 / 专修 / 进阶 / 自由」分组，穴间经脉随等级贯通点亮，未贯通显示「九级贯通」——等级节奏一眼可见。</li>' +
+		'<li>三重境界用<b>菱形刻度</b>代替圆点，与「重」的概念更贴；火候条走石青色。</li>' +
+		'<li><b>常驻被动</b>只列取最高后的结果，悬停可见「生效来源 / 未计入」，把 Math.max 规则直接教给玩家；减伤合计显示「55% / 60」封顶。</li>' +
+		'<li>选中穴位后，下方列表自动<b>石青左边条 = 可装、半透明 = 不可装</b>，不再需要额外筛选按钮。</li>' +
+		'<li>交互：左键选穴 · 右键穴位卸下 · 右键卡片快速装入 · 拖拽卡片 / 凝神丸到穴位。</li></ul>' +
+		'<h3>藏经阁</h3><ul>' +
+		'<li>筛选从一排 10 个按钮改为<b>左侧书目索引</b>（书目 / 四脉 / 品阶 / 条件），永不换行，计数随时可见。</li>' +
+		'<li>新增<b>书架视图</b>：线装书脊 + 竖排题签（逐字 &lt;br&gt;，不依赖 writing-mode），品阶即布面颜色，残页为散页。</li>' +
+		'<li>残页进度用分段方格，凑齐变朱砂；「一键拼合」是本页唯一朱砂按钮。</li></ul>' +
+		'<h3>兵甲行囊</h3><ul><li>保持原版仓库手感，仅统一角标（新篇 / 阁藏 / 已习 / 残页进度）与底栏「典籍入阁」。</li></ul>' +
+		'<h3>移植提示</h3><ul><li>布局只用 absolute / float / inline-block；JS 为 ES3 写法；CSS 变量移植时替换为字面值（见设计令牌页）。</li></ul>';
+
+	/* 缩放适配 */
+	function fit() {
+		SCALE = Math.min(window.innerWidth / 1421, window.innerHeight / 906) / 2;
+		var st = $('stage'), w = 2842 * SCALE, h = 1812 * SCALE;
+		st.style.transform = 'scale(' + SCALE + ')';
+		st.style.left = Math.max(0, (window.innerWidth - w) / 2) + 'px';
+		st.style.top = Math.max(0, (window.innerHeight - h) / 2) + 'px';
+	}
+	window.addEventListener('resize', fit);
+	fit();
+	/* 地址栏参数：#tab=lib&view=shelf&modal=wash，便于直接分享某个状态 */
+	var hp = (location.hash || '').replace('#', '').split('&');
+	for (var hi = 0; hi < hp.length; hi++) {
+		var kv = hp[hi].split('=');
+		if (kv[0] === 'tab') S.tab = kv[1];
+		if (kv[0] === 'view') S.lib.view = kv[1];
+		if (kv[0] === 'grid') S.grid = true;
+	}
+	renderAll();
+	for (hi = 0; hi < hp.length; hi++) {
+		var kv2 = hp[hi].split('=');
+		if (kv2[0] === 'modal' && kv2[1] === 'wash') openWash();
+		if (kv2[0] === 'modal' && kv2[1] === 'swap') doEquip('youxia', 1, false);
+		if (kv2[0] === 'notes') $('pv-notes').style.display = 'block';
+		if (kv2[0] === 'selftest') selfTest();
+	}
+	function selfTest() {
+		var log = [], steps = [
+			['装入空穴', function () { S.selSlot = 4; doEquip('youxia', 4, false); return bro().slots[4].m === 'youxia'; }],
+			['换装确认', function () { doEquip('wuhu', 1, false); var b = modalEl.querySelector('[data-mf="1"]'); b.click(); return bro().slots[1].m === 'wuhu' && bro().scatter >= 2; }],
+			['外功换兵判定', function () { return !wpnOk('wuhu') && !passives().MeleeSkill || passives().MeleeSkill.src !== '五虎断门刀'; }],
+			['卸下', function () { doUnequip(1); modalEl.querySelector('[data-mf="1"]').click(); return !bro().slots[1].m; }],
+			['内功上限 2 门', function () { bro().slots[5].unlock = 1; bro().slots[6].unlock = 1; doEquip('cuqian', 5, false); var r = bro().slots[5].m === 'cuqian' && canFit('songtao', 6).ok === false; bro().slots[5].unlock = 9; bro().slots[6].unlock = 11; bro().slots[5].m = null; return r; }],
+			['灌注突破', function () { S.selSlot = 2; var t = bro().learned.taxue.tier; addExp('taxue', 120); return bro().learned.taxue.tier === t + 1; }],
+			['阁藏习并装', function () { bro().slots[1].m = null; S.selSlot = 1; doEquip('baoyu', 1, true); modalEl.querySelector('[data-mf="1"]').click(); return !!bro().learned.baoyu && bro().slots[1].m === 'baoyu'; }],
+			['拼合残页', function () { S.lib.insp = 'page:heifeng'; libAct('lib-craft'); return !!libItem('manual', 'heifeng') && !libItem('page', 'heifeng'); }],
+			['2:1 补缺', function () { S.lib.insp = 'page:xuesha'; libAct('lib-wild'); modalEl.querySelector('[data-mf="1"]').click(); return !!libItem('manual', 'xuesha'); }],
+			['藏经阁研习', function () { S.lib.insp = 'manual:songtao'; libAct('lib-learn'); return !!bro().learned.songtao; }],
+			['筛选 + 书架', function () { S.tab = 'lib'; S.lib.cat = 'waigong'; S.lib.view = 'shelf'; renderAll(); return document.querySelectorAll('.spine').length > 0; }],
+			['洗髓弹窗', function () { S.lib.cat = null; openWash(); modalEl.querySelector('[data-wt="3"]').click(); var ok = !/is-disabled/.test(modalEl.querySelector('[data-mf="1"]').className); closeModal(); return ok; }],
+			['服丹', function () { var n = D.pills.huxin; bro().scatter = 2; var el = document.createElement('div'); el.setAttribute('data-act', 'heal'); el.setAttribute('data-v', 'huxin'); document.body.appendChild(el); el.click(); el.parentNode.removeChild(el); return bro().scatter === 0 && D.pills.huxin === n - 1; }]
+		];
+		for (var i = 0; i < steps.length; i++) { var ok; try { ok = steps[i][1](); } catch (err) { ok = 'ERR ' + err.message; } log.push((ok === true ? '✓ ' : '✗ ') + steps[i][0] + (ok === true ? '' : ' → ' + ok)); }
+		var d = document.createElement('pre'); d.id = 'selftest'; d.style.cssText = 'position:fixed;left:8px;top:8px;z-index:99999;margin:0;padding:8px 12px;background:rgba(0,0,0,0.9);color:#9fd6c1;font:13px/1.5 monospace;border:1px solid #806337';
+		d.textContent = log.join('\n'); document.body.appendChild(d);
+	}
+})();
+
+</script>
+</body>
+</html>

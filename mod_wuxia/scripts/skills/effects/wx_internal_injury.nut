@@ -12,7 +12,7 @@ this.wx_internal_injury <- this.inherit("scripts/skills/skill", {
 		this.m.ID = "effects.wx_internal_injury";
 		this.m.Name = "内伤";
 		this.m.Description = "真气受损或经脉震荡，普通金疮散难以奏效，须服护心丹或寻名医调理。";
-		this.m.Icon = "ui/injury/injury_icon_15.png";
+		this.m.Icon = "skills/wx_internal_injury.png";
 		this.m.Type = this.Const.SkillType.StatusEffect;
 		this.m.Order = this.Const.SkillOrder.VeryLast;
 		this.m.IsActive = false;

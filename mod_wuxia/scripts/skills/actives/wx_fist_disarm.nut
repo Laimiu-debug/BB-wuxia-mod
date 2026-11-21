@@ -9,11 +9,15 @@ this.wx_fist_disarm <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_fist_disarm";
+		this.m.WX_VfxBrush <- "wx_vfx_15";
+		this.m.WX_AnimID <- "wx_anim_50";
+		this.m.WX_AnimMode <- "disarm_grab";
+		this.m.WX_ChoreoID <- "wx_fist_disarm";
 		this.m.Name = "空手夺白刃";
 		this.m.Description = "欺身切腕反扣兵刃：造成四成擒拿伤，命中后夺卸目标主手兵器 1 回合（使其无法使用武器招式，隔回合冷却）。";
-		this.m.Icon = "skills/active_170.png";
-		this.m.IconDisabled = "skills/active_170_sw.png";
-		this.m.Overlay = "active_170";
+		this.m.Icon = "skills/wx_fist_disarm.png";
+		this.m.IconDisabled = "skills/wx_fist_disarm_sw.png";
+		this.m.Overlay = "wx_ov_wx_fist_disarm";
 		this.m.SoundOnUse = [
 			"sounds/combat/hand_03.wav"
 		];
@@ -72,6 +76,7 @@ this.wx_fist_disarm <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local target = _targetTile.getEntity();
 		this.m.Cooldown = 2; // Decrements on next turn start -> 1 full turn cooldown
 		local hit = this.attackEntity(_user, target);

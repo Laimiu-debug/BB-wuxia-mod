@@ -6,11 +6,15 @@ this.wx_meditate <- this.inherit("scripts/skills/skill", {
 	function create()
 	{
 		this.m.ID = "actives.wx_meditate";
+		this.m.WX_VfxBrush <- "wx_vfx_18";
+		this.m.WX_AnimID <- "wx_anim_69";
+		this.m.WX_AnimMode <- "lotus_breath";
+		this.m.WX_ChoreoID <- "wx_meditate";
 		this.m.Name = "调息吐纳";
 		this.m.Description = "花 4 AP 恢复已耗内息的 25%（至少回 12 点，每回合限用一次）。放松守势使招架 -3，持续到下次行动。深调息可用 9 AP 恢复已耗内息的一半。";
-		this.m.Icon = "ui/perks/perk_54_active.png";
-		this.m.IconDisabled = "ui/perks/perk_54_active_sw.png";
-		this.m.Overlay = "active_103";
+		this.m.Icon = "skills/wx_meditate.png";
+		this.m.IconDisabled = "skills/wx_meditate_sw.png";
+		this.m.Overlay = "wx_ov_wx_meditate";
 		this.m.Type = this.Const.SkillType.Active;
 		this.m.Order = this.Const.SkillOrder.NonTargeted;
 		this.m.IsSerialized = false;
@@ -45,6 +49,7 @@ this.wx_meditate <- this.inherit("scripts/skills/skill", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local spent = _user.getFatigue();
 		local recover = ::Math.min(spent, ::Math.max(12, ::Math.floor(spent * 0.25)));
 		this.m.GuardLowered = true;

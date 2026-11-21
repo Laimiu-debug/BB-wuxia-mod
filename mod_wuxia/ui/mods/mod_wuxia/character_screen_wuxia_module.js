@@ -1,84 +1,1307 @@
 /* ============================================================================
- * BB Wuxia Mod - Icon-Slot Drag-and-Drop Martial Arts UI (Strict ES3)
- * Replaces the vanilla CharacterScreenPerksModule grid in-place.
+ * BB Wuxia Mod - 3-Tab Character Screen UI v2 (Vanilla-Isomorphic · ES3 Native)
+ * 100% Vanilla Textures & Typography Palette (#dda21f / #d7b174 / #bd9d71 / #CD2626)
+ *   - Tab 1 (兵甲行囊): Vanilla Stash + Actionable Glow + Quick Vault Store
+ *   - Tab 2 (武学修为): 7 Perk-Style Acupoint Discs + Gold Meridian + Slot Shelf
+ *   - Tab 3 (藏经阁): Vanilla Slot Grid + Leather Inspector + Craft/Infuse/Learn
+ *   - Modals: Vanilla Wood-Plank Popup + Level-Up-Style Marrow Wash (洗经伐髓)
+ * Strictly ES3-compliant: zero let/const/arrow/template-literals/class.
  * ============================================================================ */
 
 (function () {
 	'use strict';
 
-	// ------------------------------------------------------------------------
-	// 1. Datasource SQ.call Bridges
-	// ------------------------------------------------------------------------
-	if (typeof CharacterScreenDatasource !== 'undefined') {
-		CharacterScreenDatasource.prototype.notifyBackendWXGetState = function (_entityId, _callback) {
-			if (this.mSQHandle !== null) {
-				SQ.call(this.mSQHandle, 'onWXGetState', [_entityId], _callback);
-			}
-		};
-
-		CharacterScreenDatasource.prototype.notifyBackendWXEquipFromStash = function (_entityId, _stashIndex, _slotIndex, _isFragment, _confirmed, _callback) {
-			if (this.mSQHandle !== null) {
-				SQ.call(this.mSQHandle, 'onWXEquipFromStash', [_entityId, _stashIndex, _slotIndex, _isFragment, _confirmed], _callback);
-			}
-		};
-
-		CharacterScreenDatasource.prototype.notifyBackendWXInfusePill = function (_entityId, _stashIndex, _slotIndex, _callback) {
-			if (this.mSQHandle !== null) {
-				SQ.call(this.mSQHandle, 'onWXInfusePill', [_entityId, _stashIndex, _slotIndex], _callback);
-			}
-		};
-
-		CharacterScreenDatasource.prototype.notifyBackendWXInfusePage = function (_entityId, _stashIndex, _slotIndex, _callback) {
-			if (this.mSQHandle !== null) {
-				SQ.call(this.mSQHandle, 'onWXInfusePage', [_entityId, _stashIndex, _slotIndex], _callback);
-			}
-		};
-
-		CharacterScreenDatasource.prototype.notifyBackendWXCraftPages = function (_entityId, _manualID, _allowWildcard, _confirmed, _callback) {
-			if (this.mSQHandle !== null) {
-				SQ.call(this.mSQHandle, 'onWXCraftPages', [_entityId, _manualID, _allowWildcard ? true : false, _confirmed ? true : false], _callback);
-			}
-		};
-
-		CharacterScreenDatasource.prototype.notifyBackendWXGetWashPreview = function (_entityId, _targetAttrIdx, _replaceAttrIdx, _useProtectPill, _callback) {
-			if (this.mSQHandle !== null) {
-				SQ.call(this.mSQHandle, 'onWXGetWashPreview', [_entityId, _targetAttrIdx, _replaceAttrIdx, _useProtectPill], _callback);
-			}
-		};
-
-		CharacterScreenDatasource.prototype.notifyBackendWXExecuteWash = function (_entityId, _targetAttrIdx, _replaceAttrIdx, _useProtectPill, _usePendingChance, _callback) {
-			if (this.mSQHandle !== null) {
-				SQ.call(this.mSQHandle, 'onWXExecuteWash', [_entityId, _targetAttrIdx, _replaceAttrIdx, _useProtectPill, _usePendingChance], _callback);
-			}
-		};
-	}
-
-	// ------------------------------------------------------------------------
-	// 2. Replace CharacterScreenPerksModule with 7-Slot Icon & Drag-Drop Panel
-	// ------------------------------------------------------------------------
-	if (typeof CharacterScreenPerksModule === 'undefined') {
+	if (typeof CharacterScreenDatasource === 'undefined' || typeof CharacterScreenPerksModule === 'undefined') {
 		return;
 	}
 
+	var WX_CN_NUM = ['零', '一', '二', '三', '四', '五', '六', '七', '八'];
+	var WX_TIER_SHORT = ['', '一重', '二重', '三重'];
+	var WX_CAT_LABELS = {
+		neigong:  '内功心法',
+		waigong:  '外功套路',
+		qinggong: '轻功身法',
+		henglian: '横练杂学'
+	};
+	var WX_CAT_EMBLEMS = {
+		neigong:  'ui/perks/wx_emblem_neigong.png',
+		waigong:  'ui/perks/wx_emblem_sword.png',
+		qinggong: 'ui/perks/wx_emblem_qinggong.png',
+		henglian: 'ui/perks/wx_emblem_henglian.png'
+	};
+	var WX_STAT_ICONS = [
+		'health', 'fatigue', 'bravery', 'initiative',
+		'melee_skill', 'ranged_skill', 'melee_defense', 'ranged_defense'
+	];
+
+	var wxGlobalToastTimer = null;
+	function wxShowGlobalToast(_msg, _isError) {
+		if (!_msg) return;
+		var host = $('.character-screen-container:first');
+		if (!host.length) return;
+		var box = host.children('.wx-global-toast');
+		if (!box.length) {
+			box = $('<div class="wx-global-toast" style="display:none;"><span></span></div>');
+			host.append(box);
+		}
+		if (wxGlobalToastTimer !== null) {
+			clearTimeout(wxGlobalToastTimer);
+			wxGlobalToastTimer = null;
+		}
+		box.removeClass('is-ok is-error').addClass(_isError ? 'is-error' : 'is-ok');
+		box.children('span').text(_msg);
+		box.stop(true, true).show();
+		wxGlobalToastTimer = setTimeout(function () {
+			box.fadeOut(220);
+			wxGlobalToastTimer = null;
+		}, 3200);
+	}
+
+	function wxEscapeHtml(_str) {
+		if (_str === null || typeof _str === 'undefined') return '';
+		return String(_str)
+			.split('&').join('&amp;')
+			.split('<').join('&lt;')
+			.split('>').join('&gt;')
+			.split('"').join('&quot;');
+	}
+
+	function wxCatsLabel(_cats) {
+		if (!_cats || !_cats.length) return '任意武学';
+		if (_cats.length >= 4) return '任意武学';
+		var out = [];
+		for (var i = 0; i < _cats.length; i++) {
+			out.push(WX_CAT_LABELS[_cats[i]] || _cats[i]);
+		}
+		return out.join(' / ');
+	}
+
+	function wxXpBarHtml(_exp, _need, _isMax, _widthRem) {
+		var pct = _isMax ? 100 : (_need > 0 ? Math.min(100, Math.floor((_exp / _need) * 100)) : 100);
+		var st = _widthRem ? (' style="width:' + _widthRem + 'rem;"') : '';
+		return '<div class="wx-vxp"' + st + '><div class="wx-f" style="width:' + pct + '%;"></div></div>';
+	}
+
+	function wxSwapSlotHtml(_iconPath, _isRound) {
+		if (!_iconPath) return '<span class="wx-vslot"></span>';
+		return '<span class="wx-vslot"><img class="wx-it' + (_isRound ? ' is-round' : '') + '" src="coui://gfx/' + _iconPath + '" alt=""/></span>';
+	}
+
+	function wxCreateScrollArea(_wrapDiv) {
+		if (typeof _wrapDiv.createList === 'function') {
+			var list = _wrapDiv.createList(2, null, true);
+			var sc = list.findListScrollContainer();
+			return {
+				isNativeList: true,
+				list: list,
+				body: sc,
+				refresh: function () {
+					list.trigger('update', true);
+				}
+			};
+		}
+		var fallback = $('<div class="wx-fallback-scroll"></div>');
+		_wrapDiv.append(fallback);
+		return {
+			isNativeList: false,
+			list: null,
+			body: fallback,
+			refresh: function () {}
+		};
+	}
+
+	function wxBindSafeInput(_input, _dataSource) {
+		_input.on('keydown keyup keypress', function (_evt) {
+			_evt.stopPropagation();
+		});
+		_input.on('focus', function () {
+			if (_dataSource && _dataSource.notifyBackendPopupDialogIsVisible) {
+				_dataSource.notifyBackendPopupDialogIsVisible(true);
+			}
+		});
+		_input.on('blur', function () {
+			if (_dataSource && _dataSource.notifyBackendPopupDialogIsVisible) {
+				_dataSource.notifyBackendPopupDialogIsVisible(false);
+			}
+		});
+	}
+
+	// Shared Wood-Plank Popup Modal Manager on `.character-screen-container`
+	var wxActiveModalDS = null;
+	function wxOpenScreenModal(_box, _dataSource) {
+		wxCloseScreenModal();
+		var host = $('.character-screen-container:first');
+		if (!host.length) host = $(document.body);
+		wxActiveModalDS = _dataSource || null;
+		if (wxActiveModalDS && wxActiveModalDS.notifyBackendPopupDialogIsVisible) {
+			wxActiveModalDS.notifyBackendPopupDialogIsVisible(true);
+		}
+		var backdrop = $('<div class="wx-modal-backdrop"></div>');
+		backdrop.append(_box);
+		host.append(backdrop);
+
+		backdrop.find('[data-wx-close="1"]').on('click', function () {
+			wxCloseScreenModal();
+		});
+		backdrop.on('click', function (_e) {
+			if ($(_e.target).hasClass('wx-modal-backdrop')) {
+				wxCloseScreenModal();
+			}
+		});
+		$(document).on('keydown.wxScreenModal', function (_e) {
+			if (_e.keyCode === 27) {
+				wxCloseScreenModal();
+				_e.stopPropagation();
+				return false;
+			}
+		});
+	}
+
+	function wxCloseScreenModal() {
+		var existing = $('.wx-modal-backdrop');
+		if (existing.length) {
+			existing.remove();
+			$(document).off('keydown.wxScreenModal');
+			if (wxActiveModalDS && wxActiveModalDS.notifyBackendPopupDialogIsVisible) {
+				wxActiveModalDS.notifyBackendPopupDialogIsVisible(false);
+			}
+			wxActiveModalDS = null;
+		}
+	}
+
+	function wxSetTabBadge(_btn, _count) {
+		if (!_btn || !_btn.length) return;
+		_btn.children('.wx-tab-badge').remove();
+		if (_count && _count > 0) {
+			_btn.append('<span class="wx-tab-badge">' + _count + '</span>');
+		}
+	}
+
+	// ------------------------------------------------------------------------
+	// 1. Datasource SQ.call Bridges & Live Vanilla State Sync
+	// ------------------------------------------------------------------------
+	var origNotifyEquipItem = CharacterScreenDatasource.prototype.notifyBackendEquipInventoryItem;
+	CharacterScreenDatasource.prototype.notifyBackendEquipInventoryItem = function (_brotherId, _sourceItemId, _sourceItemIdx, _callback) {
+		var ds = this;
+		origNotifyEquipItem.call(this, _brotherId, _sourceItemId, _sourceItemIdx, function (_data) {
+			if (_callback) {
+				_callback(_data);
+			}
+			if (_data && typeof _data === 'object' && ('wxManualNotice' in _data) && _data.wxManualNotice) {
+				wxShowGlobalToast(_data.wxManualNotice.message, !_data.wxManualNotice.ok);
+				if (ds.mWXOnExternalStateChanged) {
+					ds.mWXOnExternalStateChanged();
+				}
+			}
+		});
+	};
+
+	function wxForceReloadProceduralPortrait(_imgPath) {
+		if (!_imgPath) return;
+		var prefix = (typeof Path !== 'undefined' && Path.PROCEDURAL) ? Path.PROCEDURAL : 'coui://';
+		var fullSrc = (_imgPath.indexOf('coui://') === 0) ? _imgPath : (prefix + _imgPath);
+		var entityPrefix = fullSrc;
+		var qIdx = fullSrc.indexOf('?');
+		if (qIdx > 0) entityPrefix = fullSrc.substring(0, qIdx);
+
+		$('.character-screen-container img').each(function () {
+			var el = $(this);
+			var cur = el.attr('src') || '';
+			if (cur === fullSrc || (entityPrefix.indexOf('procedural://') !== -1 && cur.indexOf(entityPrefix) === 0)) {
+				el.attr('src', 'coui://gfx/ui/icons/action_points.png');
+				setTimeout(function () {
+					el.attr('src', fullSrc);
+				}, 16);
+			}
+		});
+	}
+
+	var origUpdateBrother = CharacterScreenDatasource.prototype.updateBrother;
+	if (typeof origUpdateBrother === 'function') {
+		CharacterScreenDatasource.prototype.updateBrother = function (_data) {
+			origUpdateBrother.call(this, _data);
+			if (_data && typeof _data === 'object') {
+				var imgPath = null;
+				if (typeof CharacterScreenIdentifier !== 'undefined' && CharacterScreenIdentifier.Entity && (CharacterScreenIdentifier.Entity.ImagePath in _data)) {
+					imgPath = _data[CharacterScreenIdentifier.Entity.ImagePath];
+				} else if ('imagePath' in _data) {
+					imgPath = _data.imagePath;
+				}
+				if (imgPath) {
+					wxForceReloadProceduralPortrait(imgPath);
+				}
+				if (this.mWXOnExternalStateChanged && !this.mWXSuppressExtSync) {
+					this.mWXOnExternalStateChanged();
+				}
+			}
+		};
+	}
+
+	CharacterScreenDatasource.prototype.wxApplyVanillaSync = function (_res) {
+		if (!_res || typeof _res !== 'object') return;
+		this.mWXSuppressExtSync = true;
+		try {
+			if ('stashSpaceUsed' in _res) {
+				this.mStashSpaceUsed = _res.stashSpaceUsed;
+			}
+			if ('stashSpaceMax' in _res) {
+				this.mStashSpaceMax = _res.stashSpaceMax;
+			}
+			if (this.mInventoryModule && typeof this.mInventoryModule.updateSlotsLabel === 'function') {
+				this.mInventoryModule.updateSlotsLabel();
+			}
+			if (('uiStash' in _res) && _res.uiStash !== null && jQuery.isArray(_res.uiStash)) {
+				this.loadStashList(_res.uiStash);
+			}
+			if (('uiBrother' in _res) && _res.uiBrother !== null && typeof _res.uiBrother === 'object') {
+				this.updateBrother(_res.uiBrother);
+			}
+		} finally {
+			this.mWXSuppressExtSync = false;
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXGetState = function (_entityId, _callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXGetState', [_entityId], _callback);
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXEquipLearned = function (_entityId, _slotIndex, _manualID, _confirmed, _callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXEquipLearned', [_entityId, _slotIndex, _manualID, _confirmed ? true : false], _callback);
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXLearnAndEquip = function (_entityId, _slotIndex, _manualID, _isFragment, _confirmed, _callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXLearnAndEquip', [_entityId, _slotIndex, _manualID, _isFragment ? true : false, _confirmed ? true : false], _callback);
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXUnequipSlot = function (_entityId, _slotIndex, _confirmed, _callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXUnequipSlot', [_entityId, _slotIndex, _confirmed ? true : false], _callback);
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXLearnFromLibrary = function (_entityId, _manualID, _isFragment, _confirmed, _callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXLearnFromLibrary', [_entityId, _manualID, _isFragment ? true : false, _confirmed ? true : false], _callback);
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXLibraryStoreAll = function (_entityId, _callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXLibraryStoreAll', [_entityId], _callback);
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXLibraryWithdraw = function (_entityId, _manualID, _isPage, _callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXLibraryWithdraw', [_entityId, _manualID, _isPage ? true : false], _callback);
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXLibrarySetAutoStore = function (_entityId, _enabled, _callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXLibrarySetAutoStore', [_entityId, _enabled ? true : false], _callback);
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXLibraryCraft = function (_entityId, _manualID, _allowWildcard, _confirmed, _callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXLibraryCraft', [_entityId, _manualID, _allowWildcard ? true : false, _confirmed ? true : false], _callback);
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXLibraryCraftAll = function (_entityId, _callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXLibraryCraftAll', [_entityId], _callback);
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXInfusePill = function (_entityId, _stashIndex, _slotIndex, _callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXInfusePill', [_entityId, _stashIndex, _slotIndex], _callback);
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXInfuseLibraryPage = function (_entityId, _pageManualID, _slotIndex, _callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXInfuseLibraryPage', [_entityId, _pageManualID, _slotIndex], _callback);
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXUsePill = function (_entityId, _stashIndex, _callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXUsePill', [_entityId, _stashIndex], _callback);
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXGetWashPreview = function (_entityId, _targetAttrIdx, _replaceAttrIdx, _useProtectPill, _callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXGetWashPreview', [_entityId, _targetAttrIdx, _replaceAttrIdx, _useProtectPill], _callback);
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXExecuteWash = function (_entityId, _targetAttrIdx, _replaceAttrIdx, _useProtectPill, _usePendingChance, _callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXExecuteWash', [_entityId, _targetAttrIdx, _replaceAttrIdx, _useProtectPill, _usePendingChance], _callback);
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXGetSectRelations = function (_callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXGetSectRelations', null, _callback);
+		}
+	};
+
+	// ------------------------------------------------------------------------
+	// 2. Right Panel Header: 3 Vanilla Tab Buttons (兵甲行囊 | 武学修为 | 藏经阁)
+	// ------------------------------------------------------------------------
+	if (typeof CharacterScreenRightPanelHeaderModule !== 'undefined') {
+		var origHdrCreateDIV = CharacterScreenRightPanelHeaderModule.prototype.createDIV;
+		var origHdrDestroyDIV = CharacterScreenRightPanelHeaderModule.prototype.destroyDIV;
+		var origHdrUpdateBro = CharacterScreenRightPanelHeaderModule.prototype.updateButtonsByBrother;
+		var origHdrUpdateInvMode = CharacterScreenRightPanelHeaderModule.prototype.updateButtonsByInventoryMode;
+		var origHdrSelectInv = CharacterScreenRightPanelHeaderModule.prototype.selectInventoryPanel;
+		var origHdrSelectPerks = CharacterScreenRightPanelHeaderModule.prototype.selectPerksPanel;
+
+		CharacterScreenRightPanelHeaderModule.prototype.mSwitchToWXLibraryButton = null;
+		CharacterScreenRightPanelHeaderModule.prototype.mOnSwitchToWXLibraryCallback = null;
+
+		CharacterScreenRightPanelHeaderModule.prototype.setOnSwitchToWXLibraryCallback = function (_cb) {
+			this.mOnSwitchToWXLibraryCallback = _cb;
+		};
+
+		CharacterScreenRightPanelHeaderModule.prototype.wxSyncTabActive = function (_which) {
+			if (this.mSwitchToInventoryButton) {
+				this.mSwitchToInventoryButton.removeClass('is-selected');
+				if (_which === 'inv') this.mSwitchToInventoryButton.addClass('is-selected');
+			}
+			if (this.mSwitchToPerksButton) {
+				this.mSwitchToPerksButton.removeClass('is-selected');
+				if (_which === 'perks') this.mSwitchToPerksButton.addClass('is-selected');
+			}
+			if (this.mSwitchToWXLibraryButton) {
+				this.mSwitchToWXLibraryButton.removeClass('is-selected');
+				if (_which === 'lib') this.mSwitchToWXLibraryButton.addClass('is-selected');
+			}
+		};
+
+		CharacterScreenRightPanelHeaderModule.prototype.selectInventoryPanel = function () {
+			if (typeof origHdrSelectInv === 'function') origHdrSelectInv.call(this);
+			this.wxSyncTabActive('inv');
+		};
+
+		CharacterScreenRightPanelHeaderModule.prototype.selectPerksPanel = function () {
+			if (typeof origHdrSelectPerks === 'function') origHdrSelectPerks.call(this);
+			this.wxSyncTabActive('perks');
+		};
+
+		CharacterScreenRightPanelHeaderModule.prototype.selectWXLibraryPanel = function () {
+			this.wxSyncTabActive('lib');
+		};
+
+		CharacterScreenRightPanelHeaderModule.prototype.wxUpdateTabLabels = function (_broMartial, _libSummary) {
+			if (this.mSwitchToPerksButton) {
+				this.mSwitchToPerksButton.findButtonText().html('武学修为');
+				var hint = (_broMartial && _broMartial.equipableSlotHintCount) ? _broMartial.equipableSlotHintCount : 0;
+				wxSetTabBadge(this.mSwitchToPerksButton, hint);
+			}
+			if (this.mSwitchToWXLibraryButton) {
+				this.mSwitchToWXLibraryButton.findButtonText().html('藏经阁');
+				if (_libSummary) {
+					wxSetTabBadge(this.mSwitchToWXLibraryButton, _libSummary.craftableCount || 0);
+				}
+			}
+		};
+
+		CharacterScreenRightPanelHeaderModule.prototype.createDIV = function (_parentDiv) {
+			var self = this;
+			origHdrCreateDIV.call(this, _parentDiv);
+
+			if (this.mSwitchToInventoryButton) {
+				this.mSwitchToInventoryButton.findButtonText().html('兵甲行囊');
+			}
+			if (this.mSwitchToPerksButton) {
+				this.mSwitchToPerksButton.findButtonText().html('武学修为');
+			}
+
+			var midContainer = this.mContainer.find('.buttons-container.is-middle:first');
+			if (midContainer.length && !this.mSwitchToWXLibraryButton) {
+				var libLayout = $('<div class="l-button is-wx-library"/>');
+				midContainer.append(libLayout);
+				this.mSwitchToWXLibraryButton = libLayout.createTabTextButton('藏经阁', function () {
+					if (self.mOnSwitchToWXLibraryCallback !== null && jQuery.isFunction(self.mOnSwitchToWXLibraryCallback)) {
+						self.mOnSwitchToWXLibraryCallback();
+					} else if (self.mParent && typeof self.mParent.switchToWXLibrary === 'function') {
+						self.mParent.switchToWXLibrary();
+					}
+				}, null, 'tab-button', 7);
+			}
+		};
+
+		CharacterScreenRightPanelHeaderModule.prototype.destroyDIV = function () {
+			if (this.mSwitchToWXLibraryButton) {
+				this.mSwitchToWXLibraryButton.remove();
+				this.mSwitchToWXLibraryButton = null;
+			}
+			origHdrDestroyDIV.call(this);
+		};
+
+		CharacterScreenRightPanelHeaderModule.prototype.updateButtonsByBrother = function (_brother) {
+			origHdrUpdateBro.call(this, _brother);
+			var wxM = (_brother && _brother.wxMartial) ? _brother.wxMartial : null;
+			this.wxUpdateTabLabels(wxM, null);
+		};
+
+		if (typeof origHdrUpdateInvMode === 'function') {
+			CharacterScreenRightPanelHeaderModule.prototype.updateButtonsByInventoryMode = function (_inventoryMode) {
+				origHdrUpdateInvMode.call(this, _inventoryMode);
+				if (!this.mSwitchToInventoryButton) return;
+				if (typeof CharacterScreenDatasourceIdentifier !== 'undefined' && _inventoryMode === CharacterScreenDatasourceIdentifier.InventoryMode.Ground) {
+					this.mSwitchToInventoryButton.findButtonText().html('地面拾遗');
+				} else {
+					this.mSwitchToInventoryButton.findButtonText().html('兵甲行囊');
+				}
+			};
+		}
+	}
+
+	// ------------------------------------------------------------------------
+	// 3. Tab 1 Strip: Hint & Quick "典籍入阁" Vanilla Short Button
+	// ------------------------------------------------------------------------
+	if (typeof CharacterScreenInventoryListModule !== 'undefined') {
+		var origInvCreateDIV = CharacterScreenInventoryListModule.prototype.createDIV;
+		var origInvDestroyDIV = CharacterScreenInventoryListModule.prototype.destroyDIV;
+		var origInvModeUpdated = CharacterScreenInventoryListModule.prototype.onInventoryModeUpdated;
+
+		CharacterScreenInventoryListModule.prototype.createDIV = function (_parentDiv) {
+			var self = this;
+			origInvCreateDIV.call(this, _parentDiv);
+
+			if (this.mSlotCountPanel) {
+				this.mWXStripHint = $('<div class="wx-stash-strip-hint">右键秘籍可直接研读；典籍入阁后不占仓库格</div>');
+				this.mWXQuickStoreBtn = $('<div class="wx-stash-quick-store-btn" title="将仓库内秘籍与残页一键收入藏经阁">典籍入阁</div>');
+				this.mSlotCountPanel.append(this.mWXStripHint);
+				this.mSlotCountPanel.append(this.mWXQuickStoreBtn);
+				this.mWXQuickStoreBtn.on('click', function () {
+					var sel = self.mDataSource ? self.mDataSource.getSelectedBrother() : null;
+					var eid = (sel && typeof sel.id !== 'undefined') ? sel.id : 0;
+					self.mDataSource.notifyBackendWXLibraryStoreAll(eid, function (_res) {
+						if (_res && _res.ok) {
+							self.mDataSource.wxApplyVanillaSync(_res);
+							wxShowGlobalToast(_res.actionMessage, false);
+							if (self.mDataSource.mWXOnExternalStateChanged) {
+								self.mDataSource.mWXOnExternalStateChanged(_res);
+							}
+						} else if (_res && _res.reason) {
+							wxShowGlobalToast(_res.reason, true);
+						}
+					});
+				});
+			}
+		};
+
+		CharacterScreenInventoryListModule.prototype.destroyDIV = function () {
+			if (this.mWXStripHint) {
+				this.mWXStripHint.remove();
+				this.mWXStripHint = null;
+			}
+			if (this.mWXQuickStoreBtn) {
+				this.mWXQuickStoreBtn.remove();
+				this.mWXQuickStoreBtn = null;
+			}
+			origInvDestroyDIV.call(this);
+		};
+
+		CharacterScreenInventoryListModule.prototype.onInventoryModeUpdated = function (_dataSource, _mode) {
+			origInvModeUpdated.call(this, _dataSource, _mode);
+			var showStashTools = (_dataSource && _dataSource.isInStashMode && _dataSource.isInStashMode());
+			if (this.mWXStripHint) {
+				if (showStashTools) this.mWXStripHint.show();
+				else this.mWXStripHint.hide();
+			}
+			if (this.mWXQuickStoreBtn) {
+				if (showStashTools) this.mWXQuickStoreBtn.show();
+				else this.mWXQuickStoreBtn.hide();
+			}
+		};
+	}
+
+	// ------------------------------------------------------------------------
+	// 4. Tab 3 Module: CharacterScreenWuxiaLibraryModule (藏经阁 — 原版仓库同构)
+	// ------------------------------------------------------------------------
+	var CharacterScreenWuxiaLibraryModule = function (_parent, _dataSource) {
+		this.mParent = _parent;
+		this.mDataSource = _dataSource;
+		this.mContainer = null;
+		this.mScrollArea = null;
+		this.mState = null;
+		this.mCurrentEntityId = null;
+		this.mKindFilter = 'all'; // 'all' | 'page'
+		this.mCatFilter = null;   // null | 'neigong' | 'waigong' | 'qinggong' | 'henglian'
+		this.mWeaponOnly = false;
+		this.mUnlearnedOnly = false;
+		this.mSearchQuery = '';
+		this.mInspectedKey = null;
+
+		this.mDataSource.addListener(CharacterScreenDatasourceIdentifier.Brother.Updated, jQuery.proxy(this.onBrotherUpdated, this));
+		this.mDataSource.addListener(CharacterScreenDatasourceIdentifier.Brother.Selected, jQuery.proxy(this.onBrotherSelected, this));
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.register = function (_parentDiv) {
+		if (this.mContainer !== null) return;
+		this.mContainer = $('<div class="wx-library-module opacity-none no-pointer-events"/>');
+		_parentDiv.append(this.mContainer);
+		this.buildDOM();
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.unregister = function () {
+		wxCloseScreenModal();
+		if (this.mScrollArea && this.mScrollArea.isNativeList && this.mScrollArea.list) {
+			this.mScrollArea.list.destroyList();
+		}
+		this.mScrollArea = null;
+		if (this.mContainer !== null) {
+			this.mContainer.empty();
+			this.mContainer.remove();
+			this.mContainer = null;
+		}
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.show = function () {
+		if (!this.mContainer) return;
+		this.mContainer.removeClass('opacity-none no-pointer-events').addClass('opacity-full is-top');
+		this.refreshFromBackend();
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.hide = function () {
+		if (!this.mContainer) return;
+		wxCloseScreenModal();
+		this.mContainer.removeClass('opacity-full is-top').addClass('opacity-none no-pointer-events');
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.isVisible = function () {
+		return this.mContainer !== null && this.mContainer.hasClass('opacity-full');
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.onBrotherUpdated = function (_ds, _brother) {
+		if (_ds.isSelectedBrother(_brother)) {
+			this.onBrotherSelected(_ds, _brother);
+		}
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.onBrotherSelected = function (_ds, _brother) {
+		if (!_brother) return;
+		if (typeof CharacterScreenIdentifier !== 'undefined' && CharacterScreenIdentifier.Entity && (CharacterScreenIdentifier.Entity.Id in _brother)) {
+			this.mCurrentEntityId = _brother[CharacterScreenIdentifier.Entity.Id];
+		} else if (typeof _brother.id !== 'undefined') {
+			this.mCurrentEntityId = _brother.id;
+		}
+		if (this.isVisible()) {
+			this.refreshFromBackend();
+		}
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.buildDOM = function () {
+		var self = this;
+		this.mPanel = $('<div class="wx-lib-panel"></div>');
+		this.mContainer.append(this.mPanel);
+
+		this.mFilterBar = $(
+			'<div class="wx-fbar">' +
+				'<span class="wx-vb wx-vb3 is-sel" data-lib="flt-all" title="全部典籍"><img class="is-flat" src="coui://gfx/ui/buttons/filter_all.png" alt=""/></span>' +
+				'<span class="wx-vb wx-vb3" data-lib-cat="neigong" title="内功心法"><img src="coui://gfx/' + WX_CAT_EMBLEMS.neigong + '" alt=""/></span>' +
+				'<span class="wx-vb wx-vb3" data-lib-cat="waigong" title="外功套路"><img src="coui://gfx/' + WX_CAT_EMBLEMS.waigong + '" alt=""/></span>' +
+				'<span class="wx-vb wx-vb3" data-lib-cat="qinggong" title="轻功身法"><img src="coui://gfx/' + WX_CAT_EMBLEMS.qinggong + '" alt=""/></span>' +
+				'<span class="wx-vb wx-vb3" data-lib-cat="henglian" title="横练杂学"><img src="coui://gfx/' + WX_CAT_EMBLEMS.henglian + '" alt=""/></span>' +
+				'<span class="wx-gap"></span>' +
+				'<span class="wx-vb wx-vb3" data-lib="flt-page" title="只看残页"><img src="coui://gfx/ui/items/misc/wx_page_sect.png" alt=""/></span>' +
+				'<span class="wx-vb wx-vb3" data-lib="wpn-only" title="适配当前主手兵器"><img class="is-flat" src="coui://gfx/ui/buttons/filter_weapons.png" alt=""/></span>' +
+				'<span class="wx-vb wx-vb3" data-lib="unl-only" title="只看当前侠客未习"><img src="coui://gfx/ui/icons/unlocked_small.png" alt=""/></span>' +
+				'<span class="wx-gap"></span>' +
+				'<input type="text" class="wx-vinput" data-lib="search" placeholder="搜秘籍" />' +
+				'<span class="wx-r">' +
+					'<span class="wx-vb wx-vb2 is-dis" data-lib="craft-all" style="width:9.0rem;margin-right:0.25rem;" title="一键拼合已凑齐残页">拼合</span>' +
+					'<span class="wx-vb wx-vb3" data-lib="open-sects" title="江湖四十四宗门名刺录"><img src="coui://gfx/ui/wx_icons/wx_glyph_sect_token.png" alt=""/></span>' +
+				'</span>' +
+			'</div>'
+		);
+		this.mPanel.append(this.mFilterBar);
+
+		this.mToast = $('<div class="wx-toast" style="display:none;"><span></span></div>');
+		this.mPanel.append(this.mToast);
+
+		var gridHost = $('<div class="wx-lib-g wx-scroll-host"></div>');
+		this.mInspector = $(
+			'<div class="wx-insp is-lib">' +
+				'<div class="wx-insp-body" data-lib="insp-body"></div>' +
+				'<div class="wx-insp-foot" data-lib="insp-foot"></div>' +
+			'</div>'
+		);
+		this.mStrip = $('<div class="wx-strip"></div>');
+
+		this.mPanel.append(gridHost);
+		this.mPanel.append(this.mInspector);
+		this.mPanel.append(this.mStrip);
+
+		this.mScrollArea = wxCreateScrollArea(gridHost);
+		this.mInspBody = this.mInspector.find('[data-lib="insp-body"]');
+		this.mInspFoot = this.mInspector.find('[data-lib="insp-foot"]');
+		this.mVisibleSlotMap = {};
+
+		this.mScrollArea.body.on('click', '.wx-vslot', function () {
+			var slot = $(this);
+			var key = slot.attr('data-lib-key');
+			var it = key ? self.mVisibleSlotMap[key] : null;
+			if (!it) return;
+			self.mInspectedKey = key;
+			self.mScrollArea.body.find('.wx-vslot .wx-sring').remove();
+			slot.append('<div class="wx-sring"></div>');
+			self.renderInspector(it);
+		});
+
+		this.mScrollArea.body.on('contextmenu dblclick', '.wx-vslot', function (_e) {
+			_e.preventDefault();
+			_e.stopPropagation();
+			var key = $(this).attr('data-lib-key');
+			var it = key ? self.mVisibleSlotMap[key] : null;
+			if (!it) return false;
+			self.mInspectedKey = key;
+			var isPage = (it.itemKind === 'page');
+			if (!isPage && !it.alreadyLearned) {
+				self.executeCardAction(it, 'learn');
+			} else if (isPage && it.canCraft) {
+				self.executeCardAction(it, 'craft');
+			} else {
+				self.renderGrid();
+			}
+			return false;
+		});
+
+		this.mFilterBar.find('[data-lib="flt-all"]').on('click', function () {
+			self.mKindFilter = 'all';
+			self.mCatFilter = null;
+			self.syncFilterButtons();
+			self.renderGrid();
+		});
+
+		this.mFilterBar.find('[data-lib-cat]').on('click', function () {
+			var c = $(this).attr('data-lib-cat');
+			self.mCatFilter = (self.mCatFilter === c) ? null : c;
+			self.syncFilterButtons();
+			self.renderGrid();
+		});
+
+		this.mFilterBar.find('[data-lib="flt-page"]').on('click', function () {
+			self.mKindFilter = (self.mKindFilter === 'page') ? 'all' : 'page';
+			self.syncFilterButtons();
+			self.renderGrid();
+		});
+
+		this.mFilterBar.find('[data-lib="wpn-only"]').on('click', function () {
+			self.mWeaponOnly = !self.mWeaponOnly;
+			self.syncFilterButtons();
+			self.renderGrid();
+		});
+
+		this.mFilterBar.find('[data-lib="unl-only"]').on('click', function () {
+			self.mUnlearnedOnly = !self.mUnlearnedOnly;
+			self.syncFilterButtons();
+			self.renderGrid();
+		});
+
+		var searchInput = this.mFilterBar.find('[data-lib="search"]');
+		wxBindSafeInput(searchInput, this.mDataSource);
+		searchInput.on('keyup change input', function () {
+			var raw = $(this).val() || '';
+			self.mSearchQuery = raw.replace(/^\s+|\s+$/g, '').toLowerCase();
+			self.renderGrid();
+		});
+
+		this.mFilterBar.find('[data-lib="craft-all"]').on('click', function () {
+			if ($(this).hasClass('is-dis')) return;
+			self.mDataSource.notifyBackendWXLibraryCraftAll(self.getEntityId(), function (_res) {
+				self.handleBackendResponse(_res);
+			});
+		});
+
+		this.mFilterBar.find('[data-lib="open-sects"]').on('click', function () {
+			if (window.WX_OpenSectDirectory && self.mDataSource && self.mDataSource.mSQHandle) {
+				window.WX_OpenSectDirectory(self.mDataSource.mSQHandle, self.mDataSource);
+			}
+		});
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.syncFilterButtons = function () {
+		var self = this;
+		this.mFilterBar.find('[data-lib="flt-all"]').toggleClass('is-sel', this.mKindFilter === 'all' && !this.mCatFilter);
+		this.mFilterBar.find('[data-lib="flt-page"]').toggleClass('is-sel', this.mKindFilter === 'page');
+		this.mFilterBar.find('[data-lib="wpn-only"]').toggleClass('is-sel', this.mWeaponOnly);
+		this.mFilterBar.find('[data-lib="unl-only"]').toggleClass('is-sel', this.mUnlearnedOnly);
+		this.mFilterBar.find('[data-lib-cat]').each(function () {
+			$(this).toggleClass('is-sel', $(this).attr('data-lib-cat') === self.mCatFilter);
+		});
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.getEntityId = function () {
+		if (this.mCurrentEntityId !== null) return this.mCurrentEntityId;
+		var sel = this.mDataSource ? this.mDataSource.getSelectedBrother() : null;
+		if (sel && typeof sel.id !== 'undefined') {
+			this.mCurrentEntityId = sel.id;
+			return sel.id;
+		}
+		return 0;
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.showToast = function (_msg, _isError) {
+		if (!this.mToast || !_msg) return;
+		var toast = this.mToast;
+		if (this.mToastTimer) clearTimeout(this.mToastTimer);
+		toast.removeClass('is-ok is-error').addClass(_isError ? 'is-error' : 'is-ok');
+		toast.children('span').text(_msg);
+		toast.stop(true, true).show();
+		this.mToastTimer = setTimeout(function () {
+			toast.fadeOut(200);
+		}, 3200);
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.openModal = function (_box) {
+		wxOpenScreenModal(_box, this.mDataSource);
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.closeModal = function () {
+		wxCloseScreenModal();
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.refreshFromBackend = function () {
+		var self = this;
+		var eid = this.getEntityId();
+		this.mDataSource.notifyBackendWXGetState(eid, function (_res) {
+			if (_res && _res.ok) {
+				self.applyState(_res);
+				if (_res.autoStoreNotice) {
+					self.showToast(_res.autoStoreNotice, false);
+				}
+			}
+		});
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.handleBackendResponse = function (_res) {
+		if (!_res) return;
+		if (_res.ok) {
+			this.mDataSource.wxApplyVanillaSync(_res);
+			this.applyState(_res);
+			if (_res.actionMessage) {
+				this.showToast(_res.actionMessage, false);
+			}
+			if (this.mParent && this.mParent.mPerksModule && this.mParent.mPerksModule.wxSyncCachedState) {
+				this.mParent.mPerksModule.wxSyncCachedState(_res);
+			}
+		} else if (_res.reason) {
+			this.showToast(_res.reason, true);
+		}
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.applyState = function (_data) {
+		this.mState = _data;
+		if (this.mParent && this.mParent.mHeaderModule && this.mParent.mHeaderModule.wxUpdateTabLabels) {
+			this.mParent.mHeaderModule.wxUpdateTabLabels(_data.brother, _data.library ? _data.library.summary : null);
+		}
+		this.syncFilterButtons();
+		this.renderHeaderAndStrip();
+		this.renderGrid();
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.renderHeaderAndStrip = function () {
+		var self = this;
+		var lib = (this.mState && this.mState.library) ? this.mState.library : null;
+		if (!lib) return;
+
+		var sum = lib.summary || { totalManuals: 0, totalPages: 0, craftableCount: 0 };
+		var craftBtn = this.mFilterBar.find('[data-lib="craft-all"]');
+		if (sum.craftableCount > 0) {
+			craftBtn.removeClass('is-dis').html('拼合<span class="wx-cnt">' + sum.craftableCount + '</span>');
+		} else {
+			craftBtn.addClass('is-dis').html('拼合');
+		}
+
+		var mov = lib.stashMovable || { slots: 0 };
+		var storeCls = 'wx-vb wx-vb2' + (mov.slots > 0 ? '' : ' is-dis');
+		var storeCnt = mov.slots > 0 ? ('<span class="wx-cnt">' + mov.slots + '</span>') : '';
+
+		this.mStrip.html(
+			'<span class="wx-vchk' + (lib.autoStore ? ' is-on' : '') + '" data-lib="toggle-auto" title="战利品与购入的秘籍、残页自动收入藏经阁"><i></i>自动入阁</span>' +
+			'<span class="wx-r">' +
+				'<span class="' + storeCls + '" data-lib="store-all" style="width:8.6rem;height:3.3rem;line-height:3.4rem;margin-right:1.2rem;">收纳' + storeCnt + '</span>' +
+				'<img src="coui://gfx/ui/items/misc/wx_book_neigong_sect.png" alt=""/>' + sum.totalManuals + ' 册　' +
+				'<img src="coui://gfx/ui/items/misc/wx_page_sect.png" alt=""/>' + sum.totalPages + ' 页' +
+			'</span>'
+		);
+
+		this.mStrip.find('[data-lib="toggle-auto"]').on('click', function () {
+			var cur = (self.mState && self.mState.library) ? self.mState.library.autoStore : true;
+			self.mDataSource.notifyBackendWXLibrarySetAutoStore(self.getEntityId(), !cur, function (_res) {
+				self.handleBackendResponse(_res);
+			});
+		});
+
+		this.mStrip.find('[data-lib="store-all"]').on('click', function () {
+			if ($(this).hasClass('is-dis')) return;
+			self.mDataSource.notifyBackendWXLibraryStoreAll(self.getEntityId(), function (_res) {
+				self.handleBackendResponse(_res);
+			});
+		});
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.passesFilter = function (_it) {
+		if (this.mKindFilter === 'page' && _it.itemKind !== 'page') return false;
+		if (this.mCatFilter && _it.category !== this.mCatFilter) return false;
+		if (this.mWeaponOnly && !_it.matchesWeapon) return false;
+		if (this.mUnlearnedOnly && _it.alreadyLearned) return false;
+		if (this.mSearchQuery && this.mSearchQuery.length > 0) {
+			var hay = ((_it.name || '') + ' ' + (_it.description || '') + ' ' + (_it.categoryLabel || '') + ' ' + (_it.qualityLabel || '') + ' ' + (_it.weaponLabel || '')).toLowerCase();
+			if (hay.indexOf(this.mSearchQuery) === -1) return false;
+		}
+		return true;
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.renderGrid = function () {
+		var body = this.mScrollArea.body;
+		var items = (this.mState && this.mState.library && this.mState.library.items) ? this.mState.library.items : [];
+		var shown = 0;
+		var firstShown = null;
+		var inspectedFound = null;
+		var slotMap = {};
+		var htmlParts = [];
+
+		for (var i = 0; i < items.length; i++) {
+			var it = items[i];
+			if (!this.passesFilter(it)) continue;
+			var key = it.itemKind + ':' + it.manualID;
+			slotMap[key] = it;
+			if (!firstShown) firstShown = it;
+			if (this.mInspectedKey === key) inspectedFound = it;
+
+			htmlParts.push(this.buildLibrarySlotHtml(it, key));
+			shown++;
+		}
+		this.mVisibleSlotMap = slotMap;
+
+		var toInspect = inspectedFound || firstShown;
+		if (shown === 0) {
+			body.html('<div class="wx-c-desc" style="padding:2.4rem 1.2rem;">没有符合筛选条件的秘籍或残页。</div>');
+		} else {
+			htmlParts.push('<div class="wx-clear"></div>');
+			body.html(htmlParts.join(''));
+			if (toInspect) {
+				this.mInspectedKey = toInspect.itemKind + ':' + toInspect.manualID;
+				body.find('[data-lib-key="' + this.mInspectedKey + '"]').append('<div class="wx-sring"></div>');
+			}
+		}
+
+		this.mScrollArea.refresh();
+
+		if (toInspect) {
+			this.renderInspector(toInspect);
+		} else {
+			this.mInspBody.html('<div class="wx-c-desc" style="padding:1.6rem 0.4rem;">左键点击秘籍或残页查看详情；右键整本秘籍可直接传授当前侠客。</div>');
+			this.mInspFoot.empty();
+		}
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.buildLibrarySlotHtml = function (_it, _key) {
+		var isPage = (_it.itemKind === 'page');
+		var dimCls = (!isPage && _it.alreadyLearned) ? ' is-dim' : '';
+		var hlHtml = (isPage && _it.canCraft) ? '<div class="wx-hl"></div>' : '';
+		var tagHtml = '';
+		if (isPage && !_it.canCraft && _it.canWildcardCraft) {
+			tagHtml = '<span class="wx-tag">补</span>';
+		} else if (!isPage && !_it.alreadyLearned && _it.learnedIsFragment) {
+			tagHtml = '<span class="wx-tag">补</span>';
+		}
+		var amtText = isPage ? (_it.count + '/' + _it.fragmentsNeeded) : String(_it.count);
+
+		return (
+			'<div class="wx-vslot' + dimCls + '" data-lib-key="' + _key + '">' +
+				hlHtml +
+				'<img class="wx-it" src="coui://gfx/' + _it.icon + '" alt=""/>' +
+				tagHtml +
+				'<span class="wx-amt">' + amtText + '</span>' +
+			'</div>'
+		);
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.renderInspector = function (_it) {
+		var self = this;
+		var bro = (this.mState && this.mState.brother) ? this.mState.brother : null;
+		var broName = bro ? bro.name : '当前侠客';
+		var isPage = (_it.itemKind === 'page');
+
+		var sub = wxEscapeHtml(_it.qualityLabel) + ' · ' + wxEscapeHtml(_it.categoryLabel) +
+			(_it.weaponLabel ? (' · ' + wxEscapeHtml(_it.weaponLabel)) : '');
+
+		var html =
+			'<div class="wx-hd">' +
+				'<img src="coui://gfx/' + _it.icon + '" alt=""/>' +
+				'<div class="wx-t-title">《' + wxEscapeHtml(_it.name) + '》' + (isPage ? '残页' : '') + '</div>' +
+				'<div class="wx-s">' + sub + '</div>' +
+				'<div class="wx-s wx-c-desc">估价 ' + _it.basePrice + ' 两</div>' +
+			'</div>';
+
+		if (isPage) {
+			html += '<div class="wx-ln"><span class="wx-c-label">残页　</span><span class="wx-c-title">' + _it.count + ' / ' + _it.fragmentsNeeded + '</span>' +
+				(_it.canCraft ? '　<span class="wx-c-title">已凑齐可装帧</span>' : (_it.canWildcardCraft ? '　<span class="wx-c-desc">可 2:1 同阶补缺</span>' : '')) + '</div>';
+		} else {
+			html += '<div class="wx-ln"><span class="wx-c-label">馆藏　</span><span class="wx-c-title">' + _it.count + ' 册</span>' +
+				'　<span class="wx-c-label">同袍已习　</span><span class="wx-c-title">' + (_it.learnedByCount > 0 ? (_it.learnedByCount + ' 人') : '无') + '</span></div>';
+		}
+
+		if (_it.weaponLabel && !_it.matchesWeapon) {
+			html += '<div class="wx-ln wx-c-neg">当前主手非' + wxEscapeHtml(_it.weaponLabel) + '，外功暂不生效</div>';
+		}
+
+		html += '<div class="wx-desc">' + wxEscapeHtml(_it.description) + '</div>';
+
+		var summaries = _it.levelSummaries || [];
+		for (var i = 0; i < summaries.length; i++) {
+			var lv = summaries[i];
+			html += '<div class="wx-tl is-done"><b>' + wxEscapeHtml(lv.title) + '</b>' + wxEscapeHtml(lv.text) + '</div>';
+		}
+
+		if (_it.missingReqs && _it.missingReqs.length > 0) {
+			html += '<div class="wx-ln"><span class="wx-c-label">大成门槛　</span><span class="wx-c-neg">' + wxEscapeHtml(_it.missingReqs.join('　')) + '</span></div>';
+		}
+
+		var foot = '';
+		if (!isPage) {
+			foot += '<span class="wx-vb wx-vb2" data-iact="withdraw" title="取出 1 册至战团仓库">取出</span>';
+			if (_it.alreadyLearned) {
+				foot += '<span class="wx-vb wx-vb2 is-dis">' + wxEscapeHtml(broName) + '已习</span>';
+			} else {
+				foot += '<span class="wx-vb wx-vb2" data-iact="learn">' + (_it.learnedIsFragment ? '补全' : '研习') + '</span>';
+			}
+		} else {
+			foot += '<span class="wx-vb wx-vb2" data-iact="infuse" style="width:6.4rem;" title="消耗 1 张残页注入已装功法火候">化功</span>';
+			if (_it.canCraft) {
+				foot += '<span class="wx-vb wx-vb2" data-iact="craft" style="width:6.4rem;">装帧</span>';
+			} else if (_it.canWildcardCraft) {
+				foot += '<span class="wx-vb wx-vb2" data-iact="wild" style="width:6.4rem;">补缺</span>';
+			} else if (_it.allowFragmentLearn && !_it.alreadyLearned && !_it.learnedIsFragment) {
+				foot += '<span class="wx-vb wx-vb2" data-iact="frag-learn" style="width:6.4rem;">强修</span>';
+			}
+			foot += '<span class="wx-vb wx-vb2" data-iact="withdraw" style="width:6.4rem;">取出</span>';
+		}
+
+		this.mInspBody.html(html);
+		this.mInspFoot.html(foot);
+		this.mInspFoot.find('[data-iact]').on('click', function () {
+			if ($(this).hasClass('is-dis')) return;
+			self.executeCardAction(_it, $(this).attr('data-iact'));
+		});
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.executeCardAction = function (_it, _act) {
+		var self = this;
+		var eid = this.getEntityId();
+
+		if (_act === 'learn') {
+			this.mDataSource.notifyBackendWXLearnFromLibrary(eid, _it.manualID, false, false, function (_res) {
+				self.handleBackendResponse(_res);
+			});
+		} else if (_act === 'frag-learn') {
+			this.triggerFragmentLearn(_it);
+		} else if (_act === 'withdraw') {
+			this.mDataSource.notifyBackendWXLibraryWithdraw(eid, _it.manualID, _it.itemKind === 'page', function (_res) {
+				self.handleBackendResponse(_res);
+			});
+		} else if (_act === 'craft') {
+			this.mDataSource.notifyBackendWXLibraryCraft(eid, _it.manualID, false, false, function (_res) {
+				self.handleBackendResponse(_res);
+			});
+		} else if (_act === 'wild') {
+			this.triggerWildcardCraft(_it.manualID, false);
+		} else if (_act === 'infuse') {
+			this.openPageInfuseSlotModal(_it);
+		}
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.triggerFragmentLearn = function (_it) {
+		var self = this;
+		var eid = this.getEntityId();
+		this.mDataSource.notifyBackendWXLearnFromLibrary(eid, _it.manualID, true, false, function (_res) {
+			if (!_res) return;
+			if (_res.needsConfirm) {
+				var box = $(
+					'<div class="wx-popup">' +
+						'<div class="wx-ph wx-t-title">残本强修</div>' +
+						'<div class="wx-pb">' +
+							'<div class="wx-swap">' + wxSwapSlotHtml(_it.icon, false) + '</div>' +
+							'消耗 1 张《' + wxEscapeHtml(_it.name) + '》残页强记残缺口诀。<br/>' +
+							'<span class="wx-c-neg">最高止步一重，实战偶有行气不畅。</span><br/>' +
+							'<span class="wx-c-desc">日后研读同名整本可无损补全。</span>' +
+						'</div>' +
+						'<div class="wx-pf">' +
+							'<span class="wx-vb wx-vb1" data-m="yes">确定</span>' +
+							'<span class="wx-vb wx-vb1" data-wx-close="1">取消</span>' +
+						'</div>' +
+					'</div>'
+				);
+				box.find('[data-m="yes"]').on('click', function () {
+					self.closeModal();
+					self.mDataSource.notifyBackendWXLearnFromLibrary(eid, _it.manualID, true, true, function (_res2) {
+						self.handleBackendResponse(_res2);
+					});
+				});
+				self.openModal(box);
+			} else {
+				self.handleBackendResponse(_res);
+			}
+		});
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.triggerWildcardCraft = function (_manualID, _confirmed) {
+		var self = this;
+		var eid = this.getEntityId();
+		this.mDataSource.notifyBackendWXLibraryCraft(eid, _manualID, true, _confirmed, function (_res) {
+			if (!_res) return;
+			if (_res.needsWildcardConfirm || _res.needsConfirm) {
+				var pv = _res.preview || _res;
+				var mName = pv.manualName || '';
+				var missP = pv.missingPages || 0;
+				var spareN = pv.spareNeeded || pv.wildcardBurned || 0;
+				var donors = pv.sacrificedList || pv.donorSummary || [];
+				var box = $(
+					'<div class="wx-popup">' +
+						'<div class="wx-ph wx-t-title">同阶补缺</div>' +
+						'<div class="wx-pb">' +
+							'为装帧完整《' + wxEscapeHtml(mName) + '》（差 ' + missP + ' 页），将消耗同阶闲置残页 <span class="wx-c-title">' + spareN + '</span> 张：<br/>' +
+							'<span class="wx-c-desc">' + wxEscapeHtml(donors.join('、')) + '</span>' +
+						'</div>' +
+						'<div class="wx-pf">' +
+							'<span class="wx-vb wx-vb1" data-m="yes">确定</span>' +
+							'<span class="wx-vb wx-vb1" data-wx-close="1">取消</span>' +
+						'</div>' +
+					'</div>'
+				);
+				box.find('[data-m="yes"]').on('click', function () {
+					self.closeModal();
+					self.triggerWildcardCraft(_manualID, true);
+				});
+				self.openModal(box);
+			} else {
+				self.handleBackendResponse(_res);
+			}
+		});
+	};
+
+	CharacterScreenWuxiaLibraryModule.prototype.openPageInfuseSlotModal = function (_pageItem) {
+		var self = this;
+		var bro = (this.mState && this.mState.brother) ? this.mState.brother : null;
+		if (!bro) return;
+
+		var rowsHtml = '';
+		var validCount = 0;
+		for (var i = 0; i < bro.slots.length; i++) {
+			var s = bro.slots[i];
+			if (!s.unlocked || !s.manualID || s.isFragment || s.tier >= 3 || s.isSealed) continue;
+			validCount++;
+			var mult = 1.0;
+			var tag = '';
+			if (s.manualID === _pageItem.manualID) { mult = 1.5; tag = ' · 同名 +50%'; }
+			else if (s.category === _pageItem.category) { mult = 1.25; tag = ' · 同脉 +25%'; }
+			var gain = Math.max(1, Math.floor((_pageItem.infuseBaseExp || 40) * mult));
+
+			rowsHtml +=
+				'<div class="wx-pick" data-pick-slot="' + i + '">' +
+					wxSwapSlotHtml(s.icon, true) +
+					'<div class="wx-c-title">穴' + WX_CN_NUM[i + 1] + ' · 《' + wxEscapeHtml(s.rawName || s.name) + '》</div>' +
+					'<div class="wx-c-desc">' + wxEscapeHtml(s.tierLabel) + ' · 火候 ' + s.exp + ' / ' + s.expNeeded + tag + '</div>' +
+					'<span class="wx-g">+' + gain + ' 火候</span>' +
+				'</div>';
+		}
+
+		if (validCount === 0) {
+			this.showToast(bro.name + ' 当前没有未满重的已装功法可供化功。', true);
+			return;
+		}
+
+		var box = $(
+			'<div class="wx-popup">' +
+				'<div class="wx-ph wx-t-title">残页化功 · 《' + wxEscapeHtml(_pageItem.name) + '》</div>' +
+				'<div class="wx-pb">' + rowsHtml + '</div>' +
+				'<div class="wx-pf"><span class="wx-vb wx-vb1" data-wx-close="1">关闭</span></div>' +
+			'</div>'
+		);
+
+		box.find('[data-pick-slot]').on('click', function () {
+			var sIdx = parseInt($(this).attr('data-pick-slot'), 10);
+			self.closeModal();
+			self.mDataSource.notifyBackendWXInfuseLibraryPage(self.getEntityId(), _pageItem.manualID, sIdx, function (_res) {
+				self.handleBackendResponse(_res);
+			});
+		});
+
+		this.openModal(box);
+	};
+
+	// ------------------------------------------------------------------------
+	// 5. Wire 3rd Tab into CharacterScreenRightPanelModule
+	// ------------------------------------------------------------------------
+	if (typeof CharacterScreenRightPanelModule !== 'undefined') {
+		var origRPRegisterModules = CharacterScreenRightPanelModule.prototype.registerModules;
+		var origRPUnregisterModules = CharacterScreenRightPanelModule.prototype.unregisterModules;
+		var origRPSetupEvents = CharacterScreenRightPanelModule.prototype.setupEventHandler;
+		var origRPRemoveEvents = CharacterScreenRightPanelModule.prototype.removeEventHandler;
+		var origRPSwitchInv = CharacterScreenRightPanelModule.prototype.switchToInventory;
+		var origRPSwitchPerks = CharacterScreenRightPanelModule.prototype.switchToPerks;
+		var origRPCreateDIV = CharacterScreenRightPanelModule.prototype.createDIV;
+
+		CharacterScreenRightPanelModule.prototype.createDIV = function (_parentDiv) {
+			origRPCreateDIV.call(this, _parentDiv);
+			this.mWXLibraryModule = new CharacterScreenWuxiaLibraryModule(this, this.mDataSource);
+			var rp = this;
+			this.mDataSource.mWXOnExternalStateChanged = function () {
+				if (rp.mPerksModule && rp.mPerksModule.isVisible()) {
+					rp.mPerksModule.wxRefreshFromBackend();
+				}
+				if (rp.mWXLibraryModule && rp.mWXLibraryModule.isVisible()) {
+					rp.mWXLibraryModule.refreshFromBackend();
+				}
+			};
+		};
+
+		CharacterScreenRightPanelModule.prototype.registerModules = function () {
+			origRPRegisterModules.call(this);
+			if (this.mWXLibraryModule) {
+				this.mWXLibraryModule.register(this.mContainer);
+			}
+		};
+
+		CharacterScreenRightPanelModule.prototype.unregisterModules = function () {
+			if (this.mWXLibraryModule) {
+				this.mWXLibraryModule.unregister();
+			}
+			origRPUnregisterModules.call(this);
+		};
+
+		CharacterScreenRightPanelModule.prototype.setupEventHandler = function () {
+			origRPSetupEvents.call(this);
+			if (this.mHeaderModule && this.mHeaderModule.setOnSwitchToWXLibraryCallback) {
+				this.mHeaderModule.setOnSwitchToWXLibraryCallback(jQuery.proxy(this.switchToWXLibrary, this));
+			}
+		};
+
+		CharacterScreenRightPanelModule.prototype.removeEventHandler = function () {
+			if (this.mHeaderModule && this.mHeaderModule.setOnSwitchToWXLibraryCallback) {
+				this.mHeaderModule.setOnSwitchToWXLibraryCallback(null);
+			}
+			origRPRemoveEvents.call(this);
+		};
+
+		CharacterScreenRightPanelModule.prototype.switchToInventory = function () {
+			if (this.mWXLibraryModule) this.mWXLibraryModule.hide();
+			origRPSwitchInv.call(this);
+			if (this.mHeaderModule && this.mHeaderModule.wxSyncTabActive) {
+				this.mHeaderModule.wxSyncTabActive('inv');
+			}
+		};
+
+		CharacterScreenRightPanelModule.prototype.switchToPerks = function () {
+			if (this.mWXLibraryModule) this.mWXLibraryModule.hide();
+			origRPSwitchPerks.call(this);
+			if (this.mHeaderModule && this.mHeaderModule.wxSyncTabActive) {
+				this.mHeaderModule.wxSyncTabActive('perks');
+			}
+		};
+
+		CharacterScreenRightPanelModule.prototype.switchToWXLibrary = function () {
+			if (this.mWXSwitchingTab) return;
+			this.mWXSwitchingTab = true;
+			try {
+				if (this.mInventoryModule) this.mInventoryModule.hide();
+				if (this.mPerksModule) this.mPerksModule.hide();
+				if (!this.mWXLibraryModule && this.mContainer) {
+					this.mWXLibraryModule = new CharacterScreenWuxiaLibraryModule(this, this.mDataSource);
+					this.mWXLibraryModule.register(this.mContainer);
+				}
+				if (this.mHeaderModule && this.mHeaderModule.selectWXLibraryPanel) {
+					this.mHeaderModule.selectWXLibraryPanel();
+				}
+				if (this.mWXLibraryModule) this.mWXLibraryModule.show();
+			} finally {
+				this.mWXSwitchingTab = false;
+			}
+		};
+
+		if (typeof Screens !== 'undefined' && Screens['CharacterScreen'] && Screens['CharacterScreen'].mRightPanelModule) {
+			var liveRP = Screens['CharacterScreen'].mRightPanelModule;
+			var liveHdr = liveRP.mHeaderModule;
+			if (liveHdr && liveHdr.mContainer) {
+				if (liveHdr.mSwitchToInventoryButton) liveHdr.mSwitchToInventoryButton.findButtonText().html('兵甲行囊');
+				if (liveHdr.mSwitchToPerksButton) liveHdr.mSwitchToPerksButton.findButtonText().html('武学修为');
+				if (!liveHdr.mSwitchToWXLibraryButton) {
+					var liveMid = liveHdr.mContainer.find('.buttons-container.is-middle:first');
+					if (liveMid.length) {
+						var liveLayout = $('<div class="l-button is-wx-library"/>');
+						liveMid.append(liveLayout);
+						liveHdr.mSwitchToWXLibraryButton = liveLayout.createTabTextButton('藏经阁', function () {
+							if (liveHdr.mOnSwitchToWXLibraryCallback !== null && jQuery.isFunction(liveHdr.mOnSwitchToWXLibraryCallback)) {
+								liveHdr.mOnSwitchToWXLibraryCallback();
+							} else if (liveHdr.mParent && typeof liveHdr.mParent.switchToWXLibrary === 'function') {
+								liveHdr.mParent.switchToWXLibrary();
+							}
+						}, null, 'tab-button', 7);
+					}
+				}
+				liveHdr.setOnSwitchToWXLibraryCallback(jQuery.proxy(liveRP.switchToWXLibrary, liveRP));
+			}
+			if (liveRP.mContainer && !liveRP.mWXLibraryModule) {
+				liveRP.mWXLibraryModule = new CharacterScreenWuxiaLibraryModule(liveRP, liveRP.mDataSource);
+				liveRP.mWXLibraryModule.register(liveRP.mContainer);
+				if (liveRP.mDataSource) {
+					liveRP.mDataSource.mWXOnExternalStateChanged = function () {
+						if (liveRP.mPerksModule && liveRP.mPerksModule.isVisible()) {
+							liveRP.mPerksModule.wxRefreshFromBackend();
+						}
+						if (liveRP.mWXLibraryModule && liveRP.mWXLibraryModule.isVisible()) {
+							liveRP.mWXLibraryModule.refreshFromBackend();
+						}
+					};
+				}
+			}
+		}
+	}
+
+	// ------------------------------------------------------------------------
+	// 6. Tab 2 Module: CharacterScreenPerksModule (武学修为 — 原版天赋页同构)
+	// ------------------------------------------------------------------------
 	var origCreateDIV = CharacterScreenPerksModule.prototype.createDIV;
 	var origDestroyDIV = CharacterScreenPerksModule.prototype.destroyDIV;
 	var origLoadBrother = CharacterScreenPerksModule.prototype.loadPerkTreesWithBrotherData;
 	var origShow = CharacterScreenPerksModule.prototype.show;
+	var origHide = CharacterScreenPerksModule.prototype.hide;
 
 	CharacterScreenPerksModule.prototype.createDIV = function (_parentDiv) {
 		origCreateDIV.call(this, _parentDiv);
 
-		// Hide vanilla 7-row perk column while keeping the tab container intact
+		this.mContainer.addClass('no-pointer-events');
 		if (this.mLeftColumn) {
-			this.mLeftColumn.hide();
+			this.mLeftColumn.addClass('display-none');
 		}
 
 		this.mWXState = null;
 		this.mWXCurrentEntityId = null;
-		this.mWXFilter = 'all';
-		this.mWXWeaponOnly = false;
-		this.mWXSearchQuery = '';
+		this.mWXSelectedSlotIdx = 0;
+		this.mWXShelfMode = 'learned'; // 'learned' | 'vault' | 'pill'
+		this.mWXCatFilter = null;      // null | 'neigong' | 'waigong' | 'qinggong' | 'henglian'
+		this.mWXInspected = null;
 		this.mWXDragPayload = null;
+		this.mWXDragGhost = null;
+		this.mWXAutoPickedModeForEntity = null;
 		this.mWXWashState = {
 			targetAttrIdx: -1,
 			replaceAttrIdx: -1,
@@ -86,10 +1309,16 @@
 			usePendingChance: false
 		};
 
-		this.wxBuildRootDOM(this.mContainer || _parentDiv);
+		this.wxBuildRootDOM(this.mContainer);
 	};
 
 	CharacterScreenPerksModule.prototype.destroyDIV = function () {
+		this.wxCancelDrag();
+		wxCloseScreenModal();
+		if (this.mWXScrollArea && this.mWXScrollArea.isNativeList && this.mWXScrollArea.list) {
+			this.mWXScrollArea.list.destroyList();
+		}
+		this.mWXScrollArea = null;
 		if (this.mWXRoot) {
 			this.mWXRoot.empty();
 			this.mWXRoot.remove();
@@ -99,120 +1328,223 @@
 	};
 
 	CharacterScreenPerksModule.prototype.show = function () {
+		this.mWXPanelShowing = true;
 		origShow.call(this);
+		this.mContainer.removeClass('no-pointer-events').addClass('is-top');
 		this.wxRefreshFromBackend();
+	};
+
+	CharacterScreenPerksModule.prototype.hide = function () {
+		this.mWXPanelShowing = false;
+		this.wxCancelDrag();
+		wxCloseScreenModal();
+		origHide.call(this);
+		this.mContainer.addClass('no-pointer-events');
 	};
 
 	CharacterScreenPerksModule.prototype.loadPerkTreesWithBrotherData = function (_brother) {
 		origLoadBrother.call(this, _brother);
+		if (this.mLeftColumn) {
+			this.mLeftColumn.addClass('display-none');
+		}
 		if (_brother) {
+			var nextId = null;
 			if (typeof CharacterScreenIdentifier !== 'undefined' && CharacterScreenIdentifier.Entity && (CharacterScreenIdentifier.Entity.Id in _brother)) {
-				this.mWXCurrentEntityId = _brother[CharacterScreenIdentifier.Entity.Id];
+				nextId = _brother[CharacterScreenIdentifier.Entity.Id];
 			} else if (typeof _brother.id !== 'undefined') {
-				this.mWXCurrentEntityId = _brother.id;
+				nextId = _brother.id;
+			}
+			if (nextId !== null && nextId !== this.mWXCurrentEntityId) {
+				this.mWXCurrentEntityId = nextId;
+				this.mWXInspected = null;
 			}
 		}
-		this.wxRefreshFromBackend();
+		if (this.mWXPanelShowing || this.isVisible()) {
+			this.wxRefreshFromBackend();
+		}
+	};
+
+	CharacterScreenPerksModule.prototype.wxSyncCachedState = function (_data) {
+		if (_data && _data.ok) {
+			this.mWXState = _data;
+			if (this.mWXPanelShowing || this.isVisible()) {
+				this.wxRenderAll();
+			}
+		}
 	};
 
 	CharacterScreenPerksModule.prototype.wxBuildRootDOM = function (_host) {
-		var self = this;
-
 		this.mWXRoot = $('<div class="wx-panel"></div>');
 		_host.append(this.mWXRoot);
 
-		// Top Summary Bar
-		this.mWXHeader = $(
-			'<div class="wx-header">' +
-				'<div class="wx-summary-tags">' +
-					'<span class="wx-tag wx-tag-ap" data-wx="ap">行动点: 9 AP</span>' +
-					'<span class="wx-tag wx-tag-el" data-wx="element">主修: 未修内功</span>' +
-					'<span class="wx-tag wx-tag-harmony" data-wx="conflict">内息调和</span>' +
-				'</div>' +
-				'<button type="button" class="wx-btn wx-btn-wash" data-wx="open-wash">✦ 洗经伐髓</button>' +
+		this.mWXHeader = $('<div class="wx-head"></div>');
+		this.mWXToast = $('<div class="wx-toast" style="display:none;"><span></span></div>');
+		this.mWXMeridian = $('<div class="wx-meridian"></div>');
+		this.mWXPassives = $('<div class="wx-pas"></div>');
+		this.mWXShelfFilter = $('<div class="wx-shelf-f"></div>');
+		var shelfGridHost = $('<div class="wx-shelf-g wx-scroll-host"></div>');
+		this.mWXInspector = $(
+			'<div class="wx-insp is-wx">' +
+				'<div class="wx-insp-body" data-wx="insp-body"></div>' +
+				'<div class="wx-insp-foot" data-wx="insp-foot"></div>' +
 			'</div>'
 		);
+		this.mWXStrip = $('<div class="wx-strip"></div>');
+
 		this.mWXRoot.append(this.mWXHeader);
-
-		// Status Toast Line
-		this.mWXToast = $('<div class="wx-toast"></div>');
 		this.mWXRoot.append(this.mWXToast);
+		this.mWXRoot.append(this.mWXMeridian);
+		this.mWXRoot.append(this.mWXPassives);
+		this.mWXRoot.append(this.mWXShelfFilter);
+		this.mWXRoot.append(shelfGridHost);
+		this.mWXRoot.append(this.mWXInspector);
+		this.mWXRoot.append(this.mWXStrip);
 
-		// Middle: 7 Square Icon Slots (Row 1 = 5 specialized, Row 2 = 2 free)
-		this.mWXSlotsWrap = $(
-			'<div class="wx-slots-section">' +
-				'<div class="wx-slots-row wx-slots-row-main" data-wx="slots-row-1"></div>' +
-				'<div class="wx-slots-row wx-slots-row-free" data-wx="slots-row-2"></div>' +
-			'</div>'
-		);
-		this.mWXRoot.append(this.mWXSlotsWrap);
+		this.mWXScrollArea = wxCreateScrollArea(shelfGridHost);
+		this.mWXInspBody = this.mWXInspector.find('[data-wx="insp-body"]');
+		this.mWXInspFoot = this.mWXInspector.find('[data-wx="insp-foot"]');
+	};
 
-		// Bottom: Stash Manuals, Pages & Pills Icon Grid Drawer
-		this.mWXDrawer = $(
-			'<div class="wx-drawer">' +
-				'<div class="wx-filter-bar" data-wx="filters">' +
-					'<button type="button" class="wx-filter-btn is-active" data-filter="all">全部</button>' +
-					'<button type="button" class="wx-filter-btn" data-filter="neigong">内功</button>' +
-					'<button type="button" class="wx-filter-btn" data-filter="waigong">外功</button>' +
-					'<button type="button" class="wx-filter-btn" data-filter="qinggong">轻功</button>' +
-					'<button type="button" class="wx-filter-btn" data-filter="henglian">横练</button>' +
-					'<button type="button" class="wx-filter-btn" data-filter="page">残页</button>' +
-					'<button type="button" class="wx-filter-btn" data-filter="pill">丹药</button>' +
-					'<span class="wx-filter-spacer"></span>' +
-					'<button type="button" class="wx-filter-btn wx-weapon-toggle" data-wx="weapon-only">适配兵器</button>' +
-					'<input type="text" class="wx-search-input" data-wx="search" placeholder="搜秘籍/词条..." />' +
-				'</div>' +
-				'<div class="wx-stash-grid" data-wx="stash-grid"></div>' +
-			'</div>'
-		);
-		this.mWXRoot.append(this.mWXDrawer);
+	CharacterScreenPerksModule.prototype.wxSetShelfMode = function (_mode) {
+		this.mWXShelfMode = _mode;
+		this.wxRenderShelfFilter();
+		this.wxRenderLearnedList();
+	};
 
-		// Floating Tooltip Box (anchored cleanly inside panel)
-		this.mWXTooltip = $('<div class="wx-tooltip" style="display:none;"></div>');
-		this.mWXRoot.append(this.mWXTooltip);
+	CharacterScreenPerksModule.prototype.wxOpenModal = function (_box) {
+		wxOpenScreenModal(_box, this.mDataSource);
+	};
 
-		// Modal Overlay Container (Scatter Confirm & Marrow Wash)
-		this.mWXModal = $('<div class="wx-modal-backdrop" style="display:none;"></div>');
-		this.mWXRoot.append(this.mWXModal);
-
-		// Bind filter clicks
-		this.mWXDrawer.find('.wx-filter-btn[data-filter]').on('click', function () {
-			self.mWXFilter = $(this).attr('data-filter');
-			self.mWXDrawer.find('.wx-filter-btn[data-filter]').removeClass('is-active');
-			$(this).addClass('is-active');
-			self.wxRenderStashGrid();
-		});
-
-		this.mWXDrawer.find('[data-wx="weapon-only"]').on('click', function () {
-			self.mWXWeaponOnly = !self.mWXWeaponOnly;
-			if (self.mWXWeaponOnly) {
-				$(this).addClass('is-active');
-			} else {
-				$(this).removeClass('is-active');
-			}
-			self.wxRenderStashGrid();
-		});
-
-		this.mWXDrawer.find('[data-wx="search"]').on('keyup change input', function () {
-			var raw = $(this).val() || '';
-			self.mWXSearchQuery = raw.replace(/^\s+|\s+$/g, '').toLowerCase();
-			self.wxRenderStashGrid();
-		});
-
-		// Bind Marrow Wash modal trigger
-		this.mWXHeader.find('[data-wx="open-wash"]').on('click', function () {
-			self.wxOpenWashModal();
-		});
+	CharacterScreenPerksModule.prototype.wxCloseModal = function () {
+		wxCloseScreenModal();
 	};
 
 	CharacterScreenPerksModule.prototype.wxShowToast = function (_msg, _isError) {
-		if (!this.mWXToast) return;
-		this.mWXToast.removeClass('is-error is-ok');
-		if (!_msg) {
-			this.mWXToast.text('').hide();
+		if (!this.mWXToast || !_msg) return;
+		var toast = this.mWXToast;
+		if (this.mWXToastTimer) clearTimeout(this.mWXToastTimer);
+		toast.removeClass('is-error is-ok').addClass(_isError ? 'is-error' : 'is-ok');
+		toast.children('span').text(_msg);
+		toast.stop(true, true).show();
+		this.mWXToastTimer = setTimeout(function () {
+			toast.fadeOut(220);
+		}, 3200);
+	};
+
+	// ES3 Mouse Drag & Drop onto 7 Acupoint Discs
+	CharacterScreenPerksModule.prototype.wxBindSlotDrag = function (_el, _payload) {
+		var self = this;
+		var startX = 0;
+		var startY = 0;
+		var dragging = false;
+
+		_el.on('mousedown', function (_e) {
+			if (_e.which !== 1) return;
+			startX = _e.clientX;
+			startY = _e.clientY;
+			dragging = false;
+
+			$(document).on('mousemove.wxSlotDrag', function (_me) {
+				var dx = _me.clientX - startX;
+				var dy = _me.clientY - startY;
+				if (!dragging && (dx * dx + dy * dy) > 36) {
+					dragging = true;
+					self.wxBeginDrag(_payload, _me.clientX, _me.clientY);
+				} else if (dragging) {
+					self.wxMoveDrag(_me.clientX, _me.clientY);
+				}
+			});
+
+			$(document).on('mouseup.wxSlotDrag', function (_ue) {
+				$(document).off('mousemove.wxSlotDrag mouseup.wxSlotDrag');
+				if (dragging) {
+					dragging = false;
+					self.wxEndDrag(_ue.clientX, _ue.clientY);
+				}
+			});
+		});
+	};
+
+	CharacterScreenPerksModule.prototype.wxCanPayloadDropOnSlot = function (_payload, _slot) {
+		if (!_payload || !_slot || !_slot.unlocked) return false;
+		if (_payload.kind === 'learned' || _payload.kind === 'vault_manual' || _payload.kind === 'vault_frag') {
+			return this.wxCanCategoryFitSlot(_payload.category, _payload.equippedSlotIndex, _slot);
+		}
+		if (_payload.kind === 'pill_infuse') {
+			return !!(_slot.manualID && !_slot.isFragment && _slot.tier < 3 && !_slot.isSealed);
+		}
+		return false;
+	};
+
+	CharacterScreenPerksModule.prototype.wxBeginDrag = function (_payload, _cx, _cy) {
+		this.wxCancelDrag();
+		this.mWXDragPayload = _payload;
+		var ghost = $('<div class="wx-drag-ghost"><img src="coui://gfx/' + _payload.icon + '" alt=""/></div>');
+		ghost.css({ left: _cx + 'px', top: _cy + 'px' });
+		$(document.body).append(ghost);
+		this.mWXDragGhost = ghost;
+
+		var self = this;
+		var bro = this.mWXState && this.mWXState.brother;
+		if (bro && bro.slots) {
+			this.mWXMeridian.find('.wx-mcol').each(function (_idx) {
+				var sl = bro.slots[_idx];
+				if (self.wxCanPayloadDropOnSlot(_payload, sl)) {
+					$(this).addClass('is-drop-ok');
+				} else {
+					$(this).addClass('is-drop-no');
+				}
+			});
+		}
+	};
+
+	CharacterScreenPerksModule.prototype.wxMoveDrag = function (_cx, _cy) {
+		if (this.mWXDragGhost) {
+			this.mWXDragGhost.css({ left: _cx + 'px', top: _cy + 'px' });
+		}
+	};
+
+	CharacterScreenPerksModule.prototype.wxEndDrag = function (_cx, _cy) {
+		var payload = this.mWXDragPayload;
+		var hitSlotIdx = -1;
+		this.mWXMeridian.find('.wx-mcol').each(function (_idx) {
+			var rect = this.getBoundingClientRect();
+			if (_cx >= rect.left && _cx <= rect.right && _cy >= rect.top && _cy <= rect.bottom) {
+				hitSlotIdx = _idx;
+			}
+		});
+		this.wxCancelDrag();
+
+		if (hitSlotIdx < 0 || !payload || !this.mWXState || !this.mWXState.brother) return;
+		var targetSlot = this.mWXState.brother.slots[hitSlotIdx];
+		if (!this.wxCanPayloadDropOnSlot(payload, targetSlot)) {
+			this.wxShowToast('该武学或灵丹无法装入此穴位。', true);
 			return;
 		}
-		this.mWXToast.addClass(_isError ? 'is-error' : 'is-ok').text(_msg).show();
+
+		var self = this;
+		if (payload.kind === 'learned') {
+			this.wxSubmitEquipLearned(hitSlotIdx, payload.manualID, false);
+		} else if (payload.kind === 'vault_manual') {
+			this.wxSubmitLearnAndEquip(hitSlotIdx, payload.manualID, false, false);
+		} else if (payload.kind === 'vault_frag') {
+			this.wxSubmitLearnAndEquip(hitSlotIdx, payload.manualID, true, false);
+		} else if (payload.kind === 'pill_infuse') {
+			this.mDataSource.notifyBackendWXInfusePill(this.mWXCurrentEntityId, payload.stashIndex, hitSlotIdx, function (_res) {
+				self.wxApplyBackendState(_res);
+			});
+		}
+	};
+
+	CharacterScreenPerksModule.prototype.wxCancelDrag = function () {
+		this.mWXDragPayload = null;
+		if (this.mWXDragGhost) {
+			this.mWXDragGhost.remove();
+			this.mWXDragGhost = null;
+		}
+		if (this.mWXMeridian) {
+			this.mWXMeridian.find('.wx-mcol').removeClass('is-drop-ok is-drop-no');
+		}
 	};
 
 	CharacterScreenPerksModule.prototype.wxRefreshFromBackend = function () {
@@ -232,510 +1564,1109 @@
 		this.mDataSource.notifyBackendWXGetState(entityId, function (_data) {
 			if (_data && _data.ok) {
 				self.mWXState = _data;
+				if (self.mParent && self.mParent.mHeaderModule && self.mParent.mHeaderModule.wxUpdateTabLabels) {
+					self.mParent.mHeaderModule.wxUpdateTabLabels(_data.brother, _data.library ? _data.library.summary : null);
+				}
+				if (self.mWXAutoPickedModeForEntity !== entityId && _data.brother) {
+					self.mWXAutoPickedModeForEntity = entityId;
+					var learned = _data.brother.learnedManuals || [];
+					var vaultUnlearned = self.wxCountVaultUnlearned(_data);
+					if (learned.length === 0 && vaultUnlearned > 0) {
+						self.mWXShelfMode = 'vault';
+					} else if (self.mWXShelfMode === 'vault' && vaultUnlearned === 0 && learned.length > 0) {
+						self.mWXShelfMode = 'learned';
+					}
+				}
 				self.wxRenderAll();
+				if (_data.autoStoreNotice) {
+					self.wxShowToast(_data.autoStoreNotice, false);
+				}
 			}
 		});
+	};
+
+	CharacterScreenPerksModule.prototype.wxCountVaultUnlearned = function (_state) {
+		var items = (_state && _state.library && _state.library.items) ? _state.library.items : [];
+		var cnt = 0;
+		for (var i = 0; i < items.length; i++) {
+			var it = items[i];
+			if (it.itemKind === 'manual' && !it.alreadyLearned) cnt++;
+			else if (it.itemKind === 'page' && it.allowFragmentLearn && !it.alreadyLearned && !it.learnedIsFragment) cnt++;
+		}
+		return cnt;
+	};
+
+	CharacterScreenPerksModule.prototype.wxApplyBackendState = function (_res) {
+		if (!_res) return;
+		if (_res.ok) {
+			this.mDataSource.wxApplyVanillaSync(_res);
+			this.mWXState = _res;
+			if (this.mParent && this.mParent.mHeaderModule && this.mParent.mHeaderModule.wxUpdateTabLabels) {
+				this.mParent.mHeaderModule.wxUpdateTabLabels(_res.brother, _res.library ? _res.library.summary : null);
+			}
+			this.wxRenderAll();
+			if (_res.actionMessage) {
+				this.wxShowToast(_res.actionMessage, false);
+			}
+		} else if (_res.reason) {
+			this.wxShowToast(_res.reason, true);
+		}
 	};
 
 	CharacterScreenPerksModule.prototype.wxRenderAll = function () {
 		if (!this.mWXState || !this.mWXState.brother) return;
+		var bro = this.mWXState.brother;
+		if (this.mWXSelectedSlotIdx < 0 || this.mWXSelectedSlotIdx >= bro.slots.length) {
+			this.mWXSelectedSlotIdx = 0;
+		}
 		this.wxRenderHeader();
 		this.wxRenderSlots();
-		this.wxRenderStashGrid();
+		this.wxRenderMovesAndPassives();
+		this.wxRenderShelfFilter();
+		this.wxRenderLearnedList();
+		this.wxRefreshInspector();
+		this.wxRenderStrip();
+	};
+
+	CharacterScreenPerksModule.prototype.wxFindQuickHealPill = function (_preferKinds) {
+		var items = (this.mWXState && this.mWXState.stashItems) ? this.mWXState.stashItems : [];
+		for (var k = 0; k < _preferKinds.length; k++) {
+			var targetKind = _preferKinds[k];
+			for (var i = 0; i < items.length; i++) {
+				if (items[i].itemKind === 'pill_consume' && items[i].pillKind === targetKind) {
+					return items[i];
+				}
+			}
+		}
+		return null;
 	};
 
 	CharacterScreenPerksModule.prototype.wxRenderHeader = function () {
+		var self = this;
 		var bro = this.mWXState.brother;
-		var apText = '常驻: ' + bro.actionPointsMax + ' AP';
-		if (bro.permanentAPBonus > 0) {
-			apText += ' (孤本+' + bro.permanentAPBonus + ')';
-		}
-		this.mWXHeader.find('[data-wx="ap"]').text(apText);
-		this.mWXHeader.find('[data-wx="element"]').text('主修: ' + bro.mainElementLabel);
+		var totalWash = (this.mWXState.washPillCount || 0) + (bro.pendingWashChances || 0);
 
-		var conflictEl = this.mWXHeader.find('[data-wx="conflict"]');
+		var h = '<span class="wx-c-label">主修</span> <span class="wx-c-title">' + wxEscapeHtml(bro.mainElementLabel || '未修') + '</span>';
+		h += '<span class="wx-sep">|</span>';
 		if (bro.hasConflict) {
-			conflictEl.removeClass('wx-tag-harmony').addClass('wx-tag-conflict').text('⚠ 内息相克');
+			h += '<span class="wx-c-neg">内息相克</span>';
 		} else {
-			conflictEl.removeClass('wx-tag-conflict').addClass('wx-tag-harmony').text('内息调和');
+			h += '<span class="wx-c-title">内息调和</span>';
+		}
+		h += '<span class="wx-sep">|</span><span class="wx-c-label">行动力</span> <span class="wx-c-title">' + bro.actionPointsMax + '</span> <span class="wx-c-desc">/ 11</span>';
+
+		if (bro.hasScatterWeakness || bro.internalSeverity > 0) {
+			var intText = bro.internalSeverity >= 2 ? '经脉震荡' : (bro.internalSeverity === 1 ? '内伤' : ('散功 ' + (bro.scatterDays > 0 ? (bro.scatterDays + ' 天') : '')));
+			h += '<span class="wx-sep">|</span><span class="wx-warn" data-wx="heal-int" title="点击服用护心丹化解">' + intText + '</span>';
+		}
+		if (bro.tempInjuryNames && bro.tempInjuryNames.length > 0) {
+			h += '<span class="wx-sep">|</span><span class="wx-warn" data-wx="heal-ext" title="点击敷治金疮散">外伤×' + bro.tempInjuryNames.length + '</span>';
+		}
+		if (bro.permScars && bro.permScars > 0) {
+			h += '<span class="wx-sep">|</span><span class="wx-c-neg">暗疾×' + bro.permScars + '</span>';
 		}
 
-		var washBtn = this.mWXHeader.find('[data-wx="open-wash"]');
-		var totalWashSources = (this.mWXState.washPillCount || 0) + (bro.pendingWashChances || 0);
-		if (totalWashSources > 0) {
-			washBtn.addClass('has-chance').text('✦ 洗经伐髓 (' + totalWashSources + ')');
-		} else {
-			washBtn.removeClass('has-chance').text('✦ 洗经伐髓');
-		}
-	};
+		h += '<span class="wx-r">' +
+				'<span class="wx-vb wx-vb3" data-wx="open-sects" style="margin-right:0.3rem;" title="江湖四十四宗门名刺录"><img src="coui://gfx/ui/wx_icons/wx_glyph_sect_token.png" alt=""/></span>' +
+				'<span class="wx-vb wx-vb1" data-wx="open-wash">洗经伐髓' + (totalWash > 0 ? ('<span class="wx-cnt">' + totalWash + '</span>') : '') + '</span>' +
+			'</span>';
 
-	CharacterScreenPerksModule.prototype.wxRenderSlots = function () {
-		var self = this;
-		var bro = this.mWXState.brother;
-		var row1 = this.mWXSlotsWrap.find('[data-wx="slots-row-1"]').empty();
-		var row2 = this.mWXSlotsWrap.find('[data-wx="slots-row-2"]').empty();
+		this.mWXHeader.html(h);
 
-		for (var i = 0; i < bro.slots.length; i++) {
-			var s = bro.slots[i];
-			var card = this.wxCreateSlotElement(s);
-			if (i < 5) {
-				row1.append(card);
-			} else {
-				row2.append(card);
+		this.mWXHeader.find('[data-wx="heal-int"]').on('click', function () {
+			var huxin = self.wxFindQuickHealPill(['heal_internal']);
+			if (huxin) self.wxTriggerUsePill(huxin);
+			else {
+				self.wxSetShelfMode('pill');
+				self.wxShowToast('仓库暂无「护心丹」，可在城镇市集或百工丹坊获取。', true);
 			}
-		}
+		});
 
-		// Attach HTML5 drop handlers onto every unlocked slot
-		this.mWXSlotsWrap.find('.wx-slot-box').each(function () {
-			var el = this;
-			var slotIdx = parseInt($(el).attr('data-slot-index'), 10);
+		this.mWXHeader.find('[data-wx="heal-ext"]').on('click', function () {
+			var ext = self.wxFindQuickHealPill(['heal_external_plus', 'heal_external']);
+			if (ext) self.wxTriggerUsePill(ext);
+			else {
+				self.wxSetShelfMode('pill');
+				self.wxShowToast('仓库暂无「金疮散」。', true);
+			}
+		});
 
-			el.ondragover = function (evt) {
-				if (!self.mWXDragPayload) return;
-				if (self.wxCanDropOnSlot(self.mWXDragPayload, slotIdx)) {
-					evt.preventDefault();
-					$(el).addClass('is-drop-hover');
-				}
-			};
-			el.ondragleave = function () {
-				$(el).removeClass('is-drop-hover');
-			};
-			el.ondrop = function (evt) {
-				evt.preventDefault();
-				$(el).removeClass('is-drop-hover');
-				self.wxClearDropHighlights();
-				if (self.mWXDragPayload) {
-					self.wxHandleDropOnSlot(self.mWXDragPayload, slotIdx);
-					self.mWXDragPayload = null;
-				}
-			};
+		this.mWXHeader.find('[data-wx="open-sects"]').on('click', function () {
+			if (window.WX_OpenSectDirectory && self.mDataSource && self.mDataSource.mSQHandle !== null) {
+				window.WX_OpenSectDirectory(self.mDataSource.mSQHandle, self.mDataSource);
+			}
+		});
+
+		this.mWXHeader.find('[data-wx="open-wash"]').on('click', function () {
+			self.wxOpenWashModal();
 		});
 	};
 
-	CharacterScreenPerksModule.prototype.wxCreateSlotElement = function (_s) {
-		var self = this;
-		var qualityCls = _s.manualID ? ('wx-q-' + _s.quality) : 'wx-q-empty';
-		var lockCls = _s.unlocked ? '' : ' is-locked';
-		var fragBadge = _s.isFragment ? '<span class="wx-frag-badge">残</span>' : '';
-
-		var innerHtml = '';
-		if (!_s.unlocked) {
-			innerHtml = '<div class="wx-slot-lock">🔒<span>' + _s.unlockLevel + '级开</span></div>';
-		} else if (_s.manualID) {
-			innerHtml = '<img class="wx-slot-icon" src="coui://gfx/' + _s.icon + '" alt="" />' + fragBadge;
-		} else {
-			innerHtml = '<div class="wx-slot-plus">＋</div>';
-		}
-
-		// 3 Mastery dots + thin progress bar
-		var dotsHtml = '';
-		var pct = 0;
-		var barCls = 'wx-exp-fill';
-		if (_s.manualID) {
-			for (var d = 1; d <= 3; d++) {
-				dotsHtml += '<span class="wx-dot' + (d <= _s.tier ? ' is-lit' : '') + '"></span>';
+	CharacterScreenPerksModule.prototype.wxCanCategoryFitSlot = function (_category, _equippedSlotIdx, _slot) {
+		if (!_category || !_slot || !_slot.unlocked) return false;
+		var allowed = _slot.allowedCategories || [];
+		var okCat = false;
+		for (var i = 0; i < allowed.length; i++) {
+			if (allowed[i] === _category) {
+				okCat = true;
+				break;
 			}
-			if (_s.isFragment) {
-				pct = 100;
-				barCls += ' is-frag';
-			} else if (_s.tier >= 3 || _s.expNeeded <= 0) {
-				pct = 100;
-				barCls += ' is-max';
-			} else {
-				pct = Math.min(100, Math.floor((_s.exp / _s.expNeeded) * 100));
-				if (_s.blockedByReq) {
-					barCls += ' is-blocked';
+		}
+		if (!okCat) return false;
+		if (typeof _equippedSlotIdx === 'number' && _equippedSlotIdx >= 0 && _equippedSlotIdx !== _slot.slotIndex) return false;
+
+		if (_category === 'neigong' || _category === 'qinggong') {
+			var bro = this.mWXState && this.mWXState.brother;
+			var sameCnt = 0;
+			if (bro && bro.slots) {
+				for (var j = 0; j < bro.slots.length; j++) {
+					if (j === _slot.slotIndex) continue;
+					if (bro.slots[j].manualID && bro.slots[j].category === _category) sameCnt++;
 				}
 			}
-		}
-
-		var wrap = $(
-			'<div class="wx-slot-card">' +
-				'<div class="wx-slot-box ' + qualityCls + lockCls + '" data-slot-index="' + _s.slotIndex + '">' +
-					innerHtml +
-				'</div>' +
-				'<div class="wx-slot-meta">' +
-					'<div class="wx-dots">' + dotsHtml + '</div>' +
-					'<div class="wx-exp-bar"><div class="' + barCls + '" style="width:' + pct + '%;"></div></div>' +
-					'<div class="wx-slot-caption">' + (_s.manualID ? _s.name : _s.slotLabel) + '</div>' +
-				'</div>' +
-			'</div>'
-		);
-
-		wrap.find('.wx-slot-box').on('mouseenter', function () {
-			self.wxShowSlotTooltip(_s);
-		}).on('mouseleave', function () {
-			self.mWXTooltip.hide();
-		});
-
-		return wrap;
-	};
-
-	CharacterScreenPerksModule.prototype.wxRenderStashGrid = function () {
-		var self = this;
-		var grid = this.mWXDrawer.find('[data-wx="stash-grid"]').empty();
-		var items = this.mWXState.stashItems || [];
-		var shown = 0;
-
-		for (var i = 0; i < items.length; i++) {
-			var it = items[i];
-			if (!this.wxPassesFilter(it)) continue;
-			shown++;
-			grid.append(this.wxCreateStashTile(it));
-		}
-
-		if (shown === 0) {
-			grid.append('<div class="wx-empty-hint">行囊中暂无对应武学秘籍、残页或修为丹药。</div>');
-		}
-	};
-
-	CharacterScreenPerksModule.prototype.wxPassesFilter = function (_it) {
-		var catOk = false;
-		if (this.mWXFilter === 'all') {
-			catOk = true;
-		} else if (this.mWXFilter === 'page') {
-			catOk = (_it.itemKind === 'page');
-		} else if (this.mWXFilter === 'pill') {
-			catOk = (_it.itemKind === 'pill_infuse');
-		} else {
-			catOk = (_it.itemKind === 'manual' && _it.category === this.mWXFilter);
-		}
-		if (!catOk) return false;
-
-		if (this.mWXWeaponOnly && (_it.itemKind === 'manual' || _it.itemKind === 'page')) {
-			if (!_it.matchesWeapon) return false;
-		}
-
-		if (this.mWXSearchQuery && this.mWXSearchQuery.length > 0) {
-			var q = this.mWXSearchQuery;
-			var hay = ((_it.name || '') + ' ' + (_it.description || '') + ' ' + (_it.tier1Summary || '') + ' ' + (_it.tier3Summary || '') + ' ' + (_it.categoryLabel || '') + ' ' + (_it.qualityLabel || '')).toLowerCase();
-			if (hay.indexOf(q) === -1) return false;
+			if (sameCnt >= 2) return false;
 		}
 		return true;
 	};
 
-	CharacterScreenPerksModule.prototype.wxCreateStashTile = function (_it) {
-		var self = this;
-		var qCls = 'wx-q-' + (_it.quality || 'common');
-		var corner = '';
-		if (_it.itemKind === 'page') {
-			if (_it.canCraft) {
-				corner = '<span class="wx-tile-count is-craftable">' + _it.totalPages + '/' + _it.fragmentsNeeded + '</span>';
-			} else if (_it.canWildcardCraft) {
-				corner = '<span class="wx-tile-count is-wildcard">' + _it.totalPages + '/' + _it.fragmentsNeeded + '补</span>';
-			} else {
-				corner = '<span class="wx-tile-count">' + _it.totalPages + '/' + _it.fragmentsNeeded + '</span>';
-			}
-		} else if (_it.itemKind === 'pill_infuse') {
-			corner = '<span class="wx-tile-count is-pill">+' + _it.expAmount + '</span>';
-		}
-
-		var tile = $(
-			'<div class="wx-stash-tile ' + qCls + '" draggable="true">' +
-				'<img class="wx-tile-icon" src="coui://gfx/' + _it.icon + '" alt="" />' +
-				corner +
-				'<div class="wx-tile-name">' + _it.name + '</div>' +
-			'</div>'
-		);
-
-		// HTML5 Drag start / end
-		var domEl = tile[0];
-		domEl.ondragstart = function (evt) {
-			self.mWXDragPayload = _it;
-			if (evt.dataTransfer) {
-				evt.dataTransfer.setData('text/plain', String(_it.stashIndex));
-			}
-			self.wxHighlightValidSlots(_it);
-		};
-		domEl.ondragend = function () {
-			self.mWXDragPayload = null;
-			self.wxClearDropHighlights();
-		};
-
-		// Hover tooltip
-		tile.on('mouseenter', function () {
-			self.wxShowStashTooltip(_it);
-		}).on('mouseleave', function () {
-			self.mWXTooltip.hide();
-		});
-
-		// Right-click shortcut: craft pages if full (or 2:1 wildcard ready), or quick-equip into first matching empty slot
-		tile.on('contextmenu', function (evt) {
-			evt.preventDefault();
-			if (_it.itemKind === 'page' && _it.canCraft) {
-				self.wxTriggerCraftPages(_it.manualID, false, false);
-				return;
-			}
-			if (_it.itemKind === 'page' && _it.canWildcardCraft) {
-				self.wxTriggerCraftPages(_it.manualID, true, false);
-				return;
-			}
-			var targetIdx = self.wxFindFirstEmptySlotFor(_it);
-			if (targetIdx >= 0) {
-				self.wxHandleDropOnSlot(_it, targetIdx);
-			} else {
-				self.wxShowToast('无空闲匹配插槽，请直接拖拽至目标插槽进行参悟、覆盖或灌注。', true);
-			}
-		});
-
-		// Left-click craft shortcut on full or wildcard-ready page stack
-		if (_it.itemKind === 'page' && (_it.canCraft || _it.canWildcardCraft)) {
-			tile.on('dblclick', function () {
-				self.wxTriggerCraftPages(_it.manualID, !_it.canCraft && _it.canWildcardCraft, false);
-			});
-		}
-
-		return tile;
+	CharacterScreenPerksModule.prototype.wxCanLearnedFitSlot = function (_lm, _slot) {
+		if (!_lm) return false;
+		return this.wxCanCategoryFitSlot(_lm.category, _lm.equippedSlotIndex, _slot);
 	};
 
-	CharacterScreenPerksModule.prototype.wxCanInfusePageOnSlot = function (_item, _slot) {
-		return (_item.itemKind === 'page' && _slot && _slot.unlocked && _slot.manualID !== null && !_slot.isFragment && _slot.tier < 3);
-	};
-
-	CharacterScreenPerksModule.prototype.wxCanDropOnSlot = function (_item, _slotIndex) {
-		var bro = this.mWXState && this.mWXState.brother;
-		if (!bro || _slotIndex < 0 || _slotIndex >= bro.slots.length) return false;
-		var slot = bro.slots[_slotIndex];
-		if (!slot.unlocked) return false;
-
-		if (_item.itemKind === 'pill_infuse') {
-			return (slot.manualID !== null && !slot.isFragment && slot.tier < 3);
+	CharacterScreenPerksModule.prototype.wxHasAnyReadyLearnedForSlot = function (_slot) {
+		if (!_slot || !_slot.unlocked || _slot.manualID) return false;
+		var list = (this.mWXState && this.mWXState.brother && this.mWXState.brother.learnedManuals) ? this.mWXState.brother.learnedManuals : [];
+		for (var i = 0; i < list.length; i++) {
+			if (list[i].equippedSlotIndex < 0 && this.wxCanLearnedFitSlot(list[i], _slot)) {
+				return true;
+			}
 		}
-		if (this.wxCanInfusePageOnSlot(_item, slot)) {
-			return true;
-		}
-		if (_item.itemKind === 'manual' || (_item.itemKind === 'page' && _item.allowFragmentLearn)) {
-			for (var i = 0; i < slot.allowedCategories.length; i++) {
-				if (slot.allowedCategories[i] === _item.category) return true;
+		var vItems = (this.mWXState && this.mWXState.library && this.mWXState.library.items) ? this.mWXState.library.items : [];
+		for (var v = 0; v < vItems.length; v++) {
+			var vit = vItems[v];
+			if (vit.itemKind === 'manual' && !vit.alreadyLearned && this.wxCanCategoryFitSlot(vit.category, -1, _slot)) {
+				return true;
 			}
 		}
 		return false;
 	};
 
-	CharacterScreenPerksModule.prototype.wxFindFirstEmptySlotFor = function (_item) {
-		var bro = this.mWXState && this.mWXState.brother;
-		if (!bro) return -1;
+	CharacterScreenPerksModule.prototype.wxRenderSlots = function () {
+		var self = this;
+		var bro = this.mWXState.brother;
+		this.mWXMeridian.empty().append('<div class="wx-vline"></div>');
+
+		var shortLabels = ['主修内功', '基础外功', '轻功身法', '横练杂学', '进阶专精', '自由穴', '宗师穴'];
+		var colW = 9.4;
+		var gap = (67.8 - 7 * colW) / 6.0;
+
 		for (var i = 0; i < bro.slots.length; i++) {
-			var s = bro.slots[i];
-			if (_item.itemKind === 'pill_infuse') {
-				if (this.wxCanDropOnSlot(_item, i)) return i;
-			} else if (s.unlocked && !s.manualID && this.wxCanDropOnSlot(_item, i)) {
+			(function (_idx, _s) {
+				var cls = 'wx-mcol';
+				if (_idx === self.mWXSelectedSlotIdx) cls += ' is-sel';
+
+				var discHtml = '<div class="wx-hl"></div>';
+				var tierHtml = '&nbsp;';
+				var xpHtml = '<div class="wx-vxp" style="visibility:hidden;"></div>';
+				var nmText = '';
+
+				if (!_s.unlocked) {
+					cls += ' is-locked';
+					discHtml += '<div class="wx-well"></div><div class="wx-ring"></div><img class="wx-lock" src="coui://gfx/ui/icons/icon_locked.png" alt=""/>';
+					nmText = _s.unlockLevel + ' 级贯通';
+				} else if (_s.manualID) {
+					var wpnOff = (_s.weaponLabel && !_s.matchesWeapon);
+					if (wpnOff || _s.isSealed) cls += ' is-off';
+					discHtml += '<img class="wx-ic" src="coui://gfx/' + _s.icon + '" alt=""/><div class="wx-ring"></div>';
+					tierHtml = (WX_TIER_SHORT[_s.tier] || _s.tierLabel) +
+						(_s.isFragment ? ' · 残' : '') +
+						(_s.isSealed ? ' · <span class="wx-c-neg">封</span>' : (wpnOff ? ' · <span class="wx-c-neg">换兵</span>' : ''));
+					xpHtml = wxXpBarHtml(_s.exp, _s.expNeeded, _s.isFragment || _s.tier >= 3 || _s.expNeeded <= 0, 0);
+					nmText = _s.rawName || _s.name;
+				} else {
+					var rd = self.wxHasAnyReadyLearnedForSlot(_s);
+					cls += rd ? ' is-ready' : ' is-empty';
+					discHtml += '<div class="wx-well"></div><div class="wx-ring"></div><img class="wx-plus" src="coui://gfx/ui/icons/plus.png" alt=""/>';
+					nmText = rd ? '可配功' : '空穴';
+				}
+
+				var col = $(
+					'<div class="' + cls + '" style="left:' + (_idx * (colW + gap)).toFixed(2) + 'rem;">' +
+						'<div class="wx-role">' + (shortLabels[_idx] || _s.slotLabel) + '</div>' +
+						'<div class="wx-disc">' + discHtml + '</div>' +
+						'<div class="wx-tier">' + tierHtml + '</div>' +
+						xpHtml +
+						'<div class="wx-nm">' + wxEscapeHtml(nmText) + '</div>' +
+					'</div>'
+				);
+
+				col.on('click', function () {
+					self.mWXSelectedSlotIdx = _idx;
+					self.mWXInspected = { kind: 'slot', slotIndex: _idx };
+					if (self.mWXShelfMode === 'pill') {
+						self.mWXShelfMode = 'learned';
+					}
+					self.wxRenderSlots();
+					self.wxRenderShelfFilter();
+					self.wxRenderLearnedList();
+					self.wxRefreshInspector();
+					self.wxRenderStrip();
+				});
+
+				col.on('contextmenu', function (_e) {
+					_e.preventDefault();
+					_e.stopPropagation();
+					if (_s.unlocked && _s.manualID) {
+						self.wxSubmitUnequipSlot(_idx, false);
+					}
+					return false;
+				});
+
+				col.on('mouseenter', function () {
+					if (!self.mWXDragPayload) {
+						self.wxRenderSlotInspector(_s);
+					}
+				});
+
+				self.mWXMeridian.append(col);
+			})(i, bro.slots[i]);
+		}
+	};
+
+	CharacterScreenPerksModule.prototype.wxRenderMovesAndPassives = function () {
+		var self = this;
+		var bro = this.mWXState.brother;
+		this.mWXPassives.empty();
+
+		var moves = bro.activeMoves || [];
+		if (moves.length > 0) {
+			this.mWXPassives.append('<span class="wx-lab">招式</span>');
+			for (var i = 0; i < moves.length; i++) {
+				(function (_mv) {
+					var mImg = $('<img class="wx-mv-ico' + (_mv.weaponOk ? '' : ' is-off') + '" src="coui://gfx/' + _mv.icon + '" alt="" title="' + wxEscapeHtml(_mv.name) + '"/>');
+					mImg.on('click mouseenter', function (_e) {
+						if (_e.type === 'click') {
+							self.mWXInspected = { kind: 'move', data: _mv };
+						}
+						self.wxRenderMoveInspector(_mv);
+					});
+					self.mWXPassives.append(mImg);
+				})(moves[i]);
+			}
+			this.mWXPassives.append('<span class="wx-lab" style="margin-left:0.5rem;">常驻</span>');
+		} else {
+			this.mWXPassives.append('<span class="wx-lab">常驻</span>');
+		}
+
+		var pTags = bro.aggSummaryTags || [];
+		if (pTags.length > 0) {
+			for (var j = 0; j < pTags.length && j < 6; j++) {
+				this.mWXPassives.append('<span class="wx-pit">' + wxEscapeHtml(pTags[j]) + '</span>');
+			}
+		} else {
+			this.mWXPassives.append('<span class="wx-c-desc">同系被动只取最高一项</span>');
+		}
+	};
+
+	CharacterScreenPerksModule.prototype.wxRenderShelfFilter = function () {
+		var self = this;
+		var bro = this.mWXState.brother;
+		var learnedCnt = (bro.learnedManuals || []).length;
+		var vaultCnt = this.wxCountVaultUnlearned(this.mWXState);
+		var pillCnt = (this.mWXState.stashItems || []).length;
+
+		var shelves = [
+			['learned', '已习', learnedCnt],
+			['vault',   '阁藏', vaultCnt],
+			['pill',    '灵丹', pillCnt]
+		];
+
+		var h = '';
+		for (var i = 0; i < shelves.length; i++) {
+			var s = shelves[i];
+			var selCls = (this.mWXShelfMode === s[0]) ? ' is-sel' : '';
+			var cntHtml = s[2] > 0 ? ('<span class="wx-cnt">' + s[2] + '</span>') : '';
+			h += '<span class="wx-vb wx-vb2' + selCls + '" data-smode="' + s[0] + '">' + s[1] + cntHtml + '</span>';
+		}
+
+		if (this.mWXShelfMode !== 'pill') {
+			h += '<span class="wx-r">';
+			var cats = ['neigong', 'waigong', 'qinggong', 'henglian'];
+			for (var c = 0; c < cats.length; c++) {
+				var ck = cats[c];
+				var cSel = (this.mWXCatFilter === ck) ? ' is-sel' : '';
+				h += '<span class="wx-vb wx-vb3' + cSel + '" data-cflt="' + ck + '" title="' + WX_CAT_LABELS[ck] + '"><img src="coui://gfx/' + WX_CAT_EMBLEMS[ck] + '" alt=""/></span>';
+			}
+			h += '</span>';
+		}
+
+		this.mWXShelfFilter.html(h);
+
+		this.mWXShelfFilter.find('[data-smode]').on('click', function () {
+			self.wxSetShelfMode($(this).attr('data-smode'));
+		});
+
+		this.mWXShelfFilter.find('[data-cflt]').on('click', function () {
+			var ck2 = $(this).attr('data-cflt');
+			self.mWXCatFilter = (self.mWXCatFilter === ck2) ? null : ck2;
+			self.wxRenderShelfFilter();
+			self.wxRenderLearnedList();
+		});
+	};
+
+	CharacterScreenPerksModule.prototype.wxRenderStrip = function () {
+		var bro = this.mWXState && this.mWXState.brother;
+		if (!bro || !bro.slots) return;
+		var s = bro.slots[this.mWXSelectedSlotIdx] || bro.slots[0];
+		if (!s) return;
+
+		if (s.unlocked) {
+			this.mWXStrip.html(
+				'<span class="wx-c-label">选中</span> <span class="wx-c-title">穴' + WX_CN_NUM[s.slotIndex + 1] + ' · ' + wxEscapeHtml(s.slotLabel) + '</span>' +
+				'<span class="wx-c-desc">　可装 ' + wxEscapeHtml(wxCatsLabel(s.allowedCategories)) + '，亮起的秘籍可直接右键或拖入</span>'
+			);
+		} else {
+			this.mWXStrip.html(
+				'<span class="wx-c-desc">穴' + WX_CN_NUM[s.slotIndex + 1] + '「' + wxEscapeHtml(s.slotLabel) + '」尚未贯通（' + s.unlockLevel + ' 级开启）</span>'
+			);
+		}
+	};
+
+	CharacterScreenPerksModule.prototype.wxFindBestSlotForCategory = function (_category, _equippedSlotIndex) {
+		var bro = this.mWXState && this.mWXState.brother;
+		if (!bro || !bro.slots) return -1;
+
+		var selSlot = bro.slots[this.mWXSelectedSlotIdx];
+		if (selSlot && selSlot.unlocked && !selSlot.manualID && this.wxCanCategoryFitSlot(_category, _equippedSlotIndex, selSlot)) {
+			return selSlot.slotIndex;
+		}
+		for (var i = 0; i < bro.slots.length; i++) {
+			if (bro.slots[i].unlocked && !bro.slots[i].manualID && this.wxCanCategoryFitSlot(_category, _equippedSlotIndex, bro.slots[i])) {
 				return i;
+			}
+		}
+		if (selSlot && selSlot.unlocked && this.wxCanCategoryFitSlot(_category, _equippedSlotIndex, selSlot)) {
+			return selSlot.slotIndex;
+		}
+		for (var k = 0; k < bro.slots.length; k++) {
+			if (bro.slots[k].unlocked && this.wxCanCategoryFitSlot(_category, _equippedSlotIndex, bro.slots[k])) {
+				return k;
 			}
 		}
 		return -1;
 	};
 
-	CharacterScreenPerksModule.prototype.wxHighlightValidSlots = function (_item) {
+	CharacterScreenPerksModule.prototype.wxFindBestSlotForLearned = function (_lm) {
+		return this.wxFindBestSlotForCategory(_lm.category, _lm.equippedSlotIndex);
+	};
+
+	CharacterScreenPerksModule.prototype.wxRenderLearnedList = function () {
 		var self = this;
-		this.mWXSlotsWrap.find('.wx-slot-box').each(function () {
-			var idx = parseInt($(this).attr('data-slot-index'), 10);
-			if (self.wxCanDropOnSlot(_item, idx)) {
-				$(this).addClass('is-drop-valid');
+		var body = this.mWXScrollArea.body;
+		body.empty();
+
+		var bro = this.mWXState.brother;
+		var selSlot = bro.slots[this.mWXSelectedSlotIdx] || null;
+
+		if (this.mWXShelfMode === 'pill') {
+			this.wxRenderPillSlots(body);
+			this.mWXScrollArea.refresh();
+			return;
+		}
+
+		if (this.mWXShelfMode === 'vault') {
+			this.wxRenderVaultDirectSlots(body, selSlot);
+			this.mWXScrollArea.refresh();
+			return;
+		}
+
+		var learned = bro.learnedManuals || [];
+		var shown = 0;
+		for (var i = 0; i < learned.length; i++) {
+			var lm = learned[i];
+			if (this.mWXCatFilter && lm.category !== this.mWXCatFilter) continue;
+			body.append(this.wxCreateLearnedSlot(lm, selSlot));
+			shown++;
+		}
+		body.append('<div class="wx-clear"></div>');
+
+		if (shown === 0) {
+			var vaultCnt = this.wxCountVaultUnlearned(this.mWXState);
+			var emptyBox = $(
+				'<div class="wx-c-desc" style="padding:1.6rem 0.8rem;">' +
+					'<div>' + (learned.length === 0 ? (wxEscapeHtml(bro.name) + ' 尚未研习武学。') : '没有符合筛选的已习武学。') + '</div>' +
+					(vaultCnt > 0 ? '<div style="margin-top:0.8rem;font-style:normal;"><span class="wx-vb wx-vb1" data-wx="switch-vault">阁藏直学<span class="wx-cnt">' + vaultCnt + '</span></span></div>' : '') +
+				'</div>'
+			);
+			emptyBox.find('[data-wx="switch-vault"]').on('click', function () {
+				self.wxSetShelfMode('vault');
+			});
+			body.html(emptyBox);
+		}
+
+		this.mWXScrollArea.refresh();
+	};
+
+	CharacterScreenPerksModule.prototype.wxCreateLearnedSlot = function (_lm, _selSlot) {
+		var self = this;
+		var isEquipped = (_lm.equippedSlotIndex >= 0);
+		var unl = _selSlot ? _selSlot.unlocked : false;
+		var fitsSel = (_selSlot && unl) ? this.wxCanLearnedFitSlot(_lm, _selSlot) : false;
+		var dimCls = (!isEquipped && unl && !fitsSel) ? ' is-dim' : '';
+		var isInsp = (this.mWXInspected && this.mWXInspected.kind === 'learned' && this.mWXInspected.manualID === _lm.manualID);
+
+		var hlHtml = (!isEquipped && unl && fitsSel) ? '<div class="wx-hl" style="opacity:0.58;"></div>' : '';
+		var tagHtml = isEquipped
+			? ('<span class="wx-tag">穴' + WX_CN_NUM[_lm.equippedSlotIndex + 1] + '</span>')
+			: (_lm.isFragment ? '<span class="wx-tag">残</span>' : '');
+		var amtText = WX_TIER_SHORT[_lm.tier] || _lm.tierLabel;
+
+		var slot = $(
+			'<div class="wx-vslot' + dimCls + '">' +
+				hlHtml +
+				'<img class="wx-it is-round" src="coui://gfx/' + _lm.icon + '" alt=""/>' +
+				tagHtml +
+				'<span class="wx-amt">' + amtText + '</span>' +
+				(isInsp ? '<div class="wx-sring"></div>' : '') +
+			'</div>'
+		);
+
+		slot.on('click mouseenter', function (_e) {
+			if (_e.type === 'click') {
+				self.mWXInspected = { kind: 'learned', manualID: _lm.manualID };
+				self.mWXScrollArea.body.find('.wx-vslot .wx-sring').remove();
+				slot.append('<div class="wx-sring"></div>');
 			}
+			self.wxRenderLearnedInspector(_lm);
+		});
+
+		slot.on('contextmenu dblclick', function (_e) {
+			_e.preventDefault();
+			_e.stopPropagation();
+			if (isEquipped) {
+				self.wxSubmitUnequipSlot(_lm.equippedSlotIndex, false);
+			} else {
+				var target = fitsSel ? _selSlot.slotIndex : self.wxFindBestSlotForLearned(_lm);
+				if (target >= 0) {
+					self.wxSubmitEquipLearned(target, _lm.manualID, false);
+				} else {
+					self.wxShowToast('当前没有可装入此功法的穴位。', true);
+				}
+			}
+			return false;
+		});
+
+		if (!isEquipped) {
+			this.wxBindSlotDrag(slot, {
+				kind: 'learned',
+				manualID: _lm.manualID,
+				category: _lm.category,
+				equippedSlotIndex: _lm.equippedSlotIndex,
+				icon: _lm.icon
+			});
+		}
+
+		return slot;
+	};
+
+	CharacterScreenPerksModule.prototype.wxRenderVaultDirectSlots = function (_body, _selSlot) {
+		var items = (this.mWXState && this.mWXState.library && this.mWXState.library.items) ? this.mWXState.library.items : [];
+		var shown = 0;
+
+		for (var i = 0; i < items.length; i++) {
+			var it = items[i];
+			var isFullLearnable = (it.itemKind === 'manual' && !it.alreadyLearned);
+			var isFragLearnable = (it.itemKind === 'page' && it.allowFragmentLearn && !it.alreadyLearned && !it.learnedIsFragment);
+			if (!isFullLearnable && !isFragLearnable) continue;
+			if (this.mWXCatFilter && it.category !== this.mWXCatFilter) continue;
+
+			_body.append(this.wxCreateVaultDirectSlot(it, _selSlot, isFragLearnable));
+			shown++;
+		}
+		_body.append('<div class="wx-clear"></div>');
+
+		if (shown === 0) {
+			_body.html('<div class="wx-c-desc" style="padding:1.8rem 0.8rem;">藏经阁中没有本人未习的秘籍。</div>');
+		}
+	};
+
+	CharacterScreenPerksModule.prototype.wxCreateVaultDirectSlot = function (_it, _selSlot, _isFrag) {
+		var self = this;
+		var unl = _selSlot ? _selSlot.unlocked : false;
+		var fitsSel = (_selSlot && unl) ? this.wxCanCategoryFitSlot(_it.category, -1, _selSlot) : false;
+		var bestIdx = this.wxFindBestSlotForCategory(_it.category, -1);
+		var chosenIdx = fitsSel ? _selSlot.slotIndex : bestIdx;
+		var dimCls = (unl && !fitsSel) ? ' is-dim' : '';
+		var isInsp = (this.mWXInspected && this.mWXInspected.kind === 'vault' && this.mWXInspected.manualID === _it.manualID && this.mWXInspected.isFrag === _isFrag);
+
+		var hlHtml = (unl && fitsSel) ? '<div class="wx-hl" style="opacity:0.55;"></div>' : '';
+		var tagHtml = _isFrag ? '<span class="wx-tag">残</span>' : '';
+
+		var slot = $(
+			'<div class="wx-vslot' + dimCls + '">' +
+				hlHtml +
+				'<img class="wx-it" src="coui://gfx/' + _it.icon + '" alt=""/>' +
+				tagHtml +
+				'<span class="wx-amt">×' + _it.count + '</span>' +
+				(isInsp ? '<div class="wx-sring"></div>' : '') +
+			'</div>'
+		);
+
+		slot.on('click mouseenter', function (_e) {
+			if (_e.type === 'click') {
+				self.mWXInspected = { kind: 'vault', manualID: _it.manualID, isFrag: _isFrag };
+				self.mWXScrollArea.body.find('.wx-vslot .wx-sring').remove();
+				slot.append('<div class="wx-sring"></div>');
+			}
+			self.wxRenderVaultItemInspector(_it, chosenIdx, _isFrag);
+		});
+
+		slot.on('contextmenu dblclick', function (_e) {
+			_e.preventDefault();
+			_e.stopPropagation();
+			self.wxSubmitLearnAndEquip(chosenIdx >= 0 ? chosenIdx : -1, _it.manualID, _isFrag, false);
+			return false;
+		});
+
+		this.wxBindSlotDrag(slot, {
+			kind: _isFrag ? 'vault_frag' : 'vault_manual',
+			manualID: _it.manualID,
+			category: _it.category,
+			equippedSlotIndex: -1,
+			icon: _it.icon
+		});
+
+		return slot;
+	};
+
+	CharacterScreenPerksModule.prototype.wxRenderPillSlots = function (_body) {
+		var self = this;
+		var pills = (this.mWXState && this.mWXState.stashItems) ? this.mWXState.stashItems : [];
+		if (pills.length === 0) {
+			_body.html('<div class="wx-c-desc" style="padding:1.8rem 0.8rem;">战团仓库中当前没有灵丹或异兽内丹。</div>');
+			return;
+		}
+
+		for (var i = 0; i < pills.length; i++) {
+			(function (_p) {
+				var amt = '';
+				if (_p.itemKind === 'pill_infuse') amt = '+' + _p.expAmount;
+				else if (_p.pillGrade && _p.pillGrade >= 2 && _p.potencyPct) amt = _p.potencyPct + '%';
+				var slot = $(
+					'<div class="wx-vslot">' +
+						'<img class="wx-it" src="coui://gfx/' + _p.icon + '" alt=""/>' +
+						(amt ? '<span class="wx-amt">' + amt + '</span>' : '') +
+					'</div>'
+				);
+
+				slot.on('click mouseenter', function (_e) {
+					if (_e.type === 'click') {
+						self.mWXScrollArea.body.find('.wx-vslot .wx-sring').remove();
+						slot.append('<div class="wx-sring"></div>');
+					}
+					self.wxRenderPillInspector(_p);
+				});
+
+				slot.on('contextmenu dblclick', function (_e) {
+					_e.preventDefault();
+					_e.stopPropagation();
+					if (_p.itemKind === 'pill_infuse') self.wxInfusePillToBestOrModal(_p);
+					else if (_p.itemKind === 'pill_wash') self.wxOpenWashModal();
+					else self.wxTriggerUsePill(_p);
+					return false;
+				});
+
+				if (_p.itemKind === 'pill_infuse') {
+					self.wxBindSlotDrag(slot, {
+						kind: 'pill_infuse',
+						stashIndex: _p.stashIndex,
+						icon: _p.icon
+					});
+				}
+
+				_body.append(slot);
+			})(pills[i]);
+		}
+		_body.append('<div class="wx-clear"></div>');
+	};
+
+	CharacterScreenPerksModule.prototype.wxInfusePillToBestOrModal = function (_pill) {
+		var bro = this.mWXState && this.mWXState.brother;
+		if (!bro) return;
+		var sel = bro.slots[this.mWXSelectedSlotIdx];
+		if (sel && sel.unlocked && sel.manualID && !sel.isFragment && sel.tier < 3 && !sel.isSealed) {
+			var self = this;
+			this.mDataSource.notifyBackendWXInfusePill(this.mWXCurrentEntityId, _pill.stashIndex, sel.slotIndex, function (_res) {
+				self.wxApplyBackendState(_res);
+			});
+			return;
+		}
+		for (var i = 0; i < bro.slots.length; i++) {
+			var s = bro.slots[i];
+			if (s.unlocked && s.manualID && !s.isFragment && s.tier < 3 && !s.isSealed) {
+				var self2 = this;
+				this.mDataSource.notifyBackendWXInfusePill(this.mWXCurrentEntityId, _pill.stashIndex, i, function (_res2) {
+					self2.wxApplyBackendState(_res2);
+				});
+				return;
+			}
+		}
+		this.wxShowToast('当前没有可灌注火候的未满重功法穴位。', true);
+	};
+
+	CharacterScreenPerksModule.prototype.wxTriggerUsePill = function (_pillItem) {
+		var self = this;
+		if (this.mWXCurrentEntityId === null || !this.mDataSource) return;
+		this.mDataSource.notifyBackendWXUsePill(this.mWXCurrentEntityId, _pillItem.stashIndex, function (_res) {
+			self.wxApplyBackendState(_res);
 		});
 	};
 
-	CharacterScreenPerksModule.prototype.wxClearDropHighlights = function () {
-		this.mWXSlotsWrap.find('.wx-slot-box').removeClass('is-drop-valid is-drop-hover');
-	};
-
-	CharacterScreenPerksModule.prototype.wxHandleDropOnSlot = function (_item, _slotIndex) {
+	CharacterScreenPerksModule.prototype.wxSubmitLearnAndEquip = function (_slotIndex, _manualID, _isFragment, _confirmed) {
 		var self = this;
-		var entityId = this.mWXCurrentEntityId;
-		if (entityId === null) return;
+		var eid = this.mWXCurrentEntityId;
+		if (eid === null) return;
 
-		if (_item.itemKind === 'pill_infuse') {
-			this.mDataSource.notifyBackendWXInfusePill(entityId, _item.stashIndex, _slotIndex, function (_res) {
-				if (_res && _res.ok) {
-					self.mWXState = _res;
-					self.wxRenderAll();
-					self.wxShowToast(_res.actionMessage, false);
-				} else {
-					self.wxShowToast((_res && _res.reason) ? _res.reason : '灌注失败。', true);
-				}
-			});
-			return;
-		}
-
-		var bro = this.mWXState && this.mWXState.brother;
-		var slot = (bro && bro.slots && _slotIndex >= 0 && _slotIndex < bro.slots.length) ? bro.slots[_slotIndex] : null;
-		if (this.wxCanInfusePageOnSlot(_item, slot)) {
-			this.mDataSource.notifyBackendWXInfusePage(entityId, _item.stashIndex, _slotIndex, function (_res) {
-				if (_res && _res.ok) {
-					self.mWXState = _res;
-					self.wxRenderAll();
-					self.wxShowToast(_res.actionMessage, false);
-				} else {
-					self.wxShowToast((_res && _res.reason) ? _res.reason : '参悟残页失败。', true);
-				}
-			});
-			return;
-		}
-
-		var isFrag = (_item.itemKind === 'page');
-		this.wxSubmitEquip(entityId, _item.stashIndex, _slotIndex, isFrag, false);
-	};
-
-	CharacterScreenPerksModule.prototype.wxSubmitEquip = function (_entityId, _stashIndex, _slotIndex, _isFragment, _confirmed) {
-		var self = this;
-		this.mDataSource.notifyBackendWXEquipFromStash(_entityId, _stashIndex, _slotIndex, _isFragment, _confirmed, function (_res) {
+		this.mDataSource.notifyBackendWXLearnAndEquip(eid, _slotIndex, _manualID, _isFragment, _confirmed, function (_res) {
 			if (!_res) return;
 			if (_res.needsConfirm) {
-				self.wxOpenConfirmModal(_res, function () {
-					self.wxSubmitEquip(_entityId, _stashIndex, _slotIndex, _isFragment, true);
+				self.wxOpenSlotConfirmModal(_res, _slotIndex, _manualID, function () {
+					self.wxSubmitLearnAndEquip(_slotIndex, _manualID, _isFragment, true);
 				});
 				return;
 			}
-			if (_res.ok) {
-				self.mWXState = _res;
-				self.wxRenderAll();
-				self.wxShowToast(_res.actionMessage, false);
-			} else {
-				self.wxShowToast(_res.reason || '装入失败。', true);
+			if (_slotIndex >= 0) {
+				self.mWXSelectedSlotIdx = _slotIndex;
+				self.mWXInspected = { kind: 'slot', slotIndex: _slotIndex };
 			}
+			self.wxApplyBackendState(_res);
 		});
 	};
 
-	CharacterScreenPerksModule.prototype.wxTriggerCraftPages = function (_manualID, _allowWildcard, _confirmed) {
+	CharacterScreenPerksModule.prototype.wxSubmitEquipLearned = function (_slotIndex, _manualID, _confirmed) {
 		var self = this;
-		this.mDataSource.notifyBackendWXCraftPages(this.mWXCurrentEntityId, _manualID, _allowWildcard, _confirmed, function (_res) {
+		var eid = this.mWXCurrentEntityId;
+		if (eid === null) return;
+
+		this.mDataSource.notifyBackendWXEquipLearned(eid, _slotIndex, _manualID, _confirmed, function (_res) {
 			if (!_res) return;
-			if (_res.needsWildcardConfirm && _res.preview) {
-				self.wxOpenWildcardConfirmModal(_res.preview, function () {
-					self.wxTriggerCraftPages(_manualID, true, true);
+			if (_res.needsConfirm) {
+				self.wxOpenSlotConfirmModal(_res, _slotIndex, _manualID, function () {
+					self.wxSubmitEquipLearned(_slotIndex, _manualID, true);
 				});
 				return;
 			}
-			if (_res.ok) {
-				self.mWXState = _res;
-				self.wxRenderAll();
-				self.wxShowToast(_res.actionMessage, false);
-			} else {
-				self.wxShowToast(_res.reason || '拼合失败。', true);
-			}
+			self.mWXSelectedSlotIdx = _slotIndex;
+			self.mWXInspected = { kind: 'slot', slotIndex: _slotIndex };
+			self.wxApplyBackendState(_res);
 		});
 	};
 
-	CharacterScreenPerksModule.prototype.wxOpenWildcardConfirmModal = function (_p, _onConfirm) {
+	CharacterScreenPerksModule.prototype.wxSubmitUnequipSlot = function (_slotIndex, _confirmed) {
 		var self = this;
-		var sacText = (_p.sacrificedList && _p.sacrificedList.length > 0) ? _p.sacrificedList.join('、') : ('同阶残页 ×' + _p.spareNeeded);
-		var box = $(
-			'<div class="wx-modal-box">' +
-				'<div class="wx-modal-title">同阶残页融会补缺</div>' +
-				'<div class="wx-modal-body">' +
-					'<p>当前持有《' + _p.manualName + '》残页 ' + _p.ownPages + ' / ' + _p.fragmentsNeeded + ' 张，尚缺 ' + _p.missingPages + ' 张。</p>' +
-					'<p>可按 2:1 融会折算消耗以下 [' + _p.qualityLabel + '] 闲置残页补齐完整秘籍：</p>' +
-					'<p style="color:#ffd88a;">✦ ' + sacText + '</p>' +
-				'</div>' +
-				'<div class="wx-modal-actions">' +
-					'<button type="button" class="wx-btn" data-wx="wild-yes">确认补缺合成</button>' +
-					'<button type="button" class="wx-btn" data-wx="wild-no">取消</button>' +
-				'</div>' +
-			'</div>'
-		);
-		box.find('[data-wx="wild-yes"]').on('click', function () {
-			self.mWXModal.hide().empty();
-			_onConfirm();
+		var eid = this.mWXCurrentEntityId;
+		if (eid === null) return;
+
+		this.mDataSource.notifyBackendWXUnequipSlot(eid, _slotIndex, _confirmed, function (_res) {
+			if (!_res) return;
+			if (_res.needsConfirm) {
+				self.wxOpenSlotConfirmModal(_res, _slotIndex, null, function () {
+					self.wxSubmitUnequipSlot(_slotIndex, true);
+				});
+				return;
+			}
+			self.wxApplyBackendState(_res);
 		});
-		box.find('[data-wx="wild-no"]').on('click', function () {
-			self.mWXModal.hide().empty();
-		});
-		this.mWXModal.empty().append(box).show();
 	};
 
-	// ------------------------------------------------------------------------
-	// 3. Tooltips
-	// ------------------------------------------------------------------------
-	CharacterScreenPerksModule.prototype.wxShowSlotTooltip = function (_s) {
-		var html = '';
-		if (!_s.unlocked) {
-			html = '<div class="wx-tt-title">' + _s.slotLabel + '（未解锁）</div>' +
-				'<div class="wx-tt-desc">角色达到 ' + _s.unlockLevel + ' 级后自动解锁该武学插槽。</div>';
-		} else if (!_s.manualID) {
-			html = '<div class="wx-tt-title">' + _s.slotLabel + '（空槽）</div>' +
-				'<div class="wx-tt-desc">从下方行囊拖拽对应武学秘籍至此即可装配修习。</div>';
+	CharacterScreenPerksModule.prototype.wxFindManualIconById = function (_manualID) {
+		if (!_manualID || !this.mWXState) return '';
+		var bro = this.mWXState.brother;
+		if (bro) {
+			var s = bro.slots || [];
+			for (var i = 0; i < s.length; i++) {
+				if (s[i].manualID === _manualID && s[i].icon) return s[i].icon;
+			}
+			var lm = bro.learnedManuals || [];
+			for (var j = 0; j < lm.length; j++) {
+				if (lm[j].manualID === _manualID && lm[j].icon) return lm[j].icon;
+			}
+		}
+		var lib = (this.mWXState.library && this.mWXState.library.items) ? this.mWXState.library.items : [];
+		for (var k = 0; k < lib.length; k++) {
+			if (lib[k].manualID === _manualID && lib[k].icon) return lib[k].icon;
+		}
+		return '';
+	};
+
+	CharacterScreenPerksModule.prototype.wxOpenSlotConfirmModal = function (_info, _slotIndex, _newManualID, _onConfirm) {
+		var self = this;
+		var title = '换装调息';
+		var bodyHtml = '';
+		var bro = this.mWXState && this.mWXState.brother;
+		var oldSlot = (bro && bro.slots && _slotIndex >= 0 && _slotIndex < bro.slots.length) ? bro.slots[_slotIndex] : null;
+		var oldIcon = (oldSlot && oldSlot.icon) ? oldSlot.icon : this.wxFindManualIconById(_info.oldManualID);
+		var newIcon = this.wxFindManualIconById(_newManualID || _info.newManualID);
+
+		if (_info.confirmKind === 'unequip_slot') {
+			title = '卸下功法';
+			bodyHtml =
+				(oldIcon ? ('<div class="wx-swap">' + wxSwapSlotHtml(oldIcon, true) + '</div>') : '') +
+				'确定从穴位卸下《' + wxEscapeHtml(_info.oldManualName) + '》？<br/>' +
+				'<span class="wx-c-neg">散功调息 ' + _info.penaltyDays + ' 天</span><br/>' +
+				'<span class="wx-c-desc">已练重数与火候永久保留于已习武学中。</span>';
+		} else if (_info.confirmKind === 'fragment_learn') {
+			title = '残本强修';
+			bodyHtml =
+				(newIcon ? ('<div class="wx-swap">' + wxSwapSlotHtml(newIcon, false) + '</div>') : '') +
+				'消耗 1 张《' + wxEscapeHtml(_info.newManualName) + '》残页强记口诀并装入穴位。<br/>' +
+				'<span class="wx-c-neg">最高止步一重，实战偶有行气不畅。</span><br/>' +
+				'<span class="wx-c-desc">日后研读完整秘籍可无损补全。</span>';
 		} else {
-			html = '<div class="wx-tt-title">' + _s.name + ' [' + _s.qualityLabel + ' · ' + _s.tierLabel + ']</div>';
-			if (_s.isFragment) {
-				html += '<div class="wx-tt-warn">⚠ 残本强修：最高止步一重，战斗行气有概率失控耗气！</div>';
-			}
-			html += '<div class="wx-tt-desc">' + _s.description + '</div>';
-			for (var i = 0; i < _s.levelSummaries.length; i++) {
-				var lv = _s.levelSummaries[i];
-				var lit = (lv.tier <= _s.tier) ? ' is-unlocked' : '';
-				html += '<div class="wx-tt-tier' + lit + '">' + lv.title + '：' + lv.text + '</div>';
-			}
-			if (!_s.isFragment && _s.tier < 3 && _s.expNeeded > 0) {
-				html += '<div class="wx-tt-exp">当前火候：' + _s.exp + ' / ' + _s.expNeeded + '（可拖入「凝神丸」灌注，或拖入任意闲置「残页」参悟化功）</div>';
-			}
-			if (_s.blockedByReq && _s.missingReqs && _s.missingReqs.length > 0) {
-				html += '<div class="wx-tt-warn">突破三重尚缺：' + _s.missingReqs.join('；') + '</div>';
-			}
-		}
-		this.mWXTooltip.html(html).show();
-	};
-
-	CharacterScreenPerksModule.prototype.wxShowStashTooltip = function (_it) {
-		var html = '<div class="wx-tt-title">' + _it.name + ' [' + _it.qualityLabel + ' · ' + _it.categoryLabel + ']</div>' +
-			'<div class="wx-tt-desc">' + _it.description + '</div>';
-		if (_it.itemKind === 'manual') {
-			html += '<div class="wx-tt-tier is-unlocked">一重：' + _it.tier1Summary + '</div>';
-			html += '<div class="wx-tt-tier">三重：' + _it.tier3Summary + '</div>';
-			html += '<div class="wx-tt-exp">拖拽至上方对应武学插槽装配（或右键快装）。</div>';
-		} else if (_it.itemKind === 'page') {
-			html += '<div class="wx-tt-exp">残页进度：' + _it.totalPages + ' / ' + _it.fragmentsNeeded + '　|　参悟化功：拖入未满重槽位 +' + (_it.infuseBaseExp || 40) + ' 火候（同脉 +25%，同名 +50%）</div>';
-			if (_it.canCraft) {
-				html += '<div class="wx-tt-tier is-unlocked">✦ 已集齐！右键或双击立即拼合完整秘籍！</div>';
-			} else if (_it.canWildcardCraft) {
-				html += '<div class="wx-tt-tier is-unlocked">✦ 可补缺！右键或双击可用 ' + _it.spareNeeded + ' 张同阶闲置残页（2:1）融会补齐！</div>';
-			} else if (_it.allowFragmentLearn) {
-				html += '<div class="wx-tt-warn">未集齐时拖入空插槽可冒险「残本强修」（限一重且有行气失控风险）。</div>';
-			}
-		} else if (_it.itemKind === 'pill_infuse') {
-			html += '<div class="wx-tt-tier is-unlocked">拖拽至任意未满重武学插槽，立即灌注 +' + _it.expAmount + ' 火候。</div>';
-		}
-		this.mWXTooltip.html(html).show();
-	};
-
-	// ------------------------------------------------------------------------
-	// 4. Scatter Overwrite / Fragment Confirm Modal
-	// ------------------------------------------------------------------------
-	CharacterScreenPerksModule.prototype.wxOpenConfirmModal = function (_info, _onConfirm) {
-		var self = this;
-		var lines = [];
-		if (_info.isOverwrite) {
-			lines.push('装入《' + _info.newManualName + '》将散去并永久销毁旧功法《' + _info.oldManualName + '》！');
-			lines.push('角色将承受 ' + _info.penaltyDays + ' 天「散功虚弱」' + (_info.causesInternalInjury ? '，并附加轻度「内伤」（须服护心丹或调养）。' : '。'));
-		}
-		if (_info.isFragment) {
-			lines.push('⚠ 残本强修风险：强行修炼残页最高止步一重，且实战行气存在失控耗气与走火入魔风险。');
+			var swapHtml = (oldIcon || newIcon)
+				? ('<div class="wx-swap">' + wxSwapSlotHtml(oldIcon, true) + '<span class="wx-arr">➜</span>' + wxSwapSlotHtml(newIcon, true) + '</div>')
+				: '';
+			bodyHtml =
+				swapHtml +
+				'将以《' + wxEscapeHtml(_info.newManualName) + '》替换《' + wxEscapeHtml(_info.oldManualName) + '》。<br/>' +
+				'<span class="wx-c-neg">散功调息 ' + _info.penaltyDays + ' 天</span><br/>' +
+				'<span class="wx-c-desc">《' + wxEscapeHtml(_info.oldManualName) + '》的重数与火候会永久保留。</span>';
 		}
 
 		var box = $(
-			'<div class="wx-modal-box">' +
-				'<div class="wx-modal-title">' + (_info.isOverwrite ? '散功重修确认' : '残本强修警告') + '</div>' +
-				'<div class="wx-modal-body"><p>' + lines.join('</p><p>') + '</p></div>' +
-				'<div class="wx-modal-actions">' +
-					'<button type="button" class="wx-btn wx-btn-danger" data-wx="confirm-yes">确认执行</button>' +
-					'<button type="button" class="wx-btn" data-wx="confirm-no">取消</button>' +
+			'<div class="wx-popup">' +
+				'<div class="wx-ph wx-t-title">' + title + '</div>' +
+				'<div class="wx-pb">' + bodyHtml + '</div>' +
+				'<div class="wx-pf">' +
+					'<span class="wx-vb wx-vb1" data-wx="c-yes">确定</span>' +
+					'<span class="wx-vb wx-vb1" data-wx-close="1">取消</span>' +
 				'</div>' +
 			'</div>'
 		);
 
-		box.find('[data-wx="confirm-yes"]').on('click', function () {
-			self.mWXModal.hide().empty();
+		box.find('[data-wx="c-yes"]').on('click', function () {
+			self.wxCloseModal();
 			_onConfirm();
 		});
-		box.find('[data-wx="confirm-no"]').on('click', function () {
-			self.mWXModal.hide().empty();
-		});
-
-		this.mWXModal.empty().append(box).show();
+		this.wxOpenModal(box);
 	};
 
 	// ------------------------------------------------------------------------
-	// 5. Marrow Wash (洗经伐髓) Transparent Probability Modal
+	// 7. Right-Hand Leather Inspector (dialog_panel_01) & Infuse Modal
+	// ------------------------------------------------------------------------
+	CharacterScreenPerksModule.prototype.wxRefreshInspector = function () {
+		var bro = this.mWXState && this.mWXState.brother;
+		if (!bro) return;
+
+		if (this.mWXInspected && this.mWXInspected.kind === 'learned') {
+			var list = bro.learnedManuals || [];
+			for (var i = 0; i < list.length; i++) {
+				if (list[i].manualID === this.mWXInspected.manualID) {
+					this.wxRenderLearnedInspector(list[i]);
+					return;
+				}
+			}
+		} else if (this.mWXInspected && this.mWXInspected.kind === 'move' && this.mWXInspected.data) {
+			this.wxRenderMoveInspector(this.mWXInspected.data);
+			return;
+		}
+
+		var slot = bro.slots[this.mWXSelectedSlotIdx] || bro.slots[0];
+		if (slot) {
+			this.wxRenderSlotInspector(slot);
+		}
+	};
+
+	CharacterScreenPerksModule.prototype.wxRenderMoveInspector = function (_mv) {
+		var qiStr = (_mv.rawQi > _mv.qi)
+			? (_mv.qi + ' 内息（原 ' + _mv.rawQi + '）')
+			: (_mv.qi + ' 内息');
+		var html =
+			'<div class="wx-hd">' +
+				'<img src="coui://gfx/' + _mv.icon + '" alt=""/>' +
+				'<div class="wx-t-title">' + wxEscapeHtml(_mv.name) + '</div>' +
+				'<div class="wx-s"><span class="wx-c-title">' + _mv.ap + ' AP</span> · <span class="wx-c-title">' + qiStr + '</span></div>' +
+			'</div>';
+		if (_mv.weaponReq && !_mv.weaponOk) {
+			html += '<div class="wx-ln wx-c-neg">需持' + wxEscapeHtml(_mv.weaponReq) + '方可施展</div>';
+		}
+		html += '<div class="wx-desc">' + wxEscapeHtml(_mv.desc) + '</div>';
+		this.mWXInspBody.html(html);
+		this.mWXInspFoot.empty();
+	};
+
+	CharacterScreenPerksModule.prototype.wxRenderPillInspector = function (_p) {
+		var self = this;
+		var html =
+			'<div class="wx-hd">' +
+				'<img src="coui://gfx/' + _p.icon + '" alt=""/>' +
+				'<div class="wx-t-title">' + wxEscapeHtml(_p.name) + '</div>' +
+				'<div class="wx-s">' + wxEscapeHtml(_p.qualityLabel + ' · ' + _p.categoryLabel) + '</div>' +
+			'</div>' +
+			'<div class="wx-desc">' + wxEscapeHtml(_p.description) + '</div>';
+
+		var foot = '';
+		if (_p.itemKind === 'pill_infuse') {
+			foot = '<span class="wx-vb wx-vb1" data-pa="infuse">灌注穴' + WX_CN_NUM[this.mWXSelectedSlotIdx + 1] + '</span>';
+		} else if (_p.itemKind === 'pill_wash') {
+			foot = '<span class="wx-vb wx-vb1" data-pa="wash">洗经伐髓</span>';
+		} else {
+			foot = '<span class="wx-vb wx-vb2" data-pa="consume">服用</span>';
+		}
+
+		this.mWXInspBody.html(html);
+		this.mWXInspFoot.html(foot);
+		this.mWXInspFoot.find('[data-pa]').on('click', function () {
+			var pa = $(this).attr('data-pa');
+			if (pa === 'infuse') self.wxInfusePillToBestOrModal(_p);
+			else if (pa === 'wash') self.wxOpenWashModal();
+			else self.wxTriggerUsePill(_p);
+		});
+	};
+
+	CharacterScreenPerksModule.prototype.wxBuildManualInspectorBody = function (_m, _tier, _isFrag, _exp, _expNeeded, _statusSub, _roundIcon) {
+		var sub = wxEscapeHtml(_m.qualityLabel || '') +
+			(_m.categoryLabel ? (' · ' + wxEscapeHtml(_m.categoryLabel)) : '') +
+			(_m.weaponLabel ? (' · ' + wxEscapeHtml(_m.weaponLabel)) : '');
+
+		var html =
+			'<div class="wx-hd">' +
+				'<img' + (_roundIcon ? ' class="is-round"' : '') + ' src="coui://gfx/' + _m.icon + '" alt=""/>' +
+				'<div class="wx-t-title">《' + wxEscapeHtml(_m.rawName || _m.name) + '》</div>' +
+				'<div class="wx-s">' + sub + '</div>' +
+				'<div class="wx-s wx-c-desc">' + _statusSub + '</div>' +
+			'</div>';
+
+		if (_m.weaponLabel && !_m.matchesWeapon) {
+			html += '<div class="wx-ln wx-c-neg">当前主手非' + wxEscapeHtml(_m.weaponLabel) + '，外功暂不生效</div>';
+		}
+		if (_isFrag) {
+			html += '<div class="wx-ln wx-c-neg">残本强修：最高止步一重（研读整本可补全）</div>';
+		}
+
+		html += '<div class="wx-desc">' + wxEscapeHtml(_m.description || '') + '</div>';
+
+		var summaries = _m.levelSummaries || [];
+		for (var i = 0; i < summaries.length; i++) {
+			var lv = summaries[i];
+			var lvTier = lv.tier || (i + 1);
+			var cls = lvTier <= _tier ? 'is-done' : (_tier > 0 && lvTier === _tier + 1 ? 'is-next' : '');
+			html += '<div class="wx-tl ' + cls + '"><b>' + wxEscapeHtml(lv.title) + '</b>' + wxEscapeHtml(lv.text);
+			if (cls === 'is-next' && !_isFrag && _expNeeded > 0) {
+				html += '<br/>' + wxXpBarHtml(_exp, _expNeeded, false, 13) + ' <span class="wx-c-desc">火候 ' + _exp + ' / ' + _expNeeded + '</span>';
+			}
+			html += '</div>';
+		}
+
+		if (_m.missingReqs && _m.missingReqs.length > 0) {
+			html += '<div class="wx-ln"><span class="wx-c-label">大成门槛　</span><span class="wx-c-neg">' + wxEscapeHtml(_m.missingReqs.join('　')) + '</span></div>';
+		}
+
+		return html;
+	};
+
+	CharacterScreenPerksModule.prototype.wxRenderVaultItemInspector = function (_it, _chosenSlotIdx, _isFrag) {
+		var self = this;
+		var statusSub = '藏经阁 ×' + _it.count + (_isFrag ? ' · 残页强修' : ' · 未习');
+		var html = this.wxBuildManualInspectorBody(_it, 0, _isFrag, 0, 0, statusSub, false);
+
+		var foot = '<span class="wx-vb wx-vb2" data-viact="lo">' + (_isFrag ? '强修' : '研习') + '</span>';
+		if (_chosenSlotIdx >= 0) {
+			foot += '<span class="wx-vb wx-vb2" data-viact="le">' + (_isFrag ? '强修装' : '习并装') + '</span>';
+		}
+
+		this.mWXInspBody.html(html);
+		this.mWXInspFoot.html(foot);
+		this.mWXInspFoot.find('[data-viact="le"]').on('click', function () {
+			self.wxSubmitLearnAndEquip(_chosenSlotIdx, _it.manualID, _isFrag, false);
+		});
+		this.mWXInspFoot.find('[data-viact="lo"]').on('click', function () {
+			self.wxSubmitLearnAndEquip(-1, _it.manualID, _isFrag, false);
+		});
+	};
+
+	CharacterScreenPerksModule.prototype.wxRenderSlotInspector = function (_s) {
+		var self = this;
+		var bro = this.mWXState.brother;
+
+		if (!_s.unlocked || !_s.manualID) {
+			var neigongCnt = 0;
+			var qinggongCnt = 0;
+			for (var k = 0; k < bro.slots.length; k++) {
+				if (bro.slots[k].manualID && bro.slots[k].category === 'neigong') neigongCnt++;
+				if (bro.slots[k].manualID && bro.slots[k].category === 'qinggong') qinggongCnt++;
+			}
+
+			var html =
+				'<div class="wx-hd">' +
+					'<img src="coui://gfx/ui/perks/selection_frame.png" alt=""/>' +
+					'<div class="wx-t-title">' + wxEscapeHtml(_s.slotLabel) + '</div>' +
+					'<div class="wx-s">' + (_s.unlocked ? '已贯通 · 空穴' : (_s.unlockLevel + ' 级贯通')) + '</div>' +
+				'</div>' +
+				'<div class="wx-ln"><span class="wx-c-label">可配　</span><span class="wx-c-title">' + wxEscapeHtml(wxCatsLabel(_s.allowedCategories)) + '</span></div>' +
+				'<div class="wx-desc" style="margin-top:0.6rem;">空穴装入免费；换装或卸下会散功调息，已练重数永久保留。同系常驻加成只取最高一项。</div>' +
+				'<div class="wx-ln"><span class="wx-c-label">全身内功　</span><span class="wx-c-title">' + neigongCnt + ' / 2</span>　<span class="wx-c-label">轻功　</span><span class="wx-c-title">' + qinggongCnt + ' / 2</span></div>';
+
+			var vaultCnt = this.wxCountVaultUnlearned(this.mWXState);
+			var foot = (_s.unlocked && vaultCnt > 0)
+				? ('<span class="wx-vb wx-vb1" data-sact="show-vault">阁藏直学<span class="wx-cnt">' + vaultCnt + '</span></span>')
+				: '';
+
+			this.mWXInspBody.html(html);
+			this.mWXInspFoot.html(foot);
+			this.mWXInspFoot.find('[data-sact="show-vault"]').on('click', function () {
+				self.wxSetShelfMode('vault');
+			});
+			return;
+		}
+
+		var statusSub = '装于穴' + WX_CN_NUM[_s.slotIndex + 1] + ' · ' + wxEscapeHtml(_s.tierLabel);
+		var bodyHtml = this.wxBuildManualInspectorBody(_s, _s.tier, _s.isFragment, _s.exp, _s.expNeeded, statusSub, true);
+
+		var footHtml = '';
+		if (!_s.isFragment && _s.tier < 3 && !_s.isSealed) {
+			footHtml += '<span class="wx-vb wx-vb2" data-sact="open-infuse">灌注</span>';
+		}
+		footHtml += '<span class="wx-vb wx-vb2" data-sact="unequip">卸下</span>';
+
+		this.mWXInspBody.html(bodyHtml);
+		this.mWXInspFoot.html(footHtml);
+		this.mWXInspFoot.find('[data-sact="open-infuse"]').on('click', function () {
+			self.wxOpenInfusePickerModal(_s);
+		});
+		this.mWXInspFoot.find('[data-sact="unequip"]').on('click', function () {
+			self.wxSubmitUnequipSlot(_s.slotIndex, false);
+		});
+	};
+
+	CharacterScreenPerksModule.prototype.wxRenderLearnedInspector = function (_lm) {
+		var self = this;
+		var selSlot = (this.mWXState && this.mWXState.brother) ? this.mWXState.brother.slots[this.mWXSelectedSlotIdx] : null;
+		var statusSub = (_lm.equippedSlotIndex >= 0 ? ('装于穴' + WX_CN_NUM[_lm.equippedSlotIndex + 1] + ' · ') : '已习 · ') + wxEscapeHtml(_lm.tierLabel);
+		var bodyHtml = this.wxBuildManualInspectorBody(_lm, _lm.tier, _lm.isFragment, _lm.exp, _lm.expNeeded, statusSub, true);
+
+		var footHtml = '';
+		if (_lm.equippedSlotIndex >= 0) {
+			footHtml = '<span class="wx-vb wx-vb2" data-liact="unequip">卸下</span>';
+		} else if (selSlot && this.wxCanLearnedFitSlot(_lm, selSlot)) {
+			footHtml = '<span class="wx-vb wx-vb1" data-liact="equip-sel">装入穴' + WX_CN_NUM[selSlot.slotIndex + 1] + '</span>';
+		} else {
+			var bestIdx = this.wxFindBestSlotForLearned(_lm);
+			if (bestIdx >= 0) {
+				footHtml = '<span class="wx-vb wx-vb1" data-liact="equip-best">装入穴' + WX_CN_NUM[bestIdx + 1] + '</span>';
+			} else {
+				footHtml = '<span class="wx-vb wx-vb1 is-dis">无兼容穴位</span>';
+			}
+		}
+
+		this.mWXInspBody.html(bodyHtml);
+		this.mWXInspFoot.html(footHtml);
+		this.mWXInspFoot.find('[data-liact]').on('click', function () {
+			if ($(this).hasClass('is-dis')) return;
+			var a = $(this).attr('data-liact');
+			if (a === 'unequip') self.wxSubmitUnequipSlot(_lm.equippedSlotIndex, false);
+			else if (a === 'equip-sel' && selSlot) self.wxSubmitEquipLearned(selSlot.slotIndex, _lm.manualID, false);
+			else if (a === 'equip-best') {
+				var bi = self.wxFindBestSlotForLearned(_lm);
+				if (bi >= 0) self.wxSubmitEquipLearned(bi, _lm.manualID, false);
+			}
+		});
+	};
+
+	CharacterScreenPerksModule.prototype.wxOpenInfusePickerModal = function (_slot) {
+		var self = this;
+		var pills = (this.mWXState && this.mWXState.stashItems) ? this.mWXState.stashItems : [];
+		var libItems = (this.mWXState && this.mWXState.library && this.mWXState.library.items) ? this.mWXState.library.items : [];
+
+		var rowsHtml = '';
+		var count = 0;
+
+		for (var i = 0; i < pills.length; i++) {
+			var p = pills[i];
+			if (p.itemKind === 'pill_infuse') {
+				count++;
+				var expVal = p.expAmount;
+				var pSub = (p.stashIndex <= -1000) ? '百草药柜藏品' : '战团仓库灵丹';
+				if (p.pillKind === 'neidan' && _slot.manualID && _slot.manualID.indexOf('wx_manual_shanhai_') === 0) {
+					expVal = 500;
+					pSub += ' · 山海孤本共鸣';
+				} else if (p.auxNature && _slot.category) {
+					var auxHit =
+						(p.auxNature === 'origin') ||
+						(p.auxNature === 'yang' && _slot.category === 'external') ||
+						(p.auxNature === 'yin' && _slot.category === 'lightness') ||
+						(p.auxNature === 'vital' && _slot.category === 'hardening') ||
+						(p.auxNature === 'spirit' && _slot.category === 'internal') ||
+						(p.auxNature === 'venom' && (_slot.category === 'external' || _slot.category === 'hardening'));
+					if (auxHit) {
+						expVal = Math.floor(expVal * 1.15);
+						pSub += ' · ' + (p.auxTitle || '药引丹韵') + '共鸣 +15%';
+					}
+				}
+				rowsHtml +=
+					'<div class="wx-pick" data-inf-pill="' + p.stashIndex + '">' +
+						wxSwapSlotHtml(p.icon, false) +
+						'<div class="wx-c-title">' + wxEscapeHtml(p.name) + '</div>' +
+						'<div class="wx-c-desc">' + wxEscapeHtml(pSub) + '</div>' +
+						'<span class="wx-g">+' + expVal + ' 火候</span>' +
+					'</div>';
+			}
+		}
+
+		for (var j = 0; j < libItems.length; j++) {
+			var lb = libItems[j];
+			if (lb.itemKind === 'page' && lb.count > 0) {
+				count++;
+				var mult = 1.0;
+				var note = '';
+				if (lb.manualID === _slot.manualID) { mult = 1.5; note = ' · 同名 +50%'; }
+				else if (lb.category === _slot.category) { mult = 1.25; note = ' · 同脉 +25%'; }
+				var gain = Math.max(1, Math.floor((lb.infuseBaseExp || 40) * mult));
+				rowsHtml +=
+					'<div class="wx-pick" data-inf-page="' + lb.manualID + '">' +
+						wxSwapSlotHtml(lb.icon, false) +
+						'<div class="wx-c-title">《' + wxEscapeHtml(lb.name) + '》残页</div>' +
+						'<div class="wx-c-desc">藏经阁 ×' + lb.count + note + '</div>' +
+						'<span class="wx-g">+' + gain + ' 火候</span>' +
+					'</div>';
+			}
+		}
+
+		if (count === 0) {
+			this.wxShowToast('仓库没有凝神灵丹，藏经阁中也没有可供化功的残页。', true);
+			return;
+		}
+
+		var box = $(
+			'<div class="wx-popup">' +
+				'<div class="wx-ph wx-t-title">灌注火候 · 《' + wxEscapeHtml(_slot.rawName || _slot.name) + '》</div>' +
+				'<div class="wx-pb">' + rowsHtml + '</div>' +
+				'<div class="wx-pf"><span class="wx-vb wx-vb1" data-wx-close="1">关闭</span></div>' +
+			'</div>'
+		);
+
+		box.find('[data-inf-pill]').on('click', function () {
+			var stIdx = parseInt($(this).attr('data-inf-pill'), 10);
+			self.wxCloseModal();
+			self.mDataSource.notifyBackendWXInfusePill(self.mWXCurrentEntityId, stIdx, _slot.slotIndex, function (_res) {
+				self.wxApplyBackendState(_res);
+			});
+		});
+
+		box.find('[data-inf-page]').on('click', function () {
+			var pMid = $(this).attr('data-inf-page');
+			self.wxCloseModal();
+			self.mDataSource.notifyBackendWXInfuseLibraryPage(self.mWXCurrentEntityId, pMid, _slot.slotIndex, function (_res) {
+				self.wxApplyBackendState(_res);
+			});
+		});
+
+		this.wxOpenModal(box);
+	};
+
+	// ------------------------------------------------------------------------
+	// 8. Marrow Wash (洗经伐髓) — Vanilla Level-Up Row Structure + Wood Popup
 	// ------------------------------------------------------------------------
 	CharacterScreenPerksModule.prototype.wxOpenWashModal = function () {
 		var self = this;
@@ -752,62 +2683,98 @@
 			usePendingChance: (pendingChances > 0)
 		};
 
-		var attrHtml = '';
-		for (var i = 0; i < 8; i++) {
-			var stars = '';
-			for (var st = 0; st < bro.talents[i]; st++) stars += '★';
-			if (!stars) stars = '无星';
-			attrHtml +=
-				'<button type="button" class="wx-attr-btn" data-attr-idx="' + i + '">' +
-					'<span class="wx-attr-name">' + bro.attrLabels[i] + ' (' + bro.baseStats[i] + ')</span>' +
-					'<span class="wx-attr-stars">' + stars + '</span>' +
-				'</button>';
+		var starredCount = 0;
+		for (var sIdx = 0; sIdx < 8; sIdx++) {
+			if (bro.talents[sIdx] > 0) starredCount++;
 		}
 
-		var sourceLine = pendingChances > 0
-			? '将消耗：孤本大成洗髓契机（余 ' + pendingChances + ' 次）'
-			: ('将消耗：行囊「洗髓丹」（余 ' + washPills + ' 颗）');
+		var sourceDesc = pendingChances > 0
+			? ('消耗孤本大成洗髓契机（余 ' + pendingChances + ' 次）')
+			: ('消耗洗髓丹（仓库余 ' + washPills + ' 颗）');
 
 		var box = $(
-			'<div class="wx-modal-box wx-modal-wash">' +
-				'<div class="wx-modal-title">✦ 洗经伐髓 · 重塑根骨（原版最多 3 项带星）</div>' +
-				'<div class="wx-modal-body">' +
-					'<div class="wx-wash-source">' + sourceLine + '</div>' +
-					'<div class="wx-wash-label">1. 选择要冲击/开星的目标属性：</div>' +
-					'<div class="wx-attr-grid" data-wx="wash-targets">' + attrHtml + '</div>' +
-					'<div class="wx-wash-replace-wrap" data-wx="replace-wrap" style="display:none;">' +
-						'<div class="wx-wash-label">2. 已有 3 项带星，请选择要洗去替换的旧带星属性（易筋换星）：</div>' +
-						'<div class="wx-attr-grid" data-wx="wash-replaces"></div>' +
+			'<div class="wx-popup is-wash">' +
+				'<div class="wx-ph wx-t-title">洗经伐髓</div>' +
+				'<div class="wx-pb">' +
+					'<div class="wx-c-desc" data-wx="wash-prompt" style="text-align:center;margin-bottom:0.7rem;">选择要冲击的属性（' + sourceDesc + '）</div>' +
+					'<div data-wx="wash-rows"></div>' +
+					'<div class="wx-odds">' +
+						'<div data-wx="wash-preview"><span class="wx-c-desc">每人至多 3 项带星。冲星 30% / 15%，易筋换星 45%，筹备加成最多 +20%。</span></div>' +
+						'<div style="margin-top:0.4rem;">' +
+							'<span class="wx-vchk' + (protectPills <= 0 ? ' is-dis' : '') + '" data-wx="use-protect"><i></i>辅服护脉丹（余 ' + protectPills + '）：+5%，免暗疾</span>' +
+						'</div>' +
 					'</div>' +
-					'<label class="wx-protect-check">' +
-						'<input type="checkbox" data-wx="use-protect"' + (protectPills <= 0 ? ' disabled="disabled"' : '') + ' />' +
-						' 辅服「护脉丹」（余 ' + protectPills + ' 颗）：成功率 +5%，并免除失败永久暗疾风险' +
-					'</label>' +
-					'<div class="wx-wash-preview" data-wx="wash-preview">请选择目标属性查看实时成功率与风险。</div>' +
 				'</div>' +
-				'<div class="wx-modal-actions">' +
-					'<button type="button" class="wx-btn wx-btn-danger" data-wx="wash-exec" disabled="disabled">开始洗髓</button>' +
-					'<button type="button" class="wx-btn" data-wx="wash-close">关闭</button>' +
+				'<div class="wx-pf">' +
+					'<span class="wx-vb wx-vb1 is-dis" data-wx="wash-exec">洗髓</span>' +
+					'<span class="wx-vb wx-vb1" data-wx-close="1">取消</span>' +
 				'</div>' +
 			'</div>'
 		);
 
-		box.find('[data-wx="wash-targets"] .wx-attr-btn').on('click', function () {
-			var idx = parseInt($(this).attr('data-attr-idx'), 10);
-			self.mWXWashState.targetAttrIdx = idx;
-			self.mWXWashState.replaceAttrIdx = -1;
-			box.find('[data-wx="wash-targets"] .wx-attr-btn').removeClass('is-selected');
-			$(this).addClass('is-selected');
-			self.wxUpdateWashReplaceList(box);
-			self.wxQueryWashPreview(box);
-		});
+		function renderAttrRows() {
+			var st = self.mWXWashState;
+			var needRep = (st.targetAttrIdx >= 0 && bro.talents[st.targetAttrIdx] === 0 && starredCount >= 3);
+			var promptEl = box.find('[data-wx="wash-prompt"]');
+			if (needRep && st.replaceAttrIdx < 0) {
+				promptEl.html('<span class="wx-c-title">已有 3 项带星：请再点选一项带星属性洗去旧星（易筋换星）</span>');
+			} else {
+				promptEl.html('选择要冲击的属性（' + sourceDesc + '）');
+			}
 
-		box.find('[data-wx="use-protect"]').on('change', function () {
-			self.mWXWashState.useProtectPill = $(this).is(':checked');
+			var rowsHost = box.find('[data-wx="wash-rows"]').empty();
+			for (var i = 0; i < 8; i++) {
+				var t = bro.talents[i] || 0;
+				var cls = 'wx-lvrow' + (i % 2 === 1 ? ' is-even' : '');
+				if (t >= 3 && !needRep) cls += ' is-max';
+				if (st.targetAttrIdx === i) cls += ' is-sel';
+				if (needRep && st.replaceAttrIdx === i) cls += ' is-rep';
+
+				var barPct = Math.min(100, Math.round((bro.baseStats[i] || 0) / 1.3));
+				var talHtml = t > 0 ? ('<img class="wx-talent" src="coui://gfx/ui/icons/talent_' + t + '.png" alt=""/>') : '';
+
+				var row = $(
+					'<div class="' + cls + '" data-attr-idx="' + i + '">' +
+						'<img class="wx-ico" src="coui://gfx/ui/icons/' + WX_STAT_ICONS[i] + '.png" alt=""/>' +
+						talHtml +
+						'<div class="wx-vbar"><div class="wx-f" style="width:' + barPct + '%;"></div><div class="wx-v">' + bro.baseStats[i] + '</div></div>' +
+						'<span class="wx-nm">' + wxEscapeHtml(bro.attrLabels[i]) + '</span>' +
+					'</div>'
+				);
+
+				(function (_attrIdx, _stars) {
+					row.on('click', function () {
+						var curNeedRep = (self.mWXWashState.targetAttrIdx >= 0 && bro.talents[self.mWXWashState.targetAttrIdx] === 0 && starredCount >= 3);
+						if (curNeedRep && _stars > 0) {
+							self.mWXWashState.replaceAttrIdx = _attrIdx;
+							renderAttrRows();
+							self.wxQueryWashPreview(box);
+							return;
+						}
+						if (_stars >= 3) return;
+						self.mWXWashState.targetAttrIdx = _attrIdx;
+						self.mWXWashState.replaceAttrIdx = -1;
+						renderAttrRows();
+						self.wxQueryWashPreview(box);
+					});
+				})(i, t);
+
+				rowsHost.append(row);
+			}
+			rowsHost.append('<div class="wx-clear"></div>');
+		}
+
+		renderAttrRows();
+
+		box.find('[data-wx="use-protect"]').on('click', function () {
+			if (protectPills <= 0) return;
+			self.mWXWashState.useProtectPill = !self.mWXWashState.useProtectPill;
+			$(this).toggleClass('is-on', self.mWXWashState.useProtectPill);
 			self.wxQueryWashPreview(box);
 		});
 
 		box.find('[data-wx="wash-exec"]').on('click', function () {
+			if ($(this).hasClass('is-dis')) return;
 			self.mDataSource.notifyBackendWXExecuteWash(
 				self.mWXCurrentEntityId,
 				self.mWXWashState.targetAttrIdx,
@@ -815,8 +2782,9 @@
 				self.mWXWashState.useProtectPill,
 				self.mWXWashState.usePendingChance,
 				function (_res) {
-					self.mWXModal.hide().empty();
+					self.wxCloseModal();
 					if (_res && _res.ok) {
+						self.mDataSource.wxApplyVanillaSync(_res);
 						self.mWXState = _res;
 						self.wxRenderAll();
 						var okRoll = _res.washResult && _res.washResult.Succeeded;
@@ -828,46 +2796,10 @@
 			);
 		});
 
-		box.find('[data-wx="wash-close"]').on('click', function () {
-			self.mWXModal.hide().empty();
-		});
-
-		this.mWXModal.empty().append(box).show();
-	};
-
-	CharacterScreenPerksModule.prototype.wxUpdateWashReplaceList = function (_box) {
-		var self = this;
-		var bro = this.mWXState.brother;
-		var targetIdx = this.mWXWashState.targetAttrIdx;
-		var starredCount = 0;
-		for (var k = 0; k < 8; k++) {
-			if (bro.talents[k] > 0) starredCount++;
-		}
-
-		var wrap = _box.find('[data-wx="replace-wrap"]');
-		var list = _box.find('[data-wx="wash-replaces"]').empty();
-
-		if (targetIdx >= 0 && bro.talents[targetIdx] === 0 && starredCount >= 3) {
-			for (var i = 0; i < 8; i++) {
-				if (bro.talents[i] > 0) {
-					var btn = $('<button type="button" class="wx-attr-btn" data-replace-idx="' + i + '">' + bro.attrLabels[i] + ' (' + bro.talents[i] + '★)</button>');
-					btn.on('click', function () {
-						self.mWXWashState.replaceAttrIdx = parseInt($(this).attr('data-replace-idx'), 10);
-						list.find('.wx-attr-btn').removeClass('is-selected');
-						$(this).addClass('is-selected');
-						self.wxQueryWashPreview(_box);
-					});
-					list.append(btn);
-				}
-			}
-			wrap.show();
-		} else {
-			wrap.hide();
-		}
+		this.wxOpenModal(box);
 	};
 
 	CharacterScreenPerksModule.prototype.wxQueryWashPreview = function (_box) {
-		var self = this;
 		var st = this.mWXWashState;
 		var previewEl = _box.find('[data-wx="wash-preview"]');
 		var execBtn = _box.find('[data-wx="wash-exec"]');
@@ -875,7 +2807,7 @@
 		var hasCost = ((this.mWXState.washPillCount || 0) > 0 || (bro.pendingWashChances || 0) > 0);
 
 		if (st.targetAttrIdx < 0) {
-			execBtn.prop('disabled', true);
+			execBtn.addClass('is-dis');
 			return;
 		}
 
@@ -886,23 +2818,24 @@
 			st.useProtectPill,
 			function (_pv) {
 				if (!_pv || !_pv.Ok) {
-					previewEl.html('<span class="wx-tt-warn">' + ((_pv && _pv.Reason) ? _pv.Reason : '暂不可洗髓。') + '</span>');
-					execBtn.prop('disabled', true);
+					previewEl.html('<span class="wx-c-desc">' + wxEscapeHtml((_pv && _pv.Reason) ? _pv.Reason : '暂不可洗髓。') + '</span>');
+					execBtn.addClass('is-dis');
 					return;
 				}
 				var modeText = _pv.IsReplaceMode
-					? ('易筋换星：洗去「' + _pv.ReplaceAttrName + '」原有星级 → 「' + _pv.TargetAttrName + '」升至 1★')
-					: ('冲星升级：「' + _pv.TargetAttrName + '」' + _pv.CurrentStar + '★ → ' + _pv.NextStar + '★');
+					? ('易筋换星：洗去「' + wxEscapeHtml(_pv.ReplaceAttrName) + '」→「' + wxEscapeHtml(_pv.TargetAttrName) + '」1★')
+					: ('冲星：「' + wxEscapeHtml(_pv.TargetAttrName) + '」' + _pv.CurrentStar + '★ → ' + _pv.NextStar + '★');
 				var riskText = _pv.PermInjuryRisk > 0
-					? ('失败必致重度内伤「经脉震荡」，且有 ' + _pv.PermInjuryRisk + '% 概率留下永久暗疾！')
-					: '失败将消耗丹药并触发重度内伤「经脉震荡」（无永久暗疾风险）。';
+					? ('失败：经脉震荡，且 ' + _pv.PermInjuryRisk + '% 留下永久暗疾')
+					: '失败：经脉震荡（无永久暗疾风险）';
 
 				previewEl.html(
-					'<div>' + modeText + '</div>' +
-					'<div class="wx-chance-line">最终成功率：<strong>' + _pv.FinalChance + '%</strong>（基础 ' + _pv.BaseChance + '% + 筹备加成 +' + _pv.PrepBonus + '%）</div>' +
-					'<div class="wx-tt-warn">' + riskText + '</div>'
+					'<span class="wx-c-label">' + modeText + '</span>　' +
+					'<span class="wx-t-title" style="font-size:2.1rem;">' + _pv.FinalChance + '%</span>　' +
+					'<span class="wx-c-desc">基础 ' + _pv.BaseChance + '% + 筹备 ' + _pv.PrepBonus + '%</span><br/>' +
+					'<span class="wx-c-neg">' + riskText + (hasCost ? '' : '（当前缺少洗髓丹）') + '</span>'
 				);
-				execBtn.prop('disabled', !hasCost);
+				execBtn.toggleClass('is-dis', !hasCost);
 			}
 		);
 	};

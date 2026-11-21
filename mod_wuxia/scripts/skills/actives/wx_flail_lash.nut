@@ -7,12 +7,16 @@ this.wx_flail_lash <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_flail_lash";
+		this.m.WX_VfxBrush <- "wx_vfx_32";
+		this.m.WX_AnimID <- "wx_anim_63";
+		this.m.WX_AnimMode <- "over_shield";
+		this.m.WX_ChoreoID <- "wx_flail_lash";
 		this.m.Name = "云梦绕盾抽";
 		this.m.Description = "抖腕甩出软鞭连枷绕过盾牌死角：无视目标盾牌近防加值，击中头部几率额外 +15%，命中扰乱重心致「失衡」。";
 		this.m.KilledString = "软鞭碎颅";
-		this.m.Icon = "skills/active_45.png";
-		this.m.IconDisabled = "skills/active_45_sw.png";
-		this.m.Overlay = "active_45";
+		this.m.Icon = "skills/wx_flail_lash.png";
+		this.m.IconDisabled = "skills/wx_flail_lash_sw.png";
+		this.m.Overlay = "wx_ov_wx_flail_lash";
 		this.m.SoundOnUse = [
 			"sounds/combat/flail_01.wav",
 			"sounds/combat/flail_02.wav"
@@ -42,6 +46,7 @@ this.wx_flail_lash <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local target = _targetTile.getEntity();
 		local hit = this.attackEntity(_user, target);
 		if (hit && target != null && target.isAlive())

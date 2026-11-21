@@ -1,4 +1,4 @@
-// Shan Hai Jing Apex Boss Entity: 【山海凶煞】常羊山·刑天无首战魂
+// Shan Hai Jing Apex Boss Entity (大荒海内经): 【山海凶煞】常羊山·刑天无首战魂
 
 this.wx_boss_xingtian <- this.inherit("scripts/entity/tactical/enemies/skeleton_boss", {
 	m = {},

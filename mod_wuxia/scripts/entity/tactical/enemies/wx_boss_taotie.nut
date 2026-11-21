@@ -1,4 +1,4 @@
-// Shan Hai Jing Apex Boss Entity: 【山海凶兽】钩吾山·吞天饕餮王
+// Shan Hai Jing Apex Boss Entity (北山经): 【山海四凶】钩吾山·吞天饕餮王
 
 this.wx_boss_taotie <- this.inherit("scripts/entity/tactical/enemies/ghoul_high", {
 	m = {},

@@ -7,12 +7,16 @@ this.wx_saber_sweep <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_saber_sweep";
+		this.m.WX_VfxBrush <- "wx_vfx_21";
+		this.m.WX_AnimID <- "wx_anim_45";
+		this.m.WX_AnimMode <- "tidal_sweep";
+		this.m.WX_ChoreoID <- "wx_saber_sweep";
 		this.m.Name = "八方狂澜斩";
 		this.m.Description = "催动狂猛刀气横扫身前扇面（主目标及两侧紧邻敌军最多 3 人）：破甲伤害 +15%，命中令敌陷入「失衡」。";
 		this.m.KilledString = "拦腰斩断";
-		this.m.Icon = "skills/active_08.png";
-		this.m.IconDisabled = "skills/active_08_sw.png";
-		this.m.Overlay = "active_08";
+		this.m.Icon = "skills/wx_saber_sweep.png";
+		this.m.IconDisabled = "skills/wx_saber_sweep_sw.png";
+		this.m.Overlay = "wx_ov_wx_saber_sweep";
 		this.m.SoundOnUse = [
 			"sounds/combat/cleave_01.wav",
 			"sounds/combat/cleave_02.wav"
@@ -39,6 +43,7 @@ this.wx_saber_sweep <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local targets = [];
 		local mainTarget = _targetTile.getEntity();
 		if (mainTarget != null) targets.push(mainTarget);
@@ -55,12 +60,13 @@ this.wx_saber_sweep <- this.inherit("scripts/skills/actives/wx_move_base", {
 				targets.push(ent);
 				if (targets.len() >= 3) break;
 			}
-		}
-
-		local anyHit = false;
+		};
+			local anyHit = false;
 		foreach (t in targets)
 		{
 			if (!t.isAlive()) continue;
+			if (mainTarget == null || t.getID() != mainTarget.getID())
+				::Wuxia.VFX.playAoESecondaryVfx(this, _user, t.getTile(), 55);
 			local hit = this.attackEntity(_user, t);
 			if (hit)
 			{

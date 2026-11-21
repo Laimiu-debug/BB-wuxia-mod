@@ -1,0 +1,490 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>武侠 Mod · 设计令牌与组件库</title>
+<link rel="stylesheet" href="wx_tokens.css">
+<style>
+html { font-size: 12px; }
+body { margin: 0; background: #0b0806 radial-gradient(ellipse 120rem 60rem at 50% 0%, #2a1f15 0%, #0b0806 70%) no-repeat; }
+.page { width: 118rem; margin: 0 auto; padding: 3rem 2rem 6rem 2rem; }
+a { color: var(--wx-gold-300); }
+
+/* 封面 */
+.hero { position: relative; height: 15rem; margin-bottom: 2.4rem; background: url("../../mod_wuxia/gfx/ui/wx_skin/wx_header_jianghu.png") center/cover; border: 1px solid var(--wx-gold-600); box-shadow: inset 0 0 0 1px #000, 0 6px 20px rgba(0,0,0,0.8); }
+.hero:after { content: ''; position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: linear-gradient(to right, rgba(8,6,4,0.92) 0%, rgba(8,6,4,0.6) 55%, rgba(8,6,4,0.1) 100%); }
+.hero-in { position: absolute; left: 2.6rem; top: 2.2rem; z-index: 2; }
+.hero h1 { margin: 0; font-family: var(--wx-font-title); font-weight: normal; font-size: 3.6rem; color: var(--wx-gold-200); letter-spacing: 0.12em; text-shadow: 0 2px 6px #000; }
+.hero p { margin: 0.6rem 0 0 0; font-size: 1.3rem; color: var(--wx-text); }
+.hero .back { position: absolute; right: 2rem; top: 2rem; z-index: 2; }
+
+/* 章节 */
+.sec { margin-bottom: 3.2rem; }
+.sec > h2 { margin: 0 0 0.4rem 0; font-family: var(--wx-font-title); font-weight: normal; font-size: 2.4rem; color: var(--wx-gold-200); letter-spacing: 0.08em; }
+.sec > h2 small { font-family: var(--wx-font-body); font-size: 1.15rem; color: var(--wx-text-mute); margin-left: 1rem; letter-spacing: 0; }
+.sec > .lead { margin: 0 0 1.4rem 0; color: var(--wx-text-dim); font-size: 1.2rem; line-height: 1.9rem; max-width: 90rem; }
+.card { position: relative; padding: 1.4rem 1.6rem; margin-bottom: 1.2rem; }
+.card h3 { margin: 0 0 1rem 0; font-size: 1.3rem; color: var(--wx-gold-300); letter-spacing: 0.08em; }
+.card h3 small { font-weight: normal; color: var(--wx-text-mute); margin-left: 0.6rem; letter-spacing: 0; font-size: 1.05rem; }
+.row:after { content: ''; display: block; clear: both; }
+.col2 { float: left; width: 49%; margin-right: 2%; }
+.col2:nth-child(2n) { margin-right: 0; }
+.col3 { float: left; width: 32%; margin-right: 2%; }
+.col3:nth-child(3n) { margin-right: 0; }
+
+/* 原则 */
+.prin { float: left; width: 19.2%; margin-right: 1%; height: 13.5rem; padding: 1.2rem; }
+.prin:last-child { margin-right: 0; }
+.prin .big { font-family: var(--wx-font-title); font-size: 3rem; line-height: 3.6rem; }
+.prin .t { font-weight: bold; color: var(--wx-text-hi); margin: 0.2rem 0 0.4rem 0; }
+.prin .d { font-size: 1.05rem; color: var(--wx-text-dim); line-height: 1.6rem; }
+.prin .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 0.4rem; }
+
+/* 色板 */
+.sw { float: left; width: 12.6rem; margin: 0 0.8rem 1rem 0; cursor: pointer; }
+.sw .chip { height: 5.2rem; border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.6); }
+.sw .n { margin-top: 0.4rem; font-size: 1.1rem; font-weight: bold; color: var(--wx-text-hi); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sw .v { font: 1rem/1.4rem Consolas, monospace; color: var(--wx-text-mute); }
+.sw .u { font-size: 0.98rem; color: var(--wx-text-dim); line-height: 1.4rem; height: 2.8rem; overflow: hidden; }
+.sw:hover .chip { outline: 1px solid var(--wx-gold-400); }
+
+/* 字体 */
+.type-row { padding: 0.8rem 0; border-bottom: 1px solid var(--wx-gold-800); }
+.type-row:after { content: ''; display: block; clear: both; }
+.type-row .meta { float: left; width: 22rem; font: 1rem/1.5rem Consolas, monospace; color: var(--wx-text-mute); padding-top: 0.4rem; }
+.type-row .meta b { display: block; font-family: var(--wx-font-body); font-size: 1.15rem; color: var(--wx-gold-300); }
+.type-row .spec { margin-left: 23rem; color: var(--wx-text-hi); }
+
+/* 间距 / 阴影 */
+.sp { display: inline-block; vertical-align: bottom; margin-right: 1.6rem; text-align: center; font: 1rem/1.4rem Consolas, monospace; color: var(--wx-text-mute); }
+.sp i { display: block; margin: 0 auto 0.4rem auto; background: var(--wx-jade-500); }
+.sh { float: left; width: 18%; height: 8rem; margin-right: 2.5%; padding-top: 5.6rem; text-align: center; font: 1rem/1.4rem Consolas, monospace; color: var(--wx-text-mute); background: var(--wx-wood-800); }
+.sh:last-child { margin-right: 0; }
+
+/* 组件展示 */
+.demo { padding: 1rem 0 0.4rem 0; }
+.demo > * { margin-right: 0.8rem; margin-bottom: 0.8rem; }
+.lab { display: block; font-size: 1rem; color: var(--wx-text-mute); margin: 0.4rem 0 0.3rem 0; }
+.rule-list { margin: 0; padding-left: 1.4rem; color: var(--wx-text-dim); font-size: 1.08rem; line-height: 1.8rem; }
+.rule-list b { color: var(--wx-text-hi); }
+.do, .dont { padding: 0.8rem 1rem; font-size: 1.05rem; line-height: 1.7rem; }
+.do { border-left: 3px solid var(--wx-jade-400); background: rgba(31,61,51,0.3); }
+.dont { border-left: 3px solid var(--wx-cinnabar-400); background: rgba(94,26,17,0.3); }
+
+/* ---------- 其他界面示例 ---------- */
+.mock { position: relative; margin-bottom: 1.2rem; }
+.mock-cap { font-size: 1.05rem; color: var(--wx-text-mute); margin: 0.5rem 0 1.2rem 0; line-height: 1.6rem; }
+
+/* 大地图顶栏 */
+.topbar { position: relative; height: 5.2rem; background: url("../../mod_wuxia/gfx/ui/wx_skin/wx_hud_panel_left.png") 0 0/100% 100%; padding: 0.9rem 1.6rem; white-space: nowrap; }
+.res { display: inline-block; vertical-align: middle; height: 3.4rem; line-height: 3.4rem; padding: 0 1rem 0 0.4rem; margin-right: 0.4rem; border-right: 1px solid var(--wx-gold-800); }
+.res img { width: 2.6rem; height: 2.6rem; vertical-align: middle; margin: -0.3rem 0.4rem 0 0; }
+.res b { font-size: 1.35rem; color: var(--wx-text-hi); }
+.res small { font-size: 1rem; color: var(--wx-text-mute); margin-left: 0.3rem; }
+.res.warn b { color: var(--wx-amber-400); }
+.topbar .day { position: absolute; right: 13rem; top: 0.9rem; line-height: 1.6rem; text-align: right; }
+.topbar .day b { display: block; font-family: var(--wx-font-title); font-size: 1.7rem; color: var(--wx-gold-200); font-weight: normal; }
+.topbar .day span { font-size: 1rem; color: var(--wx-text-dim); }
+.topbar .plaque { position: absolute; right: 1.4rem; top: 1.1rem; }
+
+/* 事件卷轴（宣纸读物） */
+.event { background: #e6dbc1; color: var(--wx-text-ink); border: 1px solid #7b6343; box-shadow: 0 0 0 1px #000, inset 0 0 0 4px #e6dbc1, inset 0 0 0 5px rgba(120,90,50,0.45), 0 6px 18px rgba(0,0,0,0.85); }
+.event .ev-img { height: 12rem; background: url("../../mod_wuxia/gfx/ui/wx_skin/wx_header_jianghu.png") center/cover; border-bottom: 2px solid #6b5332; }
+.event .ev-body { padding: 1.4rem 2rem 0.6rem 2rem; font-size: 1.25rem; line-height: 2.1rem; }
+.event .ev-seal { display: inline-block; margin-bottom: 0.8rem; padding: 0.2rem 0.9rem; font-family: var(--wx-font-title); font-size: 1.5rem; color: #7d1d14; border: 1px solid rgba(156,42,30,0.6); border-left: 4px solid #a8261b; background: rgba(142,28,20,0.08); }
+.event .ev-body p { margin: 0 0 0.8rem 0; text-indent: 2em; }
+.event .ev-opts { padding: 0.4rem 2rem 1.6rem 2rem; }
+.ev-opt { display: block; position: relative; margin-bottom: 0.5rem; padding: 0.6rem 1rem 0.6rem 2.6rem; font-size: 1.2rem; font-weight: bold; color: #2a1c10; background: rgba(255,250,235,0.55); border: 1px solid #a68b62; cursor: pointer; }
+.ev-opt:before { content: '◆'; position: absolute; left: 0.9rem; top: 0.6rem; color: #8a6a3a; font-size: 1rem; }
+.ev-opt:hover { background: #fff8e6; border-color: #a6281c; color: #7d1d14; }
+.ev-opt:hover:before { color: #a6281c; }
+.ev-opt small { font-weight: normal; color: #6b5438; margin-left: 0.6rem; }
+.ev-res { margin: 0.2rem 0 0.8rem 0; font-size: 1.1rem; }
+.ev-res .p { color: #1f5c2a; font-weight: bold; } .ev-res .n { color: #8f1e1e; font-weight: bold; }
+
+/* 战斗 HUD */
+.hud { position: relative; height: 13rem; padding: 1.2rem 1.4rem; background: url("../../mod_wuxia/gfx/ui/wx_skin/wx_tactical_char_bg.png") 0 0/100% 100%; border: 1px solid var(--wx-gold-700); }
+.hud-por { position: absolute; left: 1.4rem; top: 1.2rem; width: 9rem; height: 10.4rem; }
+.hud-bars { position: absolute; left: 11.6rem; top: 1.2rem; width: 26rem; }
+.hud-bars .wx-bar { margin-bottom: 0.45rem; height: 1.8rem; }
+.hud-bars .tag { display: inline-block; width: 2.6rem; font-size: 1rem; color: var(--wx-text-dim); }
+.hud-bars .row2 { white-space: nowrap; }
+.hud-bars .row2 .wx-bar { display: inline-block; vertical-align: middle; width: 23.2rem; }
+.ap-track { position: relative; display: inline-block; vertical-align: middle; width: 23.2rem; height: 1.8rem; background: var(--wx-bar-track); border: 1px solid #000; box-shadow: 0 0 0 1px var(--wx-gold-800); }
+.ap-track i { position: absolute; top: 0.15rem; bottom: 0.15rem; width: 1.85rem; background: var(--wx-bar-ap); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3); }
+.ap-track i.used { background: #3a2c14; box-shadow: none; }
+.ap-track i.perm { background: var(--wx-gold-200); }
+.ap-track i.burst { background: rgba(255,215,90,0.35); box-shadow: inset 0 0 0.4rem rgba(255,232,130,0.9); border: 1px dashed var(--wx-gold-300); }
+.hud-skills { position: absolute; left: 39.4rem; top: 1.4rem; right: 1.4rem; white-space: nowrap; }
+.hud-skills .wx-skill { width: 4.8rem; height: 4.8rem; margin-right: 0.4rem; }
+.hud-skills .wx-skill .wx-cat-tick { border-width: 1rem 1rem 0 0; }
+.hud-status { position: absolute; left: 39.4rem; bottom: 1.2rem; }
+.hud-status img { width: 2.6rem; height: 2.6rem; margin-right: 0.3rem; vertical-align: middle; }
+
+/* 商肆 / 战利品 */
+.shop { padding: 1.2rem; }
+.shop .sign { display: inline-block; margin: 0 0 1rem 0; padding: 0.3rem 1.4rem; font-family: var(--wx-font-title); font-size: 1.7rem; color: #24180e; background: #e6dbc1; border: 1px solid #6e4e2e; border-left: 4px solid #9e281d; box-shadow: 0 2px 6px rgba(0,0,0,0.75); }
+.shop .wx-slot { margin: 0 0.3rem 0.3rem 0; }
+.shop .price { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; font-size: 0.95rem; font-weight: bold; color: var(--wx-gold-300); background: rgba(0,0,0,0.75); line-height: 1.4rem; }
+.loot-row { position: relative; height: 4.6rem; padding: 0.7rem 1rem 0 5.6rem; margin-bottom: 0.4rem; background: var(--wx-wood-800); border: 1px solid var(--wx-gold-800); }
+.loot-row .av { position: absolute; left: 0.6rem; top: 0.5rem; width: 3.6rem; height: 3.6rem; border-radius: 50%; background: #2a1f15; border: 1px solid var(--wx-gold-600); text-align: center; line-height: 3.4rem; font-family: var(--wx-font-title); font-size: 1.6rem; color: var(--wx-gold-200); }
+.loot-row .n { font-weight: bold; color: var(--wx-text-hi); }
+.loot-row .s { font-size: 1rem; color: var(--wx-text-dim); }
+.loot-row .r { position: absolute; right: 1rem; top: 1.1rem; }
+.lvl-banner { display: inline-block; padding: 0.4rem 1.4rem; font-weight: bold; color: var(--wx-gold-200); background: rgba(74,32,18,0.94); border: 1px solid var(--wx-gold-400); box-shadow: var(--wx-glow-gold); }
+
+/* 令牌表 */
+table.tk { width: 100%; border-collapse: collapse; font-size: 1.05rem; }
+table.tk th { text-align: left; padding: 0.5rem 0.8rem; color: var(--wx-gold-300); border-bottom: 1px solid var(--wx-gold-600); font-weight: bold; }
+table.tk td { padding: 0.35rem 0.8rem; border-bottom: 1px solid var(--wx-gold-800); color: var(--wx-text); vertical-align: middle; }
+table.tk td code { font: 1rem Consolas, monospace; color: var(--wx-jade-300); }
+table.tk td .mini { display: inline-block; width: 1.6rem; height: 1.6rem; vertical-align: middle; margin-right: 0.5rem; border: 1px solid rgba(255,255,255,0.12); }
+.copied { position: fixed; left: 50%; top: 2rem; margin-left: -10rem; width: 20rem; text-align: center; z-index: 999; display: none; }
+.toc { position: fixed; right: 1.4rem; top: 3rem; width: 13rem; padding: 0.8rem 0; }
+.toc a { display: block; padding: 0.35rem 1rem; font-size: 1.05rem; color: var(--wx-text-dim); text-decoration: none; border-left: 2px solid transparent; }
+.toc a:hover { color: var(--wx-gold-200); border-left-color: var(--wx-gold-400); }
+@media (max-width: 1500px) { .toc { display: none; } }
+</style>
+</head>
+<body class="wx-root">
+<div class="toc wx-panel">
+	<a href="#principles">一 · 设计总纲</a><a href="#color">二 · 色彩</a><a href="#type">三 · 字体字号</a><a href="#space">四 · 间距 / 阴影</a>
+	<a href="#comp">五 · 基础组件</a><a href="#screens">六 · 全局界面应用</a><a href="#port">七 · 移植对照表</a>
+</div>
+<div class="page">
+	<div class="hero">
+		<div class="hero-in">
+			<h1>江湖设计令牌</h1>
+			<p>《战场兄弟》武侠 Mod · 全局 UI 规范与组件库 —— 守原版暗调骨架，添明末武侠风骨</p>
+		</div>
+		<a class="wx-btn wx-btn-primary back" href="character_screen_v1.html" style="text-decoration:none">← 人物界面预览</a>
+	</div>
+
+	<!-- 一、总纲 -->
+	<div class="sec" id="principles">
+		<h2>一 · 设计总纲<small>五句话决定所有取舍</small></h2>
+		<p class="lead">原版《战场兄弟》的辨识度来自<b class="wx-hi">深色皮革木纹 + 铜金细边 + 低饱和语义色 + 浅色羊皮纸读物</b>。武侠化不是换一套亮色皮肤，而是把这套骨架的每个元素找到同构的中式对应物：皮革 → 乌木，铜边 → 鎏金回纹，羊皮纸 → 宣纸题签，红蜡封 → 朱砂印。</p>
+		<div class="row">
+			<div class="prin wx-panel"><div class="big wx-title-font" style="color:#6b5038">乌木为骨</div><div class="t">交互面板一律深底</div><div class="d">与原版人物界面背景同调，不再整面铺浅色宣纸，避免"网页贴片感"。</div><div class="bar" style="background:var(--wx-wood-700)"></div></div>
+			<div class="prin wx-panel"><div class="big wx-title-font wx-gold">鎏金为界</div><div class="t">金色只做结构</div><div class="d">描边、分隔、选中态。金色不用于大面积底色，也不用于正文。</div><div class="bar" style="background:var(--wx-gold-500)"></div></div>
+			<div class="prin wx-panel"><div class="big wx-title-font wx-hi">骨白为文</div><div class="t">暖白文字分三级</div><div class="d">标题 / 正文 / 说明三档亮度；数值永远用最亮一档。</div><div class="bar" style="background:var(--wx-text)"></div></div>
+			<div class="prin wx-panel"><div class="big wx-title-font" style="color:var(--wx-cinnabar-400)">朱砂为印</div><div class="t">一屏只盖一枚印</div><div class="d">朱砂红只给不可逆 / 高风险 / 当前最重要的那一个操作（洗髓、拼合、强修）。</div><div class="bar" style="background:var(--wx-cinnabar-500)"></div></div>
+			<div class="prin wx-panel"><div class="big wx-title-font wx-jade">石青为气</div><div class="t">内息与"可行"</div><div class="d">内息条、可装配、正向反馈共用石青，与战斗 HUD 内息条同源。</div><div class="bar" style="background:var(--wx-jade-500)"></div></div>
+		</div>
+		<div class="row" style="margin-top:1.2rem">
+			<div class="col2"><div class="do"><b>宣纸只用于"读物"</b>：详览台书名题签、事件卷轴、城镇招牌、江湖名刺——玩家需要<b>阅读</b>的地方。</div></div>
+			<div class="col2"><div class="dont"><b>不要</b>同时出现绿 / 蓝 / 紫 / 红四种胶囊按钮；<b>不要</b>在面板内重复放「× 返回」；<b>不要</b>小于 0.95rem 的字。</div></div>
+		</div>
+	</div>
+
+	<!-- 二、色彩 -->
+	<div class="sec" id="color">
+		<h2>二 · 色彩<small>点击色块复制 HEX</small></h2>
+		<p class="lead">全部取自原版截图与现有 mod 贴图的采样再降饱和。语义色只有四个（金 / 青 / 朱 / 琥珀），品阶色与四脉色只出现在<b class="wx-hi">图标描边、小圆点、文字</b>上，绝不做按钮底色。</p>
+		<div class="card wx-panel wx-corners"><h3>乌木 · 表面层级<small>由深到浅，越浅越"浮起"</small></h3><div class="row" id="sw-wood"></div></div>
+		<div class="row">
+			<div class="col2"><div class="card wx-panel wx-corners"><h3>鎏金 · 线条</h3><div class="row" id="sw-gold"></div></div></div>
+			<div class="col2"><div class="card wx-panel wx-corners"><h3>骨白 · 文字</h3><div class="row" id="sw-text"></div></div></div>
+		</div>
+		<div class="card wx-panel wx-corners"><h3>功能色<small>朱砂 = 高风险主操作 · 石青 = 内息/可行 · 琥珀 = 警示 · 正负数值对齐原版</small></h3><div class="row" id="sw-func"></div></div>
+		<div class="row">
+			<div class="col2"><div class="card wx-panel wx-corners"><h3>秘籍品阶<small>大路货 / 门派上乘 / 绝学 / 江湖孤本</small></h3><div class="row" id="sw-q"></div></div></div>
+			<div class="col2"><div class="card wx-panel wx-corners"><h3>四脉武学<small>与战斗 HUD 技能角标同源</small></h3><div class="row" id="sw-cat"></div></div></div>
+		</div>
+		<div class="row">
+			<div class="col2"><div class="card wx-panel wx-corners"><h3>资源条</h3><div class="row" id="sw-bar"></div></div></div>
+			<div class="col2"><div class="card wx-panel wx-corners"><h3>内功路数</h3><div class="row" id="sw-el"></div></div></div>
+		</div>
+	</div>
+
+	<!-- 三、字体 -->
+	<div class="sec" id="type">
+		<h2>三 · 字体与字号<small>明刻体只给 ≥ 1.55rem 的标题</small></h2>
+		<p class="lead">沿用 mod 现有的 <code class="wx-jade">wx_ming_serif.ttf</code> 明刻衬线体做大标题，正文保持原版黑体以确保小字锐利。字号共七档，最小 0.95rem（角标），不得再小。</p>
+		<div class="card wx-panel">
+			<div class="type-row"><div class="meta"><b>Display · 屏幕大标题</b>--wx-fs-display 2.6rem · 明刻</div><div class="spec wx-title-font" style="font-size:2.6rem;color:var(--wx-gold-200)">江湖夜雨十年灯</div></div>
+			<div class="type-row"><div class="meta"><b>H1 · 人物名 / 弹窗标题</b>--wx-fs-h1 2.0rem · 明刻</div><div class="spec wx-title-font" style="font-size:2rem;color:var(--wx-gold-200)">洗经伐髓 · 林沧海</div></div>
+			<div class="type-row"><div class="meta"><b>H2 · 书名题签 / 页签</b>--wx-fs-h2 1.6rem · 明刻</div><div class="spec wx-title-font" style="font-size:1.6rem">《清风连环剑》 兵甲行囊 · 武学修为 · 藏经阁</div></div>
+			<div class="type-row"><div class="meta"><b>H3 · 区块标题</b>--wx-fs-h3 1.3rem · 黑体粗</div><div class="spec" style="font-size:1.3rem;font-weight:bold;color:var(--wx-gold-300)">三重境界 · 大成门槛 · 常驻被动</div></div>
+			<div class="type-row"><div class="meta"><b>Body · 正文</b>--wx-fs-body 1.2rem</div><div class="spec" style="font-size:1.2rem;color:var(--wx-text)">清风剑派入室弟子的看家剑法，三剑一气呵成，专寻对手招架间隙。</div></div>
+			<div class="type-row"><div class="meta"><b>Small · 说明</b>--wx-fs-small 1.08rem</div><div class="spec" style="font-size:1.08rem;color:var(--wx-text-dim)">门派上乘 · 外功 · 剑 · 二重小成 · 火候 210 / 360</div></div>
+			<div class="type-row" style="border:none"><div class="meta"><b>Micro · 角标</b>--wx-fs-micro 0.95rem（最小）</div><div class="spec" style="font-size:0.95rem;color:var(--wx-text-mute)">新篇 · 阁藏 · 已习 · 3/5 · ×2 · 4 AP</div></div>
+		</div>
+	</div>
+
+	<!-- 四、间距/阴影 -->
+	<div class="sec" id="space">
+		<h2>四 · 间距 · 尺寸 · 阴影</h2>
+		<div class="row">
+			<div class="col2"><div class="card wx-panel"><h3>间距阶梯<small>0.2rem 起步，近似 1.5 倍递增</small></h3>
+				<div><span class="sp"><i style="width:0.2rem;height:0.2rem"></i>sp-1<br>0.2</span><span class="sp"><i style="width:0.4rem;height:0.4rem"></i>sp-2<br>0.4</span><span class="sp"><i style="width:0.6rem;height:0.6rem"></i>sp-3<br>0.6</span><span class="sp"><i style="width:0.8rem;height:0.8rem"></i>sp-4<br>0.8</span><span class="sp"><i style="width:1.2rem;height:1.2rem"></i>sp-5<br>1.2</span><span class="sp"><i style="width:1.6rem;height:1.6rem"></i>sp-6<br>1.6</span><span class="sp"><i style="width:2.4rem;height:2.4rem"></i>sp-7<br>2.4</span></div>
+				<ul class="rule-list" style="margin-top:1rem"><li>控件统一高度 <b>2.5rem</b>（小号 2.1rem）</li><li>仓库格位 <b>6.2rem</b>，招式图标 <b>3.8rem</b>（HUD 内 4.8rem）</li><li>圆角 <b>0.15rem</b> —— 原版近乎直角，武侠感由回纹角承担而非圆角</li></ul>
+			</div></div>
+			<div class="col2"><div class="card wx-panel"><h3>阴影与辉光</h3>
+				<div class="row"><div class="sh" style="box-shadow:var(--wx-shadow-well);background:var(--wx-wood-950)">well<br>凹井</div><div class="sh" style="box-shadow:var(--wx-shadow-raise)">raise<br>浮起</div><div class="sh" style="box-shadow:var(--wx-glow-gold);border:1px solid var(--wx-gold-400)">glow-gold<br>选中</div><div class="sh" style="box-shadow:var(--wx-glow-jade);border:1px solid var(--wx-jade-400)">glow-jade<br>可放置</div><div class="sh" style="box-shadow:var(--wx-glow-cinnabar);border:1px solid var(--wx-cinnabar-400)">glow-cinnabar<br>警告</div></div>
+				<ul class="rule-list" style="margin-top:1rem"><li>凹井 = 可放东西的位置（格位、进度条槽、输入框）</li><li>辉光只用于<b>状态</b>（选中 / 可拖放 / 危险），不做装饰</li></ul>
+			</div></div>
+		</div>
+	</div>
+
+	<!-- 五、组件 -->
+	<div class="sec" id="comp">
+		<h2>五 · 基础组件<small>人物界面三页签直接使用的同一套</small></h2>
+		<div class="row">
+			<div class="col2">
+				<div class="card wx-panel wx-corners"><h3>按钮<small>默认 / 主要 / 朱砂印 / 幽灵</small></h3>
+					<div class="demo">
+						<span class="wx-btn">取出</span><span class="wx-btn wx-btn-primary">研习 · 传授</span><span class="wx-btn wx-btn-seal">一键拼合<span class="wx-count">2</span></span><span class="wx-btn wx-btn-ghost">名刺</span><span class="wx-btn is-disabled">已习</span>
+					</div>
+					<div class="demo"><span class="wx-btn wx-btn-sm">化功</span><span class="wx-btn wx-btn-sm wx-btn-primary">装入</span><span class="wx-btn wx-btn-sm wx-btn-seal">装帧成书</span><span class="wx-btn"><img src="../../mod_wuxia/gfx/ui/items/consumables/wx_pill_xisui.png">带图标</span><span class="wx-seal-close">×</span></div>
+					<ul class="rule-list"><li><b>主要（鎏金描边）</b>= 当前推荐操作，可多个</li><li><b>朱砂印</b>= 不可逆 / 消耗稀有资源，<b>一屏至多一个</b></li><li>关闭统一用<b>方形朱砂印「×」</b>，放在面板 / 弹窗右上</li></ul>
+				</div>
+				<div class="card wx-panel wx-corners"><h3>页签与筛选</h3>
+					<span class="lab">主页签（明刻体，选中下方亮金线 + 角标）</span>
+					<div style="border-bottom:1px solid var(--wx-gold-700);padding-top:0.8rem"><span class="wx-tab">兵甲行囊</span><span class="wx-tab is-active">武学修为<span class="wx-tab-badge is-jade">1</span></span><span class="wx-tab">藏经阁<span class="wx-tab-badge">2</span></span></div>
+					<span class="lab" style="margin-top:1rem">子页签 · 图标切换 · 搜索</span>
+					<div><span class="wx-subtab is-active">已习武学<span class="wx-n">8</span></span><span class="wx-subtab">阁藏直学<span class="wx-n">5</span></span><span class="wx-subtab">随身灵丹<span class="wx-n">11</span></span>
+						<span class="wx-icon-toggle is-on"><img src="../../mod_wuxia/gfx/ui/perks/wx_emblem_neigong.png"></span><span class="wx-icon-toggle"><img src="../../mod_wuxia/gfx/ui/perks/wx_emblem_sword.png"></span><span class="wx-icon-toggle"><img src="../../mod_wuxia/gfx/ui/perks/wx_emblem_qinggong.png"></span>
+						<input class="wx-input" placeholder="搜功法" style="width:10rem;margin-left:0.6rem"></div>
+					<span class="lab" style="margin-top:1rem">复选 · 开关</span>
+					<div><span class="wx-check is-on"><span class="wx-box"></span>契合兵刃</span>&nbsp;&nbsp;<span class="wx-check"><span class="wx-box"></span>仅看未习</span>&nbsp;&nbsp;<span class="wx-switch is-on"><span class="wx-track"><span class="wx-knob"></span></span>自动入阁</span>&nbsp;&nbsp;<span class="wx-switch"><span class="wx-track"><span class="wx-knob"></span></span>自动入阁</span></div>
+				</div>
+				<div class="card wx-panel wx-corners"><h3>状态章 · 角标 · 品阶印</h3>
+					<div class="demo"><span class="wx-chip">◆ 阴柔</span><span class="wx-chip is-ok">内息调和</span><span class="wx-chip is-danger is-clickable">散功 2 天<span class="wx-chip-act">服丹</span></span><span class="wx-chip is-warn is-clickable">外伤 ×1<span class="wx-chip-act">敷药</span></span></div>
+					<div class="demo">
+						<span class="wx-slot q-secret"><img class="wx-item" src="../../mod_wuxia/gfx/ui/items/misc/wx_book_waigong_secret.png"><span class="wx-badge tl is-new">新篇</span></span>
+						<span class="wx-slot q-sect"><img class="wx-item" src="../../mod_wuxia/gfx/ui/items/misc/wx_book_neigong_sect.png"><span class="wx-badge tl is-owned">阁藏</span></span>
+						<span class="wx-slot q-common"><img class="wx-item" src="../../mod_wuxia/gfx/ui/items/misc/wx_book_waigong_common.png"><span class="wx-badge tl is-owned">已习</span></span>
+						<span class="wx-slot q-unique"><img class="wx-item" src="../../mod_wuxia/gfx/ui/items/misc/wx_page_unique.png"><span class="wx-badge tl is-page">2/5</span></span>
+						<span class="wx-slot q-sect"><img class="wx-item" src="../../mod_wuxia/gfx/ui/items/misc/wx_page_sect.png"><span class="wx-badge tl is-ready">可拼</span></span>
+						&nbsp;<span class="wx-q-seal q-common">大<br>路</span> <span class="wx-q-seal q-sect">上<br>乘</span> <span class="wx-q-seal q-secret">绝<br>学</span> <span class="wx-q-seal q-unique">孤<br>本</span>
+					</div>
+					<ul class="rule-list"><li>角标统一左上，按<b>新篇（石青）→ 阁藏/已习（金）→ 残页（靛）→ 可拼（朱砂）</b>的优先级只显示一个</li><li>品阶色只上<b>格位描边 + 内辉光</b>，不铺底色</li></ul>
+				</div>
+			</div>
+			<div class="col2">
+				<div class="card wx-panel wx-corners"><h3>进度条 · 境界刻度 · 招式图标</h3>
+					<span class="lab">资源条（凹槽 + 高光填充 + 描边数值）</span>
+					<div class="wx-bar" style="width:22rem;margin-bottom:0.5rem"><div class="wx-fill hp" style="width:84%"></div><div class="wx-val">52 / 62</div></div>
+					<div class="wx-bar" style="width:22rem;margin-bottom:0.5rem"><div class="wx-fill qi" style="width:73%"></div><div class="wx-val">内息 70 / 96</div></div>
+					<div class="wx-bar" style="width:22rem;margin-bottom:0.5rem"><div class="wx-fill armor" style="width:86%"></div><div class="wx-val">140 / 160</div></div>
+					<div class="wx-bar" style="width:22rem;margin-bottom:0.5rem"><div class="wx-fill ap" style="width:100%"></div><div class="wx-val">9 AP</div></div>
+					<span class="lab">火候细条 · 三重菱形（一重 / 二重 / 大成 / 残本）</span>
+					<div style="width:16rem" class="wx-bar wx-bar-thin"><div class="wx-fill" style="width:58%;background:var(--wx-jade-500)"></div></div>
+					<div style="margin-top:0.6rem"><span class="wx-tiers"><i class="is-lit"></i><i></i><i></i></span> &nbsp; <span class="wx-tiers"><i class="is-lit"></i><i class="is-lit"></i><i></i></span> &nbsp; <span class="wx-tiers"><i class="is-lit"></i><i class="is-lit"></i><i class="is-lit"></i></span> &nbsp; <span class="wx-tiers"><i class="is-frag"></i><i></i><i></i></span></div>
+					<span class="lab" style="margin-top:1rem">招式图标（左上四脉色角 · 右上 AP · 右下内息）</span>
+					<div>
+						<span class="wx-skill"><img src="../../mod_wuxia/gfx/ui/skills/wx_sword_combo.png"><span class="wx-cat-tick" style="border-color:var(--wx-cat-waigong) transparent transparent transparent"></span><span class="wx-cost-ap">4</span><span class="wx-cost-qi">18</span></span>
+						<span class="wx-skill"><img src="../../mod_wuxia/gfx/ui/skills/wx_qinggong_lingbo.png"><span class="wx-cat-tick" style="border-color:var(--wx-cat-qinggong) transparent transparent transparent"></span><span class="wx-cost-ap">3</span><span class="wx-cost-qi">15</span></span>
+						<span class="wx-skill"><img src="../../mod_wuxia/gfx/ui/skills/wx_meditate.png"><span class="wx-cat-tick" style="border-color:var(--wx-cat-neigong) transparent transparent transparent"></span><span class="wx-cost-ap">4</span></span>
+						<span class="wx-skill"><img src="../../mod_wuxia/gfx/ui/skills/wx_rally_command.png"><span class="wx-cat-tick" style="border-color:var(--wx-cat-henglian) transparent transparent transparent"></span><span class="wx-cost-ap">5</span><span class="wx-cost-qi">25</span></span>
+						<span class="wx-skill is-off"><img src="../../mod_wuxia/gfx/ui/skills/wx_saber_cleave.png"><span class="wx-cat-tick" style="border-color:var(--wx-cat-waigong) transparent transparent transparent"></span><span class="wx-cost-ap">4</span><span class="wx-cost-qi">14</span></span>
+					</div>
+				</div>
+				<div class="card wx-panel wx-corners"><h3>详览台<small>乌木绢本 + 宣纸题签 + 三重时间线</small></h3>
+					<div class="wx-inspector" style="position:relative;height:32rem">
+						<div class="wx-insp-body">
+							<div class="wx-tiqian"><div class="wx-tq-icon"><img src="../../mod_wuxia/gfx/ui/perks/wx_emblem_sword.png"></div><div class="wx-tq-name">《清风连环剑》</div><div class="wx-tq-meta">门派上乘 · 外功 · 剑</div><div class="wx-tq-meta">装于穴二 · 二重 · 小成</div><span class="wx-q-seal q-sect">上<br>乘</span><div class="clear"></div></div>
+							<div class="wx-insp-line"><span class="wx-jade">◆ 契合当前主手：剑</span></div>
+							<div class="wx-sec-title">三重境界</div>
+							<div class="wx-tierline">
+								<div class="wx-tl-item is-done"><span class="wx-tl-head">一重 · 入门</span><br>武艺 +2；习得「清风三连」。</div>
+								<div class="wx-tl-item is-done"><span class="wx-tl-head">二重 · 小成</span><br>武艺 +4，招架 +2；习得「寻隙刺」。</div>
+								<div class="wx-tl-item is-next"><span class="wx-tl-head">三重 · 大成</span><br>武艺 +5，招架 +3，穿甲 +10%。<div class="wx-bar wx-bar-thin"><div class="wx-fill" style="width:58%;background:var(--wx-jade-500)"></div></div></div>
+							</div>
+							<div class="wx-sec-title">大成门槛</div>
+							<div class="wx-req"><span class="bad">✗</span> 武艺 <b class="wx-hi">75</b> / 78 <span class="wx-mute">（差 3）</span></div>
+							<div class="wx-req"><span class="ok">✓</span> 身法 <b class="wx-hi">121</b> / 110</div>
+						</div>
+						<div class="wx-insp-foot"><span class="wx-btn wx-btn-primary">灌注火候</span><span class="wx-btn">卸下</span></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- 六、全局界面应用 -->
+	<div class="sec" id="screens">
+		<h2>六 · 全局界面应用<small>同一套令牌落到其他界面</small></h2>
+		<p class="lead">以下是令牌在人物界面之外的落点示意，均可在 <code class="wx-jade">wx_global_theme.css</code> / <code class="wx-jade">wx_ui_global_overhaul.js</code> 现有挂点上替换样式，无需新增 DOM 结构。</p>
+
+		<div class="row">
+			<div class="col2">
+				<div class="mock">
+					<div class="wx-tooltip" style="position:relative;width:auto;pointer-events:auto">
+						<div class="wx-tt-head">《回锋惊鸿剑》<div class="wx-tt-sub">绝学 · 外功 · 剑 · 藏经阁 ×1</div></div>
+						<div class="wx-tt-body">
+							<div style="color:var(--wx-text-dim);margin-bottom:0.4rem">剑出如惊鸿回锋，后发先至。以反击架势见长，大成可发三格剑气。</div>
+							<div class="wx-tt-row"><img src="../../mod_wuxia/gfx/ui/wx_icons/wx_icon_melee_skill.png">大成：武艺 <span class="wx-pos">+7</span>，招架 <span class="wx-pos">+5</span></div>
+							<div class="wx-tt-row"><img src="../../mod_wuxia/gfx/ui/wx_icons/wx_icon_initiative.png">门槛：身法 <span class="wx-neg">106</span> / 115</div>
+							<div class="wx-tt-row"><img src="../../mod_wuxia/gfx/ui/wx_icons/wx_icon_money_small.png">估价 <span class="wx-gold">3300</span> 两</div>
+						</div>
+						<div class="wx-tt-foot">右键：给当前侠客研读 · 队中 0 人已习</div>
+					</div>
+				</div>
+				<div class="mock-cap"><b class="wx-hi">悬浮提示</b>：沿用 mod 现有深色 tooltip 贴图的配色；标题栏紫檀漆 + 明刻书名，正文每行左侧原版 16px 图标，底部灰字操作提示。数值正负直接用 <code class="wx-jade">--wx-pos / --wx-neg</code>。</div>
+			</div>
+			<div class="col2">
+				<div class="mock">
+					<div class="wx-modal" style="position:relative;left:auto;top:auto">
+						<div class="wx-modal-head">卸下功法<span class="wx-mh-sub">重数火候永久保留</span><span class="wx-seal-close">×</span></div>
+						<div class="wx-modal-body" style="font-size:1.15rem;line-height:1.9rem">
+							将从穴二卸下《清风连环剑》（二重 · 小成）。
+							<div style="margin-top:0.6rem;padding:0.6rem 0.8rem;background:rgba(0,0,0,0.3);border-left:3px solid var(--wx-amber-400)">卸下触发 <b class="wx-amber">散功调息 2 天</b>：内息上限 -15、回气 -3。</div>
+						</div>
+						<div class="wx-modal-foot"><span class="wx-btn">取消</span><span class="wx-btn wx-btn-primary">确认卸下</span></div>
+					</div>
+				</div>
+				<div class="mock-cap"><b class="wx-hi">通用弹窗</b>：乌木对话框 + 双线鎏金框 + 紫檀标题栏，替代现有宣纸弹窗。说明区用<b>琥珀左边条</b>表示代价、<b>石青左边条</b>表示保留/收益。确认按钮视风险决定用主要还是朱砂。</div>
+			</div>
+		</div>
+
+		<div class="mock">
+			<div class="topbar">
+				<span class="res"><img src="../../mod_wuxia/gfx/ui/wx_icons/wx_asset_money.png"><b>12,480</b><small>两</small></span>
+				<span class="res"><img src="../../mod_wuxia/gfx/ui/wx_icons/wx_asset_food.png"><b>86</b><small>口粮 · 6 天</small></span>
+				<span class="res warn"><img src="../../mod_wuxia/gfx/ui/wx_icons/wx_asset_medicine.png"><b>12</b><small>药材</small></span>
+				<span class="res"><img src="../../mod_wuxia/gfx/ui/wx_icons/wx_asset_supplies.png"><b>140</b><small>器械</small></span>
+				<span class="res" style="border:none"><img src="../../mod_wuxia/gfx/ui/wx_icons/wx_asset_ammo.png"><b>210</b><small>箭弹</small></span>
+				<div class="day"><b>崇祯九年 · 霜降</b><span>第 47 日 · 戌时</span></div>
+				<span class="wx-btn plaque"><img src="../../mod_wuxia/gfx/ui/wx_icons/wx_glyph_sect_token.png">江湖名刺</span>
+			</div>
+		</div>
+		<div class="mock-cap"><b class="wx-hi">大地图顶栏</b>：资源用竖向金色细线分隔，数值最亮、单位最暗；低于安全线变琥珀。日期用明刻体。「江湖名刺」从现有宣纸牌匾改为与面板一致的乌木按钮，避免顶栏出现唯一一块浅色。</div>
+
+		<div class="row">
+			<div class="col2">
+				<div class="mock event">
+					<div class="ev-img"></div>
+					<div class="ev-body">
+						<span class="ev-seal">第三回 · 夜宿荒祠</span>
+						<p>山雨欲来，众人避入一座破败的山神祠。供桌下压着半卷油纸包裹的残册，墨迹已被潮气洇开，隐约可辨「惊鸿」二字。</p>
+						<p>柳青眉俯身细看，忽听祠外竹林中传来一声极轻的剑鸣。</p>
+						<div class="ev-res"><span class="p">获得</span>《回锋惊鸿剑》残页 ×1　　柳青眉 定力 <span class="n">-3</span></div>
+					</div>
+					<div class="ev-opts">
+						<span class="ev-opt">收好残页，连夜赶路<small>（安全）</small></span>
+						<span class="ev-opt">循剑鸣入林一探<small>（柳青眉 · 退隐老剑客）</small></span>
+					</div>
+				</div>
+				<div class="mock-cap"><b class="wx-hi">事件卷轴</b>：全游戏唯一保留整面宣纸的地方（原版羊皮纸的同构物）。章回朱砂印、首行缩进两字、选项前菱形标、出身专属选项在括号内注明。正负结果用原版深绿 / 深红。</div>
+			</div>
+			<div class="col2">
+				<div class="mock wx-panel shop">
+					<span class="sign">墨香书肆</span>
+					<div>
+						<span class="wx-slot q-sect"><img class="wx-item" src="../../mod_wuxia/gfx/ui/items/misc/wx_book_qinggong_sect.png"><span class="wx-badge tl is-new">新篇</span><span class="price">2,200</span></span>
+						<span class="wx-slot q-common"><img class="wx-item" src="../../mod_wuxia/gfx/ui/items/misc/wx_book_henglian_common.png"><span class="wx-badge tl is-owned">阁藏</span><span class="price">370</span></span>
+						<span class="wx-slot q-common"><img class="wx-item" src="../../mod_wuxia/gfx/ui/items/misc/wx_book_neigong_common.png"><span class="wx-badge tl is-owned">已习</span><span class="price">400</span></span>
+						<span class="wx-slot q-secret"><img class="wx-item" src="../../mod_wuxia/gfx/ui/items/misc/wx_page_secret.png"><span class="wx-badge tl is-page">4/5</span><span class="price">680</span></span>
+						<span class="wx-slot q-sect"><img class="wx-item" src="../../mod_wuxia/gfx/ui/items/misc/wx_page_sect.png"><span class="wx-badge tl is-ready">可拼</span><span class="price">420</span></span>
+					</div>
+					<div style="margin-top:0.6rem"><span class="wx-btn wx-btn-primary">典籍入阁<span class="wx-count">3</span></span></div>
+				</div>
+				<div class="mock-cap"><b class="wx-hi">城镇商肆</b>：招牌是"读物"，保留宣纸 + 朱砂左边；商品格与人物仓库同一套角标，玩家在任何界面看到「新篇」都知道是藏经阁里没有的书。</div>
+
+				<div class="mock wx-panel" style="padding:1.2rem">
+					<div class="wx-sec-title" style="margin-bottom:0.6rem">战功名录<span class="wx-sec-sub">剿灭黑风寨 · 大胜</span></div>
+					<div class="loot-row"><span class="av">柳</span><div class="n">柳青眉 <span class="wx-mute" style="font-weight:normal">· 8 级</span></div><div class="s">斩敌 3 · 承伤 24 · 《清风连环剑》火候 <span class="wx-jade">+42</span></div><span class="r lvl-banner">升至 9 级 · 贯通自由穴</span></div>
+					<div class="loot-row"><span class="av">林</span><div class="n">林沧海 <span class="wx-mute" style="font-weight:normal">· 7 级</span></div><div class="s">斩敌 1 · 承伤 38 · 外伤：左臂割伤</div><span class="r wx-chip is-warn">外伤</span></div>
+				</div>
+				<div class="mock-cap"><b class="wx-hi">战后结算</b>：每行一人，右侧只放一个最重要的状态（升级开穴 / 受伤 / 阵亡），火候增长用石青数字。</div>
+			</div>
+		</div>
+
+		<div class="mock hud">
+			<svg class="hud-por wx-well" viewBox="0 0 68 80"><rect width="68" height="80" fill="#140e09"/><path d="M8 80 C10 58 22 52 34 52 C46 52 58 58 60 80 Z" fill="#3d5a6b"/><ellipse cx="34" cy="34" rx="12" ry="14" fill="#c9a882"/><path d="M21 30 C21 16 47 16 47 30 C44 24 24 24 21 30 Z" fill="#1b130d"/></svg>
+			<div class="hud-bars">
+				<div class="row2"><span class="tag">气血</span><div class="wx-bar"><div class="wx-fill hp" style="width:84%"></div><div class="wx-val">52 / 62</div></div></div>
+				<div class="row2"><span class="tag">内息</span><div class="wx-bar"><div class="wx-fill qi" style="width:73%"></div><div class="wx-val">70 / 96</div></div></div>
+				<div class="row2"><span class="tag">身甲</span><div class="wx-bar"><div class="wx-fill armor" style="width:86%"></div><div class="wx-val">140 / 160</div></div></div>
+				<div class="row2"><span class="tag">AP</span><span class="ap-track" id="ap-track"></span></div>
+			</div>
+			<div class="hud-skills">
+				<span class="wx-skill"><img src="../../mod_wuxia/gfx/ui/skills/wx_sword_combo.png"><span class="wx-cat-tick" style="border-color:var(--wx-cat-waigong) transparent transparent transparent"></span><span class="wx-cost-ap">4</span><span class="wx-cost-qi">18</span></span>
+				<span class="wx-skill"><img src="../../mod_wuxia/gfx/ui/skills/wx_sword_pierce.png"><span class="wx-cat-tick" style="border-color:var(--wx-cat-waigong) transparent transparent transparent"></span><span class="wx-cost-ap">4</span><span class="wx-cost-qi">15</span></span>
+				<span class="wx-skill"><img src="../../mod_wuxia/gfx/ui/skills/wx_sword_counter.png"><span class="wx-cat-tick" style="border-color:var(--wx-cat-waigong) transparent transparent transparent"></span><span class="wx-cost-ap">3</span><span class="wx-cost-qi">20</span></span>
+				<span class="wx-skill"><img src="../../mod_wuxia/gfx/ui/skills/wx_qinggong_zongyue.png"><span class="wx-cat-tick" style="border-color:var(--wx-cat-qinggong) transparent transparent transparent"></span><span class="wx-cost-ap">3</span><span class="wx-cost-qi">15</span></span>
+				<span class="wx-skill"><img src="../../mod_wuxia/gfx/ui/skills/wx_meditate.png"><span class="wx-cat-tick" style="border-color:var(--wx-cat-neigong) transparent transparent transparent"></span><span class="wx-cost-ap">4</span></span>
+				<span class="wx-skill is-off"><img src="../../mod_wuxia/gfx/ui/skills/wx_throw_duzhen.png"><span class="wx-cat-tick" style="border-color:var(--wx-cat-henglian) transparent transparent transparent"></span><span class="wx-cost-ap">3</span><span class="wx-cost-qi">10</span></span>
+			</div>
+			<div class="hud-status"><img src="../../mod_wuxia/gfx/ui/skills/wx_status_meridian_harmony.png"><img src="../../mod_wuxia/gfx/ui/skills/wx_status_counter_stance.png"><img src="../../mod_wuxia/gfx/ui/skills/wx_status_opening.png"></div>
+		</div>
+		<div class="mock-cap"><b class="wx-hi">战斗 HUD</b>：AP 条按格切分——<b class="wx-gold">金格</b> = 常人 9 AP，<b style="color:var(--wx-gold-200)">亮金格</b> = 孤本常驻 +1，<b class="wx-amber">虚线金格</b> = 临时爆发（12~13 AP），暗格 = 已用。招式四脉色角、右上 AP、右下内息，与人物界面招式栏完全一致。</div>
+	</div>
+
+	<!-- 七、移植 -->
+	<div class="sec" id="port">
+		<h2>七 · 移植对照表<small>CoherentUI 不支持 CSS 变量 → 构建时替换为字面值</small></h2>
+		<p class="lead">建议在 <code class="wx-jade">tools/build_mod.py</code> 里增加一步：读取本文件 <code class="wx-jade">:root</code> 中的变量表，把 <code class="wx-jade">mod_wuxia/ui/**/*.css</code> 里的 <code class="wx-jade">var(--wx-*)</code> 文本替换为字面值后再打包。这样源码可读、游戏内零兼容风险。下表由页面实时读取 <code class="wx-jade">wx_tokens.css</code> 生成，点击行复制。</p>
+		<div class="card wx-panel"><table class="tk" id="tk"><thead><tr><th style="width:30%">令牌</th><th style="width:25%">字面值</th><th>分组</th></tr></thead><tbody></tbody></table></div>
+		<div class="row">
+			<div class="col3"><div class="do"><b>布局</b>：absolute / float / inline-block；禁止 flex、grid、gap、calc()。</div></div>
+			<div class="col3"><div class="do"><b>竖排文字</b>：逐字 &lt;br&gt;，不依赖 writing-mode（书架书脊、品阶印）。</div></div>
+			<div class="col3"><div class="do"><b>回纹角</b>：:before / :after 两个 L 形边框即可，不需要额外贴图。</div></div>
+		</div>
+	</div>
+</div>
+<div class="wx-toast copied" id="copied">已复制</div>
+
+<script>
+(function () {
+	var root = getComputedStyle(document.documentElement);
+	function v(n) { return root.getPropertyValue(n).replace(/^\s+|\s+$/g, ''); }
+	var groups = {
+		'sw-wood': [['--wx-wood-950', '凹槽井底', '格位/进度条/输入框底'], ['--wx-wood-900', '面板底', '所有交互面板'], ['--wx-wood-850', '次级面板', '标签底'], ['--wx-wood-800', '卡片', '列表卡片'], ['--wx-wood-750', '卡片悬停', ''], ['--wx-wood-700', '按钮底', ''], ['--wx-wood-600', '按钮悬停', ''], ['--wx-lacquer-800', '紫檀漆', '标题栏、页签'], ['--wx-lacquer-700', '紫檀漆亮', '选中页签']],
+		'sw-gold': [['--wx-gold-200', '金 200', '朱砂/主按钮文字'], ['--wx-gold-300', '金 300', '区块标题'], ['--wx-gold-400', '金 400', '选中描边'], ['--wx-gold-500', '金 500', '标准描边'], ['--wx-gold-600', '金 600', '弱描边'], ['--wx-gold-700', '金 700', '分隔线'], ['--wx-gold-800', '金 800', '极弱分隔']],
+		'sw-text': [['--wx-text-hi', '标题 / 数值', ''], ['--wx-text', '正文', ''], ['--wx-text-dim', '说明', ''], ['--wx-text-mute', '禁用 / 占位', ''], ['--wx-text-ink', '宣纸墨字', '只在宣纸上']],
+		'sw-func': [['--wx-cinnabar-500', '朱砂', '高风险主按钮/印'], ['--wx-cinnabar-400', '朱砂亮', '悬停/危险文字'], ['--wx-jade-500', '石青', '火候/可装配'], ['--wx-jade-300', '石青亮', '正向文字'], ['--wx-amber-400', '琥珀', '警示：换兵/残本'], ['--wx-pos', '正值', '+数值'], ['--wx-neg', '负值', '-数值']],
+		'sw-q': [['--wx-q-common', '大路货', '素绢'], ['--wx-q-sect', '门派上乘', '靛蓝'], ['--wx-q-secret', '绝学', '紫绶'], ['--wx-q-unique', '江湖孤本', '赤金']],
+		'sw-cat': [['--wx-cat-neigong', '内功', '金'], ['--wx-cat-waigong', '外功', '赤'], ['--wx-cat-qinggong', '轻功', '青'], ['--wx-cat-henglian', '横练杂学', '褐']],
+		'sw-bar': [['--wx-bar-hp', '气血', ''], ['--wx-bar-qi', '内息', '正向条'], ['--wx-bar-ap', '行动力', ''], ['--wx-bar-armor', '护甲', ''], ['--wx-bar-morale', '战意', '']],
+		'sw-el': [['--wx-el-zheng', '中正', ''], ['--wx-el-yang', '阳刚', ''], ['--wx-el-yin', '阴柔', ''], ['--wx-el-xie', '邪功', '']]
+	};
+	var tb = document.querySelector('#tk tbody'), rows = '';
+	var gname = { 'sw-wood': '乌木', 'sw-gold': '鎏金', 'sw-text': '骨白', 'sw-func': '功能', 'sw-q': '品阶', 'sw-cat': '四脉', 'sw-bar': '资源条', 'sw-el': '路数' };
+	for (var g in groups) {
+		var h = '';
+		for (var i = 0; i < groups[g].length; i++) {
+			var t = groups[g][i], val = v(t[0]);
+			h += '<div class="sw" data-copy="' + val + '"><div class="chip" style="background:' + val + '"></div><div class="n">' + t[1] + '</div><div class="v">' + t[0].replace('--wx-', '') + ' · ' + val + '</div><div class="u">' + t[2] + '</div></div>';
+		}
+		document.getElementById(g).innerHTML = h;
+	}
+	/* 完整令牌表：file:// 下无法读取 cssRules，故列出令牌名，再用 getComputedStyle 取值 */
+	var ALL = ['wood-950','wood-900','wood-850','wood-800','wood-750','wood-700','wood-600','lacquer-800','lacquer-700',
+		'gold-200','gold-300','gold-400','gold-500','gold-600','gold-700','gold-800',
+		'text-hi','text','text-dim','text-mute','text-ink',
+		'cinnabar-300','cinnabar-400','cinnabar-500','cinnabar-700','jade-300','jade-400','jade-500','jade-700','amber-400','amber-600','pos','neg',
+		'bar-hp','bar-qi','bar-ap','bar-armor','bar-morale','bar-xp','bar-track',
+		'q-common','q-sect','q-secret','q-unique','q-supreme',
+		'cat-neigong','cat-waigong','cat-qinggong','cat-henglian','el-zheng','el-yang','el-yin','el-xie',
+		'font-title','font-body','fs-display','fs-h1','fs-h2','fs-h3','fs-body','fs-small','fs-micro',
+		'sp-1','sp-2','sp-3','sp-4','sp-5','sp-6','sp-7','radius','ctrl-h','slot','icon-skill',
+		'shadow-well','shadow-raise','shadow-modal','glow-gold','glow-jade','glow-cinnabar','dur-fast','dur'];
+	var GN = { wood: '乌木', lacquer: '乌木', gold: '鎏金', text: '骨白', cinnabar: '功能', jade: '功能', amber: '功能', pos: '功能', neg: '功能', bar: '资源条', q: '品阶', cat: '四脉', el: '路数', font: '字体', fs: '字号', sp: '间距', radius: '尺寸', ctrl: '尺寸', slot: '尺寸', icon: '尺寸', shadow: '阴影', glow: '阴影', dur: '动效' };
+	for (var a = 0; a < ALL.length; a++) {
+		var name = '--wx-' + ALL[a], val2 = v(name), isColor = /^#|^rgb/.test(val2);
+		var grp = GN[ALL[a].split('-')[0]] || '';
+		rows += '<tr data-copy="' + val2.replace(/"/g, '&quot;') + '"><td><code>var(' + name + ')</code></td><td>' + (isColor ? '<span class="mini" style="background:' + val2 + '"></span>' : '') + '<code>' + val2.replace(/</g, '&lt;') + '</code></td><td>' + grp + '</td></tr>';
+	}
+	tb.innerHTML = rows || '<tr><td colspan="3">本地 file:// 下浏览器禁止读取样式表规则，请直接查看 wx_tokens.css 的 :root 区块。</td></tr>';
+
+	var ap = document.getElementById('ap-track'), apH = '';
+	var kinds = ['used', 'used', 'used', 'used', '', '', '', '', '', 'perm', 'burst', 'burst'];
+	for (i = 0; i < kinds.length; i++) apH += '<i class="' + kinds[i] + '" style="left:' + (0.2 + i * 1.92) + 'rem"></i>';
+	ap.innerHTML = apH;
+
+	var cp = document.getElementById('copied'), timer;
+	document.addEventListener('click', function (e) {
+		var el = e.target; while (el && el !== document && !el.getAttribute('data-copy')) el = el.parentNode;
+		if (!el || el === document) return;
+		var txt = el.getAttribute('data-copy');
+		if (navigator.clipboard) navigator.clipboard.writeText(txt);
+		cp.textContent = '已复制 ' + txt; cp.style.display = 'block';
+		clearTimeout(timer); timer = setTimeout(function () { cp.style.display = 'none'; }, 1400);
+	});
+})();
+</script>
+</body>
+</html>

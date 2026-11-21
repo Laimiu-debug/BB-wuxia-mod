@@ -1,529 +1,1299 @@
 /* ============================================================================
- * BB Wuxia Mod - Dark Ming-era Wuxia UI Stylesheet
+ * BB Wuxia Mod - Character Screen 3-Tab Vanilla-Isomorphic Stylesheet (v2)
+ * 100% Vanilla Textures (button_01..03, button_tab, inventory_slot,
+ * inventory_highlight, perks/selection_frame, dialog_panel_01,
+ * popup_background_600x300, list_item_01, line_gold, inventory_bar_*)
+ * and Vanilla Typography Palette (#dda21f / #d7b174 / #bd9d71 / #CD2626 / #d6dbe9).
+ * CoherentUI Safe: zero CSS variables, zero flex/grid/gap/calc.
  * ============================================================================ */
 
-.wx-panel {
-	position: relative;
-	width: 100%;
-	height: 100%;
-	box-sizing: border-box;
-	padding: 8px 10px;
-	color: #e6dcc8;
-	font-size: 13px;
-	display: flex;
-	flex-direction: column;
-	background: rgba(16, 13, 11, 0.92);
-	border: 1px solid #4a3a28;
+/* ---------------- 1.的原版色板类 ---------------- */
+.wx-t-title { font-family: 'BBMOD Map', 'STSong', 'SimSun', 'Songti SC', 'Microsoft YaHei', 'Cinzel-Bold', serif; font-weight: 600; color: #dda21f; text-shadow: 1px 1px rgba(0, 0, 0, 0.5), -1px -1px #000; }
+.wx-c-title { color: #dda21f; }
+.wx-c-label { color: #d7b174; }
+.wx-c-desc  { color: #bd9d71; font-style: italic; }
+.wx-c-dis   { color: #a7a7a7; }
+.wx-c-neg   { color: #CD2626; }
+.wx-c-stack { color: #d6dbe9; }
+.wx-clear   { clear: both; }
+
+/* ---------------- 2. 右栏三页签顶栏（兵甲行囊 | 武学修为 | 藏经阁） ---------------- */
+.character-screen-container .right-panel-header-module .buttons-container.is-middle
+{
+	left: 9.8rem;
+	width: 51.0rem;
 }
 
-.wx-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding-bottom: 6px;
-	border-bottom: 1px solid #3d3023;
-	margin-bottom: 6px;
+.character-screen-container .right-panel-header-module .buttons-container .l-button.is-inventory
+{
+	left: 0;
+	width: 16.6rem;
 }
 
-.wx-summary-tags {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px;
+.character-screen-container .right-panel-header-module .buttons-container .l-button.is-perks
+{
+	left: 16.8rem;
+	width: 16.6rem;
 }
 
-.wx-tag {
-	padding: 2px 7px;
-	border-radius: 3px;
-	font-size: 12px;
-	background: #231c16;
-	border: 1px solid #524130;
+.character-screen-container .right-panel-header-module .buttons-container .l-button.is-wx-library
+{
+	left: 33.6rem;
+	width: 16.6rem;
 }
 
-.wx-tag-ap {
-	color: #f3d285;
-	border-color: #8c6a2e;
+.character-screen-container .right-panel-header-module .buttons-container .l-button .tab-button
+{
+	width: 16.6rem !important;
+	background-size: 100% 100% !important;
+	font-family: 'BBMOD Map', 'STSong', 'SimSun', 'Songti SC', 'Microsoft YaHei', 'Cinzel-Bold', serif;
+	font-weight: 600;
+	font-size: 1.6rem;
 }
 
-.wx-tag-harmony {
-	color: #8ed1a5;
-	border-color: #366647;
+.wx-tab-badge
+{
+	position: absolute;
+	right: 0.9rem;
+	top: 0.4rem;
+	min-width: 2.0rem;
+	height: 2.0rem;
+	line-height: 2.0rem;
+	padding: 0 0.4rem;
+	font-family: 'FreeUniversal-Regular', sans-serif;
+	font-size: 1.2rem;
+	font-weight: normal;
+	color: #ffffff;
+	background-color: #8f1e1e;
+	border-radius: 1.0rem;
+	text-shadow: none;
+	box-shadow: 0 0 0 1px #000;
+	pointer-events: none;
 }
 
-.wx-tag-conflict {
-	color: #ff8c7a;
-	border-color: #9e3124;
-	background: #361310;
+/* 页签一（兵甲行囊）底栏提示与「典籍入阁」原版短按钮 */
+.wx-stash-strip-hint
+{
+	position: absolute;
+	left: 1.6rem;
+	top: 1.7rem;
+	line-height: 3.0rem;
+	font-size: 1.35rem;
+	color: #bd9d71;
+	font-style: italic;
+	pointer-events: none;
+	white-space: nowrap;
 }
 
-.wx-btn {
+.wx-stash-quick-store-btn
+{
+	position: absolute;
+	right: 18.2rem;
+	top: 1.2rem;
+	width: 10.4rem;
+	height: 3.15rem;
+	line-height: 3.25rem;
+	text-align: center;
+	font-size: 1.4rem;
+	color: #dda21f;
+	text-shadow: 1px 1px 1px #000;
+	background-image: url("coui://gfx/ui/skin/button_02_default.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
 	cursor: pointer;
-	padding: 4px 10px;
-	font-size: 12px;
-	color: #f0e4cc;
-	background: #2e241b;
-	border: 1px solid #785f42;
-	border-radius: 3px;
+	z-index: 15;
+	white-space: nowrap;
 }
 
-.wx-btn:hover {
-	background: #423326;
+.wx-stash-quick-store-btn:hover
+{
+	background-image: url("coui://gfx/ui/skin/button_02_hovered.png");
 }
 
-.wx-btn:disabled {
-	opacity: 0.45;
+.wx-stash-quick-store-btn .wx-cnt
+{
+	color: #d6dbe9;
+	margin-left: 0.3rem;
+	font-size: 1.3rem;
+}
+
+/* ---------------- 3. 原版位图组件包（按钮 / 格位 / 进度条 / 勾选 / 输入 / 金线） ---------------- */
+.wx-vb
+{
+	position: relative;
+	display: inline-block;
+	vertical-align: middle;
+	height: 4.3rem;
+	line-height: 4.4rem;
+	text-align: center;
+	color: #dda21f;
+	text-shadow: 1px 1px 1px #000;
+	cursor: pointer;
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+	font-size: 1.45rem;
+	white-space: nowrap;
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+.wx-vb.is-sel
+{
+	text-shadow: 1px 1px #A36426, -1px -1px #000;
+}
+
+.wx-vb1
+{
+	width: 16.5rem;
+	background-image: url("coui://gfx/ui/skin/button_01_default.png");
+}
+
+.wx-vb1:hover,
+.wx-vb1.is-sel
+{
+	background-image: url("coui://gfx/ui/skin/button_01_hovered.png");
+}
+
+.wx-vb1.is-dis
+{
+	background-image: url("coui://gfx/ui/skin/button_01_inactive.png");
+	color: #a7a7a7;
 	cursor: default;
 }
 
-.wx-btn-wash.has-chance {
-	border-color: #d9a74a;
-	color: #ffe29e;
-	background: #3d2c12;
+.wx-vb2
+{
+	width: 9.6rem;
+	background-image: url("coui://gfx/ui/skin/button_02_default.png");
 }
 
-.wx-btn-danger {
-	border-color: #b53a2a;
-	background: #4f1812;
-	color: #ffd9d2;
+.wx-vb2:hover,
+.wx-vb2.is-sel
+{
+	background-image: url("coui://gfx/ui/skin/button_02_hovered.png");
 }
 
-.wx-toast {
-	display: none;
-	padding: 4px 8px;
-	margin-bottom: 6px;
-	font-size: 12px;
-	border-radius: 3px;
+.wx-vb2.is-dis
+{
+	opacity: 0.45;
+	-webkit-filter: grayscale(100%);
+	color: #a7a7a7;
+	cursor: default;
 }
 
-.wx-toast.is-ok {
-	background: #173322;
-	border: 1px solid #3d8559;
-	color: #c2f0d2;
+.wx-vb3
+{
+	width: 5.0rem;
+	height: 4.1rem;
+	background-image: url("coui://gfx/ui/skin/button_03_default.png");
 }
 
-.wx-toast.is-error {
-	background: #3b1410;
-	border: 1px solid #a8392c;
-	color: #ffd2cc;
+.wx-vb3:hover,
+.wx-vb3.is-sel
+{
+	background-image: url("coui://gfx/ui/skin/button_03_hovered.png");
 }
 
-/* 7 Square Icon Slots */
-.wx-slots-section {
-	padding: 6px 0 8px 0;
-	border-bottom: 1px solid #3d3023;
-}
-
-.wx-slots-row {
-	display: flex;
-	justify-content: center;
-	gap: 10px;
-	margin-bottom: 8px;
-}
-
-.wx-slots-row-free {
-	margin-bottom: 0;
-	gap: 26px;
-}
-
-.wx-slot-card {
-	width: 74px;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-}
-
-.wx-slot-box {
-	position: relative;
-	width: 60px;
-	height: 60px;
-	border-radius: 4px;
-	background: #1c1713;
-	border: 2px solid #594a3a;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	box-sizing: border-box;
-}
-
-.wx-slot-box.is-locked {
-	opacity: 0.52;
-	background: #120f0d;
-	border-style: dashed;
-}
-
-.wx-slot-box.is-drop-valid {
-	box-shadow: 0 0 8px rgba(130, 224, 155, 0.75);
-	border-color: #63c97d;
-}
-
-.wx-slot-box.is-drop-hover {
-	box-shadow: 0 0 12px rgba(255, 214, 102, 0.95);
-	border-color: #ffd666;
-}
-
-.wx-slot-icon {
-	width: 52px;
-	height: 52px;
-	pointer-events: none;
-}
-
-.wx-slot-plus {
-	font-size: 24px;
-	color: #6e5c48;
-}
-
-.wx-slot-lock {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	font-size: 11px;
-	color: #9e8c77;
-}
-
-.wx-frag-badge {
+.wx-vb3 img
+{
 	position: absolute;
-	top: -3px;
-	right: -3px;
-	padding: 0 4px;
-	font-size: 10px;
-	background: #8f1d14;
-	color: #ffe2dc;
-	border: 1px solid #e06a5c;
-	border-radius: 2px;
-}
-
-/* Quality Glow Borders */
-.wx-q-common { border-color: #7d8f7d; }
-.wx-q-sect   { border-color: #4682c4; box-shadow: inset 0 0 6px rgba(70, 130, 196, 0.35); }
-.wx-q-secret { border-color: #9f59d9; box-shadow: inset 0 0 8px rgba(159, 89, 217, 0.45); }
-.wx-q-unique { border-color: #e6b447; box-shadow: 0 0 6px rgba(230, 180, 71, 0.45), inset 0 0 8px rgba(230, 180, 71, 0.4); }
-
-.wx-slot-meta {
-	width: 100%;
-	margin-top: 3px;
-	text-align: center;
-}
-
-.wx-dots {
-	height: 8px;
-	display: flex;
-	justify-content: center;
-	gap: 4px;
-	margin-bottom: 2px;
-}
-
-.wx-dot {
-	width: 6px;
-	height: 6px;
-	border-radius: 50%;
-	background: #332a22;
-	border: 1px solid #6b5844;
-}
-
-.wx-dot.is-lit {
-	background: #f0c259;
-	border-color: #ffe399;
-}
-
-.wx-exp-bar {
-	width: 60px;
-	height: 4px;
-	margin: 0 auto 2px auto;
-	background: #241d17;
-	border-radius: 2px;
-	overflow: hidden;
-}
-
-.wx-exp-fill {
-	height: 100%;
-	background: #5ca8d6;
-}
-
-.wx-exp-fill.is-max     { background: #e3b242; }
-.wx-exp-fill.is-blocked { background: #d94638; }
-.wx-exp-fill.is-frag    { background: #9c3027; }
-
-.wx-slot-caption {
-	font-size: 11px;
-	color: #d9ccb4;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-/* Bottom Stash Drawer */
-.wx-drawer {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	min-height: 0;
-	padding-top: 6px;
-}
-
-.wx-filter-bar {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 4px;
-	margin-bottom: 6px;
-}
-
-.wx-filter-spacer {
-	flex: 1;
-}
-
-.wx-weapon-toggle.is-active {
-	color: #c2f5d1;
-	background: #1b3d28;
-	border-color: #4aa86c;
-}
-
-.wx-search-input {
-	width: 96px;
-	padding: 2px 6px;
-	font-size: 11px;
-	color: #f0e4cc;
-	background: #14100d;
-	border: 1px solid #524130;
-	border-radius: 2px;
-	outline: none;
-}
-
-.wx-search-input:focus {
-	border-color: #b58d4c;
-}
-
-.wx-filter-btn {
-	cursor: pointer;
-	padding: 2px 7px;
-	font-size: 11px;
-	color: #bfb097;
-	background: #1f1914;
-	border: 1px solid #45372a;
-	border-radius: 2px;
-}
-
-.wx-filter-btn.is-active {
-	color: #ffe6ad;
-	background: #3b2d1d;
-	border-color: #a8834a;
-}
-
-.wx-stash-grid {
-	flex: 1;
-	overflow-y: auto;
-	display: flex;
-	flex-wrap: wrap;
-	align-content: flex-start;
-	gap: 6px;
-	padding: 4px;
-	background: rgba(10, 8, 7, 0.55);
-	border: 1px solid #33281e;
-}
-
-.wx-stash-tile {
-	position: relative;
-	width: 62px;
-	padding: 4px 2px 3px 2px;
-	background: #1d1713;
-	border: 2px solid #574838;
-	border-radius: 3px;
-	cursor: grab;
-	text-align: center;
-	box-sizing: border-box;
-}
-
-.wx-tile-icon {
-	width: 44px;
-	height: 44px;
-	display: block;
-	margin: 0 auto;
-	pointer-events: none;
-}
-
-.wx-tile-name {
-	margin-top: 2px;
-	font-size: 10px;
-	color: #e6dac5;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.wx-tile-count {
-	position: absolute;
-	top: 1px;
-	right: 2px;
-	padding: 0 3px;
-	font-size: 10px;
-	background: rgba(15, 12, 10, 0.85);
-	color: #e3d5bc;
-	border-radius: 2px;
-}
-
-.wx-tile-count.is-craftable {
-	background: #1e5934;
-	color: #c8ffd9;
-}
-
-.wx-tile-count.is-wildcard {
-	background: #664914;
-	color: #ffe299;
-}
-
-.wx-tile-count.is-pill {
-	background: #23476b;
-	color: #cbe7ff;
-}
-
-.wx-empty-hint {
-	width: 100%;
-	padding: 20px 8px;
-	text-align: center;
-	color: #8c7d68;
-	font-size: 12px;
-}
-
-/* Tooltip */
-.wx-tooltip {
-	position: absolute;
-	left: 10px;
-	right: 10px;
-	bottom: 10px;
-	z-index: 20;
-	padding: 8px 10px;
-	background: rgba(14, 11, 9, 0.96);
-	border: 1px solid #9e7d4a;
-	border-radius: 4px;
-	pointer-events: none;
-	font-size: 12px;
-	line-height: 1.45;
-}
-
-.wx-tt-title { font-weight: bold; color: #f5d68c; margin-bottom: 3px; }
-.wx-tt-desc  { color: #cfc2ab; margin-bottom: 4px; }
-.wx-tt-tier  { color: #8c806d; }
-.wx-tt-tier.is-unlocked { color: #a7e3b9; }
-.wx-tt-exp   { margin-top: 4px; color: #90c5e8; }
-.wx-tt-warn  { margin-top: 3px; color: #ff8e80; }
-
-/* Modals */
-.wx-modal-backdrop {
-	position: absolute;
-	left: 0; top: 0; right: 0; bottom: 0;
-	z-index: 30;
-	background: rgba(6, 5, 4, 0.82);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.wx-modal-box {
-	width: 90%;
-	max-width: 440px;
-	padding: 12px 14px;
-	background: #1c1612;
-	border: 2px solid #967746;
-	border-radius: 4px;
-}
-
-.wx-modal-title {
-	font-size: 14px;
-	font-weight: bold;
-	color: #f5d68c;
-	padding-bottom: 6px;
-	margin-bottom: 8px;
-	border-bottom: 1px solid #4a3a28;
-}
-
-.wx-modal-body {
-	font-size: 12px;
-	line-height: 1.5;
-	color: #e0d4be;
-}
-
-.wx-modal-actions {
-	display: flex;
-	justify-content: flex-end;
-	gap: 8px;
-	margin-top: 10px;
-}
-
-.wx-wash-source {
-	color: #a9d6f5;
-	margin-bottom: 6px;
-}
-
-.wx-wash-label {
-	margin: 6px 0 4px 0;
-	color: #e6c98a;
-}
-
-.wx-attr-grid {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 5px;
-	margin-bottom: 6px;
-}
-
-.wx-attr-btn {
-	cursor: pointer;
-	width: 48%;
-	display: flex;
-	justify-content: space-between;
-	padding: 4px 7px;
-	font-size: 11px;
-	color: #e6dac5;
-	background: #261f19;
-	border: 1px solid #594735;
-	border-radius: 3px;
-}
-
-.wx-attr-btn.is-selected {
-	border-color: #f0c050;
-	background: #423217;
-	color: #ffe8a6;
-}
-
-.wx-attr-stars {
-	color: #f5c651;
-}
-
-.wx-protect-check {
-	display: block;
-	margin: 6px 0;
-	cursor: pointer;
-	color: #b7e3c5;
-}
-
-.wx-wash-preview {
-	padding: 6px 8px;
-	background: #14100d;
-	border: 1px solid #403224;
-	border-radius: 3px;
-}
-
-.wx-chance-line {
-	margin: 3px 0;
-	color: #ffe18f;
-}
-
-.wx-ap-marks {
-	position: absolute;
-	top: 0;
-	bottom: 0;
 	left: 0;
 	right: 0;
+	top: 0;
+	bottom: 0;
+	margin: auto;
+	width: 2.6rem;
+	height: 2.6rem;
+}
+
+.wx-vb3 img.is-flat
+{
+	width: 2.9rem;
+	height: 2.1rem;
+}
+
+.wx-vb .wx-cnt
+{
+	color: #d6dbe9;
+	margin-left: 0.3rem;
+	font-size: 1.3rem;
+}
+
+/* 原版格位（6.2rem × 6 列适配 39.8rem 原生滚动区） */
+.wx-vslot
+{
+	position: relative;
+	float: left;
+	width: 6.2rem;
+	height: 6.2rem;
+	margin: 0 0.15rem 0.15rem 0;
+	background-image: url("coui://gfx/ui/skin/inventory_slot.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
+
+.wx-vslot > img.wx-it
+{
+	position: absolute;
+	left: 0.25rem;
+	top: 0.2rem;
+	width: 5.7rem;
+	height: 5.7rem;
 	z-index: 2;
 	pointer-events: none;
 }
 
-.wx-ap-marks span {
-	position: absolute;
-	height: 100%;
-	box-sizing: border-box;
-	border-left: 1px solid rgba(35, 23, 11, 0.65);
+.wx-vslot > img.wx-it.is-round
+{
+	left: 0.65rem;
+	top: 0.65rem;
+	width: 4.9rem;
+	height: 4.9rem;
+	border-radius: 50%;
 }
 
-.wx-ap-marks .wx-ap-burst {
-	background-color: #e4ad3e;
+.wx-vslot:hover > img.wx-it
+{
+	-webkit-filter: brightness(1.18);
+}
+
+.wx-vslot .wx-amt
+{
+	position: absolute;
+	right: 0.35rem;
+	bottom: 0.15rem;
+	z-index: 3;
+	font-size: 1.25rem;
+	color: #d6dbe9;
+	text-shadow: 1px 1px 1px #000, -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000;
+	pointer-events: none;
+}
+
+.wx-vslot .wx-tag
+{
+	position: absolute;
+	left: 0.35rem;
+	top: 0.15rem;
+	z-index: 3;
+	font-size: 1.2rem;
+	color: #dda21f;
+	text-shadow: 1px 1px 1px #000, -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000;
+	pointer-events: none;
+}
+
+.wx-vslot .wx-hl
+{
+	position: absolute;
+	left: -0.9rem;
+	top: -1.1rem;
+	width: 8.0rem;
+	height: 8.4rem;
+	z-index: 1;
+	background-image: url("coui://gfx/ui/skin/inventory_highlight.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	pointer-events: none;
+}
+
+.wx-vslot.is-dim > img.wx-it
+{
+	opacity: 0.33;
+}
+
+.wx-vslot .wx-sring
+{
+	position: absolute;
+	left: 0.25rem;
+	top: 0.25rem;
+	width: 5.7rem;
+	height: 5.7rem;
+	z-index: 4;
+	background-image: url("coui://gfx/ui/perks/selection_frame.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	pointer-events: none;
+}
+
+/* 原版经验/火候条与属性条 */
+.wx-vxp
+{
+	position: relative;
+	height: 0.9rem;
+	background-image: url("coui://gfx/ui/skin/inventory_bar_experience_empty.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+}
+
+.wx-vxp > .wx-f
+{
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	background-image: url("coui://gfx/ui/skin/inventory_bar_experience_fill.png");
+	background-size: auto 100%;
+	background-repeat: no-repeat;
+}
+
+.wx-vbar
+{
+	position: relative;
+	width: 12.7rem;
+	height: 2.2rem;
+	background-image: url("coui://gfx/ui/skin/inventory_bar_empty_127.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+}
+
+.wx-vbar > .wx-f
+{
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	background-image: url("coui://gfx/ui/skin/inventory_bar_fill_neutral_127.png");
+	background-size: 12.7rem 2.2rem;
+	background-repeat: no-repeat;
+}
+
+.wx-vbar > .wx-v
+{
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	line-height: 2.2rem;
+	text-align: center;
+	font-size: 1.3rem;
+	color: #c6c6c6;
+	text-shadow: 1px 1px 1px #000;
+}
+
+/* 原版勾选框（iCheck flat/orange）与输入框 */
+.wx-vchk
+{
+	display: inline-block;
+	vertical-align: middle;
+	cursor: pointer;
+	white-space: nowrap;
+	color: #d7b174;
+	font-size: 1.4rem;
+}
+
+.wx-vchk i
+{
+	display: inline-block;
+	vertical-align: middle;
+	width: 2.0rem;
+	height: 2.0rem;
+	margin: -0.3rem 0.55rem 0 0;
+	background-image: url("coui://ui/extern/iCheck/skins/flat/orange.png");
+	background-size: 17.6rem 2.2rem;
+	background-position: 0 0;
+	background-repeat: no-repeat;
+}
+
+.wx-vchk.is-on i
+{
+	background-position: -2.2rem 0;
+}
+
+.wx-vchk.is-dis
+{
+	opacity: 0.45;
+	cursor: default;
+}
+
+.wx-vinput
+{
+	display: inline-block;
+	vertical-align: middle;
+	width: 12.6rem;
+	height: 3.4rem;
+	padding: 0 0.9rem;
+	border: none;
+	outline: none;
+	background-image: url("coui://gfx/ui/skin/text_input_300x40_default.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	color: #dda21f;
+	font-size: 1.35rem;
+	text-shadow: 1px 1px 1px #000;
+	-webkit-user-select: text;
+	user-select: text;
+}
+
+.wx-vinput:focus
+{
+	background-image: url("coui://gfx/ui/skin/text_input_300x40_selected.png");
+}
+
+.wx-vline
+{
+	height: 0.3rem;
+	background-image: url("coui://gfx/ui/skin/line_gold.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+}
+
+/* ---------------- 4. 右上容器与横幅提示（直接绘在原版暖棕皮革底板上） ---------------- */
+.character-screen-container .perks-module,
+.character-screen-container .wx-library-module
+{
+	position: absolute;
+	top: 4.1rem;
+	left: 0.3rem;
+	width: 69.4rem;
+	height: 48.5rem;
+	right: auto;
+	bottom: auto;
+	overflow: visible;
+}
+
+.character-screen-container .perks-module.opacity-none,
+.character-screen-container .wx-library-module.opacity-none
+{
+	display: none;
+}
+
+.wx-panel,
+.wx-lib-panel
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 69.4rem;
+	height: 48.5rem;
+	color: #d7b174;
+	font-size: 1.4rem;
+	line-height: 1.35;
+	text-shadow: 1px 1px 1px #000;
+}
+
+/* 底部分隔条（对齐原版 background_inventory y=615..651 槽数条，右侧留空给原版名册人数） */
+.wx-strip
+{
+	position: absolute;
+	left: 0;
+	right: 10.6rem;
+	top: 45.0rem;
+	height: 3.5rem;
+	line-height: 3.5rem;
+	padding: 0 1.4rem;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.wx-strip .wx-r
+{
+	position: absolute;
+	right: 0.4rem;
+	top: 0;
+}
+
+.wx-strip img
+{
+	width: 2.3rem;
+	height: 2.3rem;
+	vertical-align: middle;
+	margin: -0.3rem 0.35rem 0 0;
+}
+
+/* 原版风格横幅通知（无亮色纸框） */
+.wx-global-toast,
+.wx-toast
+{
+	position: absolute;
+	left: 2.0rem;
+	right: 2.0rem;
+	top: 0.6rem;
+	z-index: 90;
+	text-align: center;
+	pointer-events: none;
+}
+
+.wx-global-toast
+{
+	left: 36.0rem;
+	right: 3.0rem;
+	top: 4.8rem;
+}
+
+.wx-global-toast > span,
+.wx-toast > span
+{
+	display: inline-block;
+	padding: 0.5rem 1.8rem;
+	font-size: 1.5rem;
+	color: #dda21f;
+	background-color: rgba(10, 6, 3, 0.88);
+	text-shadow: 1px 1px 1px #000;
+}
+
+.wx-global-toast.is-error > span,
+.wx-toast.is-error > span
+{
+	color: #CD2626;
+}
+
+/* 原生滚动区包装 */
+.wx-scroll-host .ui-control.list
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+
+.wx-fallback-scroll
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.wx-insp .wx-insp-body::-webkit-scrollbar,
+.wx-popup .wx-pb::-webkit-scrollbar,
+.wx-fallback-scroll::-webkit-scrollbar
+{
+	width: 1.1rem;
+}
+
+.wx-insp .wx-insp-body::-webkit-scrollbar-track,
+.wx-popup .wx-pb::-webkit-scrollbar-track,
+.wx-fallback-scroll::-webkit-scrollbar-track
+{
+	background-image: url("coui://ui/extern/jquery-aciScrollBar/image/aciScrollBar.desk/track_v.png");
+	background-size: 100% 100%;
+}
+
+.wx-insp .wx-insp-body::-webkit-scrollbar-thumb,
+.wx-popup .wx-pb::-webkit-scrollbar-thumb,
+.wx-fallback-scroll::-webkit-scrollbar-thumb
+{
+	background-image: url("coui://ui/extern/jquery-aciScrollBar/image/aciScrollBar.desk/drag_g.png");
+	background-size: 100% 100%;
+}
+
+/* ---------------- 5. 页签二：武学修为（原版天赋页同构） ---------------- */
+.wx-head
+{
+	position: absolute;
+	left: 1.6rem;
+	right: 1.2rem;
+	top: 0.5rem;
+	height: 4.3rem;
+	line-height: 4.3rem;
+	white-space: nowrap;
+}
+
+.wx-head .wx-r
+{
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
+.wx-head .wx-sep
+{
+	color: #6e5a3c;
+	margin: 0 0.55rem;
+}
+
+.wx-head .wx-warn
+{
+	color: #CD2626;
+	cursor: pointer;
+}
+
+.wx-head .wx-warn:hover
+{
+	text-decoration: underline;
+}
+
+/* 七穴经络排 */
+.wx-meridian
+{
+	position: absolute;
+	left: 0.8rem;
+	right: 0.8rem;
+	top: 5.1rem;
+	height: 14.5rem;
+}
+
+.wx-meridian .wx-vline
+{
+	position: absolute;
+	left: 5.0rem;
+	right: 5.0rem;
+	top: 5.1rem;
+	opacity: 0.9;
+}
+
+.wx-mcol
+{
+	position: absolute;
+	top: 0;
+	width: 9.4rem;
+	height: 14.5rem;
+	text-align: center;
+	cursor: pointer;
+}
+
+.wx-mcol .wx-role
+{
+	height: 2.0rem;
+	line-height: 2.0rem;
+	font-size: 1.3rem;
+	color: #bd9d71;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.wx-mcol.is-sel .wx-role
+{
+	color: #dda21f;
+}
+
+.wx-mcol .wx-disc
+{
+	position: relative;
+	width: 6.4rem;
+	height: 6.4rem;
+	margin: 0 auto;
+}
+
+.wx-mcol .wx-disc img.wx-ic
+{
+	position: absolute;
+	left: 0.5rem;
+	top: 0.5rem;
+	width: 5.4rem;
+	height: 5.4rem;
+	border-radius: 50%;
+}
+
+.wx-mcol .wx-disc .wx-ring
+{
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 6.4rem;
+	height: 6.4rem;
+	background-image: url("coui://gfx/ui/perks/selection_frame.png");
+	background-size: 100% 100%;
+	opacity: 0.36;
+}
+
+.wx-mcol.is-sel .wx-disc .wx-ring
+{
+	opacity: 1;
+}
+
+.wx-mcol .wx-disc .wx-well
+{
+	position: absolute;
+	left: 0.6rem;
+	top: 0.6rem;
+	width: 5.2rem;
+	height: 5.2rem;
+	border-radius: 50%;
+	background-color: rgba(0, 0, 0, 0.45);
+}
+
+.wx-mcol .wx-disc .wx-plus
+{
+	position: absolute;
+	left: 2.05rem;
+	top: 2.05rem;
+	width: 2.3rem;
+	height: 2.3rem;
+	opacity: 0.45;
+}
+
+.wx-mcol.is-ready .wx-disc .wx-plus
+{
+	opacity: 1;
+}
+
+.wx-mcol .wx-disc .wx-lock
+{
+	position: absolute;
+	left: 2.1rem;
+	top: 1.7rem;
+	width: 2.2rem;
+	height: 2.8rem;
+	opacity: 0.78;
+}
+
+.wx-mcol.is-locked .wx-disc,
+.wx-mcol.is-locked .wx-role,
+.wx-mcol.is-locked .wx-nm
+{
+	opacity: 0.36;
+}
+
+.wx-mcol.is-off .wx-disc img.wx-ic
+{
+	-webkit-filter: grayscale(100%);
+	opacity: 0.52;
+}
+
+.wx-mcol .wx-disc .wx-hl
+{
+	position: absolute;
+	left: -1.0rem;
+	top: -1.1rem;
+	width: 8.4rem;
+	height: 8.8rem;
+	background-image: url("coui://gfx/ui/skin/inventory_highlight.png");
+	background-size: 100% 100%;
+	display: none;
+	pointer-events: none;
+}
+
+.wx-mcol.is-drop-ok .wx-disc .wx-hl
+{
+	display: block;
+}
+
+.wx-mcol.is-drop-no
+{
+	opacity: 0.33;
+}
+
+.wx-mcol .wx-tier
+{
+	height: 1.9rem;
+	line-height: 1.9rem;
+	margin-top: 0.25rem;
+	font-size: 1.3rem;
+	color: #dda21f;
+	white-space: nowrap;
+}
+
+.wx-mcol .wx-vxp
+{
+	width: 7.0rem;
+	height: 0.8rem;
+	margin: 0 auto;
+}
+
+.wx-mcol .wx-nm
+{
+	height: 2.0rem;
+	line-height: 2.0rem;
+	margin-top: 0.2rem;
+	padding: 0 0.2rem;
+	font-size: 1.35rem;
+	color: #d7b174;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.wx-mcol.is-empty .wx-nm
+{
+	color: #8a7454;
+}
+
+.wx-mcol.is-ready .wx-nm
+{
+	color: #dda21f;
+}
+
+/* 常驻加成与招式条 */
+.wx-pas
+{
+	position: absolute;
+	left: 1.5rem;
+	width: 39.4rem;
+	top: 20.0rem;
+	height: 3.4rem;
+	line-height: 3.4rem;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.wx-pas .wx-lab
+{
+	color: #bd9d71;
+	font-style: italic;
+	margin-right: 0.5rem;
+}
+
+.wx-pas .wx-pit
+{
+	display: inline-block;
+	margin-right: 0.7rem;
+	font-size: 1.35rem;
+	color: #dda21f;
+}
+
+.wx-pas .wx-mv-ico
+{
+	display: inline-block;
+	vertical-align: middle;
+	width: 2.8rem;
+	height: 2.8rem;
+	margin: -0.25rem 0.25rem 0 0;
+	cursor: pointer;
+}
+
+.wx-pas .wx-mv-ico.is-off
+{
+	-webkit-filter: grayscale(100%);
+	opacity: 0.48;
+}
+
+/* 左下书架筛选栏与格位网 */
+.wx-shelf-f
+{
+	position: absolute;
+	left: 1.4rem;
+	width: 39.6rem;
+	top: 23.7rem;
+	height: 4.3rem;
+	white-space: nowrap;
+}
+
+.wx-shelf-f .wx-vb2
+{
+	width: 7.5rem;
+	height: 4.1rem;
+	line-height: 4.2rem;
+	margin-right: -0.1rem;
+}
+
+.wx-shelf-f .wx-vb3
+{
+	width: 4.25rem;
+	height: 4.1rem;
+	margin-left: -0.1rem;
+}
+
+.wx-shelf-f .wx-vb3 img
+{
+	width: 2.35rem;
+	height: 2.35rem;
+}
+
+.wx-shelf-f .wx-r
+{
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
+.wx-shelf-g
+{
+	position: absolute;
+	left: 1.4rem;
+	width: 39.8rem;
+	top: 28.4rem;
+	height: 16.0rem;
+}
+
+/* ---------------- 6. 详览台（原版 dialog_panel_01 皮革底） ---------------- */
+.wx-insp
+{
+	position: absolute;
+	background-image: url("coui://gfx/ui/skin/dialog_panel_01.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+}
+
+.wx-insp.is-wx
+{
+	left: 41.6rem;
+	right: 0.8rem;
+	top: 20.0rem;
+	height: 24.4rem;
+}
+
+.wx-insp.is-lib
+{
+	left: 41.6rem;
+	right: 0.8rem;
+	top: 5.4rem;
+	height: 39.0rem;
+}
+
+.wx-insp .wx-insp-body
+{
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 5.1rem;
+	padding: 1.15rem 1.35rem 0.5rem 1.35rem;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.wx-insp .wx-insp-foot
+{
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0.55rem;
+	height: 4.3rem;
+	text-align: center;
+	white-space: nowrap;
+}
+
+.wx-insp .wx-insp-foot .wx-vb
+{
+	margin: 0 0.15rem;
+}
+
+.wx-insp .wx-hd
+{
+	position: relative;
+	min-height: 5.6rem;
+	padding-left: 6.2rem;
+	margin-bottom: 0.55rem;
+}
+
+.wx-insp .wx-hd img
+{
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 5.4rem;
+	height: 5.4rem;
+}
+
+.wx-insp .wx-hd img.is-round
+{
+	border-radius: 50%;
+}
+
+.wx-insp .wx-hd .wx-t-title
+{
+	font-size: 1.85rem;
+	line-height: 2.35rem;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.wx-insp .wx-hd .wx-s
+{
+	font-size: 1.3rem;
+	line-height: 1.8rem;
+}
+
+.wx-insp .wx-desc
+{
+	font-size: 1.35rem;
+	line-height: 1.9rem;
+	color: #bd9d71;
+	font-style: italic;
+	margin-bottom: 0.65rem;
+}
+
+.wx-insp .wx-tl
+{
+	font-size: 1.35rem;
+	line-height: 1.88rem;
+	margin-bottom: 0.45rem;
+	color: #8a7454;
+}
+
+.wx-insp .wx-tl b
+{
+	font-weight: normal;
+	color: #a08860;
+	margin-right: 0.35rem;
+}
+
+.wx-insp .wx-tl.is-done
+{
+	color: #d7b174;
+}
+
+.wx-insp .wx-tl.is-done b,
+.wx-insp .wx-tl.is-next b
+{
+	color: #dda21f;
+}
+
+.wx-insp .wx-tl .wx-vxp
+{
+	width: 13.0rem;
+	margin-top: 0.25rem;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.wx-insp .wx-ln
+{
+	font-size: 1.35rem;
+	line-height: 1.9rem;
+	margin-bottom: 0.25rem;
+}
+
+/* ---------------- 7. 页签三：藏经阁 ---------------- */
+.wx-fbar
+{
+	position: absolute;
+	left: 1.4rem;
+	right: 0.8rem;
+	top: 0.5rem;
+	height: 4.3rem;
+	white-space: nowrap;
+}
+
+.wx-fbar .wx-vb3
+{
+	width: 4.7rem;
+	margin-right: -0.15rem;
+}
+
+.wx-fbar .wx-gap
+{
+	display: inline-block;
+	width: 0.6rem;
+}
+
+.wx-fbar .wx-r
+{
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
+.wx-lib-g
+{
+	position: absolute;
+	left: 1.4rem;
+	width: 39.8rem;
+	top: 5.4rem;
+	height: 39.0rem;
+}
+
+/* 拖拽幻影 */
+.wx-drag-ghost
+{
+	position: fixed;
+	z-index: 10050;
+	width: 5.4rem;
+	height: 5.4rem;
+	margin: -2.7rem 0 0 -2.7rem;
+	pointer-events: none;
+	opacity: 0.92;
+}
+
+.wx-drag-ghost img
+{
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+}
+
+/* ---------------- 8. 原版木板弹窗（popup_background_600x300 + 升级行结构 + list_item_01） ---------------- */
+.wx-modal-backdrop
+{
+	position: absolute;
+	left: -20.9rem;
+	top: -12.5rem;
+	width: 142.1rem;
+	height: 90.6rem;
+	z-index: 950;
+	background-color: rgba(0, 0, 0, 0.52);
+}
+
+.wx-popup
+{
+	position: relative;
+	width: 54.0rem;
+	margin: 18.0rem auto 0 auto;
+	padding: 2.1rem 3.2rem 1.8rem 3.2rem;
+	background-image: url("coui://gfx/ui/skin/popup_background_600x300.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	color: #d7b174;
+	font-size: 1.45rem;
+	line-height: 2.15rem;
+	text-shadow: 1px 1px 1px #000;
+	box-shadow: 0 0 2.8rem rgba(0, 0, 0, 0.9);
+}
+
+.wx-popup.is-wash
+{
+	width: 58.0rem;
+	margin-top: 12.0rem;
+}
+
+.wx-popup .wx-ph
+{
+	text-align: center;
+	font-size: 2.2rem;
+	line-height: 3.0rem;
+	margin-bottom: 0.9rem;
+}
+
+.wx-popup .wx-pb
+{
+	max-height: 44.0rem;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.wx-popup .wx-pf
+{
+	margin-top: 1.3rem;
+	text-align: center;
+	white-space: nowrap;
+}
+
+.wx-popup .wx-pf .wx-vb
+{
+	margin: 0 0.4rem;
+}
+
+.wx-popup .wx-swap
+{
+	text-align: center;
+	white-space: nowrap;
+	margin-bottom: 0.8rem;
+}
+
+.wx-popup .wx-swap .wx-vslot
+{
+	float: none;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.wx-popup .wx-swap .wx-arr
+{
+	display: inline-block;
+	vertical-align: middle;
+	margin: 0 1.5rem;
+	font-size: 2.0rem;
+	color: #dda21f;
+}
+
+/* 灌注选择列表（原版 list_item_01） */
+.wx-pick
+{
+	position: relative;
+	height: 6.6rem;
+	padding: 0.85rem 1.4rem 0 7.6rem;
+	margin-bottom: 0.4rem;
+	cursor: pointer;
+	background-image: url("coui://gfx/ui/skin/list_item_01.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+}
+
+.wx-pick:hover
+{
+	background-image: url("coui://gfx/ui/skin/list_item_01_hovered.png");
+}
+
+.wx-pick .wx-vslot
+{
+	position: absolute;
+	left: 0.8rem;
+	top: 0.2rem;
+}
+
+.wx-pick .wx-g
+{
+	position: absolute;
+	right: 1.6rem;
+	top: 2.1rem;
+	color: #dda21f;
+	font-size: 1.45rem;
+}
+
+/* 洗经伐髓属性行（原版升级弹窗结构：图标 + 天赋星 + 属性条 + 属性名） */
+.wx-lvrow
+{
+	position: relative;
+	float: left;
+	width: 25.0rem;
+	height: 3.6rem;
+	margin: 0 1.2rem 0.4rem 0;
+	cursor: pointer;
+}
+
+.wx-lvrow.is-even
+{
+	margin-right: 0;
+}
+
+.wx-lvrow img.wx-ico
+{
+	position: absolute;
+	left: 0.6rem;
+	top: 0.5rem;
+	width: 2.6rem;
+	height: 2.6rem;
+}
+
+.wx-lvrow .wx-vbar
+{
+	position: absolute;
+	left: 3.8rem;
+	top: 0.7rem;
+	width: 12.7rem;
+}
+
+.wx-lvrow img.wx-talent
+{
+	position: absolute;
+	left: 4.2rem;
+	top: -0.55rem;
+	width: 3.6rem;
+	height: 1.8rem;
+	z-index: 2;
+}
+
+.wx-lvrow .wx-nm
+{
+	position: absolute;
+	left: 17.2rem;
+	top: 0;
+	line-height: 3.6rem;
+	font-size: 1.4rem;
+	color: #d7b174;
+}
+
+.wx-lvrow:hover
+{
+	background-color: rgba(129, 50, 24, 0.28);
+}
+
+.wx-lvrow.is-sel
+{
+	background-color: rgba(129, 50, 24, 0.65);
+}
+
+.wx-lvrow.is-rep
+{
+	background-color: rgba(143, 30, 30, 0.58);
+}
+
+.wx-lvrow.is-max
+{
+	opacity: 0.4;
+	cursor: default;
+}
+
+.wx-odds
+{
+	clear: both;
+	padding-top: 0.6rem;
+	font-size: 1.45rem;
+	line-height: 2.2rem;
 }

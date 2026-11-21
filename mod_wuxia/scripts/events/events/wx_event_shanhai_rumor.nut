@@ -16,7 +16,7 @@ this.wx_event_shanhai_rumor <- this.inherit("scripts/events/event", {
 
 		this.m.Screens.push({
 			ID = "A",
-			Text = "[img]gfx/ui/events/event_80.png[/img]道旁茅店檐下挂着几串异兽利齿，一名独臂老猎妖师正对着一卷残破泛黄的《山海异兽图志》独酌。见你们兵甲精良、气度不凡，他敲了敲旱烟杆压低声音道：『近来大荒地脉异动，《山海经》所载的上古凶兽现世作乱。老朽早年折了一条胳膊才摸清其中一处巢穴方位——给我一百五十两买酒钱，这处凶兽秘境便画在诸位舆图之上！』",
+			Text = "[img]gfx/ui/events/wx_ev_21.png[/img]道旁茅店檐下挂着几串异兽利齿，一名独臂老猎妖师正对着一卷残破泛黄的《山海异兽图志》独酌。见你们兵甲精良、气度不凡，他敲了敲旱烟杆压低声音道：『近来大荒地脉异动，《山海经》所载的上古凶兽现世作乱。老朽早年折了一条胳膊才摸清其中一处巢穴方位——给我一百五十两买酒钱，这处凶兽秘境便画在诸位舆图之上！』",
 			Image = "",
 			List = [],
 			Characters = [],
@@ -55,21 +55,22 @@ this.wx_event_shanhai_rumor <- this.inherit("scripts/events/event", {
 					local sTile = site.getTile();
 					local dir = ::Wuxia.ShanHai.getCompassDirection(pTile, sTile);
 					local dist = pTile.getDistanceTo(sTile);
-					if ("setDiscovered" in site) site.setDiscovered(true);
+					if (::Wuxia.hasMember(site, "setDiscovered")) site.setDiscovered(true);
+					site.getFlags().set("wx_charted", true);
 					if ("uncoverFogOfWar" in ::World) ::World.uncoverFogOfWar(sTile.Pos, 500.0);
-					this.Text = "[img]gfx/ui/events/event_80.png[/img]老猎妖师蘸着烈酒在羊皮舆图上重重一点：\n\n『自此地往 [color=#ffd88a]" + dir + "[/color] 行约 [color=#ffd88a]" + dist + " 格[/color]路程，便是 [color=#ff8e80]" + site.getName() + "[/color]！大妖凶威非同小可，但若能取其山海内丹带回城中百工剥制师处，便可锻出刀枪难入的山海传世宝甲与异宝！』\n\n（该处【山海秘境】已在世界地图迷雾中点亮！）";
+					this.Text = "[img]gfx/ui/events/wx_ev_21.png[/img]老猎妖师蘸着烈酒在羊皮舆图上重重一点：\n\n『自此地往 [color=#ffd88a]" + dir + "[/color] 行约 [color=#ffd88a]" + dist + " 格[/color]路程，便是 [color=#ff8e80]" + site.getName() + "[/color]！大妖凶威非同小可，但若能取其山海内丹带回城中百工剥制师处，便可锻出刀枪难入的山海传世宝甲与异宝！』\n\n（该处【山海秘境】已在世界地图迷雾中点亮！）";
 				}
 				else
 				{
 					::World.Assets.addMoney(150);
-					this.Text = "[img]gfx/ui/events/event_80.png[/img]老猎妖师翻遍图志，啧啧称奇道：『怪哉，这方圆千里的山海大妖竟已被高人扫荡一空！』说罢将银两推还于你。";
+					this.Text = "[img]gfx/ui/events/wx_ev_21.png[/img]老猎妖师翻遍图志，啧啧称奇道：『怪哉，这方圆千里的山海大妖竟已被高人扫荡一空！』说罢将银两推还于你。";
 				}
 			}
 		});
 
 		this.m.Screens.push({
 			ID = "NoMoney",
-			Text = "[img]gfx/ui/events/event_80.png[/img]摸了摸钱袋竟凑不出一百五十两现银，老猎妖师摇了摇头自顾饮酒去了。",
+			Text = "[img]gfx/ui/events/wx_ev_21.png[/img]摸了摸钱袋竟凑不出一百五十两现银，老猎妖师摇了摇头自顾饮酒去了。",
 			Image = "",
 			List = [],
 			Characters = [],

@@ -6,7 +6,7 @@
 	if (_weapon == null) return false;
 
 	local wid = _weapon.getID().tolower();
-	local cats = ("Categories" in _weapon.m && _weapon.m.Categories != null) ? _weapon.m.Categories.tolower() : "";
+	local cats = (::Wuxia.hasMember(_weapon.m, "Categories") && _weapon.m.Categories != null) ? _weapon.m.Categories.tolower() : "";
 
 	if (wid.find("weapon.wx_relic_") == 0 && ("RelicWeapons" in ::Wuxia.Config))
 	{
@@ -29,7 +29,7 @@
 		// Path 1: MSU WeaponType if MSU is installed
 		if ("WeaponType" in ::Const.Items && wtName in ::Const.Items.WeaponType)
 		{
-			if ("isWeaponType" in _weapon && _weapon.isWeaponType(::Const.Items.WeaponType[wtName]))
+			if (::Wuxia.hasMember(_weapon, "isWeaponType") && _weapon.isWeaponType(::Const.Items.WeaponType[wtName]))
 				return true;
 		}
 
@@ -56,9 +56,9 @@
 		}
 		else if (wtName == "Bow" && wid.find("bow") != null && wid.find("crossbow") == null) return true;
 		else if (wtName == "Crossbow" && wid.find("crossbow") != null) return true;
-		else if (wtName == "Staff" && (wid == "weapon.wooden_stick" || wid == "weapon.bludgeon" || wid == "weapon.goedendag")) return true;
-		else if (wtName == "Fist" && (wid.find("wx_fist") != null || wid.find("wx_named_fist") != null || cats.find("fist") != null || cats.find("拳") != null || cats.find("掌") != null)) return true;
-		else if (wtName == "Hammer" && (wid.find("hammer") != null || wid == "weapon.military_pick" || wid == "weapon.pickaxe" || wid == "weapon.heavy_mining_pick" || cats.find("hammer") != null || cats.find("锤") != null)) return true;
+		else if (wtName == "Staff" && (wid == "weapon.wooden_stick" || wid == "weapon.bludgeon" || wid == "weapon.goedendag" || wid.find("staff") != null || cats.find("staff") != null || cats.find("棍") != null || cats.find("杖") != null)) return true;
+		else if (wtName == "Fist" && (wid.find("wx_fist") != null || wid.find("wx_beast_fist") != null || wid.find("wx_named_fist") != null || cats.find("fist") != null || cats.find("拳") != null || cats.find("掌") != null)) return true;
+		else if (wtName == "Hammer" && wid != "weapon.wooden_stick" && wid != "weapon.bludgeon" && wid != "weapon.goedendag" && wid.find("staff") == null && (wid.find("hammer") != null || wid == "weapon.military_pick" || wid == "weapon.pickaxe" || wid == "weapon.heavy_mining_pick" || cats.find("hammer") != null || cats.find("锤") != null)) return true;
 		else if (wtName == "Axe" && wid != "weapon.pickaxe" && (wid.find("axe") != null || wid.find("hatchet") != null || wid.find("bardiche") != null || cats.find("axe") != null || cats.find("斧") != null)) return true;
 		else if (wtName == "Flail" && (wid.find("flail") != null || wid.find("whip") != null || cats.find("flail") != null || cats.find("连枷") != null || cats.find("鞭") != null)) return true;
 		else if (wtName == "Dagger" && (wid.find("dagger") != null || wid == "weapon.knife" || wid.find("qatal") != null || wid == "weapon.goblin_notched_blade" || cats.find("dagger") != null || cats.find("匕") != null)) return true;
@@ -69,14 +69,14 @@
 
 ::Wuxia.CombatRules.hasSingleHandEmptyOffhand <- function( _actor )
 {
-	if (_actor == null || !("getItems" in _actor)) return false;
+	if (_actor == null || !(::Wuxia.hasMember(_actor, "getItems"))) return false;
 	local items = _actor.getItems();
 	if (items == null) return false;
 	local main = items.getItemAtSlot(::Const.ItemSlot.Mainhand);
 	if (main == null) return false;
 	if (items.getItemAtSlot(::Const.ItemSlot.Offhand) != null || items.hasBlockedSlot(::Const.ItemSlot.Offhand))
 		return false;
-	if ("getBlockedSlotType" in main && main.getBlockedSlotType() != null)
+	if (::Wuxia.hasMember(main, "getBlockedSlotType") && main.getBlockedSlotType() != null)
 		return false;
 	return main.isItemType(::Const.Items.ItemType.MeleeWeapon) || ::Wuxia.CombatRules.matchesWeapon(main, ["Throwing"]);
 };

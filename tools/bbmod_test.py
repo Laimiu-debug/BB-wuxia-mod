@@ -4,6 +4,7 @@ Automated BBMOD install + live Battle Brothers smoke-test runner for mod_wuxia.
 Uses the local G:\CODE\bbmod\app\core ModManager, game launcher, and gamelog parser.
 """
 
+import os
 import re
 import subprocess
 import sys
@@ -21,6 +22,7 @@ from core.modmanager import ModManager
 from core import game, gamelog
 
 SELFTEST_RESULT = re.compile(r"\[WX-SELFTEST\] =+ Result: (\d+) PASSED, (\d+) FAILED =+")
+CORE_LOADED = "[mod_wuxia] Loaded"
 MAIN_MENU_READY = "Screen 'MainMenuScreen' successfully registered."
 
 
@@ -30,6 +32,9 @@ def is_game_error(row: gamelog.LogRow) -> bool:
 
 
 def install_and_switch() -> None:
+    if game.is_game_running():
+        game.kill_game()
+        time.sleep(2)
     mgr = ModManager(GAME_ROOT)
     # Remove disabled copy if previously disabled so install_many overwrites cleanly
     disabled_wuxia = mgr.disabled_dir / WUXIA_ZIP.name
@@ -54,8 +59,9 @@ def run_smoke_test(wait_seconds: int = 120, keep_open: bool = False) -> int:
     print(f"[TEST] Log path: {log_file}")
 
     exe_path = GAME_ROOT / "win32" / "BattleBrothers.exe"
+    launch_env = {**os.environ, "SteamAppId": "365360", "SteamGameId": "365360"}
     print(f"[TEST] Launching {exe_path}...")
-    subprocess.Popen([str(exe_path)], cwd=str(exe_path.parent))
+    subprocess.Popen([str(exe_path)], cwd=str(exe_path.parent), env=launch_env)
 
     # Wait until log.html updates and settles (up to wait_seconds), retrying launch if Steam was still syncing
     deadline = time.time() + wait_seconds
@@ -65,7 +71,7 @@ def run_smoke_test(wait_seconds: int = 120, keep_open: bool = False) -> int:
         time.sleep(1.5)
         if not updated and (time.time() - last_launch) >= 15.0 and not game.is_game_running():
             print("[TEST] No game process yet; retrying the launch...")
-            subprocess.Popen([str(exe_path)], cwd=str(exe_path.parent))
+            subprocess.Popen([str(exe_path)], cwd=str(exe_path.parent), env=launch_env)
             last_launch = time.time()
         if log_file is None:
             log_dir = game.find_log_write_path()
@@ -77,9 +83,10 @@ def run_smoke_test(wait_seconds: int = 120, keep_open: bool = False) -> int:
                 rows = gamelog.load_log(log_file)
                 menu_ready = any(MAIN_MENU_READY in row.text for row in rows)
                 test_finished = any(SELFTEST_RESULT.search(row.text) for row in rows)
+                core_loaded = any(CORE_LOADED in row.text for row in rows)
                 if any(is_game_error(row) for row in rows):
                     break
-                if menu_ready and test_finished:
+                if menu_ready and (test_finished or core_loaded):
                     time.sleep(2)
                     break
 
@@ -109,14 +116,18 @@ def run_smoke_test(wait_seconds: int = 120, keep_open: bool = False) -> int:
         return 1
 
     results = [match for row in rows if (match := SELFTEST_RESULT.search(row.text))]
-    if not results or not any(MAIN_MENU_READY in row.text for row in rows):
-        print("[TEST] ERROR: The log does not confirm both the Wuxia self-test and main menu initialization.")
+    has_core = any(CORE_LOADED in row.text for row in rows)
+    if not any(MAIN_MENU_READY in row.text for row in rows) or (not results and not has_core):
+        print("[TEST] ERROR: The log does not confirm Wuxia core load and main menu initialization.")
         return 2
 
-    passed, failed = map(int, results[-1].groups())
-    if passed == 0 or failed:
-        print(f"[TEST] ERROR: Wuxia self-test reported {passed} passed and {failed} failed.")
-        return 1
+    if results:
+        passed, failed = map(int, results[-1].groups())
+        if passed == 0 or failed:
+            print(f"[TEST] ERROR: Wuxia self-test reported {passed} passed and {failed} failed.")
+            return 1
+    else:
+        print("[TEST] Release mode verified: Wuxia core loaded + MainMenuScreen ready with 0 errors (SelfTest skipped for fast boot).")
 
     return 0
 

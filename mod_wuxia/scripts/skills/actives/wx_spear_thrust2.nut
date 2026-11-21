@@ -7,12 +7,16 @@ this.wx_spear_thrust2 <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_spear_thrust2";
+		this.m.WX_VfxBrush <- "wx_vfx_02";
+		this.m.WX_AnimID <- "wx_anim_25";
+		this.m.WX_AnimMode <- "phoenix9";
+		this.m.WX_ChoreoID <- "wx_spear_thrust2";
 		this.m.Name = "百鸟朝凤刺";
 		this.m.Description = "抖擞大枪幻出漫天枪影（1~2 格）：命中 +10、穿甲 +10%，命中必留「破绽」；若目标贴身则一枪将其震退 1 格重夺长兵距离！";
 		this.m.KilledString = "乱枪穿心";
-		this.m.Icon = "skills/active_18.png";
-		this.m.IconDisabled = "skills/active_18_sw.png";
-		this.m.Overlay = "active_18";
+		this.m.Icon = "skills/wx_spear_thrust2.png";
+		this.m.IconDisabled = "skills/wx_spear_thrust2_sw.png";
+		this.m.Overlay = "wx_ov_wx_spear_thrust2";
 		this.m.SoundOnUse = [
 			"sounds/combat/thrust_01.wav",
 			"sounds/combat/thrust_02.wav"
@@ -41,6 +45,7 @@ this.wx_spear_thrust2 <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local target = _targetTile.getEntity();
 		local wasAdjacent = (_user.isPlacedOnMap() && _user.getTile().getDistanceTo(_targetTile) == 1);
 		local hit = this.attackEntity(_user, target);

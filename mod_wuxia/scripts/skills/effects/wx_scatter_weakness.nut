@@ -10,7 +10,7 @@ this.wx_scatter_weakness <- this.inherit("scripts/skills/skill", {
 		this.m.ID = "effects.wx_scatter_weakness";
 		this.m.Name = "散功虚弱";
 		this.m.Description = "强行散去旧功重修所致的气血虚浮，需调养数日或服用护心丹化解。";
-		this.m.Icon = "ui/traits/trait_icon_30.png";
+		this.m.Icon = "skills/wx_scatter_weakness.png";
 		this.m.Type = this.Const.SkillType.StatusEffect;
 		this.m.Order = this.Const.SkillOrder.VeryLast;
 		this.m.IsActive = false;

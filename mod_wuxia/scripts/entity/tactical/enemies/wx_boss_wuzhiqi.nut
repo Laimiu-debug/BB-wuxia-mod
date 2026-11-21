@@ -1,4 +1,4 @@
-// Shan Hai Jing Apex Boss Entity: 【山海大妖】龟山寒渊·淮水无支祁
+// Shan Hai Jing Apex Boss Entity (中山经): 【山海大妖】龟山寒渊·淮水无支祁
 
 this.wx_boss_wuzhiqi <- this.inherit("scripts/entity/tactical/enemies/unhold_bog", {
 	m = {},

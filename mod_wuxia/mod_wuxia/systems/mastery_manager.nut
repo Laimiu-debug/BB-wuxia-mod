@@ -31,7 +31,7 @@
 		if (k == "MinStarsOnAny")
 		{
 			local maxStar = 0;
-			if ("m" in _actor && "Talents" in _actor.m)
+			if (::Wuxia.Appearance.hasMember(_actor, "m") && ::Wuxia.Appearance.hasMember(_actor.m, "Talents"))
 			{
 				foreach (st in _actor.m.Talents)
 				{
@@ -94,12 +94,14 @@
 		if (!reqCheck.Met)
 		{
 			slot.Exp = needed; // Hold at cap until requirements are met
+			c.syncSlotToLearned(_slotIndex);
 			return { Advanced = false, BlockedByReq = true, Missing = reqCheck.Missing };
 		}
 	}
 
 	slot.Exp -= needed;
 	slot.Tier = nextTier;
+	c.syncSlotToLearned(_slotIndex);
 
 	// Grant one-time unique mastery rewards (e.g. Taixu Zhenjing Tier 3 Wash Chance)
 	local lvlData = def.Levels[slot.Tier - 1];
@@ -134,6 +136,7 @@
 		return { Advanced = false };
 
 	slot.Exp += _amount;
+	c.syncSlotToLearned(_slotIndex);
 
 	local result = { Advanced = false, NewTier = slot.Tier, BlockedByReq = false, Missing = [] };
 	// Allow chained advances if a huge pill/battle burst crosses a threshold

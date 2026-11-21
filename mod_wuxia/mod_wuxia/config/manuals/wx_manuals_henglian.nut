@@ -3,7 +3,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_tengpai_shu <- {
 	ID = "wx_manual_tengpai_shu", Name = "藤牌滚刀操", Category = "henglian", Quality = "common",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_30.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_tactics.png",
 	Description = "岭南藤牌营步卒必修的持盾守御操典，举盾严密且省内力。",
 	BasePrice = 280, FragmentsNeeded = 0, AllowFragmentLearn = false, Requirements = {},
 	Levels = [
@@ -15,7 +15,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_qunjia_ce <- {
 	ID = "wx_manual_qunjia_ce", Name = "群狼合围术", Category = "henglian", Quality = "common",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_32.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_tactics.png",
 	Description = "绿林山寨喽啰一拥而上以多打少的街头狠招，友军围攻越多准头越毒。",
 	BasePrice = 340, FragmentsNeeded = 0, AllowFragmentLearn = false, Requirements = {},
 	Levels = [
@@ -27,7 +27,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_pijia_zhuang <- {
 	ID = "wx_manual_pijia_zhuang", Name = "披甲负重桩", Category = "henglian", Quality = "common",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_40.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_henglian.png",
 	Description = "守塞军士身披札甲跑步打桩的硬功夫，早早习得披甲行气减轻甲胄拖累。",
 	BasePrice = 370, FragmentsNeeded = 0, AllowFragmentLearn = false, Requirements = {},
 	Levels = [
@@ -39,7 +39,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_tongtou_gong <- {
 	ID = "wx_manual_tongtou_gong", Name = "铁头护额功", Category = "henglian", Quality = "common",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_06.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_henglian.png",
 	Description = "外家武师以木槌拍打额骨练就的硬脑壳，大成后免受重兵爆头致命暴击。",
 	BasePrice = 280, FragmentsNeeded = 0, AllowFragmentLearn = false, Requirements = {},
 	Levels = [
@@ -51,7 +51,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_kuaishou_nang <- {
 	ID = "wx_manual_kuaishou_nang", Name = "百宝快手诀", Category = "henglian", Quality = "common",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_39.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_henglian.png",
 	Description = "走江湖卖解与镖队趟子手切换长短兵刃、投网暗器的利落手法，不限主手兵器。",
 	BasePrice = 340, FragmentsNeeded = 0, AllowFragmentLearn = false, Requirements = {},
 	Levels = [
@@ -63,7 +63,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_jinzhong_rumen <- {
 	ID = "wx_manual_jinzhong_rumen", Name = "排打抗揍功", Category = "henglian", Quality = "common",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_06.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_henglian.png",
 	Description = "川江纤夫与码头脚夫彼此排打练皮肉的土法横练，气血厚实耐殴打。",
 	BasePrice = 370, FragmentsNeeded = 0, AllowFragmentLearn = false, Requirements = {},
 	Levels = [
@@ -75,7 +75,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_zhanma_tongpao <- {
 	ID = "wx_manual_zhanma_tongpao", Name = "鸳鸯伍阵谱", Category = "henglian", Quality = "common",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_28.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_henglian.png",
 	Description = "东南抗倭军伍流传的结伍互保阵法，与同伴并肩站立时守御倍增。",
 	BasePrice = 310, FragmentsNeeded = 0, AllowFragmentLearn = false, Requirements = {},
 	Levels = [
@@ -87,7 +87,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_yexiao_yan <- {
 	ID = "wx_manual_yexiao_yan", Name = "夜枭辨位术", Category = "henglian", Quality = "common",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_02.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_henglian.png",
 	Description = "暗室观香锻炼眼力的江湖异术，黑夜交锋不受视线受阻之苦。",
 	BasePrice = 280, FragmentsNeeded = 0, AllowFragmentLearn = false, Requirements = {},
 	Levels = [
@@ -99,7 +99,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_shixue_kuang <- {
 	ID = "wx_manual_shixue_kuang", Name = "悍匪饮血诀", Category = "henglian", Quality = "common",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_36.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_henglian.png",
 	Description = "亡命刀客见血兴奋的凶戾法门，斩杀生人敌军可略微平复自身创伤。",
 	BasePrice = 340, FragmentsNeeded = 0, AllowFragmentLearn = false, Requirements = {},
 	Levels = [
@@ -111,7 +111,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_poxie_fushui <- {
 	ID = "wx_manual_poxie_fushui", Name = "朱砂辟邪咒", Category = "henglian", Quality = "common",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_27.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_henglian.png",
 	Description = "辰州方士绘于兵刃甲衣上的朱砂符法，壮胆定神，略增对尸傀机关杀伤。",
 	BasePrice = 280, FragmentsNeeded = 0, AllowFragmentLearn = false, Requirements = {},
 	Levels = [
@@ -123,19 +123,19 @@
 
 ::Wuxia.Config.Manuals.wx_manual_lingnan_tengdun <- {
 	ID = "wx_manual_lingnan_tengdun", Name = "岭南藤牌阵解", Category = "henglian", Quality = "sect",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_30.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_tactics.png",
 	Description = "岭南藤牌悍卒营镇营盾术：桐油老藤牌水火难侵，可施展「铁壁震山靠」撞退强敌且不惧围攻！",
 	BasePrice = 2260, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { MeleeDefense = 15 },
 	Levels = [
 		{ ExpNeeded = 0, Stats = { Hitpoints = 6, MeleeDefense = 2 }, GrantSkills = ["actives.wx_shield_bash_qi"], Flags = { ShieldDefBonus = 3, ShieldWallExpert = true }, Summary = "气血 +6，招架 +2；习得「铁壁震山靠」；持盾双防 +3，专精盾术省气。" },
 		{ ExpNeeded = 160, Stats = { Hitpoints = 12, MeleeDefense = 3, RangedDefense = 2 }, GrantSkills = ["actives.wx_shield_bash_qi"], Flags = { ShieldDefBonus = 4, ShieldWallExpert = true }, Summary = "气血 +12，招架 +3，避暗 +2；持盾双防 +4，专精盾术省气。" },
-		{ ExpNeeded = 360, Stats = { Hitpoints = 16, MeleeDefense = 4, RangedDefense = 4 }, GrantSkills = ["actives.wx_shield_bash_qi"], Flags = { ShieldDefBonus = 6, ShieldWallExpert = true, UnderdogGuard = true }, Summary = "气血 +16，招架 +4，避暗 +4；持盾双防 +6，专精盾术省气，免除被围攻近防惩罚。" }
+		{ ExpNeeded = 360, Stats = { Hitpoints = 16, MeleeDefense = 4, RangedDefense = 4 }, GrantSkills = ["actives.wx_shield_bash_qi", "actives.wx_shield_tiebi"], Flags = { ShieldDefBonus = 6, ShieldWallExpert = true, UnderdogGuard = true }, Summary = "气血 +16，招架 +4，避暗 +4；持盾双防 +6，专精盾术省气，免除被围攻近防惩罚。" }
 	]
 };
 
 ::Wuxia.Config.Manuals.wx_manual_hengshan_tiebi <- {
 	ID = "wx_manual_hengshan_tiebi", Name = "北岳盘石硬功", Category = "henglian", Quality = "sect",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_40.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_henglian.png",
 	Description = "北岳守塞堂重甲护卫横练，披重甲如着单衣，铜头护额且与友军结成铁壁。",
 	BasePrice = 2140, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { Hitpoints = 70, Stamina = 95 },
 	Levels = [
@@ -147,7 +147,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_shaolin_tongren <- {
 	ID = "wx_manual_shaolin_tongren", Name = "少室十八铜人功", Category = "henglian", Quality = "sect",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_30.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_tactics.png",
 	Description = "少室禅院护寺铜人阵外家硬功，皮肉坚逾精铜，受近身劈砍能反震损毁敌方护甲且免围攻破防。",
 	BasePrice = 2260, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { Hitpoints = 72 },
 	Levels = [
@@ -159,7 +159,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_taihe_mianjin <- {
 	ID = "wx_manual_taihe_mianjin", Name = "太和柔云卸劲篇", Category = "henglian", Quality = "sect",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_29.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_henglian.png",
 	Description = "太和玄门道袍轻装护身法：不仗铁甲厚重，单凭圆转柔劲卸去泰半气血实伤。",
 	BasePrice = 2200, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { Initiative = 98 },
 	Levels = [
@@ -171,7 +171,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_baima_zhenshu <- {
 	ID = "wx_manual_baima_zhenshu", Name = "白马军阵号令", Category = "henglian", Quality = "sect",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_28.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_tactics.png",
 	Description = "白马义从营百夫长战阵指挥要诀，定力光环笼罩四方同袍，且掩护射艺更为犀利。",
 	BasePrice = 2140, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { Bravery = 55 },
 	Levels = [
@@ -183,19 +183,19 @@
 
 ::Wuxia.Config.Manuals.wx_manual_xinglin_jinshen <- {
 	ID = "wx_manual_xinglin_jinshen", Name = "金针渡劫护心术", Category = "henglian", Quality = "sect",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_07.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_henglian.png",
 	Description = "杏林济世堂以金针封住奇穴的保命奇术，濒死锁血九死一生，且交战中源源止血解毒。",
 	BasePrice = 2200, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { Bravery = 48 },
 	Levels = [
 		{ ExpNeeded = 0, Stats = { Hitpoints = 8, Bravery = 4 }, GrantSkills = ["perk.nine_lives"], Flags = { GuixiTier = 2, TurnStartCleansePct = 25 }, Summary = "气血 +8，定力 +4；习得「九死锁血」；回合初 25% 止血祛毒微回血，强化九死锁血回元。" },
 		{ ExpNeeded = 160, Stats = { Hitpoints = 14, Bravery = 7 }, GrantSkills = ["perk.nine_lives"], Flags = { GuixiTier = 3, TurnStartCleansePct = 40 }, Summary = "气血 +14，定力 +7；回合初 40% 止血祛毒微回血，强化九死锁血回元。" },
-		{ ExpNeeded = 360, Stats = { Hitpoints = 18, Bravery = 10 }, GrantSkills = ["perk.nine_lives"], Flags = { GuixiTier = 3, TurnStartCleansePct = 55, PoisonImmune = true }, Summary = "气血 +18，定力 +10；回合初 55% 止血祛毒微回血，百毒不侵，强化九死锁血回元。" }
+		{ ExpNeeded = 360, Stats = { Hitpoints = 18, Bravery = 10 }, GrantSkills = ["perk.nine_lives", "actives.wx_tactics_jinzhen"], Flags = { GuixiTier = 3, TurnStartCleansePct = 55, PoisonImmune = true }, Summary = "气血 +18，定力 +10；大成习得「金针渡劫术」；回合初 55% 止血祛毒微回血，百毒不侵，强化九死锁血回元。" }
 	]
 };
 
 ::Wuxia.Config.Manuals.wx_manual_zhongzhou_wuzong <- {
 	ID = "wx_manual_zhongzhou_wuzong", Name = "中州百兵通解", Category = "henglian", Quality = "sect",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_32.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_tactics.png",
 	Description = "中州振武堂总教头融汇十八般武艺编纂的实战讲义，快手换兵、落空叠准，专治花架子。",
 	BasePrice = 2170, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { MeleeSkill = 60 },
 	Levels = [
@@ -207,7 +207,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_kuaiji_duanjian <- {
 	ID = "wx_manual_kuaiji_duanjian", Name = "越女孤剑心解", Category = "henglian", Quality = "sect",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_41.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_tactics.png",
 	Description = "会稽鱼肠剑庐相传的单手轻兵秘解：空悬副手时剑匕刺击快逾闪电，直透铁甲要害。",
 	BasePrice = 2260, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { MeleeSkill = 68, Initiative = 98 },
 	Levels = [
@@ -219,7 +219,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_hanhai_guke <- {
 	ID = "wx_manual_hanhai_guke", Name = "大漠孤狼战法", Category = "henglian", Quality = "sect",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_34.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_tactics.png",
 	Description = "瀚海弯刀盟独行马贼横行沙海的搏命战诀，远离友军独自切入侧翼时攻防大涨！",
 	BasePrice = 2230, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { MeleeSkill = 66, Bravery = 50 },
 	Levels = [
@@ -231,7 +231,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_emei_dianxue <- {
 	ID = "wx_manual_emei_dianxue", Name = "金顶截脉认穴篇", Category = "henglian", Quality = "sect",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_51.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_henglian.png",
 	Description = "峨眉金顶庵医武同源的经络图谱，兵刃拳掌一旦击中敌方破绽或头面，顺势封闭气穴。",
 	BasePrice = 2200, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { MeleeSkill = 66, Initiative = 96 },
 	Levels = [
@@ -243,7 +243,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_shenji_huoyao <- {
 	ID = "wx_manual_shenji_huoyao", Name = "神机火药轰雷术", Category = "henglian", Quality = "sect",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_49.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_henglian.png",
 	Description = "神机火器营配制猛火黑药与铁砂铅子的秘术，近距轰击准头大增且专碎重甲。",
 	BasePrice = 2200, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { RangedSkill = 64 },
 	Levels = [
@@ -255,7 +255,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_bashu_huzhen <- {
 	ID = "wx_manual_bashu_huzhen", Name = "袍哥义字铁肩功", Category = "henglian", Quality = "sect",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_38.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_tactics.png",
 	Description = "川江袍哥盐帮讲义气、替兄弟挡刀的护身把式，身陷重围不掉近防，更能换位救人。",
 	BasePrice = 2230, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { Hitpoints = 68, Bravery = 50 },
 	Levels = [
@@ -267,7 +267,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_xiangxi_ganling <- {
 	ID = "wx_manual_xiangxi_ganling", Name = "辰州摄魂铜铃术", Category = "henglian", Quality = "sect",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_27.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_henglian.png",
 	Description = "湘西辰州符水门摇动摄魂铃震慑生人胆魄的秘术，亦善斩灭荒冢尸傀。",
 	BasePrice = 2170, FragmentsNeeded = 3, AllowFragmentLearn = true, Requirements = { Bravery = 58 },
 	Levels = [
@@ -279,19 +279,19 @@
 
 ::Wuxia.Config.Manuals.wx_manual_shaolin_jinzhong <- {
 	ID = "wx_manual_shaolin_jinzhong", Name = "金刚不坏神功", Category = "henglian", Quality = "secret",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_40.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_tactics.png",
 	Description = "少室禅院外家护体至高绝学，凝真气为不坏金身，披重甲免爆头、抗震退且无惧群敌合围！",
 	BasePrice = 4630, FragmentsNeeded = 5, AllowFragmentLearn = true, Requirements = { Hitpoints = 78, Stamina = 102 },
 	Levels = [
 		{ ExpNeeded = 0, Stats = { Hitpoints = 10, Initiative = -5, Bravery = 4 }, GrantSkills = ["perk.brawny"], Flags = { HeavyArmorScale = 0.04, UnderdogGuard = true }, Summary = "气血 +10，身法 -5，定力 +4；习得「披甲行气」；免除被围攻近防惩罚，按重甲厚度减免损甲。" },
 		{ ExpNeeded = 250, Stats = { Hitpoints = 15, Initiative = -7, Bravery = 8 }, GrantSkills = ["perk.brawny", "actives.indomitable"], Flags = { HeavyArmorScale = 0.05, UnderdogGuard = true, InjuryThresholdMult = 1.25 }, Summary = "气血 +15，身法 -7，定力 +8；习得「沉岳硬抗」；免除被围攻近防惩罚，按重甲厚度减免损甲，外伤门槛 +25%。" },
-		{ ExpNeeded = 600, Stats = { Hitpoints = 20, Initiative = -9, Bravery = 12 }, GrantSkills = ["perk.brawny", "actives.indomitable", "perk.steel_brow"], Flags = { HeavyArmorScale = 0.06, UnderdogGuard = true, InjuryThresholdMult = 1.35, ReflectArmorDmg = 10 }, Summary = "气血 +20，身法 -9，定力 +12；习得「铜头铁额」；免除被围攻近防惩罚，按重甲厚度减免损甲，受近战反震敌甲 10 点，外伤门槛 +35%。" }
+		{ ExpNeeded = 600, Stats = { Hitpoints = 20, Initiative = -9, Bravery = 12 }, GrantSkills = ["perk.brawny", "actives.indomitable", "perk.steel_brow", "actives.wx_tactics_shihou"], Flags = { HeavyArmorScale = 0.06, UnderdogGuard = true, InjuryThresholdMult = 1.35, ReflectArmorDmg = 10 }, Summary = "气血 +20，身法 -9，定力 +12；大成习得「金刚狮子吼」与「铜头铁额」；免除被围攻近防惩罚，按重甲厚度减免损甲，受近战反震敌甲 10 点，外伤门槛 +35%。" }
 	]
 };
 
 ::Wuxia.Config.Manuals.wx_manual_yuchang_cisha <- {
 	ID = "wx_manual_yuchang_cisha", Name = "专诸刺王秘录", Category = "henglian", Quality = "secret",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_41.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_tactics.png",
 	Description = "会稽鱼肠剑庐压箱刺客奇书：单手空副手透甲臻至决斗极境，对半血残敌痛下必杀一击。",
 	BasePrice = 4540, FragmentsNeeded = 5, AllowFragmentLearn = true, Requirements = { MeleeSkill = 76, Initiative = 105 },
 	Levels = [
@@ -303,7 +303,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_wuwei_shuaiqi <- {
 	ID = "wx_manual_wuwei_shuaiqi", Name = "六韬统军帅印篇", Category = "henglian", Quality = "secret",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_28.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_tactics.png",
 	Description = "兵家统帅秘传兵书：一人镇中军而三军胆气生，号令群豪立除溃乱，结阵守御固若长城。",
 	BasePrice = 4660, FragmentsNeeded = 5, AllowFragmentLearn = true, Requirements = { Bravery = 65 },
 	Levels = [
@@ -315,7 +315,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_tianchan_yi <- {
 	ID = "wx_manual_tianchan_yi", Name = "天蚕蜕生宝衣功", Category = "henglian", Quality = "secret",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_29.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_henglian.png",
 	Description = "昆仑与苗疆奇人合创的轻衣护身绝学：布衣卸伤达至化境，且每逢濒死如天蚕蜕壳再续生机！",
 	BasePrice = 4540, FragmentsNeeded = 5, AllowFragmentLearn = true, Requirements = { Hitpoints = 68, Initiative = 105 },
 	Levels = [
@@ -327,19 +327,19 @@
 
 ::Wuxia.Config.Manuals.wx_manual_lingnan_xuandun <- {
 	ID = "wx_manual_lingnan_xuandun", Name = "不动明王盾阵", Category = "henglian", Quality = "secret",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_30.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_tactics.png",
 	Description = "南疆战阵守卫绝学：一盾当关万夫莫开，精通铁壁震山靠与换位援护，群丑合围亦难撼分毫。",
 	BasePrice = 4600, FragmentsNeeded = 5, AllowFragmentLearn = true, Requirements = { MeleeDefense = 24, Hitpoints = 72 },
 	Levels = [
 		{ ExpNeeded = 0, Stats = { Hitpoints = 8, MeleeDefense = 2, RangedDefense = 2 }, GrantSkills = ["actives.wx_shield_bash_qi"], Flags = { ShieldDefBonus = 4, ShieldWallExpert = true }, Summary = "气血 +8，招架 +2，避暗 +2；习得「铁壁震山靠」；持盾双防 +4，专精盾术省气。" },
-		{ ExpNeeded = 250, Stats = { Hitpoints = 14, MeleeDefense = 3, RangedDefense = 3 }, GrantSkills = ["actives.wx_shield_bash_qi", "actives.rotation"], Flags = { ShieldDefBonus = 5, ShieldWallExpert = true, UnderdogGuard = true }, Summary = "气血 +14，招架 +3，避暗 +3；习得「换位援护」；持盾双防 +5，专精盾术省气，免除被围攻近防惩罚。" },
-		{ ExpNeeded = 600, Stats = { Hitpoints = 20, MeleeDefense = 5, RangedDefense = 5 }, GrantSkills = ["actives.wx_shield_bash_qi", "actives.rotation", "actives.indomitable"], Flags = { ShieldDefBonus = 6, ShieldWallExpert = true, UnderdogGuard = true }, Summary = "气血 +20，招架 +5，避暗 +5；习得「沉岳硬抗」；持盾双防 +6，专精盾术省气，免除被围攻近防惩罚。" }
+		{ ExpNeeded = 250, Stats = { Hitpoints = 14, MeleeDefense = 3, RangedDefense = 3 }, GrantSkills = ["actives.wx_shield_bash_qi", "actives.rotation"], Flags = { ShieldDefBonus = 5, ShieldWallExpert = true, UnderdogGuard = true }, Summary = "气血 +14，招架 +3，避暗 +3；习得「铁壁震山靠」；持盾双防 +5，专精盾术省气，免除被围攻近防惩罚。" },
+		{ ExpNeeded = 600, Stats = { Hitpoints = 20, MeleeDefense = 5, RangedDefense = 5 }, GrantSkills = ["actives.wx_shield_bash_qi", "actives.rotation", "actives.indomitable"], Flags = { ShieldDefBonus = 6, ShieldWallExpert = true, UnderdogGuard = true }, Summary = "气血 +20，招架 +5，避暗 +5；习得「铁壁震山靠」；持盾双防 +6，专精盾术省气，免除被围攻近防惩罚。" }
 	]
 };
 
 ::Wuxia.Config.Manuals.wx_manual_tangmen_qimen <- {
 	ID = "wx_manual_tangmen_qimen", Name = "天机百变匣谱", Category = "henglian", Quality = "secret",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_39.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_henglian.png",
 	Description = "蜀中唐家堡内堂机关奇书：袖藏百宝瞬息切换，贴身冷箭与淬毒破绽令强敌防不胜防。",
 	BasePrice = 4540, FragmentsNeeded = 5, AllowFragmentLearn = true, Requirements = { RangedSkill = 72, Initiative = 102 },
 	Levels = [
@@ -351,7 +351,7 @@
 
 ::Wuxia.Config.Manuals.wx_manual_xuanwu_budong <- {
 	ID = "wx_manual_xuanwu_budong", Name = "玄武不动神甲录", Category = "henglian", Quality = "unique",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_40.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_tactics.png",
 	Description = "前朝柱国铁卫统领陪葬孤本：集披甲行气、铜头铁额、沉岳硬抗、孤胆守阵与反震甲伤于一身的重装极境宝典！",
 	BasePrice = 11770, FragmentsNeeded = 5, AllowFragmentLearn = true, Requirements = { Hitpoints = 85, Stamina = 108 },
 	Levels = [
@@ -363,19 +363,19 @@
 
 ::Wuxia.Config.Manuals.wx_manual_guigu_zongheng <- {
 	ID = "wx_manual_guigu_zongheng", Name = "鬼谷纵横兵策", Category = "henglian", Quality = "unique",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_28.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_tactics.png",
 	Description = "先秦兵家奇书孤本：运筹帷幄决胜千里，统帅光环、战阵联防、洞悉破绽与慑魂威压兼备。",
 	BasePrice = 11740, FragmentsNeeded = 5, AllowFragmentLearn = true, Requirements = { Bravery = 72 },
 	Levels = [
 		{ ExpNeeded = 0, Stats = { Bravery = 8, MeleeSkill = 2 }, GrantSkills = ["actives.wx_rally_command"], Flags = { CommandAuraPct = 0.08, RallyBonus = 12, FormationBondDef = 3 }, Summary = "定力 +8，武艺 +2；习得「聚义号令」；邻接同袍结阵守御定力 +3，四格定力光环 8%，聚义号令 +12。" },
-		{ ExpNeeded = 320, Stats = { Bravery = 15, MeleeSkill = 3, MeleeDefense = 2 }, GrantSkills = ["actives.wx_rally_command", "perk.fearsome"], Flags = { CommandAuraPct = 0.10, RallyBonus = 20, FormationBondDef = 4, ExposeOnHitPct = 25 }, Summary = "定力 +15，武艺 +3，招架 +2；习得「慑魂威压」；普攻寻隙留破绽 25%，邻接同袍结阵守御定力 +4，四格定力光环 10%，聚义号令 +20。" },
+		{ ExpNeeded = 320, Stats = { Bravery = 15, MeleeSkill = 3, MeleeDefense = 2 }, GrantSkills = ["actives.wx_rally_command", "perk.fearsome"], Flags = { CommandAuraPct = 0.10, RallyBonus = 20, FormationBondDef = 4, ExposeOnHitPct = 25 }, Summary = "定力 +15，武艺 +3，招架 +2；习得「聚义号令」；普攻寻隙留破绽 25%，邻接同袍结阵守御定力 +4，四格定力光环 10%，聚义号令 +20。" },
 		{ ExpNeeded = 800, Stats = { Bravery = 22, MeleeSkill = 5, MeleeDefense = 4 }, GrantSkills = ["actives.wx_rally_command", "perk.fearsome"], Flags = { CommandAuraPct = 0.12, RallyBonus = 28, FormationBondDef = 5, ExposeOnHitPct = 40, AntiFearAura = true }, Summary = "定力 +22，武艺 +5，招架 +4；普攻寻隙留破绽 40%，邻接同袍结阵守御定力 +5，四格定力光环 12%，聚义号令 +28，抗惊骇检定定力 +15。" }
 	]
 };
 
 ::Wuxia.Config.Manuals.wx_manual_shennong_baicao <- {
 	ID = "wx_manual_shennong_baicao", Name = "神农百草奇经", Category = "henglian", Quality = "unique",
-	Element = null, WeaponTypes = [], Icon = "ui/perks/perk_07.png",
+	Element = null, WeaponTypes = [], Icon = "ui/perks/wx_emblem_henglian.png",
 	Description = "上古药王医毒双绝孤本：自身百毒不侵、生生止血锁命，举手投足间令来犯强敌奇毒攻心，大成赐洗髓良机！",
 	BasePrice = 11770, FragmentsNeeded = 5, AllowFragmentLearn = true, Requirements = { Hitpoints = 75, Bravery = 65 },
 	Levels = [

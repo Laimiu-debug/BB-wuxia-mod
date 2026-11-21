@@ -7,11 +7,15 @@ this.wx_fist_acupoint <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_fist_acupoint";
+		this.m.WX_VfxBrush <- "wx_vfx_16";
+		this.m.WX_AnimID <- "wx_anim_23";
+		this.m.WX_AnimMode <- "lotus_poke";
+		this.m.WX_ChoreoID <- "wx_fist_acupoint";
 		this.m.Name = "拈花点穴指";
 		this.m.Description = "并指如兰疾点大穴：命中额外 +8、造成八成内劲伤，令目标 2 回合陷入「点穴封气」（回气 -8、招式耗气 +35%）。";
-		this.m.Icon = "skills/active_03.png";
-		this.m.IconDisabled = "skills/active_03_sw.png";
-		this.m.Overlay = "active_03";
+		this.m.Icon = "skills/wx_fist_acupoint.png";
+		this.m.IconDisabled = "skills/wx_fist_acupoint_sw.png";
+		this.m.Overlay = "wx_ov_wx_fist_acupoint";
 		this.m.SoundOnUse = [
 			"sounds/combat/hand_02.wav"
 		];
@@ -40,6 +44,7 @@ this.wx_fist_acupoint <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local target = _targetTile.getEntity();
 		local hit = this.attackEntity(_user, target);
 		if (hit)

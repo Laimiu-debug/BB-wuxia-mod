@@ -8,11 +8,11 @@
 	{
 		__original(_force);
 
-		if ("Buildings" in this.m && this.m.Buildings != null)
+		if (::Wuxia.hasMember(this.m, "Buildings") && this.m.Buildings != null)
 		{
 			foreach (b in this.m.Buildings)
 			{
-				if (b == null || !("Stash" in b.m) || b.m.Stash == null) continue;
+				if (b == null || !(::Wuxia.hasMember(b.m, "Stash")) || b.m.Stash == null) continue;
 				if (b.getID() == "building.marketplace")
 				{
 					::Wuxia.Loot.injectTownShopStock(b.m.Stash);

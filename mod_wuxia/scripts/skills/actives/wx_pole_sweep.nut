@@ -7,12 +7,16 @@ this.wx_pole_sweep <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_pole_sweep";
+		this.m.WX_VfxBrush <- "wx_vfx_06";
+		this.m.WX_AnimID <- "wx_anim_11";
+		this.m.WX_AnimMode <- "cyclone_pole";
+		this.m.WX_ChoreoID <- "wx_pole_sweep";
 		this.m.Name = "横扫千军";
 		this.m.Description = "双手抡起长兵或齐眉重棍横扫 1~2 格弧面（主目标及紧邻敌军最多 3 人）：命中令群敌陷入「失衡」，专破人海合围。";
 		this.m.KilledString = "长杆扫碎脑门";
-		this.m.Icon = "skills/active_45.png";
-		this.m.IconDisabled = "skills/active_45_sw.png";
-		this.m.Overlay = "active_45";
+		this.m.Icon = "skills/wx_pole_sweep.png";
+		this.m.IconDisabled = "skills/wx_pole_sweep_sw.png";
+		this.m.Overlay = "wx_ov_wx_pole_sweep";
 		this.m.SoundOnUse = [
 			"sounds/combat/slash_02.wav"
 		];
@@ -38,6 +42,7 @@ this.wx_pole_sweep <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local targets = [];
 		local mainTarget = _targetTile.getEntity();
 		if (mainTarget != null) targets.push(mainTarget);
@@ -55,12 +60,13 @@ this.wx_pole_sweep <- this.inherit("scripts/skills/actives/wx_move_base", {
 				targets.push(ent);
 				if (targets.len() >= 3) break;
 			}
-		}
-
-		local anyHit = false;
+		};
+			local anyHit = false;
 		foreach (t in targets)
 		{
 			if (!t.isAlive()) continue;
+			if (mainTarget == null || t.getID() != mainTarget.getID())
+				::Wuxia.VFX.playAoESecondaryVfx(this, _user, t.getTile(), 55);
 			local hit = this.attackEntity(_user, t);
 			if (hit)
 			{

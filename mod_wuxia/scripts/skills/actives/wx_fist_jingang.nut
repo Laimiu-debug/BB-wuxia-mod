@@ -7,12 +7,16 @@ this.wx_fist_jingang <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_fist_jingang";
+		this.m.WX_VfxBrush <- "wx_vfx_09";
+		this.m.WX_AnimID <- "wx_anim_21";
+		this.m.WX_AnimMode <- "buddha_palm";
+		this.m.WX_ChoreoID <- "wx_fist_jingang";
 		this.m.Name = "金刚摧心掌";
 		this.m.Description = "少室刚猛掌力透甲摧脉：总伤害 +20%、穿甲率 +10%，命中震散目标 12 点内息并致「失衡」；大成后有 50% 几率当场震晕目标 1 回合。";
 		this.m.KilledString = "一掌震碎心脉";
-		this.m.Icon = "skills/active_32.png";
-		this.m.IconDisabled = "skills/active_32_sw.png";
-		this.m.Overlay = "active_32";
+		this.m.Icon = "skills/wx_fist_jingang.png";
+		this.m.IconDisabled = "skills/wx_fist_jingang_sw.png";
+		this.m.Overlay = "wx_ov_wx_fist_jingang";
 		this.m.SoundOnUse = [
 			"sounds/combat/bash_01.wav",
 			"sounds/combat/bash_02.wav"
@@ -43,6 +47,7 @@ this.wx_fist_jingang <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local target = _targetTile.getEntity();
 		local hit = this.attackEntity(_user, target);
 		if (hit && target != null && target.isAlive())

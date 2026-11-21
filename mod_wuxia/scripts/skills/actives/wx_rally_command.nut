@@ -7,8 +7,15 @@ this.wx_rally_command <- this.inherit("scripts/skills/actives/rally_the_troops",
 	{
 		this.rally_the_troops.create();
 		this.m.ID = "actives.wx_rally_command";
+		this.m.WX_VfxBrush <- "wx_vfx_24";
+		this.m.WX_AnimID <- "wx_anim_36";
+		this.m.WX_AnimMode <- "war_banner";
+		this.m.WX_ChoreoID <- "wx_rally_command";
 		this.m.Name = "聚义号令";
 		this.m.Description = "振臂高呼稳固军心：无需手持双手战旗，消耗 5 AP 与 25 内息，令 4 格内动摇、崩溃或溃逃的同伴重整战意（每回合限用一次）。";
+		this.m.Icon = "skills/wx_rally_command.png";
+		this.m.IconDisabled = "skills/wx_rally_command_sw.png";
+		this.m.Overlay = "wx_ov_wx_rally_command";
 		this.m.ActionPointCost = 5;
 		this.m.FatigueCost = 25;
 	}
@@ -20,6 +27,7 @@ this.wx_rally_command <- this.inherit("scripts/skills/actives/rally_the_troops",
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local c = _user.getSkills().getSkillByID("special.wx_martial_container");
 		local bonus = (c != null && c.m.CachedAggFlags != null) ? c.m.CachedAggFlags.RallyBonus : 0;
 		if (bonus <= 0)
@@ -37,8 +45,8 @@ this.wx_rally_command <- this.inherit("scripts/skills/actives/rally_the_troops",
 		{
 			_user.m.CurrentProperties.Bravery -= extraBravery;
 			throw err;
-		}
-		_user.m.CurrentProperties.Bravery -= extraBravery;
+		};
+			_user.m.CurrentProperties.Bravery -= extraBravery;
 		return ok;
 	}
 });

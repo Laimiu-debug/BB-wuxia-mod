@@ -117,14 +117,30 @@ def validate_all() -> tuple[int, int, list[str]]:
     return nut_count, js_count, errors
 
 
-def build_zip() -> int:
+def build_zip(release: bool = False) -> int:
     DIST_DIR.mkdir(parents=True, exist_ok=True)
     file_count = 0
-    with zipfile.ZipFile(OUT_ZIP, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+    target_val = "false" if release else "true"
+    with zipfile.ZipFile(OUT_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
         for p in sorted(MOD_DIR.rglob("*")):
             if p.is_file():
-                arcname = p.relative_to(MOD_DIR).as_posix()
-                zf.write(p, arcname)
+                rel_posix = p.relative_to(MOD_DIR).as_posix()
+                # Place internal mod_wuxia/ Squirrel modules under scripts/mod_wuxia/ inside the ZIP
+                # so top-level ZIP roots strictly match BBMOD's allowed ROOTS (scripts, ui, gfx, music, brushes).
+                arcname = f"scripts/{rel_posix}" if rel_posix.startswith("mod_wuxia/") else rel_posix
+
+                if rel_posix == "scripts/!mods_preload/mod_wuxia.nut":
+                    src = p.read_text(encoding="utf-8")
+                    patched = re.sub(r"\bDebug\s*=\s*(true|false)\b", f"Debug = {target_val}", src, count=1)
+                    patched = re.sub(r"\bRunSelfTest\s*=\s*(true|false)\b", f"RunSelfTest = {target_val}", patched, count=1)
+                    patched = patched.replace('::include("mod_wuxia/', '::include("scripts/mod_wuxia/')
+                    zf.writestr(arcname, patched.encode("utf-8"))
+                elif rel_posix == "mod_wuxia/load.nut":
+                    src = p.read_text(encoding="utf-8")
+                    patched = src.replace('::include("mod_wuxia/', '::include("scripts/mod_wuxia/')
+                    zf.writestr(arcname, patched.encode("utf-8"))
+                else:
+                    zf.write(p, arcname)
                 file_count += 1
     return file_count
 
@@ -153,9 +169,11 @@ def main() -> int:
             print("  -", e)
         return 1
 
-    count = build_zip()
+    is_release = "--release" in sys.argv
+    count = build_zip(release=is_release)
+    mode_tag = "RELEASE (Debug=false)" if is_release else "DEV (Debug=true)"
     print(f"VALIDATION OK: {nut_count} .nut files, {js_count} ES3 .js files checked.")
-    print(f"PACKAGED OK: {OUT_ZIP} ({count} files)")
+    print(f"PACKAGED OK [{mode_tag}]: {OUT_ZIP} ({count} files)")
 
     if "--bundle" in sys.argv:
         included = build_bundle()

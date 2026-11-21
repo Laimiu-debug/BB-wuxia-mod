@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>武侠 Mod · 人物界面 v2（原版同构）</title>
+<link rel="stylesheet" href="wx_vanilla_kit.css">
+<style>
+/* ============================================================================
+ * v2「原版同构」：外壳 100% 用原版贴图与原版字色，武侠味只放在内容里
+ *   - 贴图：docs/ui-preview/_vanilla/（python tools/extract_vanilla_ui_ref.py 从本机游戏提取，不入库）
+ *   - 游戏内直接 coui://gfx/ui/skin/xxx.png 引用同名原版贴图，零新增美术
+ *   - 字色取自原版 ui/colors.css；字号取自原版 ui/fonts.css（正文 1.4rem 起）
+ *   - 布局只用 absolute / float / inline-block
+ * ============================================================================ */
+html { font-size: 20px; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0705; }
+#stage { position: absolute; left: 0; top: 0; width: 142.1rem; height: 90.6rem; transform-origin: 0 0; }
+.cs {
+	position: absolute; left: 0; top: 0; width: 142.1rem; height: 90.6rem;
+	background: url("_vanilla/gfx/ui/skin/background_inventory.png") no-repeat 0 0 / 142.1rem 90.6rem;
+	font-family: 'FreeUniversal', 'BB Han', sans-serif; font-size: 1.4rem; line-height: 1.3;
+	color: #d7b174; text-shadow: 1px 1px 1px #000;
+}
+.cs.bg-wx { background-image: url("../../mod_wuxia/gfx/ui/wx_skin/wx_background_inventory.png"); }
+.cs.bg-statue { background-image: url("_vanilla/wx_background_inventory_v2.png"); }
+.cs * { box-sizing: border-box; }
+.area { position: absolute; }
+.grid-on .area { outline: 1px dashed rgba(221,162,31,0.7); }
+.clear { clear: both; }
+
+/* ============================================================================
+ * 布局：按原版 background_inventory.png 实测坐标（px ÷ 10 = rem）
+ * ============================================================================ */
+.lh     { left: 21.2rem; top: 12.6rem; width: 33.9rem; height: 9.0rem; }
+.doll   { left: 21.2rem; top: 21.7rem; width: 33.9rem; height: 33.9rem; }
+.skills { left: 21.2rem; top: 55.7rem; width: 33.9rem; height: 9.4rem; }
+.stats  { left: 21.2rem; top: 65.2rem; width: 33.9rem; height: 25.2rem; }
+.rh     { left: 55.2rem; top: 12.6rem; width: 69.4rem; height: 3.8rem; }
+.rb     { left: 55.2rem; top: 16.6rem; width: 69.4rem; height: 44.8rem; }
+.rstrip { left: 55.2rem; top: 61.5rem; width: 69.4rem; height: 3.6rem; }
+.roster { left: 55.2rem; top: 65.2rem; width: 69.4rem; height: 25.1rem; }
+/* 切换为现 mod 乌木背景时的几何（右栏无分隔条，借用正文底部） */
+.bg-wx .lh { top: 12.9rem; height: 8.4rem; } .bg-wx .doll { top: 21.3rem; height: 34.2rem; }
+.bg-wx .skills { top: 55.7rem; height: 8.8rem; } .bg-wx .stats { top: 64.7rem; }
+.bg-wx .rh { left: 55.1rem; top: 12.9rem; height: 3.7rem; } .bg-wx .rb { left: 55.1rem; top: 16.7rem; height: 44.2rem; }
+.bg-wx .rstrip { left: 55.1rem; top: 60.9rem; } .bg-wx .roster { left: 55.1rem; top: 64.7rem; }
+
+/* 预览工具条 */
+.pv { position: absolute; left: 21.2rem; right: 17.5rem; top: 2.6rem; height: 8rem; }
+.pv h1 { margin: 0; font-family: 'BB Han Serif', serif; font-weight: 600; font-size: 2.8rem; color: #dda21f; text-shadow: 1px 1px rgba(0,0,0,0.5), -1px -1px #000; }
+.pv p { margin: 0.3rem 0 0 0; font-size: 1.3rem; color: #bd9d71; font-style: italic; }
+.pv .tools { position: absolute; right: 0; top: 0.4rem; }
+.pv .tools .vb { margin-left: 0.3rem; }
+
+/* ---------------- 左栏 ---------------- */
+.lh .crest { position: absolute; left: 1.2rem; top: 1.2rem; width: 6.6rem; height: 6.6rem; }
+.lh .name { position: absolute; left: 9rem; top: 1rem; font-size: 2.4rem; line-height: 3rem; }
+.lh .sub { position: absolute; left: 9rem; top: 4.1rem; font-size: 1.4rem; white-space: nowrap; }
+.lh .lvl { position: absolute; right: 1.2rem; top: 1.3rem; height: 3rem; line-height: 3rem; font-size: 2rem; color: #dda21f; }
+.lh .lvl img { width: 2.4rem; height: 2.4rem; vertical-align: middle; margin: -0.3rem 0 0 0.3rem; }
+.lh .vxp { position: absolute; left: 9rem; right: 1.2rem; top: 6.6rem; }
+.doll .ps { position: absolute; width: 7rem; height: 7rem; cursor: pointer; }
+.doll .ps.big { height: 14.6rem; }
+.doll .ps img { position: absolute; left: 0; right: 0; top: 0; bottom: 0; margin: auto; width: 5.8rem; height: 5.8rem; }
+.doll .ps.big img { height: 11.6rem; }
+.doll .ps img.ghost { opacity: 0.8; }
+.doll .bag { position: absolute; top: 26.4rem; width: 6.4rem; height: 6.4rem; background: url("_vanilla/gfx/ui/skin/inventory_bag_slot.png") 0 0 / 100% 100%; }
+.doll .bag img { position: absolute; left: 0.3rem; top: 0.3rem; width: 5.8rem; height: 5.8rem; }
+.doll .mirror { position: absolute; right: 1rem; top: 0.6rem; }
+.skills .row { position: absolute; left: 1.2rem; right: 1rem; white-space: nowrap; }
+.skills .row img { width: 3.6rem; height: 3.6rem; margin-right: 0.3rem; vertical-align: middle; cursor: default; }
+.skills .row.r2 img { width: 2.8rem; height: 2.8rem; }
+.st { position: absolute; width: 16.6rem; height: 3.8rem; }
+.st img.ico { position: absolute; left: 0; top: 0.6rem; width: 2.6rem; height: 2.6rem; }
+.st .vbar { position: absolute; left: 3.2rem; top: 0.8rem; }
+.st img.talent { position: absolute; left: 3.6rem; top: -0.5rem; width: 3.6rem; height: 1.8rem; z-index: 2; }
+
+/* ---------------- 右栏顶栏 ---------------- */
+.rh .tabs { position: absolute; left: 9.5rem; top: 0.2rem; white-space: nowrap; }
+.rh .tabs .vtab { margin-right: 0.1rem; }
+.rh .close { position: absolute; right: 1rem; top: 0; }
+.rh .badge { position: absolute; right: 1.2rem; top: 0.4rem; min-width: 2rem; height: 2rem; line-height: 2rem; padding: 0 0.4rem; font-family: 'FreeUniversal', sans-serif; font-size: 1.2rem; font-weight: normal; color: #fff; background: #8f1e1e; border-radius: 1rem; text-shadow: none; box-shadow: 0 0 0 1px #000; }
+.pane { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: none; }
+.pane.on { display: block; }
+.strip { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: none; padding: 0 1.4rem; line-height: 3.6rem; white-space: nowrap; overflow: hidden; }
+.strip.on { display: block; }
+.strip .r { position: absolute; right: 1.6rem; top: 0; }
+.strip img { width: 2.4rem; height: 2.4rem; vertical-align: middle; margin: -0.3rem 0.4rem 0 0; }
+
+/* 通用：筛选按钮排（原版 filter-panel：左 2.0 / 上 0.8 / 间距 5.0） */
+.fbar { position: absolute; left: 1.4rem; top: 0.6rem; right: 1.4rem; height: 4.3rem; white-space: nowrap; }
+.fbar .vb3 { margin-right: -0.2rem; }
+.fbar .gap { display: inline-block; width: 1rem; }
+.fbar .r { position: absolute; right: 0; top: 0; }
+
+/* ---------------- 页签一：兵甲行囊 ---------------- */
+.inv-grid { position: absolute; left: 1.4rem; right: 0.6rem; top: 5.6rem; bottom: 0.4rem; }
+.inv-grid .vslot { width: 7.2rem; height: 7.2rem; }
+.inv-grid .vslot > img.it { width: 6.7rem; height: 6.7rem; }
+.inv-grid .vslot.fdim > img.it { opacity: 0.25; }
+
+/* ---------------- 页签二：武学修为 ---------------- */
+.wx-head { position: absolute; left: 1.6rem; right: 1.4rem; top: 0.6rem; height: 4.3rem; line-height: 4.3rem; white-space: nowrap; }
+.wx-head .r { position: absolute; right: 0; top: 0; }
+.wx-head .sep { color: #6e5a3c; margin: 0 0.6rem; }
+.wx-head .warn { color: #CD2626; cursor: pointer; }
+.meridian { position: absolute; left: 0.8rem; right: 0.8rem; top: 5.2rem; height: 14.4rem; }
+.meridian .vline { position: absolute; left: 5rem; right: 5rem; top: 5.1rem; opacity: 0.9; }
+.mcol { position: absolute; top: 0; width: 9.4rem; height: 14.4rem; text-align: center; cursor: pointer; }
+.mcol .role { height: 2rem; line-height: 2rem; font-size: 1.3rem; color: #bd9d71; }
+.mcol.is-sel .role { color: #dda21f; }
+.mcol .disc { position: relative; width: 6.4rem; height: 6.4rem; margin: 0 auto; }
+.mcol .disc img.ic { position: absolute; left: 0.5rem; top: 0.5rem; width: 5.4rem; height: 5.4rem; border-radius: 50%; }
+.mcol .disc .ring { position: absolute; left: 0; top: 0; width: 6.4rem; height: 6.4rem; background: url("_vanilla/gfx/ui/perks/selection_frame.png") 0 0 / 100% 100%; opacity: 0.35; }
+.mcol.is-sel .disc .ring { opacity: 1; }
+.mcol .disc .well { position: absolute; left: 0.6rem; top: 0.6rem; width: 5.2rem; height: 5.2rem; border-radius: 50%; background: radial-gradient(circle, rgba(0,0,0,0.55), rgba(0,0,0,0.25)); }
+.mcol .disc .plus { position: absolute; left: 2.05rem; top: 2.05rem; width: 2.3rem; height: 2.3rem; opacity: 0.45; }
+.mcol.ready .disc .plus { opacity: 1; }
+.mcol .disc .lock { position: absolute; left: 2.1rem; top: 1.7rem; width: 2.2rem; height: 2.8rem; opacity: 0.75; }
+.mcol.locked .disc, .mcol.locked .role, .mcol.locked .nm { opacity: 0.4; }
+.mcol.off .disc img.ic { -webkit-filter: grayscale(100%); filter: grayscale(100%); opacity: 0.55; }
+.mcol .disc .hl { position: absolute; left: -1rem; top: -1.1rem; width: 8.4rem; height: 8.8rem; background: url("_vanilla/gfx/ui/skin/inventory_highlight.png") 0 0 / 100% 100%; display: none; }
+.mcol.drop-ok .disc .hl { display: block; }
+.mcol.drop-no { opacity: 0.35; }
+.mcol .tier { height: 1.9rem; line-height: 1.9rem; margin-top: 0.3rem; font-size: 1.3rem; color: #dda21f; }
+.mcol .vxp { width: 7rem; height: 0.8rem; margin: 0 auto; }
+.mcol .nm { height: 2rem; line-height: 2rem; margin-top: 0.2rem; padding: 0 0.2rem; font-size: 1.35rem; color: #d7b174; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mcol.empty .nm { color: #8a7454; }
+.mcol.ready .nm { color: #dda21f; }
+
+.pas { position: absolute; left: 1.6rem; width: 39rem; top: 20.2rem; height: 3.2rem; line-height: 3.2rem; white-space: nowrap; overflow: hidden; }
+.pas .it { display: inline-block; margin-right: 0.9rem; cursor: default; }
+.pas .it img { width: 2.2rem; height: 2.2rem; vertical-align: middle; margin: -0.3rem 0.25rem 0 0; }
+.pas .it b { font-weight: normal; color: #dda21f; }
+.pas .lab { color: #bd9d71; font-style: italic; margin-right: 0.6rem; }
+.shelf-f { position: absolute; left: 1.4rem; width: 39.5rem; top: 23.8rem; height: 4.3rem; white-space: nowrap; }
+.shelf-f .vb2 { width: 7.4rem; margin-right: -0.1rem; }
+.shelf-f .vb3 { width: 4.4rem; margin-left: -0.1rem; }
+.shelf-f .vb3 img { width: 2.4rem; height: 2.4rem; }
+.shelf-f .r { position: absolute; right: 0; top: 0.1rem; }
+.shelf-g { position: absolute; left: 1.4rem; width: 39.8rem; top: 28.6rem; bottom: 0.4rem; padding-top: 0.2rem; }
+
+/* 详览台：原版 dialog_panel_01 皮革底 */
+.insp { position: absolute; background: url("_vanilla/gfx/ui/skin/dialog_panel_01.png") 0 0 / 100% 100%; }
+.insp .body { position: absolute; left: 0; right: 0; top: 0; bottom: 5.2rem; padding: 1.2rem 1.4rem 0.6rem 1.4rem; }
+.insp .foot { position: absolute; left: 0; right: 0; bottom: 0.6rem; height: 4.3rem; text-align: center; white-space: nowrap; }
+.insp .foot .vb { margin: 0 0.1rem; }
+.insp .hd { position: relative; min-height: 6rem; padding-left: 6.6rem; margin-bottom: 0.6rem; }
+.insp .hd img { position: absolute; left: 0; top: 0; width: 5.6rem; height: 5.6rem; }
+.insp .hd .t-title { font-size: 1.9rem; line-height: 2.4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.insp .hd .s { font-size: 1.3rem; line-height: 1.8rem; }
+.insp .desc { font-size: 1.35rem; line-height: 1.9rem; color: #bd9d71; font-style: italic; margin-bottom: 0.8rem; }
+.insp .sec { margin: 0.6rem 0 0.3rem 0; font-size: 1.4rem; color: #dda21f; }
+.insp .tl { font-size: 1.35rem; line-height: 1.9rem; margin-bottom: 0.5rem; color: #8a7454; }
+.insp .tl b { font-weight: normal; color: #a08860; margin-right: 0.4rem; }
+.insp .tl.done { color: #d7b174; } .insp .tl.done b { color: #dda21f; }
+.insp .tl.next b { color: #dda21f; }
+.insp .tl .vxp { width: 14rem; margin-top: 0.3rem; display: inline-block; vertical-align: middle; }
+.insp .ln { font-size: 1.35rem; line-height: 1.9rem; }
+.insp-wx { left: 41.6rem; right: 0.8rem; top: 20.0rem; bottom: 0.4rem; }
+.insp-lib { left: 41.6rem; right: 0.8rem; top: 5.4rem; bottom: 0.4rem; }
+
+/* ---------------- 页签三：藏经阁 ---------------- */
+.lib-g { position: absolute; left: 1.4rem; width: 39.8rem; top: 5.6rem; bottom: 0.4rem; }
+
+/* ---------------- 右下：原版阵型（3 × 9） ---------------- */
+.roster { padding: 0.5rem 0 0 1.4rem; }
+.bro { position: relative; float: left; width: 7.1rem; height: 7.8rem; margin: 0.35rem 0 0 0.4rem; background: url("_vanilla/gfx/ui/skin/inventory_figure.png") center / 6.8rem 7.8rem no-repeat; cursor: pointer; }
+.bro.tent { background-image: url("_vanilla/gfx/ui/skin/inventory_tent.png"); background-size: 7.1rem 7.7rem; }
+.bro svg { position: absolute; left: 0.35rem; top: 0.2rem; width: 6.4rem; height: 7.4rem; z-index: 2; }
+.bro .hl { position: absolute; left: -0.7rem; top: -0.6rem; width: 8.5rem; height: 9rem; z-index: 1; background: url("_vanilla/gfx/ui/skin/inventory_highlight.png") 0 0 / 100% 100%; }
+.bro .mood { position: absolute; right: 0.1rem; top: 0.1rem; width: 2rem; height: 2rem; z-index: 3; }
+.bro .lv { position: absolute; left: 0.3rem; bottom: 0.1rem; z-index: 3; font-size: 1.2rem; color: #d6dbe9; }
+.bro .up { position: absolute; left: 0.2rem; top: 0.1rem; width: 2rem; height: 2rem; z-index: 3; }
+
+/* 原版无 toast：用一行横幅文字代替 */
+.banner { position: absolute; z-index: 950; left: 55.2rem; width: 69.4rem; top: 17rem; text-align: center; display: none; pointer-events: none; }
+.banner span { display: inline-block; padding: 0.6rem 2rem; font-size: 1.6rem; color: #dda21f; background: rgba(10,6,3,0.85); }
+.banner.err span { color: #CD2626; }
+.ghost { position: absolute; z-index: 980; width: 5.4rem; height: 5.4rem; margin: -2.7rem 0 0 -2.7rem; pointer-events: none; opacity: 0.9; }
+.ghost img { width: 100%; height: 100%; }
+
+/* 设计说明面板（原版 list_item_03 皮框） */
+.notes { position: absolute; right: 1.4rem; top: 11rem; width: 32rem; z-index: 800; display: none; max-height: 76rem; padding: 1.6rem 1.8rem; background: url("_vanilla/gfx/ui/skin/dialog_panel_01.png") 0 0 / 100% 100%; font-size: 1.35rem; line-height: 2rem; box-shadow: 0 0 2rem #000; }
+.notes h3 { margin: 0.8rem 0 0.2rem 0; font-family: 'BB Han Serif', serif; font-weight: 600; font-size: 1.7rem; color: #dda21f; }
+.notes ul { margin: 0; padding-left: 1.4rem; }
+.notes b { font-weight: normal; color: #dda21f; }
+</style>
+</head>
+<body>
+<div id="stage">
+	<div class="cs" id="cs">
+		<div class="pv">
+			<h1>人物界面 v2 · 原版同构</h1>
+			<p>外壳全部使用原版贴图、原版字色与字号；武侠味只放在图标、称谓与经络这类内容上</p>
+			<div class="tools">
+				<span class="vb vb2" data-act="pv-notes">设计说明</span>
+				<span class="vb vb2" data-act="pv-bg" id="pv-bg" style="width:12rem">底：新雕像</span>
+				<span class="vb vb2" data-act="pv-grid">布局线</span>
+				<span class="vb vb2" data-act="pv-reset">重置</span>
+				<a class="vb vb2" href="character_screen_v1.html" style="text-decoration:none">看 v1</a>
+			</div>
+		</div>
+		<div class="notes scroll" id="notes"></div>
+
+		<div class="area lh" id="lh"></div>
+		<div class="area doll" id="doll"></div>
+		<div class="area skills" id="skills"></div>
+		<div class="area stats" id="stats"></div>
+
+		<div class="area rh"><div class="tabs" id="tabs"></div><div class="close"><span class="vb vb3" data-tip-static="close"><img src="_vanilla/gfx/ui/skin/icon_cross.png"></span></div></div>
+		<div class="area rb">
+			<div class="pane" id="pane-inv"><div class="fbar" id="inv-f"></div><div class="inv-grid scroll" id="inv-grid"></div></div>
+			<div class="pane" id="pane-wx">
+				<div class="wx-head" id="wx-head"></div>
+				<div class="meridian" id="meridian"></div>
+				<div class="pas" id="pas"></div>
+				<div class="shelf-f" id="shelf-f"></div>
+				<div class="shelf-g scroll" id="shelf-g"></div>
+				<div class="insp insp-wx" id="insp-wx"></div>
+			</div>
+			<div class="pane" id="pane-lib"><div class="fbar" id="lib-f"></div><div class="lib-g scroll" id="lib-g"></div><div class="insp insp-lib" id="insp-lib"></div></div>
+		</div>
+		<div class="area rstrip"><div class="strip" id="strip-inv"></div><div class="strip" id="strip-wx"></div><div class="strip" id="strip-lib"></div></div>
+		<div class="area roster" id="roster"></div>
+		<div class="banner" id="banner"><span></span></div>
+	</div>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+window.onerror = function (msg, src, line) { var d = document.createElement('div'); d.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99999;padding:6px 10px;background:#7a1d12;color:#fff;font:12px monospace'; d.textContent = 'JS 错误：' + msg + ' @' + line; document.body.appendChild(d); };
+</script>
+<script>
+(function () {
+	'use strict';
+	var G = '../../mod_wuxia/gfx/';
+	var V = '_vanilla/gfx/';
+	var CN = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一'];
+	var SCALE = 1;
+	function $(id) { return document.getElementById(id); }
+	function esc(s) { return String(s === null || s === undefined ? '' : s).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split('"').join('&quot;'); }
+	function upTo(el, attr) { while (el && el !== document) { if (el.getAttribute && el.getAttribute(attr) !== null) return el; el = el.parentNode; } return null; }
+	function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+	var CAT = {
+		neigong:  { label: '内功心法', short: '内功', color: '#e3b85a', emblem: 'ui/perks/wx_emblem_neigong.png' },
+		waigong:  { label: '外功套路', short: '外功', color: '#cf5f3f', emblem: 'ui/perks/wx_emblem_sword.png' },
+		qinggong: { label: '轻功身法', short: '轻功', color: '#57bfb4', emblem: 'ui/perks/wx_emblem_qinggong.png' },
+		henglian: { label: '横练杂学', short: '横练', color: '#b98d55', emblem: 'ui/perks/wx_emblem_henglian.png' }
+	};
+	var QUAL = {
+		common: { label: '大路货', seal: '大路', rank: 1, exp: [0, 80, 180], pages: 0 },
+		sect:   { label: '门派上乘', seal: '上乘', rank: 2, exp: [0, 160, 360], pages: 3 },
+		secret: { label: '绝学', seal: '绝学', rank: 3, exp: [0, 240, 520], pages: 5 },
+		unique: { label: '江湖孤本', seal: '孤本', rank: 4, exp: [0, 320, 700], pages: 5 }
+	};
+	var EL = { zheng: '中正', yang: '阳刚', yin: '阴柔', xie: '邪功' };
+	var WPN = { sword: '剑', saber: '刀', pole: '枪', ranged: '暗器' };
+	var TIER_NAME = ['未习', '一重 · 入门', '二重 · 小成', '三重 · 大成'];
+	var STAT_LABEL = { MeleeSkill: '武艺', MeleeDefense: '招架', RangedSkill: '射艺', Initiative: '身法', Stamina: '内息', Recovery: '回气', DirectDmg: '穿甲', InitToDef: '身法转防', QiShield: '真气护体', Nimble: '卸力' };
+	var STAT_PCT = { DirectDmg: 1, InitToDef: 1, QiShield: 1, Nimble: 1 };
+
+	function mv(id, name, ap, qi, desc) { return { id: id, name: name, icon: 'ui/skills/wx_' + id + '.png', ap: ap, qi: qi, desc: desc }; }
+
+	var M = {
+		guiyuan: { name: '归元阴诀', cat: 'neigong', q: 'sect', el: 'yin', icon: 'ui/perks/wx_perk_neigong_yin.png', allowFrag: true,
+			desc: '峨眉后山静室所传阴柔心法，以柔化刚、以静制动，敌招落空之际反哺内息。',
+			tiers: ['内息 +10；习得「调息吐纳」；敌方近战落空回复内息 3。', '内息 +18，回气 +2；解锁「真气护体」：受气血伤时以 1:2 扣内息抵消 25% 伤害。', '内息 +25，回气 +3；真气护体提升至 30%，落空回复内息 5。'],
+			stats: [{ Stamina: 10 }, { Stamina: 18, Recovery: 2, QiShield: 25 }, { Stamina: 25, Recovery: 3, QiShield: 30 }],
+			req: { '定力': 50 }, moves: [[mv('meditate', '调息吐纳', 4, 0, '回复已耗内息 25%，当回合招架 -5。')], [], []], team: ['柳青眉'] },
+		qingfeng: { name: '清风连环剑', cat: 'waigong', q: 'sect', wpn: 'sword', icon: 'ui/perks/wx_emblem_sword.png', allowFrag: true,
+			desc: '清风剑派入室弟子的看家剑法，三剑一气呵成，专寻对手招架间隙。',
+			tiers: ['武艺 +2；习得「清风三连」。', '武艺 +4，招架 +2；习得「寻隙刺」；连击命中令目标陷入「破绽」15%。', '武艺 +5，招架 +3，穿甲 +10%；习得「回风拂柳」反击架势。'],
+			stats: [{ MeleeSkill: 2 }, { MeleeSkill: 4, MeleeDefense: 2 }, { MeleeSkill: 5, MeleeDefense: 3, DirectDmg: 10 }],
+			req: { '武艺': 78, '身法': 110 },
+			moves: [[mv('sword_combo', '清风三连', 4, 18, '对同一目标连刺三剑，每剑 45% 伤害。')], [mv('sword_pierce', '寻隙刺', 4, 15, '命中率 +10%，命中令目标「破绽」：下次受击招架 -10。')], [mv('sword_counter', '回风拂柳', 3, 20, '进入反击架势，本轮首次被近战落空时还击一剑。')]],
+			team: ['柳青眉', '韩老剑'] },
+		taxue: { name: '踏雪无痕', cat: 'qinggong', q: 'sect', icon: 'ui/perks/wx_perk_qinggong.png', allowFrag: true,
+			desc: '天山派轻身功夫，踏雪不留痕，身法越高、闪避越妙。',
+			tiers: ['身法 +9；复杂地形移动减耗。', '身法 +14；按有效身法 15% 转化为招架/避暗；每回合可无视控制区脱身一次。', '身法 +18；习得「踏雪纵跃」短距位移。'],
+			stats: [{ Initiative: 9 }, { Initiative: 14, InitToDef: 15 }, { Initiative: 18, InitToDef: 15 }],
+			req: { '身法': 105 }, moves: [[], [], [mv('qinggong_zongyue', '踏雪纵跃', 3, 15, '越过一格跃至两格外空地，无视控制区。')]], team: [] },
+		jinchan: { name: '金蝉卸力', cat: 'henglian', q: 'sect', icon: 'ui/perks/wx_perk_henglian.png', allowFrag: true,
+			desc: '借衣袂翻飞卸去刀兵劲力的轻装保命术，甲越轻越妙。',
+			tiers: ['头身衣甲负重 ≤ 15 时，气血实伤 -25%。', '气血实伤 -35%。', '气血实伤 -40%，超重衰减放缓；与真气护体合计封顶 60%。'],
+			stats: [{ Nimble: 25 }, { Nimble: 35 }, { Nimble: 40 }], req: {}, moves: [[], [], []], team: ['白鹞子'] },
+		youxia: { name: '游侠佩剑术', cat: 'waigong', q: 'common', wpn: 'sword', icon: 'ui/perks/wx_emblem_sword.png',
+			desc: '南北仗剑游侠防身的基本格刺剑法，攻守均衡且善寻破绽。',
+			tiers: ['武艺 +1，招架 +1。', '武艺 +2，招架 +1；普攻留破绽 15%。', '武艺 +3，招架 +2；普攻留破绽 25%。'],
+			stats: [{ MeleeSkill: 1, MeleeDefense: 1 }, { MeleeSkill: 2, MeleeDefense: 1 }, { MeleeSkill: 3, MeleeDefense: 2 }], req: {}, moves: [[], [], []], team: ['马三刀', '小六子', '方不平'] },
+		cuqian: { name: '粗浅吐纳', cat: 'neigong', q: 'common', el: 'zheng', icon: 'ui/perks/wx_perk_neigong_harmony.png',
+			desc: '江湖上人人会两手的呼吸法门，胜在中正平和、可配任何辅修。',
+			tiers: ['内息 +5；习得「调息吐纳」。', '内息 +10，回气 +1。', '内息 +15，回气 +2。'],
+			stats: [{ Stamina: 5 }, { Stamina: 10, Recovery: 1 }, { Stamina: 15, Recovery: 2 }], req: {}, moves: [[mv('meditate', '调息吐纳', 4, 0, '回复已耗内息 25%。')], [], []], team: ['赵铁柱', '石敢当', '周大锤'] },
+		wuhu: { name: '五虎断门刀', cat: 'waigong', q: 'common', wpn: 'saber', icon: 'ui/perks/wx_emblem_saber.png',
+			desc: '镖局护院人人会使的刀法，大开大合，劈砍有力。',
+			tiers: ['武艺 +1；习得「断门劈」。', '武艺 +2；破甲 +10%。', '武艺 +3；破甲 +16%。'],
+			stats: [{ MeleeSkill: 1 }, { MeleeSkill: 2 }, { MeleeSkill: 3 }], req: {}, moves: [[mv('saber_cleave', '断门劈', 4, 14, '重劈一刀，破甲 +20%。')], [], []], team: ['马三刀'] },
+		xiushou: { name: '袖手暗器', cat: 'henglian', q: 'common', icon: 'ui/perks/wx_perk_tactics.png',
+			desc: '袖里藏针的小把戏，出手快、不占兵器槽。',
+			tiers: ['射艺 +1；习得「袖底针」。', '射艺 +2；换手不耗行动力。', '射艺 +3；袖底针 2 格内命中 +10%。'],
+			stats: [{ RangedSkill: 1 }, { RangedSkill: 2 }, { RangedSkill: 3 }], req: {}, moves: [[mv('throw_duzhen', '袖底针', 3, 10, '射程 3，命中令目标轻微中毒。')], [], []], team: [] },
+		/* --- 以下为藏经阁未习 --- */
+		songtao: { name: '松涛心法', cat: 'neigong', q: 'sect', el: 'zheng', icon: 'ui/perks/wx_perk_neigong_harmony.png', allowFrag: true,
+			desc: '松风观道人观松涛悟出的中正心法，回气绵长，可与任意内功调和。',
+			tiers: ['内息 +10；习得「调息吐纳」。', '内息 +18，回气 +4；抗内伤。', '内息 +25，回气 +6；可调和相克辅修。'],
+			stats: [{ Stamina: 10 }, { Stamina: 18, Recovery: 4 }, { Stamina: 25, Recovery: 6 }], req: { '定力': 45 }, moves: [[mv('meditate', '调息吐纳', 4, 0, '')], [], []], team: ['慧明'] },
+		tiebu: { name: '铁布衫', cat: 'henglian', q: 'sect', icon: 'ui/perks/wx_emblem_henglian.png', allowFrag: true,
+			desc: '少林外家硬功，披重甲行气如常，重兵爆头亦能硬扛。',
+			tiers: ['气血 +8；按护甲厚度减免损甲。', '气血 +14；「披甲行气」：头身甲内息/身法负重惩罚 -25%。', '气血 +20；「铜头铁额」：免疫爆头额外暴击倍率。'],
+			stats: [{}, {}, {}], req: { '气血': 60 }, moves: [[], [], []], team: ['周大锤', '石敢当'] },
+		huifeng: { name: '回锋惊鸿剑', cat: 'waigong', q: 'secret', wpn: 'sword', icon: 'ui/perks/wx_emblem_sword.png', allowFrag: true,
+			desc: '剑出如惊鸿回锋，后发先至。以反击架势见长，大成可发三格剑气。',
+			tiers: ['武艺 +3；习得「惊鸿回锋」反击架势。', '武艺 +5，招架 +3；反击伤害 +20%。', '武艺 +7，招架 +5；习得「剑气横江」三格直线剑气。'],
+			stats: [{}, {}, {}], req: { '武艺': 80, '身法': 115 }, moves: [[], [], []], team: [] },
+		suodi: { name: '缩地成寸', cat: 'qinggong', q: 'secret', icon: 'ui/perks/wx_perk_qinggong.png', allowFrag: true,
+			desc: '传说中的缩地法门，一步数丈，主动短距跃迁。',
+			tiers: ['身法 +12；习得「缩地」两格跃迁。', '身法 +18；身法 18% 转双防。', '身法 +24；缩地冷却 -1 回合。'],
+			stats: [{}, {}, {}], req: { '身法': 120 }, moves: [[], [], []], team: [] },
+		liuhe: { name: '六合基础枪', cat: 'waigong', q: 'common', wpn: 'pole', icon: 'ui/perks/wx_emblem_pole.png',
+			desc: '军中枪棒教头传授的基本枪法，两格刺击，守线稳健。',
+			tiers: ['武艺 +1。', '武艺 +2；两格刺击命中 +5%。', '武艺 +3；矛墙拦截省气。'], stats: [{}, {}, {}], req: {}, moves: [[], [], []], team: ['赵铁柱'] },
+		taixu: { name: '太虚真经', cat: 'neigong', q: 'unique', el: 'zheng', icon: 'ui/perks/wx_perk_neigong_harmony.png', allowFrag: true,
+			desc: '失传百年的道门孤本，大成者常驻多一口真气（+1 AP），且可调和一切相克内功。',
+			tiers: ['内息 +15，回气 +2。', '内息 +25，回气 +4；可调和相克辅修。', '内息 +40，回气 +6；常驻行动力 +1；获得 1 次洗髓契机。'],
+			stats: [{}, {}, {}], req: { '定力': 70, '内息': 120 }, moves: [[], [], []], team: [] },
+		xuesha: { name: '血煞吞元功', cat: 'neigong', q: 'secret', el: 'xie', icon: 'ui/perks/wx_perk_neigong_evil.png', allowFrag: true,
+			desc: '血煞帮镇帮邪功，击杀回气、燃血换力，滚雪球极强而易遭反噬。',
+			tiers: ['内息 +15；击杀回复内息 15。', '内息 +25；习得「燃血」：耗气血换临时 +2 AP（冷却 3 回合）。', '内息 +40；击杀回复内息 25。'],
+			stats: [{}, {}, {}], req: { '定力': 40 }, moves: [[], [], []], team: [] },
+		tianwai: { name: '天外一剑', cat: 'waigong', q: 'unique', wpn: 'sword', icon: 'ui/perks/wx_emblem_sword.png', allowFrag: true,
+			desc: '剑出天外，不可捉摸。7 AP 高穿甲清场大招，江湖孤本。',
+			tiers: ['武艺 +4；穿甲 +10%。', '武艺 +7，招架 +4；穿甲 +15%。', '武艺 +10，招架 +6；穿甲 +20%；习得「天外一剑」。'],
+			stats: [{}, {}, {}], req: { '武艺': 90, '身法': 125 }, moves: [[], [], []], team: [] },
+		heifeng: { name: '黑风劈空刀', cat: 'waigong', q: 'sect', wpn: 'saber', icon: 'ui/perks/wx_emblem_saber.png', allowFrag: true,
+			desc: '黑风寨刀手的劈空刀法，破甲流血，凶悍异常。',
+			tiers: ['武艺 +2；破甲 +12%。', '武艺 +4；命中流血 25%。', '武艺 +5；破甲 +24%。'], stats: [{}, {}, {}], req: { '武艺': 65 }, moves: [[], [], []], team: [] },
+		weiyuan: { name: '威远护镖枪', cat: 'waigong', q: 'sect', wpn: 'pole', icon: 'ui/perks/wx_emblem_pole.png', allowFrag: true,
+			desc: '威远镖局总镖头的护镖枪法，守线拦人，令冲阵者失衡。',
+			tiers: ['武艺 +2；矛墙命中令目标失衡。', '武艺 +4，招架 +2。', '武艺 +5，招架 +3；守线免围攻惩罚。'], stats: [{}, {}, {}], req: { '武艺': 62 }, moves: [[], [], []], team: [] },
+		baoyu: { name: '暴雨暗器谱', cat: 'waigong', q: 'secret', wpn: 'ranged', icon: 'ui/perks/wx_emblem_ranged.png', allowFrag: true,
+			desc: '唐门外传的暗器总谱，毒针连发、烟幕遁形。',
+			tiers: ['射艺 +3；习得「毒针连发」。', '射艺 +5；习得「烟幕」。', '射艺 +7；毒针穿甲 +15%。'], stats: [{}, {}, {}], req: { '射艺': 60 }, moves: [[], [], []], team: [] },
+		juyi: { name: '聚义令', cat: 'henglian', q: 'sect', icon: 'ui/perks/wx_perk_tactics.png', allowFrag: true,
+			desc: '绿林总瓢把子的号令之术，手持本命兵器亦可振奋军心（对标 Rally）。',
+			tiers: ['习得「振臂一呼」：消耗内息稳固周围同袍战意。', '定力 +5；号令范围 +1。', '清除动摇/崩溃；对尸傀邪祟恐惧免疫光环。'], stats: [{}, {}, {}], req: { '定力': 60 }, moves: [[], [], []], team: [] }
+	};
+
+	var PILLS = {
+		ningshen: { name: '凝神丸', icon: 'ui/items/consumables/wx_pill_ningshen.png', kind: 'infuse', gain: 80, desc: '为已装功法灌注 80 点火候。' },
+		huxin:    { name: '护心丹', icon: 'ui/items/consumables/wx_pill_huxin.png', kind: 'heal_internal', desc: '立即化解散功调息与轻度内伤。' },
+		jinchuang:{ name: '金疮散', icon: 'ui/items/consumables/wx_pill_jinchuang.png', kind: 'heal_external', desc: '敷治一处外伤，休养时间减半。' },
+		xisui:    { name: '洗髓丹', icon: 'ui/items/consumables/wx_pill_xisui.png', kind: 'wash', desc: '触发一次洗经伐髓（冲星 / 易筋换星）。' },
+		humai:    { name: '护脉丹', icon: 'ui/items/consumables/wx_pill_humai.png', kind: 'protect', desc: '洗髓前服用：成功率 +5%，免除失败永久暗疾风险。' }
+	};
+
+	var INITIAL = {
+		bro: {
+			name: '林沧海', level: 7, bg: '走镖趟子手', sect: '威远镖局', wage: 22, xp: 1420, xpNext: 2000,
+			attrs: ['气血', '内息', '定力', '身法', '武艺', '射艺', '招架', '避暗'],
+			base: [62, 108, 44, 112, 71, 38, 9, 6], talents: [0, 1, 0, 2, 2, 0, 0, 0],
+			hp: 62, qiUsed: 26, weapon: 'sword', ap: 9, apPerm: 0,
+			scatter: 2, wounds: ['左臂割伤'],
+			slots: [
+				{ label: '主修内功', role: '丹田 · 主修', unlock: 1, cats: ['neigong'], m: 'guiyuan' },
+				{ label: '基础外功', role: '基础外功', unlock: 1, cats: ['waigong'], m: 'qingfeng' },
+				{ label: '轻功身法', role: '轻功身法', unlock: 3, cats: ['qinggong'], m: 'taxue' },
+				{ label: '横练杂学', role: '横练杂学', unlock: 5, cats: ['henglian'], m: 'jinchan' },
+				{ label: '进阶专精', role: '进阶 · 外/横', unlock: 7, cats: ['waigong', 'henglian'], m: null },
+				{ label: '自由穴', role: '自由 · 九级', unlock: 9, cats: ['neigong', 'waigong', 'qinggong', 'henglian'], m: null },
+				{ label: '宗师穴', role: '宗师 · 十一级', unlock: 11, cats: ['neigong', 'waigong', 'qinggong', 'henglian'], m: null }
+			],
+			learned: {
+				guiyuan: { tier: 2, exp: 120 }, qingfeng: { tier: 2, exp: 210 }, taxue: { tier: 1, exp: 60 }, jinchan: { tier: 3, exp: 0 },
+				youxia: { tier: 3, exp: 0 }, cuqian: { tier: 3, exp: 0 }, wuhu: { tier: 1, exp: 30 }, xiushou: { tier: 2, exp: 70 }
+			}
+		},
+		lib: [
+			{ kind: 'manual', id: 'taixu', count: 1 }, { kind: 'manual', id: 'huifeng', count: 1 }, { kind: 'manual', id: 'suodi', count: 1 },
+			{ kind: 'manual', id: 'baoyu', count: 1 }, { kind: 'manual', id: 'songtao', count: 1 }, { kind: 'manual', id: 'tiebu', count: 2 },
+			{ kind: 'manual', id: 'juyi', count: 1 }, { kind: 'manual', id: 'qingfeng', count: 1 }, { kind: 'manual', id: 'liuhe', count: 3 },
+			{ kind: 'manual', id: 'youxia', count: 2 }, { kind: 'manual', id: 'cuqian', count: 1 },
+			{ kind: 'page', id: 'tianwai', count: 2 }, { kind: 'page', id: 'xuesha', count: 4 }, { kind: 'page', id: 'heifeng', count: 3 },
+			{ kind: 'page', id: 'huifeng', count: 2 }, { kind: 'page', id: 'weiyuan', count: 1 }, { kind: 'page', id: 'guiyuan', count: 1 }
+		],
+		pills: { ningshen: 3, huxin: 2, jinchuang: 4, xisui: 1, humai: 1 },
+		autoStore: true,
+		stashBooks: 5
+	};
+
+
+	var D = clone(INITIAL);
+	var S = { tab: 'wx', selSlot: 4, shelf: 'learned', cat: null, search: '', insp: { kind: 'slot', idx: 4 },
+		lib: { kind: 'all', cat: null, unlearned: false, search: '', insp: null }, invFilter: 'all', grid: false, bg: 'statue' };
+
+	function bro() { return D.bro; }
+	function needExp(id, tier) { var q = QUAL[M[id].q]; return tier >= 3 ? 0 : q.exp[tier]; }
+	function equippedSlotOf(id) { var s = bro().slots; for (var i = 0; i < s.length; i++) if (s[i].m === id) return i; return -1; }
+	function slotUnlocked(i) { return bro().level >= bro().slots[i].unlock; }
+	function catCount(cat, exceptIdx) { var n = 0, s = bro().slots; for (var i = 0; i < s.length; i++) { if (i !== exceptIdx && s[i].m && M[s[i].m].cat === cat) n++; } return n; }
+	function wpnOk(id) { var m = M[id]; return !m.wpn || m.wpn === bro().weapon; }
+
+	function canFit(id, idx) {
+		var s = bro().slots[idx], m = M[id];
+		if (!slotUnlocked(idx)) return { ok: false, why: '穴位尚未贯通（' + s.unlock + ' 级）' };
+		if (s.cats.indexOf(m.cat) < 0) return { ok: false, why: '此穴只可装配：' + catsLabel(s.cats) };
+		var eq = equippedSlotOf(id);
+		if (eq >= 0 && eq !== idx) return { ok: false, why: '已装于穴' + CN[eq + 1] };
+		if ((m.cat === 'neigong' || m.cat === 'qinggong') && catCount(m.cat, idx) >= 2) return { ok: false, why: '全身最多 2 门' + CAT[m.cat].short };
+		return { ok: true };
+	}
+	function catsLabel(cats) { if (cats.length === 4) return '任意武学'; var a = []; for (var i = 0; i < cats.length; i++) a.push(CAT[cats[i]].label); return a.join(' / '); }
+	function bestSlotFor(id) { var s = bro().slots; for (var i = 0; i < s.length; i++) { if (!s[i].m && canFit(id, i).ok) return i; } for (i = 0; i < s.length; i++) { if (canFit(id, i).ok) return i; } return -1; }
+
+	function attrVal(name) {
+		var i = bro().attrs.indexOf(name); if (i < 0) return 0;
+		var v = bro().base[i], p = passives();
+		var map = { '武艺': 'MeleeSkill', '招架': 'MeleeDefense', '射艺': 'RangedSkill', '身法': 'Initiative', '内息': 'Stamina' };
+		if (map[name] && p[map[name]]) v += p[map[name]].v;
+		return v;
+	}
+
+	/* 同系被动取最高（Math.max），辅修第二内功按 50% 折算 */
+	function passives() {
+		var out = {}, s = bro().slots;
+		for (var i = 0; i < s.length; i++) {
+			if (!s[i].m) continue;
+			var id = s[i].m, m = M[id], l = bro().learned[id];
+			if (!l || !wpnOk(id)) continue;
+			var st = m.stats[l.tier - 1] || {};
+			var halve = (m.cat === 'neigong' && i !== 0);
+			for (var k in st) {
+				if (!st.hasOwnProperty(k)) continue;
+				var v = st[k]; if (halve && (k === 'Stamina' || k === 'Recovery')) v = Math.floor(v / 2);
+				if (!out[k]) out[k] = { v: v, src: m.name, others: [] };
+				else if (v > out[k].v) { out[k].others.push(out[k].src + ' ' + out[k].v); out[k].v = v; out[k].src = m.name; }
+				else out[k].others.push(m.name + ' ' + v);
+			}
+		}
+		return out;
+	}
+	function activeMoves() {
+		var res = [], seen = {}, s = bro().slots;
+		for (var i = 0; i < s.length; i++) {
+			if (!s[i].m) continue;
+			var id = s[i].m, m = M[id], l = bro().learned[id];
+			for (var t = 0; t < l.tier; t++) {
+				var arr = m.moves[t] || [];
+				for (var j = 0; j < arr.length; j++) { if (seen[arr[j].id]) continue; seen[arr[j].id] = 1; res.push({ mv: arr[j], cat: m.cat, src: m.name, ok: wpnOk(id) }); }
+			}
+		}
+		return res;
+	}
+	function libItem(kind, id) { for (var i = 0; i < D.lib.length; i++) if (D.lib[i].kind === kind && D.lib[i].id === id) return D.lib[i]; return null; }
+	function pagesNeed(id) { return QUAL[M[id].q].pages; }
+	function idlePagesSameQ(id) { var q = M[id].q, n = 0; for (var i = 0; i < D.lib.length; i++) { var it = D.lib[i]; if (it.kind === 'page' && it.id !== id && M[it.id].q === q) n += it.count; } return n; }
+	function pageState(it) { var need = pagesNeed(it.id); if (it.count >= need) return 'craft'; if (it.count + Math.floor(idlePagesSameQ(it.id) / 2) >= need) return 'wild'; return 'none'; }
+	function craftableCount() { var n = 0; for (var i = 0; i < D.lib.length; i++) if (D.lib[i].kind === 'page' && pageState(D.lib[i]) === 'craft') n++; return n; }
+	function readySlotHint(idx) {
+		var s = bro().slots[idx]; if (!slotUnlocked(idx) || s.m) return false;
+		for (var id in bro().learned) if (bro().learned.hasOwnProperty(id) && equippedSlotOf(id) < 0 && canFit(id, idx).ok) return true;
+		return false;
+	}
+	function damageReduction() { var p = passives(); var q = p.QiShield ? p.QiShield.v : 0, n = p.Nimble ? p.Nimble.v : 0; var raw = 1 - (1 - q / 100) * (1 - n / 100); return { raw: Math.round(raw * 100), capped: Math.min(60, Math.round(raw * 100)) }; }
+
+	/* ------------------------------------------------------------------------
+	 * 原版羊皮纸提示
+	 * ------------------------------------------------------------------------ */
+	var TIPS = {}, tipSeq = 0, tipEl = $('tip');
+	function tip(d) { tipSeq++; TIPS['t' + tipSeq] = d; return ' data-tip="t' + tipSeq + '"'; }
+	var STATIC = { close: { title: '关闭', body: '返回大地图' } };
+	function showTip(key, x, y) {
+		var t = TIPS[key] || STATIC[key]; if (!t) return;
+		var h = '<div class="tt">' + esc(t.title) + '</div>' + (t.sub ? '<div class="ts">' + esc(t.sub) + '</div>' : '');
+		if (t.body) h += '<div>' + t.body + '</div>';
+		if (t.rows) for (var i = 0; i < t.rows.length; i++) h += '<div class="tr"><img src="' + t.rows[i].icon + '">' + t.rows[i].html + '</div>';
+		if (t.hint) h += '<div class="hint">' + t.hint + '</div>';
+		tipEl.innerHTML = h; tipEl.style.display = 'block';
+		tipEl.style.transform = 'scale(' + SCALE + ')'; tipEl.style.transformOrigin = '0 0';
+		moveTip(x, y);
+	}
+	function moveTip(x, y) {
+		var w = tipEl.offsetWidth * SCALE, h = tipEl.offsetHeight * SCALE, lx = x + 16, ly = y + 16;
+		if (lx + w > window.innerWidth - 4) lx = x - w - 10;
+		if (ly + h > window.innerHeight - 4) ly = Math.max(4, window.innerHeight - h - 4);
+		tipEl.style.left = lx + 'px'; tipEl.style.top = ly + 'px';
+	}
+	function hideTip() { tipEl.style.display = 'none'; }
+	function vi(name) { return V + 'ui/icons/' + name + '.png'; }
+
+	/* ------------------------------------------------------------------------
+	 * 公共
+	 * ------------------------------------------------------------------------ */
+	var TIER_SHORT = ['', '一重', '二重', '三重'];
+	function bookIcon(id, page) { var m = M[id]; return 'ui/items/misc/' + (page ? 'wx_page_' + m.q : 'wx_book_' + m.cat + '_' + m.q) + '.png'; }
+	function subLine(id) { var m = M[id]; return QUAL[m.q].label + ' · ' + CAT[m.cat].short + (m.wpn ? ' · ' + WPN[m.wpn] : '') + (m.el ? ' · ' + EL[m.el] : ''); }
+	function xpBar(id, l, w) {
+		var need = needExp(id, l.tier), pct = l.frag ? 100 : (need ? Math.min(100, Math.floor(l.exp / need * 100)) : 100);
+		return '<div class="vxp"' + (w ? ' style="width:' + w + 'rem"' : '') + '><div class="f" style="width:' + pct + '%"></div></div>';
+	}
+	function manualTip(id, extraHint) {
+		var m = M[id], l = bro().learned[id], rows = [];
+		for (var t = 1; t <= 3; t++) rows.push({ icon: vi(l && t <= l.tier ? 'unlocked_small' : 'locked_small'), html: '<b>' + TIER_SHORT[t] + '</b>：' + m.tiers[t - 1] });
+		var r = m.req, rq = [];
+		for (var k in r) if (r.hasOwnProperty(k)) { var ok = attrVal(k) >= r[k]; rq.push(k + ' <span class="' + (ok ? 'pos' : 'neg') + '">' + attrVal(k) + '</span>/' + r[k]); }
+		return { title: '《' + m.name + '》', sub: subLine(id) + (l ? ' · ' + TIER_NAME[l.tier] : ' · 未习'), body: m.desc, rows: rows,
+			hint: (rq.length ? '大成门槛：' + rq.join('，') + '<br>' : '') + (m.wpn && !wpnOk(id) ? '<span class="neg">当前主手非' + WPN[m.wpn] + '，外功暂不生效</span><br>' : '') + (extraHint || '') };
+	}
+
+	/* ------------------------------------------------------------------------
+	 * 左栏（原版结构）
+	 * ------------------------------------------------------------------------ */
+	function renderLeft() {
+		var b = bro();
+		$('lh').innerHTML =
+			'<img class="crest" src="' + G + 'ui/icons/wx_crest_longhu.png">' +
+			'<div class="name t-title">' + esc(b.name) + '</div>' +
+			'<div class="sub">' + esc(b.bg) + ' <span class="c-desc">· 日薪 ' + b.wage + ' 两</span></div>' +
+			'<div class="lvl"' + tip({ title: '第 ' + b.level + ' 级', body: '阅历 ' + b.xp + ' / ' + b.xpNext + '<br>9 级贯通自由穴（可辅修第二门内功）' }) + '>' + b.level + '<img src="' + vi('level') + '"></div>' +
+			'<div class="vxp"><div class="f" style="width:' + Math.floor(b.xp / b.xpNext * 100) + '%"></div></div>';
+
+		/* 原版纸娃娃：左列 饰品+主手 / 中列 头+身 / 右列 弹药+副手，坐标对齐背景上的槽框 */
+		function ps(x, y, big, icon, ghost, name, desc) {
+			return '<div class="ps' + (big ? ' big' : '') + '" style="left:' + x + 'rem;top:' + y + 'rem"' + tip({ title: name, body: desc }) + '><img ' + (icon ? 'src="' + G + icon + '"' : 'class="ghost" src="' + V + 'ui/items/slots/' + ghost + '"') + '></div>';
+		}
+		var h = '<span class="vb vb3 mirror"' + tip({ title: '铜镜易容', body: '更换发型、胡须与面相' }) + '><img src="' + G + 'ui/wx_icons/wx_glyph_mirror.png"></span>';
+		h += ps(2.0, 2.4, false, 'ui/items/accessory/wx_acc_wuzhiqi.png', null, '五芝香囊', '定力 +5');
+		h += ps(12.9, 1.5, false, 'ui/items/helmets/wx_char_hat_bamboo.png', null, '斗笠', '头甲 90 / 105');
+		h += ps(23.9, 2.4, false, null, 'inventory_slot_ammo.png', '弹药', '空');
+		h += ps(1.8, 10.0, true, 'ui/items/weapons/melee/wx_wpn_sword_03.png', null, '青锋剑', '伤害 35–45 · 穿甲 20%');
+		h += ps(12.8, 9.2, true, 'ui/items/armor/wx_char_robe_swordsman.png', null, '青衫劲装', '身甲 140 / 160 · 负重 11');
+		h += ps(23.8, 10.0, true, null, 'inventory_slot_offhand.png', '副手', '单手剑空副手：双握 +25% 伤害');
+		var bags = ['ui/items/consumables/wx_pill_jinchuang.png', 'ui/items/tools/wx_tool_smoke_bomb.png', null, null];
+		for (var i = 0; i < 4; i++) h += '<div class="bag" style="left:' + (3.2 + i * 7) + 'rem"' + tip({ title: bags[i] ? (i ? '烟丸' : '金疮散') : '行囊', body: bags[i] ? '战斗中取用' : '空' }) + '>' + (bags[i] ? '<img src="' + G + bags[i] + '">' : '') + '</div>';
+		$('doll').innerHTML = h;
+
+		/* 原版技能栏：上排主动（=招式），下排状态与特质 */
+		var mv = activeMoves(), r1 = '';
+		for (i = 0; i < mv.length; i++) r1 += '<img src="' + G + mv[i].mv.icon + '"' + (mv[i].ok ? '' : ' style="filter:grayscale(1);opacity:.5"') + tip({ title: mv[i].mv.name, sub: '出自《' + mv[i].src + '》', body: mv[i].mv.desc, rows: [{ icon: vi('action_points'), html: '行动力 ' + mv[i].mv.ap }, { icon: vi('fatigue'), html: '内息 ' + mv[i].mv.qi }] }) + '>';
+		var st = [['ui/skills/wx_status_meridian_harmony.png', '内息调和', '主修阴柔，无相克']];
+		if (b.scatter) st.push(['ui/skills/wx_scatter_weakness.png', '散功调息 · ' + b.scatter + ' 天', '内息上限 <span class="neg">-15</span>，回气 <span class="neg">-3</span>']);
+		for (i = 0; i < b.wounds.length; i++) st.push(['ui/skills/wx_status_opening.png', b.wounds[i], '武艺 <span class="neg">-5</span>，招架 <span class="neg">-5</span>']);
+		st.push(['ui/perks/wx_emblem_odd.png', '悟性过人', '火候获取 <span class="pos">+15%</span>'], ['ui/perks/wx_perk_tactics.png', '江湖老手', '定力 <span class="pos">+5</span>']);
+		var r2 = ''; for (i = 0; i < st.length; i++) r2 += '<img src="' + G + st[i][0] + '"' + tip({ title: st[i][1], body: st[i][2] }) + '>';
+		$('skills').innerHTML = '<div class="row" style="top:0.9rem">' + r1 + '</div><div class="row r2" style="top:5.3rem">' + r2 + '</div>';
+
+		var qiMax = attrVal('内息') - 15 - (b.scatter ? 15 : 0);
+		var L = [['armor_head', '头甲', 90, 105, 'armor'], ['armor_body', '身甲', 140, 160, 'armor'], ['health', '气血', b.hp, b.hp, 'hp', 0], ['fatigue', '内息', qiMax - b.qiUsed, qiMax, 'fat', 1], ['bravery', '定力', attrVal('定力'), 100, 'neu', 2], ['morale', '战意', '稳定', 1, 'morale']];
+		var R = [['initiative', '身法', attrVal('身法') - 15, 160, 'neu', 3], ['melee_skill', '武艺', attrVal('武艺') - (b.wounds.length ? 5 : 0), 110, 'neu', 4], ['ranged_skill', '射艺', attrVal('射艺'), 110, 'neu', 5], ['melee_defense', '招架', attrVal('招架') - (b.wounds.length ? 5 : 0), 60, 'neu', 6], ['ranged_defense', '避暗', attrVal('避暗'), 60, 'neu', 7], ['action_points', '行动力', b.ap + b.apPerm, 9, 'ap']];
+		function col(arr, x) {
+			var o = '';
+			for (var j = 0; j < arr.length; j++) {
+				var a = arr[j], pct = typeof a[2] === 'number' ? Math.min(100, Math.round(a[2] / a[3] * 100)) : 60;
+				var val = (a[4] === 'hp' || a[4] === 'armor' || a[4] === 'fat') ? a[2] + ' / ' + a[3] : a[2];
+				var tal = a[5] !== undefined && b.talents[a[5]] ? '<img class="talent" src="' + vi('talent_' + b.talents[a[5]]) + '">' : '';
+				o += '<div class="st" style="left:' + x + 'rem;top:' + (1.2 + j * 3.9) + 'rem"' + tip({ title: a[1], body: a[1] === '内息' ? '内息即原版疲劳的正向显示：条越满越能出招。<br>负重 <span class="neg">-15</span>' + (b.scatter ? '，散功 <span class="neg">-15</span>' : '') : '当前 ' + val }) + '><img class="ico" src="' + vi(a[0]) + '">' + tal + '<div class="vbar"><div class="f ' + a[4] + '" style="width:' + pct + '%"></div><div class="v">' + val + '</div></div></div>';
+			}
+			return o;
+		}
+		$('stats').innerHTML = col(L, 1.0) + col(R, 17.4);
+	}
+
+	/* 原版阵型：两排出战（人形底）+ 一排后备（帐篷底） */
+	var ROSTER = [['林沧海', 7, '#3d5a6b', 3], ['赵铁柱', 9, '#5a3d2b', 2, 1], ['孙二娘', 6, '#6b2e2e', 2], ['慧明', 5, '#7a5a2a', 3], ['柳青眉', 8, '#2e4a3d', 1], ['石敢当', 4, '#4a4a3a', 4], ['韩老剑', 11, '#3a3a4a', 2], ['周大锤', 7, '#5a4a2a', 3], null,
+		['马三刀', 6, '#4a2e22', 5], ['小六子', 2, '#3a4a2e', 2], null, ['方不平', 3, '#2e3a4a', 3], null, ['白鹞子', 5, '#4a3a5a', 2], null, null, null];
+	function bust(c) {
+		return '<svg viewBox="0 0 64 74"><path d="M6 74 C8 54 20 49 32 49 C44 49 56 54 58 74 Z" fill="' + c + '"/><ellipse cx="32" cy="32" rx="11" ry="13" fill="#b89470"/><path d="M20 28 C20 15 44 15 44 28 C41 22 23 22 20 28 Z" fill="#1b130d"/><path d="M28 13 C28 8 36 8 36 13 Z" fill="#1b130d"/></svg>';
+	}
+	function renderRoster() {
+		var h = '';
+		for (var i = 0; i < 27; i++) {
+			var r = ROSTER[i], cls = 'bro' + (i >= 18 ? ' tent' : '');
+			if (!r) { h += '<div class="' + cls + '"></div>'; continue; }
+			h += '<div class="' + cls + '"' + tip({ title: r[0], sub: '第 ' + r[1] + ' 级', body: i === 0 ? '当前查看' : '预览中仅林沧海有完整数据' }) + '>' + (i === 0 ? '<div class="hl"></div>' : '') + bust(r[2]) +
+				'<img class="mood" src="' + vi('mood_0' + r[3]) + '">' + (r[4] ? '<img class="up" src="' + vi('leveled_up') + '">' : '') + '<span class="lv">' + r[1] + '</span></div>';
+		}
+		$('roster').innerHTML = h;
+	}
+
+	/* ------------------------------------------------------------------------
+	 * 右栏顶栏：原版 button_tab ×3
+	 * ------------------------------------------------------------------------ */
+	function renderHeader() {
+		var ready = 0; for (var i = 0; i < bro().slots.length; i++) if (readySlotHint(i)) ready++;
+		var cc = craftableCount();
+		var tabs = [['inv', '兵甲行囊', 0], ['wx', '武学修为', ready], ['lib', '藏经阁', cc]], h = '';
+		for (i = 0; i < tabs.length; i++) h += '<span class="vb vtab' + (S.tab === tabs[i][0] ? ' sel' : '') + '" data-act="tab" data-v="' + tabs[i][0] + '">' + tabs[i][1] + (tabs[i][2] ? '<span class="badge">' + tabs[i][2] + '</span>' : '') + '</span>';
+		$('tabs').innerHTML = h;
+		var ids = ['inv', 'wx', 'lib'];
+		for (i = 0; i < 3; i++) { $('pane-' + ids[i]).className = 'pane' + (S.tab === ids[i] ? ' on' : ''); $('strip-' + ids[i]).className = 'strip' + (S.tab === ids[i] ? ' on' : ''); }
+	}
+
+	/* ------------------------------------------------------------------------
+	 * 页签一：兵甲行囊（原版仓库原样 + 典籍角标）
+	 * ------------------------------------------------------------------------ */
+	var STASH = [
+		['ui/items/weapons/melee/wx_wpn_sword_05.png', 'w', '寒铁长剑'], ['ui/items/weapons/melee/wx_wpn_saber_02.png', 'w', '雁翎刀'], ['ui/items/weapons/melee/wx_wpn_spear_03.png', 'w', '白蜡杆枪'],
+		['ui/items/weapons/named/wx_relic_chengying.png', 'w', '承影（名器）'], ['ui/items/weapons/ranged/wx_wpn_bow_01.png', 'w', '猎弓'], ['ui/items/weapons/ranged/wx_wpn_xbow_01.png', 'w', '神臂弩'],
+		['ui/items/armor/wx_body_sect_03.png', 'a', '门派劲装'], ['ui/items/armor/wx_body_hvy_02.png', 'a', '札甲'], ['ui/items/helmets/wx_hat_03.png', 'a', '毡帽'], ['ui/items/shields/wx_shd_02.png', 'a', '藤牌'],
+		['book:baoyu', 'b'], ['book:songtao', 'b'], ['book:weiyuan', 'b'], ['page:tianwai', 'b'], ['page:weiyuan', 'b'],
+		['ui/items/consumables/wx_pill_ningshen.png', 'u', '凝神丸', 3], ['ui/items/consumables/wx_pill_huxin.png', 'u', '护心丹', 2], ['ui/items/consumables/wx_pill_jinchuang.png', 'u', '金疮散', 4],
+		['ui/items/consumables/wx_pill_xisui.png', 'u', '洗髓丹'], ['ui/items/consumables/wx_pill_humai.png', 'u', '护脉丹'],
+		['ui/items/tools/wx_tool_smoke_bomb.png', 'm', '烟丸'], ['ui/items/ammo/wx_ammo_arrows.png', 'm', '羽箭'], ['ui/items/misc/wx_marrow_herb.png', 'm', '洗髓草']
+	];
+	function renderInv() {
+		var f = [['sort', 'sort-button', '整理'], ['all', 'filter_all', '全部'], ['w', 'filter_weapons', '兵刃'], ['a', 'filter_armor', '衣甲'], ['u', 'filter_usable', '可用'], ['m', 'filter_misc', '杂物']], fh = '';
+		for (var i = 0; i < f.length; i++) fh += '<span class="vb vb3' + (S.invFilter === f[i][0] ? ' sel' : '') + '" data-act="inv-f" data-v="' + f[i][0] + '"' + tip({ title: f[i][2] }) + '><img class="flat" src="' + V + 'ui/buttons/' + f[i][1] + '.png"></span>';
+		fh += '<span class="vb vb3' + (S.invFilter === 'b' ? ' sel' : '') + '" data-act="inv-f" data-v="b"' + tip({ title: '典籍', body: '秘籍与残页（武侠新增筛选）' }) + '><img src="' + G + 'ui/items/misc/wx_book_neigong_sect.png"></span>';
+		$('inv-f').innerHTML = fh;
+		var h = '', used = 0;
+		for (i = 0; i < 117; i++) {
+			var it = STASH[i];
+			if (!it) { h += '<div class="vslot"></div>'; continue; }
+			used++;
+			var dim = (S.invFilter !== 'all' && S.invFilter !== 'sort' && S.invFilter !== it[1]) ? ' fdim' : '';
+			if (it[1] === 'b') {
+				var isPage = it[0].indexOf('page:') === 0, id = it[0].split(':')[1], m = M[id], li = libItem(isPage ? 'page' : 'manual', id), tag = '', amt = '';
+				if (isPage) { var have = (li ? li.count : 0) + 1; amt = have + '/' + pagesNeed(id); }
+				else tag = bro().learned[id] ? '' : (li ? '' : '新');
+				h += '<div class="vslot' + dim + '"' + tip({ title: '《' + m.name + '》' + (isPage ? '残页' : ''), sub: subLine(id), body: isPage ? '藏经阁现有同名残页 ' + (li ? li.count : 0) + ' 张，凑齐 ' + pagesNeed(id) + ' 张可装帧成书。' : (li ? '藏经阁已藏 ' + li.count + ' 册。' : '<span class="pos">藏经阁尚无此书。</span>'), hint: '右键：给' + bro().name + '研读　·　「典籍入阁」一键收纳' }) + '>' +
+					(isPage && have >= pagesNeed(id) ? '<div class="hl"></div>' : '') + '<img class="it" src="' + G + bookIcon(id, isPage) + '">' + (tag ? '<span class="tag">' + tag + '</span>' : '') + (amt ? '<span class="amt">' + amt + '</span>' : '') + '</div>';
+			} else {
+				h += '<div class="vslot' + dim + '"' + tip({ title: it[2], body: '（原版物品提示）' }) + '><img class="it" src="' + G + it[0] + '">' + (it[3] ? '<span class="amt">' + it[3] + '</span>' : '') + '</div>';
+			}
+		}
+		$('inv-grid').innerHTML = h;
+		$('strip-inv').innerHTML = '<span class="c-desc">右键秘籍可直接研读；典籍入阁后不占仓库格</span>' +
+			'<span class="r"><span class="vb vb2' + (D.stashBooks ? '' : ' dis') + '" data-act="store-books" style="height:3.4rem;line-height:3.6rem;margin-right:1.6rem">典籍入阁' + (D.stashBooks ? '<span class="cnt">' + D.stashBooks + '</span>' : '') + '</span><img src="' + vi('bag') + '">' + used + ' / 117</span>';
+	}
+
+	/* ------------------------------------------------------------------------
+	 * 页签二：武学修为（原版天赋页的同构：圆形图标 + 选中圈 + 锁定 33% 透明）
+	 * ------------------------------------------------------------------------ */
+	function renderWx() { renderWxHead(); renderMeridian(); renderPassives(); renderShelf(); renderWxInspector(); renderWxStrip(); }
+	function renderWxHead() {
+		var b = bro(), main = b.slots[0].m ? M[b.slots[0].m] : null, h = '';
+		h += '<span class="c-label">主修</span> <span class="c-title"' + tip({ title: '主修路数', body: main ? '《' + main.name + '》· ' + EL[main.el] + '<br>敌方近战落空时回复内息' : '尚未主修内功' }) + '>' + (main ? EL[main.el] : '未修') + '</span>';
+		h += '<span class="sep">|</span><span class="c-title"' + tip({ title: '内息调和', body: '主辅内功无相克' }) + '>内息调和</span>';
+		h += '<span class="sep">|</span><span class="c-label">行动力</span> <span class="c-title"' + tip({ title: '行动力', body: '常人 9 AP，常驻上限 11 AP（仅江湖孤本三重大成各 +1）' }) + '>' + (b.ap + b.apPerm) + '</span> <span class="c-desc">/ 11</span>';
+		if (b.scatter) h += '<span class="sep">|</span><span class="warn" data-act="heal" data-v="huxin"' + tip({ title: '散功调息 · ' + b.scatter + ' 天', body: '内息上限 <span class="neg">-15</span>，回气 <span class="neg">-3</span>', hint: '点击服用护心丹（余 ' + D.pills.huxin + '）' }) + '>散功 ' + b.scatter + ' 天</span>';
+		h += '<span class="r"><span class="vb vb1' + (D.pills.xisui ? '' : ' dis') + '" data-act="open-wash"' + tip({ title: '洗经伐髓', body: '冲星：1★→2★ 30%，2★→3★ 15%<br>易筋换星：0★→1★ 45%', hint: '消耗洗髓丹；失败必受经脉震荡' }) + '>洗经伐髓' + (D.pills.xisui ? '<span class="cnt">' + D.pills.xisui + '</span>' : '') + '</span></span>';
+		$('wx-head').innerHTML = h;
+	}
+	function renderMeridian() {
+		var b = bro(), h = '<div class="vline"></div>', W = 9.4, gap = (67.8 - 7 * W) / 6;
+		for (var i = 0; i < b.slots.length; i++) {
+			var s = b.slots[i], un = slotUnlocked(i), cls = 'mcol', disc = '<div class="hl"></div>', tier = '&nbsp;', xp = '<div class="vxp" style="visibility:hidden"></div>', nm, td;
+			if (i === S.selSlot) cls += ' is-sel';
+			if (!un) {
+				cls += ' locked'; disc += '<div class="well"></div><div class="ring"></div><img class="lock" src="' + vi('icon_locked') + '">'; nm = s.unlock + ' 级贯通';
+				td = { title: s.label, body: '升至 ' + s.unlock + ' 级自动贯通（还差 ' + (s.unlock - b.level) + ' 级）<br>可配：' + catsLabel(s.cats) };
+			} else if (s.m) {
+				var m = M[s.m], l = b.learned[s.m];
+				if (!wpnOk(s.m)) cls += ' off';
+				disc += '<img class="ic" src="' + G + m.icon + '"><div class="ring"></div>'; tier = TIER_SHORT[l.tier] + (l.frag ? ' · 残' : ''); xp = xpBar(s.m, l); nm = m.name;
+				td = manualTip(s.m, '左键选中 · 右键卸下 · 拖入功法可替换');
+			} else {
+				var rd = readySlotHint(i); cls += rd ? ' ready' : ' empty';
+				disc += '<div class="well"></div><div class="ring"></div><img class="plus" src="' + vi('plus') + '">'; nm = rd ? '可配功' : '空穴';
+				td = { title: s.label + ' · 空穴', body: '可配：' + catsLabel(s.cats), hint: '空穴装入免费，不触发散功' };
+			}
+			h += '<div class="' + cls + '" style="left:' + (i * (W + gap)) + 'rem" data-act="slot" data-v="' + i + '" data-slot-idx="' + i + '"' + tip(td) + '>' +
+				'<div class="role">' + s.label + '</div><div class="disc">' + disc + '</div><div class="tier">' + tier + '</div>' + xp + '<div class="nm">' + esc(nm) + '</div></div>';
+		}
+		$('meridian').innerHTML = h;
+	}
+	function renderPassives() {
+		var p = passives(), keys = [['MeleeSkill', 'melee_skill'], ['MeleeDefense', 'melee_defense'], ['Initiative', 'initiative'], ['Stamina', 'fatigue'], ['Recovery', 'fatigue_small']], h = '<span class="lab">常驻</span>';
+		for (var i = 0; i < keys.length; i++) {
+			var e = p[keys[i][0]]; if (!e) continue;
+			h += '<span class="it"' + tip({ title: STAT_LABEL[keys[i][0]] + ' +' + e.v, body: '取自《' + e.src + '》', hint: e.others.length ? '同系取最高，未计入：' + e.others.join('、') : '同系多本只取最高一项' }) + '><img src="' + vi(keys[i][1]) + '"><b>+' + e.v + '</b></span>';
+		}
+		var dr = damageReduction();
+		h += '<span class="it"' + tip({ title: '气血减伤 ' + dr.capped + '%', body: '真气护体 × 金蝉卸力（乘算）= ' + dr.raw + '%', hint: '轻装双减伤封顶 60%' }) + '><img src="' + vi('armor_body') + '"><b>' + dr.capped + '%</b></span>';
+		$('pas').innerHTML = h;
+	}
+	function shelfItems() {
+		var out = [], id;
+		function pass(id) { var m = M[id]; return (!S.cat || m.cat === S.cat) && (!S.search || m.name.indexOf(S.search) >= 0); }
+		if (S.shelf === 'learned') {
+			for (id in bro().learned) if (bro().learned.hasOwnProperty(id) && pass(id)) out.push({ type: 'learned', id: id });
+			out.sort(function (a, b) { var ea = equippedSlotOf(a.id) >= 0, eb = equippedSlotOf(b.id) >= 0; if (ea !== eb) return ea ? -1 : 1; return QUAL[M[b.id].q].rank - QUAL[M[a.id].q].rank; });
+		} else if (S.shelf === 'vault') {
+			for (var i = 0; i < D.lib.length; i++) if (D.lib[i].kind === 'manual' && !bro().learned[D.lib[i].id] && pass(D.lib[i].id)) out.push({ type: 'vault', id: D.lib[i].id, count: D.lib[i].count });
+		} else for (var p in D.pills) if (D.pills.hasOwnProperty(p) && D.pills[p] > 0) out.push({ type: 'pill', id: p, count: D.pills[p] });
+		return out;
+	}
+	function renderShelf() {
+		var shelves = [['learned', '已习'], ['vault', '阁藏'], ['pill', '灵丹']], h = '';
+		for (var i = 0; i < 3; i++) h += '<span class="vb vb2' + (S.shelf === shelves[i][0] ? ' sel' : '') + '" data-act="shelf" data-v="' + shelves[i][0] + '"' + tip({ title: ['已习武学', '阁藏直学', '随身灵丹'][i], body: ['本人已学会的武学：左键查看，右键/拖拽装入穴位', '藏经阁里本人未习的整本：研习后直接装入', '凝神丸可拖到穴位灌注火候'][i] }) + '>' + shelves[i][1] + '</span>';
+		if (S.shelf !== 'pill') {
+			h += '<span class="r">';
+			var cats = ['neigong', 'waigong', 'qinggong', 'henglian'];
+			for (i = 0; i < 4; i++) h += '<span class="vb vb3' + (S.cat === cats[i] ? ' sel' : '') + '" data-act="cat" data-v="' + cats[i] + '"' + tip({ title: CAT[cats[i]].label }) + '><img src="' + G + CAT[cats[i]].emblem + '"></span>';
+			h += '</span>';
+		}
+		$('shelf-f').innerHTML = h;
+		var items = shelfItems(), g = '', unl = slotUnlocked(S.selSlot);
+		for (i = 0; i < items.length; i++) {
+			var it = items[i];
+			if (it.type === 'pill') {
+				var pp = PILLS[it.id];
+				g += '<div class="vslot' + (S.insp.kind === 'pill' && S.insp.id === it.id ? ' sel-frame' : '') + '" data-act="insp" data-k="pill" data-v="' + it.id + '"' + (pp.kind === 'infuse' ? ' data-drag="pill:' + it.id + '"' : '') + tip({ title: pp.name, body: pp.desc, hint: pp.kind === 'infuse' ? '拖到穴位，或选中穴位后右键' : '右键服用' }) + '><img class="it" src="' + G + pp.icon + '"><span class="amt">' + it.count + '</span></div>';
+				continue;
+			}
+			var id = it.id, l = bro().learned[id], eq = l ? equippedSlotOf(id) : -1, fit = unl ? canFit(id, S.selSlot).ok : true;
+			var cls = 'vslot' + (eq < 0 && unl && !fit ? ' dim' : '') + (S.insp.kind === it.type && S.insp.id === id ? ' sel-frame' : '');
+			g += '<div class="' + cls + '" data-act="insp" data-k="' + it.type + '" data-v="' + id + '" data-drag="' + it.type + ':' + id + '"' + tip(manualTip(id, eq >= 0 ? '已装于穴' + CN[eq + 1] + ' · 右键卸下' : (fit && unl ? '右键或拖拽：装入「' + bro().slots[S.selSlot].label + '」' : '与选中穴位不符'))) + '>' +
+				(eq < 0 && unl && fit ? '<div class="hl" style="opacity:.55"></div>' : '') +
+				'<img class="it round" src="' + G + M[id].icon + '">' + (l ? '<span class="amt">' + TIER_SHORT[l.tier] + '</span>' : '<span class="amt">×' + it.count + '</span>') + (eq >= 0 ? '<span class="tag">穴' + CN[eq + 1] + '</span>' : '') + '</div>';
+		}
+		$('shelf-g').innerHTML = (g || '<div class="c-desc" style="padding:2rem">' + (S.shelf === 'vault' ? '藏经阁中没有本人未习的整本秘籍。' : '没有符合筛选的武学。') + '</div>') + '<div class="clear"></div>';
+	}
+	function inspBody(id, mode) {
+		var m = M[id], l = bro().learned[id], tier = l ? l.tier : 0, eq = l ? equippedSlotOf(id) : -1, h = '';
+		h += '<div class="hd"><img src="' + G + (mode === 'lib' ? bookIcon(id) : m.icon) + '"><div class="t-title">《' + m.name + '》</div><div class="s">' + subLine(id) + '</div><div class="s c-desc">' + (l ? (eq >= 0 ? '装于穴' + CN[eq + 1] + ' · ' : '已习 · ') + TIER_NAME[tier] : '未习') + '</div></div>';
+		if (m.wpn && !wpnOk(id)) h += '<div class="ln c-neg">当前主手非' + WPN[m.wpn] + '，外功暂不生效</div>';
+		h += '<div class="desc">' + esc(m.desc) + '</div>';
+		for (var t = 1; t <= 3; t++) {
+			var cls = t <= tier ? 'done' : (l && t === tier + 1 ? 'next' : '');
+			h += '<div class="tl ' + cls + '"><b>' + TIER_NAME[t] + '</b>' + m.tiers[t - 1];
+			if (cls === 'next' && !l.frag) h += '<br>' + xpBar(id, l, 14) + ' <span class="c-desc">火候 ' + l.exp + ' / ' + needExp(id, tier) + '</span>';
+			h += '</div>';
+		}
+		var r = m.req, rq = '';
+		for (var k in r) if (r.hasOwnProperty(k)) { var v = attrVal(k), ok = v >= r[k]; rq += '<span class="' + (ok ? 'c-title' : 'c-neg') + '">' + k + ' ' + v + '/' + r[k] + '</span>　'; }
+		if (rq) h += '<div class="ln"><span class="c-label">大成门槛　</span>' + rq + '</div>';
+		return h;
+	}
+	function renderWxInspector() {
+		var ins = S.insp, b = bro(), body = '', foot = '';
+		if (ins.kind === 'slot') {
+			var s = b.slots[ins.idx];
+			if (s.m) {
+				body = inspBody(s.m, 'slot'); var l = b.learned[s.m];
+				foot = (l.tier < 3 && !l.frag ? '<span class="vb vb2" data-act="open-infuse">灌注</span>' : '') + '<span class="vb vb2" data-act="unequip" data-v="' + ins.idx + '">卸下</span>';
+			} else {
+				var un = slotUnlocked(ins.idx);
+				body = '<div class="hd"><img src="' + V + 'ui/perks/selection_frame.png"><div class="t-title">' + s.label + '</div><div class="s">' + (un ? '已贯通 · 空穴' : s.unlock + ' 级贯通') + '</div></div>' +
+					'<div class="ln"><span class="c-label">可配　</span><span class="c-title">' + catsLabel(s.cats) + '</span></div>' +
+					'<div class="desc" style="margin-top:0.8rem">空穴装入免费；换装或卸下会散功调息 1~4 天，已练重数永久保留。同系常驻加成只取最高一项。</div>' +
+					'<div class="ln"><span class="c-label">全身内功　</span><span class="c-title">' + catCount('neigong', -1) + ' / 2</span>　<span class="c-label">轻功　</span><span class="c-title">' + catCount('qinggong', -1) + ' / 2</span></div>';
+				foot = un ? '<span class="vb vb1" data-act="shelf" data-v="vault">阁藏直学</span>' : '';
+			}
+		} else if (ins.kind === 'learned' || ins.kind === 'vault') {
+			body = inspBody(ins.id, ins.kind);
+			var eq = equippedSlotOf(ins.id), f = slotUnlocked(S.selSlot) ? canFit(ins.id, S.selSlot) : { ok: false };
+			if (ins.kind === 'learned') foot = eq >= 0 ? '<span class="vb vb2" data-act="unequip" data-v="' + eq + '">卸下</span>' : (f.ok ? '<span class="vb vb1" data-act="equip" data-v="' + ins.id + '">装入穴' + CN[S.selSlot + 1] + '</span>' : '<span class="vb vb1 dis">' + (f.why || '选中穴位未贯通') + '</span>');
+			else foot = '<span class="vb vb2" data-act="learn-only" data-v="' + ins.id + '">研习</span>' + (f.ok ? '<span class="vb vb2" data-act="learn-equip" data-v="' + ins.id + '">习并装</span>' : '');
+		} else if (ins.kind === 'pill') {
+			var p = PILLS[ins.id];
+			body = '<div class="hd"><img src="' + G + p.icon + '"><div class="t-title">' + p.name + '</div><div class="s">仓库 ×' + D.pills[ins.id] + '</div></div><div class="desc">' + p.desc + '</div>';
+			foot = p.kind === 'infuse' ? '<span class="vb vb1" data-act="infuse-pill">灌注穴' + CN[S.selSlot + 1] + '</span>' : (p.kind === 'wash' ? '<span class="vb vb1" data-act="open-wash">洗经伐髓</span>' : '<span class="vb vb2" data-act="heal" data-v="' + ins.id + '">服用</span>');
+		}
+		$('insp-wx').innerHTML = '<div class="body scroll">' + body + '</div><div class="foot">' + foot + '</div>';
+	}
+	function renderWxStrip() {
+		var s = bro().slots[S.selSlot];
+		$('strip-wx').innerHTML = slotUnlocked(S.selSlot)
+			? '<span class="c-label">选中</span> <span class="c-title">穴' + CN[S.selSlot + 1] + ' · ' + s.label + '</span> <span class="c-desc">　可装 ' + catsLabel(s.cats) + '，亮起的秘籍可直接右键或拖入</span>'
+			: '<span class="c-desc">穴' + CN[S.selSlot + 1] + '「' + s.label + '」尚未贯通（' + s.unlock + ' 级）</span>';
+	}
+
+	/* ------------------------------------------------------------------------
+	 * 页签三：藏经阁（仓库同构：原版格位 + 筛选按钮 + 数量角标）
+	 * ------------------------------------------------------------------------ */
+	function libFiltered() {
+		var L = S.lib, out = [];
+		for (var i = 0; i < D.lib.length; i++) {
+			var it = D.lib[i], m = M[it.id];
+			if (L.kind === 'manual' && it.kind !== 'manual') continue;
+			if (L.kind === 'page' && it.kind !== 'page') continue;
+			if (L.cat && m.cat !== L.cat) continue;
+			if (L.unlearned && bro().learned[it.id]) continue;
+			if (L.search && m.name.indexOf(L.search) < 0) continue;
+			out.push(it);
+		}
+		out.sort(function (a, b) { var ca = a.kind === 'page' && pageState(a) === 'craft' ? 1 : 0, cb = b.kind === 'page' && pageState(b) === 'craft' ? 1 : 0; if (ca !== cb) return cb - ca; return QUAL[M[b.id].q].rank - QUAL[M[a.id].q].rank; });
+		return out;
+	}
+	function renderLib() {
+		var L = S.lib, h = '', cats = ['neigong', 'waigong', 'qinggong', 'henglian'], i;
+		h += '<span class="vb vb3' + (L.kind === 'all' && !L.cat ? ' sel' : '') + '" data-act="lib-all"' + tip({ title: '全部' }) + '><img class="flat" src="' + V + 'ui/buttons/filter_all.png"></span>';
+		for (i = 0; i < 4; i++) h += '<span class="vb vb3' + (L.cat === cats[i] ? ' sel' : '') + '" data-act="lib-cat" data-v="' + cats[i] + '"' + tip({ title: CAT[cats[i]].label }) + '><img src="' + G + CAT[cats[i]].emblem + '"></span>';
+		h += '<span class="gap"></span><span class="vb vb3' + (L.kind === 'page' ? ' sel' : '') + '" data-act="lib-kind" data-v="page"' + tip({ title: '只看残页' }) + '><img src="' + G + 'ui/items/misc/wx_page_sect.png"></span>';
+		h += '<span class="vb vb3' + (L.unlearned ? ' sel' : '') + '" data-act="lib-unl"' + tip({ title: '只看' + bro().name + '未习' }) + '><img src="' + vi('unlocked_small') + '"></span>';
+		h += '<span class="gap"></span><input class="vinput" id="lib-search" placeholder="搜秘籍" value="' + esc(L.search) + '" style="width:12rem">';
+		var cc = craftableCount();
+		h += '<span class="r"><span class="vb vb2' + (cc ? '' : ' dis') + '" data-act="craft-all"' + tip({ title: '一键拼合', body: cc + ' 部秘籍残页已凑齐' }) + '>拼合' + (cc ? '<span class="cnt">' + cc + '</span>' : '') + '</span></span>';
+		$('lib-f').innerHTML = h;
+
+		var items = libFiltered(), g = '';
+		if (!L.insp && items.length) L.insp = items[0].kind + ':' + items[0].id;
+		for (i = 0; i < items.length; i++) {
+			var it = items[i], m = M[it.id], key = it.kind + ':' + it.id, isPage = it.kind === 'page', ps = isPage ? pageState(it) : '', learned = !isPage && bro().learned[it.id];
+			g += '<div class="vslot' + (learned ? ' dim' : '') + (L.insp === key ? ' sel-frame' : '') + '" data-act="lib-insp" data-v="' + key + '"' +
+				tip({ title: '《' + m.name + '》' + (isPage ? '残页' : ''), sub: subLine(it.id), body: isPage ? '残页 ' + it.count + ' / ' + pagesNeed(it.id) + (ps === 'craft' ? '，<span class="pos">已凑齐</span>' : ps === 'wild' ? '，可用同阶残页 2:1 补缺' : '') : m.desc, hint: learned ? bro().name + '已习' : (isPage ? '' : '右键：传授' + bro().name) }) + '>' +
+				(ps === 'craft' ? '<div class="hl"></div>' : '') + '<img class="it" src="' + G + bookIcon(it.id, isPage) + '"><span class="amt">' + (isPage ? it.count + '/' + pagesNeed(it.id) : it.count) + '</span></div>';
+		}
+		$('lib-g').innerHTML = (g || '<div class="c-desc" style="padding:2rem">没有符合筛选的秘籍或残页。</div>') + '<div class="clear"></div>';
+
+		var manN = 0, pageN = 0; for (i = 0; i < D.lib.length; i++) { if (D.lib[i].kind === 'manual') manN += D.lib[i].count; else pageN += D.lib[i].count; }
+		$('strip-lib').innerHTML = '<span class="vchk' + (D.autoStore ? ' on' : '') + '" data-act="auto"' + tip({ title: '自动入阁', body: '战利品与购入的秘籍、残页自动收入藏经阁' }) + '><i></i>自动入阁</span>' +
+			'<span class="r"><span class="vb vb2' + (D.stashBooks ? '' : ' dis') + '" data-act="store-books" style="height:3.4rem;line-height:3.6rem;margin-right:1.6rem">收纳' + (D.stashBooks ? '<span class="cnt">' + D.stashBooks + '</span>' : '') + '</span><img src="' + G + 'ui/items/misc/wx_book_neigong_sect.png">' + manN + ' 册　<img src="' + G + 'ui/items/misc/wx_page_sect.png">' + pageN + ' 页</span>';
+		renderLibInspector();
+		bindInputs();
+	}
+	function renderLibInspector() {
+		var key = S.lib.insp, body = '', foot = '';
+		if (!key || !libItem(key.split(':')[0], key.split(':')[1])) { $('insp-lib').innerHTML = '<div class="body"><div class="c-desc">左键查看秘籍或残页</div></div>'; return; }
+		var kind = key.split(':')[0], id = key.split(':')[1], it = libItem(kind, id), m = M[id], learned = bro().learned[id];
+		body = inspBody(id, 'lib');
+		if (kind === 'manual') {
+			body = body.replace('<div class="desc">', '<div class="ln"><span class="c-label">馆藏　</span><span class="c-title">' + it.count + ' 册</span>　<span class="c-label">同袍已习　</span><span class="c-title">' + (m.team.length ? m.team.join('、') : '无') + '</span></div><div class="desc">');
+			foot = '<span class="vb vb2" data-act="lib-withdraw">取出</span>' + (learned && !learned.frag ? '<span class="vb vb2 dis">已习</span>' : '<span class="vb vb2" data-act="lib-learn">' + (learned ? '补全' : '研习') + '</span>');
+		} else {
+			var ps = pageState(it);
+			body = body.replace('<div class="desc">', '<div class="ln"><span class="c-label">残页　</span><span class="c-title">' + it.count + ' / ' + pagesNeed(id) + '</span>' + (ps === 'wild' ? '　<span class="c-desc">可用同阶残页 2:1 补缺</span>' : '') + '</div><div class="desc">');
+			foot = '<span class="vb vb2" data-act="lib-infuse">化功</span>';
+			if (ps === 'craft') foot += '<span class="vb vb2" data-act="lib-craft">装帧</span>';
+			else if (ps === 'wild') foot += '<span class="vb vb2" data-act="lib-wild">补缺</span>';
+			else if (m.allowFrag && !learned) foot += '<span class="vb vb2" data-act="lib-fraglearn">强修</span>';
+		}
+		$('insp-lib').innerHTML = '<div class="body scroll">' + body + '</div><div class="foot">' + foot + '</div>';
+	}
+
+	/* ------------------------------------------------------------------------
+	 * 原版式弹窗与提示
+	 * ------------------------------------------------------------------------ */
+	var modalEl = null;
+	function openModal(o) {
+		closeModal();
+		var bd = document.createElement('div'); bd.className = 'backdrop';
+		var w = o.width || 50, fh = '';
+		for (var i = 0; i < (o.foot || []).length; i++) fh += '<span class="vb vb1 ' + (o.foot[i].cls || '') + '" data-mf="' + i + '">' + o.foot[i].label + '</span>';
+		bd.innerHTML = '<div class="popup" style="width:' + w + 'rem;margin-left:' + (-w / 2) + 'rem"><div class="ph t-title">' + o.title + '</div><div class="pb">' + o.body + '<div class="clear"></div></div>' + (fh ? '<div class="pf">' + fh + '</div>' : '') + '</div>';
+		$('cs').appendChild(bd);
+		var box = bd.firstChild; box.style.marginTop = (-box.offsetHeight / 2) + 'px';
+		bd.onclick = function (e) {
+			if (e.target === bd) { closeModal(); return; }
+			var f = upTo(e.target, 'data-mf'); if (f && !/\bdis\b/.test(f.className)) { var k = +f.getAttribute('data-mf'); if (o.foot[k].fn) o.foot[k].fn(bd); else closeModal(); return; }
+			if (o.onClick) o.onClick(e, bd);
+		};
+		modalEl = bd; return bd;
+	}
+	function closeModal() { if (modalEl) { modalEl.parentNode.removeChild(modalEl); modalEl = null; } }
+	var bTimer = null;
+	function toast(msg, err) { var b = $('banner'); b.className = 'banner' + (err ? ' err' : ''); b.firstChild.innerHTML = msg; b.style.display = 'block'; if (bTimer) clearTimeout(bTimer); bTimer = setTimeout(function () { b.style.display = 'none'; }, 3000); }
+
+	function addExp(id, gain) {
+		var l = bro().learned[id], m = M[id], msg = '《' + m.name + '》火候 +' + gain;
+		if (l.tier >= 3 || l.frag) { toast('《' + m.name + '》' + (l.frag ? '为残本，无法灌注' : '已臻大成'), true); return false; }
+		l.exp += gain;
+		var need = needExp(id, l.tier);
+		if (l.exp >= need) {
+			if (l.tier === 2) {
+				var r = m.req, bad = []; for (var k in r) if (r.hasOwnProperty(k) && attrVal(k) < r[k]) bad.push(k + ' ' + attrVal(k) + '/' + r[k]);
+				if (bad.length) { l.exp = need; toast(msg + ' · 火候已满，但大成门槛未达：' + bad.join('；'), true); return true; }
+			}
+			l.exp -= need; l.tier++; msg += ' · <span class="c-title">突破至' + TIER_NAME[l.tier] + '！</span>';
+		}
+		toast(msg); return true;
+	}
+
+	function slotHtml(icon, round) { return '<span class="vslot"><img class="it' + (round ? ' round' : '') + '" src="' + G + icon + '"></span>'; }
+	function doEquip(id, idx, fromVault) {
+		var b = bro(), s = b.slots[idx], f = canFit(id, idx);
+		if (s.m === id) { toast('《' + M[id].name + '》已在此穴', true); return; }
+		if (!f.ok) { toast(f.why, true); return; }
+		function apply() {
+			if (fromVault) { var li = libItem('manual', id); li.count--; if (li.count <= 0) D.lib.splice(D.lib.indexOf(li), 1); b.learned[id] = { tier: 1, exp: 0 }; }
+			var old = s.m; s.m = id; if (old) b.scatter = Math.max(b.scatter, 2);
+			S.insp = { kind: 'slot', idx: idx }; S.selSlot = idx;
+			toast('《' + M[id].name + '》装入' + s.label + (old ? '　散功调息 2 天' : '')); renderAll();
+		}
+		if (!s.m && !fromVault) { apply(); return; }
+		var old = s.m, l = old ? b.learned[old] : null, body = '<div class="swap">' + (old ? slotHtml(M[old].icon, true) : slotHtml(bookIcon(id))) + '<span class="arr">➜</span>' + slotHtml(M[id].icon, true) + '</div>';
+		if (old) body += '将以《' + M[id].name + '》替换《' + M[old].name + '》。<br><span class="c-neg">散功调息 2 天</span>：内息上限 -15，回气 -3。<br><span class="c-desc">《' + M[old].name + '》的' + TIER_NAME[l.tier] + '会永久保留。</span>';
+		else body += '研习将消耗藏经阁中的 1 册《' + M[id].name + '》，并装入' + s.label + '。';
+		openModal({ title: old ? '换装调息' : '研习并装入', width: 52, body: body, foot: [{ label: '确定', fn: function () { closeModal(); apply(); } }, { label: '取消' }] });
+	}
+	function doUnequip(idx) {
+		var s = bro().slots[idx]; if (!s.m) return; var m = M[s.m], l = bro().learned[s.m];
+		openModal({ title: '卸下功法', width: 48, body: '<div class="swap">' + slotHtml(m.icon, true) + '</div>从' + s.label + '卸下《' + m.name + '》？<br><span class="c-neg">散功调息 2 天</span>　<span class="c-desc">' + TIER_NAME[l.tier] + '永久保留</span>',
+			foot: [{ label: '确定', fn: function () { closeModal(); s.m = null; bro().scatter = Math.max(bro().scatter, 2); toast('已卸下《' + m.name + '》'); renderAll(); } }, { label: '取消' }] });
+	}
+	function openInfuse() {
+		var s = bro().slots[S.selSlot]; if (!s.m) { toast('选中穴位没有功法', true); return; }
+		var m = M[s.m], rows = '', pg = libItem('page', s.m);
+		if (D.pills.ningshen) rows += '<div class="pick" data-pick="pill">' + slotHtml(PILLS.ningshen.icon) + '<div class="c-title">凝神丸</div><div class="c-desc">仓库 ×' + D.pills.ningshen + '</div><span class="g">+80 火候</span></div>';
+		if (pg) rows += '<div class="pick" data-pick="page">' + slotHtml(bookIcon(s.m, true)) + '<div class="c-title">《' + m.name + '》残页</div><div class="c-desc">藏经阁 ×' + pg.count + '</div><span class="g">+40 火候</span></div>';
+		openModal({ title: '灌注火候 · 《' + m.name + '》', width: 52, body: rows || '<div class="c-desc">仓库没有凝神丸，藏经阁也没有同名残页。</div>', foot: [{ label: '关闭' }],
+			onClick: function (e) { var r = upTo(e.target, 'data-pick'); if (!r) return; if (r.getAttribute('data-pick') === 'pill') { if (addExp(s.m, 80)) D.pills.ningshen--; } else if (addExp(s.m, 40)) { pg.count--; if (pg.count <= 0) D.lib.splice(D.lib.indexOf(pg), 1); } closeModal(); renderAll(); } });
+	}
+
+	/* 洗经伐髓：照搬原版升级弹窗的行结构（图标 + 星 + 属性条） */
+	function openWash() {
+		if (!D.pills.xisui) { toast('仓库没有洗髓丹', true); return; }
+		var b = bro(), W = { target: -1, rep: -1, protect: false };
+		var ICON = ['health', 'fatigue', 'bravery', 'initiative', 'melee_skill', 'ranged_skill', 'melee_defense', 'ranged_defense'];
+		function stars() { var n = 0; for (var i = 0; i < 8; i++) if (b.talents[i]) n++; return n; }
+		function calc() {
+			if (W.target < 0) return null;
+			var t = b.talents[W.target], base = t === 0 ? 45 : (t === 1 ? 30 : 15);
+			var bonus = Math.min(5, Math.floor(attrVal('定力') / 12)) + (b.wounds.length ? 0 : 3) + (b.slots[0].m ? b.learned[b.slots[0].m].tier * 2 : 0) + (W.protect ? 5 : 0);
+			bonus = Math.min(20, bonus);
+			return { base: base, bonus: bonus, total: base + bonus, needRep: t === 0 && stars() >= 3, type: t === 0 ? (stars() >= 3 ? '易筋换星 0★→1★' : '开星 0★→1★') : '冲星 ' + t + '★→' + (t + 1) + '★', scar: t >= 1 && !W.protect };
+		}
+		function row(i, cls, attr) { var t = b.talents[i]; return '<div class="lvrow ' + cls + '" ' + attr + '><img class="ico" src="' + vi(ICON[i]) + '">' + (t ? '<img class="talent" src="' + vi('talent_' + t) + '">' : '') + '<div class="vbar"><div class="f neu" style="width:' + Math.min(100, Math.round(b.base[i] / 1.3)) + '%"></div><div class="v">' + b.base[i] + '</div></div><span class="nm c-label">' + b.attrs[i] + '</span></div>'; }
+		function body() {
+			var c = calc(), h = '<div class="c-desc" style="text-align:center;margin-bottom:0.8rem">' + (c && c.needRep && W.rep < 0 ? '已有 3 项带星：再选一项要洗去的旧星' : '选择要冲击的属性') + '</div>';
+			for (var i = 0; i < 8; i++) {
+				var cls = b.talents[i] >= 3 ? 'max' : '', attr = 'data-wt="' + i + '"';
+				if (W.target === i) cls += ' sel';
+				if (c && c.needRep && b.talents[i] > 0) { attr = 'data-wr="' + i + '"'; if (W.rep === i) cls += ' rep'; }
+				h += row(i, cls, attr);
+			}
+			h += '<div class="odds">';
+			if (!c) h += '<span class="c-desc">每人至多 3 项带星。冲星 30% / 15%，易筋换星 45%，筹备加成最多 +20%。</span>';
+			else h += '<span class="c-label">' + c.type + '</span>　<span class="t-title" style="font-size:2.2rem">' + c.total + '%</span>　<span class="c-desc">基础 ' + c.base + '% + 筹备 ' + c.bonus + '%</span><br><span class="c-neg">失败：经脉震荡 3 天' + (c.scar ? '，15% 留下永久暗疾' : '') + '</span>';
+			h += '<br><span class="vchk' + (W.protect ? ' on' : '') + '" data-wp="1"><i></i>辅服护脉丹（余 ' + D.pills.humai + '）：+5%，免暗疾</span></div>';
+			return h;
+		}
+		function ready() { var c = calc(); return c && (!c.needRep || W.rep >= 0); }
+		function refresh(bd) { bd.querySelector('.pb').innerHTML = body() + '<div class="clear"></div>'; bd.querySelector('[data-mf="0"]').className = 'vb vb1' + (ready() ? '' : ' dis'); var bx = bd.firstChild; bx.style.marginTop = (-bx.offsetHeight / 2) + 'px'; }
+		var bd = openModal({ title: '洗经伐髓', width: 56, body: body(), foot: [{ label: '洗髓', cls: 'dis', fn: function () {
+				var c = calc(); D.pills.xisui--; if (W.protect) D.pills.humai--; closeModal();
+				if (Math.random() * 100 < c.total) { if (c.needRep) b.talents[W.rep] = 0; b.talents[W.target]++; toast('洗髓成功：' + b.attrs[W.target] + ' 升至 ' + b.talents[W.target] + ' 星'); }
+				else toast('洗髓失败 · 经脉震荡 3 天', true);
+				renderAll();
+			} }, { label: '取消' }],
+			onClick: function (e, bd) {
+				var t = upTo(e.target, 'data-wt'), r = upTo(e.target, 'data-wr'), p = upTo(e.target, 'data-wp');
+				if (r) { W.rep = +r.getAttribute('data-wr'); refresh(bd); }
+				else if (t && !/\bmax\b/.test(t.className)) { W.target = +t.getAttribute('data-wt'); W.rep = -1; refresh(bd); }
+				else if (p && D.pills.humai) { W.protect = !W.protect; refresh(bd); }
+			} });
+		refresh(bd);
+	}
+
+	function libAct(a) {
+		var key = S.lib.insp; if (!key) return;
+		var kind = key.split(':')[0], id = key.split(':')[1], it = libItem(kind, id), m = M[id], b = bro();
+		function consume(n) { it.count -= n; if (it.count <= 0) D.lib.splice(D.lib.indexOf(it), 1); }
+		function toManual() { var mi = libItem('manual', id); if (mi) mi.count++; else D.lib.unshift({ kind: 'manual', id: id, count: 1 }); S.lib.insp = 'manual:' + id; }
+		if (a === 'lib-learn') { if (b.learned[id]) { b.learned[id].frag = false; toast('《' + m.name + '》残本已补全'); } else { b.learned[id] = { tier: 1, exp: 0 }; toast(b.name + '研习《' + m.name + '》'); } consume(1); }
+		else if (a === 'lib-withdraw') { consume(1); toast('已取出至战团仓库'); }
+		else if (a === 'lib-craft') { consume(pagesNeed(id)); toManual(); toast('残页装帧成书：《' + m.name + '》'); }
+		else if (a === 'lib-infuse') { var sm = b.slots[S.selSlot].m; if (!sm) { toast('请先在武学修为里选中已装功法的穴位', true); return; } if (addExp(sm, sm === id ? 40 : 20)) consume(1); }
+		else if (a === 'lib-wild') {
+			var miss = pagesNeed(id) - it.count;
+			openModal({ title: '同阶补缺', width: 50, body: '为装帧《' + m.name + '》（差 ' + miss + ' 页），将消耗同阶闲置残页 <span class="c-title">' + miss * 2 + '</span> 张。', foot: [{ label: '确定', fn: function () {
+				var need = miss * 2; for (var j = D.lib.length - 1; j >= 0 && need > 0; j--) { var d = D.lib[j]; if (d.kind === 'page' && d.id !== id && M[d.id].q === m.q) { var u = Math.min(d.count, need); d.count -= u; need -= u; if (d.count <= 0) D.lib.splice(j, 1); } }
+				D.lib.splice(D.lib.indexOf(it), 1); toManual(); closeModal(); toast('融会补缺成书：《' + m.name + '》'); renderAll(); } }, { label: '取消' }] });
+			return;
+		} else if (a === 'lib-fraglearn') {
+			openModal({ title: '残本强修', width: 50, body: '消耗 1 张残页让' + b.name + '强记残缺口诀。<br><span class="c-neg">最高止步一重，实战偶有行气不畅。</span><br><span class="c-desc">日后研读整本可无损补全。</span>', foot: [{ label: '确定', fn: function () { b.learned[id] = { tier: 1, exp: 0, frag: true }; consume(1); closeModal(); toast(b.name + '强修《' + m.name + '》残本'); renderAll(); } }, { label: '取消' }] });
+			return;
+		}
+		renderAll();
+	}
+
+	/* ------------------------------------------------------------------------
+	 * 渲染 & 事件
+	 * ------------------------------------------------------------------------ */
+	function renderAll() {
+		TIPS = {}; tipSeq = 0; hideTip();
+		renderLeft(); renderRoster(); renderHeader(); renderInv(); renderWx(); renderLib();
+		$('cs').className = 'cs' + (S.bg === 'wx' ? ' bg-wx' : (S.bg === 'statue' ? ' bg-statue' : '')) + (S.grid ? ' grid-on' : '');
+		$('pv-bg').innerHTML = { statue: '底：新雕像', vanilla: '底：原版', wx: '底：旧 mod' }[S.bg];
+	}
+	function bindInputs() {
+		var li = $('lib-search'); if (li) li.oninput = function () { S.lib.search = li.value.replace(/^\s+|\s+$/g, ''); S.lib.insp = null; renderLib(); var n = $('lib-search'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); };
+	}
+	document.addEventListener('click', function (e) {
+		if (dragMoved) { dragMoved = false; return; }
+		if (modalEl && modalEl.contains(e.target)) return;
+		var el = upTo(e.target, 'data-act'); if (!el || /\bdis\b/.test(el.className)) return;
+		var a = el.getAttribute('data-act'), v = el.getAttribute('data-v'), i;
+		switch (a) {
+			case 'tab': S.tab = v; renderAll(); break;
+			case 'slot': S.selSlot = +v; S.insp = { kind: 'slot', idx: +v }; if (S.shelf === 'pill') S.shelf = 'learned'; renderWx(); renderHeader(); break;
+			case 'shelf': S.shelf = v; renderWx(); break;
+			case 'cat': S.cat = S.cat === v ? null : v; renderShelf(); break;
+			case 'insp': S.insp = { kind: el.getAttribute('data-k'), id: v }; renderShelf(); renderWxInspector(); break;
+			case 'equip': var tg = canFit(v, S.selSlot).ok ? S.selSlot : bestSlotFor(v); if (tg < 0) toast('没有可装入的穴位', true); else doEquip(v, tg, false); break;
+			case 'learn-equip': doEquip(v, S.selSlot, true); break;
+			case 'learn-only': var l2 = libItem('manual', v); bro().learned[v] = { tier: 1, exp: 0 }; l2.count--; if (l2.count <= 0) D.lib.splice(D.lib.indexOf(l2), 1); S.insp = { kind: 'learned', id: v }; toast('研习《' + M[v].name + '》'); renderAll(); break;
+			case 'unequip': doUnequip(+v); break;
+			case 'open-infuse': openInfuse(); break;
+			case 'infuse-pill': var sm = bro().slots[S.selSlot].m; if (!sm) { toast('选中穴位没有功法', true); break; } if (addExp(sm, 80)) D.pills.ningshen--; renderAll(); break;
+			case 'heal':
+				if (!D.pills[v]) { toast('仓库没有' + PILLS[v].name, true); break; }
+				if (v === 'huxin') { if (!bro().scatter) { toast('当前没有散功', true); break; } bro().scatter = 0; D.pills.huxin--; toast('服下护心丹，散功已化解'); }
+				else if (v === 'jinchuang') { if (!bro().wounds.length) { toast('当前没有外伤', true); break; } bro().wounds.shift(); D.pills.jinchuang--; toast('敷上金疮散'); }
+				renderAll(); break;
+			case 'open-wash': openWash(); break;
+			case 'store-books': if (D.stashBooks) { toast(D.stashBooks + ' 件典籍已收入藏经阁'); D.stashBooks = 0; var keep = []; for (i = 0; i < STASH.length; i++) if (STASH[i][1] !== 'b') keep.push(STASH[i]); STASH = keep; renderAll(); } break;
+			case 'auto': D.autoStore = !D.autoStore; renderLib(); break;
+			case 'craft-all': var n = 0; for (i = D.lib.length - 1; i >= 0; i--) { var it = D.lib[i]; if (it.kind === 'page' && pageState(it) === 'craft') { it.count -= pagesNeed(it.id); var mi = libItem('manual', it.id); if (mi) mi.count++; else D.lib.push({ kind: 'manual', id: it.id, count: 1 }); if (it.count <= 0) D.lib.splice(D.lib.indexOf(it), 1); n++; } } toast('拼合 ' + n + ' 部秘籍'); S.lib.insp = null; renderAll(); break;
+			case 'lib-all': S.lib.kind = 'all'; S.lib.cat = null; S.lib.insp = null; renderLib(); break;
+			case 'lib-cat': S.lib.cat = S.lib.cat === v ? null : v; S.lib.insp = null; renderLib(); break;
+			case 'lib-kind': S.lib.kind = S.lib.kind === v ? 'all' : v; S.lib.insp = null; renderLib(); break;
+			case 'lib-unl': S.lib.unlearned = !S.lib.unlearned; S.lib.insp = null; renderLib(); break;
+			case 'lib-insp': S.lib.insp = v; renderLib(); break;
+			case 'lib-learn': case 'lib-withdraw': case 'lib-craft': case 'lib-wild': case 'lib-infuse': case 'lib-fraglearn': libAct(a); break;
+			case 'inv-f': S.invFilter = v; renderInv(); break;
+			case 'pv-grid': S.grid = !S.grid; renderAll(); break;
+			case 'pv-bg': S.bg = { statue: 'vanilla', vanilla: 'wx', wx: 'statue' }[S.bg]; renderAll(); break;
+			case 'pv-reset': D = clone(INITIAL); S.selSlot = 4; S.insp = { kind: 'slot', idx: 4 }; S.lib.insp = null; renderAll(); break;
+			case 'pv-notes': var nt = $('notes'); nt.style.display = nt.style.display === 'block' ? 'none' : 'block'; break;
+		}
+	});
+	document.addEventListener('contextmenu', function (e) {
+		var col = upTo(e.target, 'data-slot-idx');
+		if (col) { e.preventDefault(); var idx = +col.getAttribute('data-slot-idx'); if (bro().slots[idx].m) doUnequip(idx); return; }
+		var c = upTo(e.target, 'data-drag');
+		if (c) {
+			e.preventDefault(); var p = c.getAttribute('data-drag').split(':');
+			if (p[0] === 'pill') { var sm = bro().slots[S.selSlot].m; if (!sm) toast('选中穴位没有功法', true); else if (addExp(sm, 80)) D.pills.ningshen--; renderAll(); return; }
+			if (p[0] === 'learned' && equippedSlotOf(p[1]) >= 0) { doUnequip(equippedSlotOf(p[1])); return; }
+			var bi = canFit(p[1], S.selSlot).ok ? S.selSlot : bestSlotFor(p[1]);
+			if (bi < 0) toast('没有可装入的穴位', true); else doEquip(p[1], bi, p[0] === 'vault');
+			return;
+		}
+		var li = upTo(e.target, 'data-v');
+		if (li && li.getAttribute('data-act') === 'lib-insp') { e.preventDefault(); S.lib.insp = li.getAttribute('data-v'); if (S.lib.insp.indexOf('manual:') === 0 && !bro().learned[S.lib.insp.split(':')[1]]) libAct('lib-learn'); else renderLib(); }
+	});
+	var curTip = null;
+	document.addEventListener('mousemove', function (e) {
+		if (drag) { dragMove(e); return; }
+		var t = upTo(e.target, 'data-tip') || upTo(e.target, 'data-tip-static'), key = t ? (t.getAttribute('data-tip') || t.getAttribute('data-tip-static')) : null;
+		if (key !== curTip) { curTip = key; if (key) showTip(key, e.clientX, e.clientY); else hideTip(); } else if (key) moveTip(e.clientX, e.clientY);
+	});
+	var drag = null, dragMoved = false;
+	document.addEventListener('mousedown', function (e) {
+		if (e.button !== 0) return; var c = upTo(e.target, 'data-drag'); if (!c) return;
+		var p = c.getAttribute('data-drag').split(':'); drag = { type: p[0], id: p[1], x: e.clientX, y: e.clientY, started: false };
+	});
+	function dragMove(e) {
+		if (!drag.started) {
+			if (Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) < 6) return;
+			drag.started = true; hideTip();
+			drag.ghost = document.createElement('div'); drag.ghost.className = 'ghost'; drag.ghost.innerHTML = '<img src="' + G + (drag.type === 'pill' ? PILLS[drag.id].icon : M[drag.id].icon) + '">';
+			$('cs').appendChild(drag.ghost);
+			var cols = document.querySelectorAll('.mcol');
+			for (var i = 0; i < cols.length; i++) cols[i].className += (drag.type === 'pill' ? !!bro().slots[i].m : canFit(drag.id, i).ok) ? ' drop-ok' : ' drop-no';
+		}
+		var r = $('stage').getBoundingClientRect();
+		drag.ghost.style.left = (e.clientX - r.left) / SCALE / 20 + 'rem'; drag.ghost.style.top = (e.clientY - r.top) / SCALE / 20 + 'rem';
+	}
+	document.addEventListener('mouseup', function (e) {
+		if (!drag) return; var d = drag; drag = null; if (!d.started) return;
+		dragMoved = true; setTimeout(function () { dragMoved = false; }, 0);
+		d.ghost.parentNode.removeChild(d.ghost);
+		var col = upTo(document.elementFromPoint(e.clientX, e.clientY), 'data-slot-idx');
+		if (col) {
+			var idx = +col.getAttribute('data-slot-idx');
+			if (d.type === 'pill') { S.selSlot = idx; var sm = bro().slots[idx].m; if (!sm) toast('此穴没有功法', true); else if (addExp(sm, 80)) D.pills.ningshen--; renderAll(); return; }
+			doEquip(d.id, idx, d.type === 'vault');
+		}
+		renderMeridian();
+	});
+
+	$('notes').innerHTML =
+		'<h3>v1 为什么突兀</h3><ul>' +
+		'<li>原版人物界面是<b>暖棕皮革</b>（底色约 #2d2117），v1 用了近黑乌木 + 骨白字，整个亮度和色温都偏了。</li>' +
+		'<li>原版正文是<b>橙金 #dda21f / 浅褐 #d7b174 / 斜体褐 #bd9d71</b>，v1 用了骨白、石青、琥珀等原版没有的颜色。</li>' +
+		'<li>原版控件全是<b>位图贴图</b>（凸起的按钮、压花列表框、格位），v1 全是 1px 细线 + 胶囊标签 + 开关，像网页后台。</li>' +
+		'<li>原版正文 1.4~1.8rem、元素稀疏，细节都放进<b>羊皮纸提示框</b>；v1 正文 1.1rem、卡片密集。</li>' +
+		'<li>原版提示框是<b>浅色羊皮纸 + 深蓝墨字</b>，v1 做成了深色。</li></ul>' +
+		'<h3>v2 的做法</h3><ul>' +
+		'<li>外壳只用原版贴图：button_01/02/03、button_tab、inventory_slot、inventory_highlight、天赋选中圈、dialog_panel、popup 木板、羊皮纸提示框、原版进度条与图标。</li>' +
+		'<li>武学修为照搬<b>原版天赋页</b>手法：圆形图标直接摆在底上，选中=原版选中圈，未贯通=33% 透明 + 原版锁。</li>' +
+		'<li>已习武学 / 藏经阁照搬<b>原版仓库</b>：格位 + 右下数量角标 + 原版橙色光晕表示「可以操作」。</li>' +
+		'<li>招式放回左栏原版<b>技能行</b>；行动力、负重留在原版属性栏。</li>' +
+		'<li>洗经伐髓照搬原版<b>升级弹窗</b>的行结构（图标 + 星 + 属性条）。</li>' +
+		'<li>武侠味只放在内容上：武学图标、宋体标题、穴位 / 重数 / 火候等称谓、经络金线（原版 line_gold.png）。</li></ul>' +
+		'<h3>移植</h3><ul><li>游戏内直接用 coui://gfx/ui/skin/… 引用原版贴图，零新增美术。</li><li>底图默认为「新雕像」：原版棕色面板 + 放大的武侠雕像（只露半身，尺度同原版骑士 / 骷髅），由 tools/build_wx_character_bg_v2.py 生成；按钮可切换原版底 / 旧 mod 底对比。</li></ul>';
+
+	function fit() {
+		SCALE = Math.min(window.innerWidth / 1421, window.innerHeight / 906) / 2;
+		var st = $('stage'); st.style.transform = 'scale(' + SCALE + ')';
+		st.style.left = Math.max(0, (window.innerWidth - 2842 * SCALE) / 2) + 'px'; st.style.top = Math.max(0, (window.innerHeight - 1812 * SCALE) / 2) + 'px';
+	}
+	window.addEventListener('resize', fit); fit();
+	var hp = (location.hash || '').replace('#', '').split('&');
+	for (var hi = 0; hi < hp.length; hi++) { var kv = hp[hi].split('='); if (kv[0] === 'tab') S.tab = kv[1]; if (kv[0] === 'bg') S.bg = kv[1]; if (kv[0] === 'grid') S.grid = true; }
+	renderAll();
+	for (hi = 0; hi < hp.length; hi++) { var kv2 = hp[hi].split('='); if (kv2[0] === 'modal' && kv2[1] === 'wash') openWash(); if (kv2[0] === 'modal' && kv2[1] === 'swap') doEquip('youxia', 1, false); if (kv2[0] === 'notes') $('notes').style.display = 'block'; if (kv2[0] === 'selftest') selfTest(); }
+	function selfTest() {
+		function ok0() { modalEl.querySelector('[data-mf="0"]').click(); }
+		var log = [], steps = [
+			['装入空穴', function () { S.selSlot = 4; doEquip('youxia', 4, false); return bro().slots[4].m === 'youxia'; }],
+			['换装确认', function () { doEquip('wuhu', 1, false); ok0(); return bro().slots[1].m === 'wuhu' && bro().scatter >= 2; }],
+			['卸下', function () { doUnequip(1); ok0(); return !bro().slots[1].m; }],
+			['内功上限 2 门', function () { bro().slots[5].unlock = 1; bro().slots[6].unlock = 1; doEquip('cuqian', 5, false); var r = bro().slots[5].m === 'cuqian' && canFit('songtao', 6).ok === false; bro().slots[5].unlock = 9; bro().slots[6].unlock = 11; bro().slots[5].m = null; return r; }],
+			['灌注突破', function () { var t = bro().learned.taxue.tier; addExp('taxue', 120); return bro().learned.taxue.tier === t + 1; }],
+			['阁藏习并装', function () { S.selSlot = 1; doEquip('baoyu', 1, true); ok0(); return !!bro().learned.baoyu && bro().slots[1].m === 'baoyu'; }],
+			['拼合残页', function () { S.lib.insp = 'page:heifeng'; libAct('lib-craft'); return !!libItem('manual', 'heifeng'); }],
+			['2:1 补缺', function () { S.lib.insp = 'page:xuesha'; libAct('lib-wild'); ok0(); return !!libItem('manual', 'xuesha'); }],
+			['藏经阁研习', function () { S.lib.insp = 'manual:songtao'; libAct('lib-learn'); return !!bro().learned.songtao; }],
+			['洗髓弹窗', function () { openWash(); modalEl.querySelector('[data-wt="3"]').click(); var r = !/\bdis\b/.test(modalEl.querySelector('[data-mf="0"]').className); closeModal(); return r; }],
+			['换底几何', function () { S.bg = 'wx'; renderAll(); var r = /bg-wx/.test($('cs').className); S.bg = 'statue'; renderAll(); return r && /bg-statue/.test($('cs').className); }]
+		];
+		for (var i = 0; i < steps.length; i++) { var r; try { r = steps[i][1](); } catch (err) { r = 'ERR ' + err.message; } log.push((r === true ? '✓ ' : '✗ ') + steps[i][0] + (r === true ? '' : ' → ' + r)); }
+		var d = document.createElement('pre'); d.style.cssText = 'position:fixed;left:8px;top:8px;z-index:99999;margin:0;padding:8px 12px;background:rgba(0,0,0,0.9);color:#dda21f;font:13px/1.5 monospace'; d.textContent = log.join('\n'); document.body.appendChild(d);
+	}
+})();
+</script>
+</body>
+</html>

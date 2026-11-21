@@ -12,7 +12,7 @@ this.wx_event_bookshop <- this.inherit("scripts/events/event", {
 		this.m.Cooldown = 14.0 * this.World.getTime().SecondsPerDay;
 		this.m.Screens.push({
 			ID = "A",
-			Text = "[img]gfx/ui/events/event_78.png[/img]行经城中坊市，街角一间旧书肆门前挂着“武学抄本”木牌，隔壁武馆里拳风呼啸。掌柜认出你们是走江湖的好手，迎出来问道：『诸位可是要添置几册实用功夫，或是请馆里教头带弟兄们演武打磨火候？』",
+			Text = "[img]gfx/ui/events/wx_ev_03.png[/img]行经城中坊市，街角一间旧书肆门前挂着“武学抄本”木牌，隔壁武馆里拳风呼啸。掌柜认出你们是走江湖的好手，迎出来问道：『诸位可是要添置几册实用功夫，或是请馆里教头带弟兄们演武打磨火候？』",
 			Image = "",
 			List = [],
 			Characters = [],
@@ -61,7 +61,7 @@ this.wx_event_bookshop <- this.inherit("scripts/events/event", {
 
 		this.m.Screens.push({
 			ID = "Trained",
-			Text = "[img]gfx/ui/events/event_78.png[/img]众人进武馆对拆演练了整整半日，彼此拆招补缺，各自修习的武学火候都有精进！",
+			Text = "[img]gfx/ui/events/wx_ev_03.png[/img]众人进武馆对拆演练了整整半日，彼此拆招补缺，各自修习的武学火候都有精进！",
 			Image = "",
 			List = [{ id = 1, icon = "ui/icons/xp_received.png", text = "全队已装配的未满重功法获得 +60 火候" }],
 			Characters = [],
@@ -71,7 +71,7 @@ this.wx_event_bookshop <- this.inherit("scripts/events/event", {
 
 		this.m.Screens.push({
 			ID = "Bought",
-			Text = "[img]gfx/ui/events/event_78.png[/img]你付过银两，将秘籍妥善收入行囊，随时可在「武学修为」页拖拽装槽。",
+			Text = "[img]gfx/ui/events/wx_ev_03.png[/img]你付过银两，将秘籍妥善收入行囊，随时可在「武学修为」页拖拽装槽。",
 			Image = "",
 			List = [],
 			Characters = [],
@@ -82,7 +82,7 @@ this.wx_event_bookshop <- this.inherit("scripts/events/event", {
 		this.m.Screens.push(::Wuxia.Loot.makeNoRoomScreen());
 		this.m.Screens.push({
 			ID = "NoMoney",
-			Text = "[img]gfx/ui/events/event_78.png[/img]摸了摸怀中银袋，眼下盘缠尚不够数，只得作罢。",
+			Text = "[img]gfx/ui/events/wx_ev_03.png[/img]摸了摸怀中银袋，眼下盘缠尚不够数，只得作罢。",
 			Image = "",
 			List = [],
 			Characters = [],

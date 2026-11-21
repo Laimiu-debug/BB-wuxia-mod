@@ -34,9 +34,9 @@
 ::Wuxia.CombatRules.isImmuneToMeridianAndPoison <- function( _target )
 {
 	if (_target == null) return true;
-	if ("getFlags" in _target && _target.getFlags() != null && _target.getFlags().has("undead"))
+	if (::Wuxia.hasMember(_target, "getFlags") && _target.getFlags() != null && _target.getFlags().has("undead"))
 		return true;
-	if ("getCurrentProperties" in _target)
+	if (::Wuxia.hasMember(_target, "getCurrentProperties"))
 	{
 		local p = _target.getCurrentProperties();
 		if (p != null && (!p.IsAffectedByPoison || !p.IsAffectedByInjuries))
@@ -48,7 +48,7 @@
 ::Wuxia.CombatRules.isUndeadOrConstruct <- function( _target )
 {
 	if (_target == null) return false;
-	if ("getFlags" in _target && _target.getFlags() != null && _target.getFlags().has("undead"))
+	if (::Wuxia.hasMember(_target, "getFlags") && _target.getFlags() != null && _target.getFlags().has("undead"))
 		return true;
 	return false;
 };

@@ -10,7 +10,7 @@ this.wx_status_smoke_screen <- this.inherit("scripts/skills/skill", {
 		this.m.ID = "effects.wx_status_smoke_screen";
 		this.m.Name = "烟幕蔽目";
 		this.m.Description = "毒烟遮蔽视线：视野 -2，远射与暗器准头 -25%，近身准头 -10%。";
-		this.m.Icon = "skills/status_effect_90.png";
+		this.m.Icon = "skills/wx_status_smoke_screen.png";
 		this.m.IconMini = "status_effect_90_mini";
 		this.m.Type = this.Const.SkillType.StatusEffect;
 		this.m.IsActive = false;

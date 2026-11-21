@@ -2,3 +2,14 @@ dist/
 vendor/*.zip
 *.pyc
 __pycache__/
+docs/ui-preview/_vanilla/
+assets_raw/
+art/
+promo/*.mp4
+promo/clips/
+promo/clips_local/
+promo/from_scratch_local/
+promo/audio/
+promo/assets/
+promo/keyframes/
+promo/ui_mockups/

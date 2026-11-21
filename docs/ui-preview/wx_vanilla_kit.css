@@ -1,0 +1,120 @@
+/* ============================================================================
+ * BB Wuxia Mod · 原版同构组件包（HTML 预览用）
+ * 所有外观均来自原版贴图（docs/ui-preview/_vanilla/，由 tools/extract_vanilla_ui_ref.py 提取，不入库）
+ * 与原版 ui/colors.css、ui/fonts.css 的取值。游戏内把 _vanilla/gfx/ 换成 coui://gfx/ 即可。
+ * 布局只用 absolute / float / inline-block；无 CSS 变量、无 flex / grid / calc。
+ * ============================================================================ */
+@font-face { font-family: 'BB Han'; src: url('_vanilla/fonts/NotoSansSC-Regular.ttf') format('truetype'); }
+@font-face { font-family: 'BB Han Serif'; src: url('_vanilla/fonts/NotoSerifSC-SemiBold.ttf') format('truetype'); font-weight: 600; }
+@font-face { font-family: 'FreeUniversal'; src: url('_vanilla/gfx/fonts/free_universal/FreeUniversal-Regular-edited.ttf') format('truetype'); }
+
+
+/* ---------------- 原版字色（ui/colors.css） ---------------- */
+.t-title { font-family: 'BB Han Serif', serif; font-weight: 600; color: #dda21f; text-shadow: 1px 1px rgba(0,0,0,0.5), -1px -1px #000; }
+.c-title { color: #dda21f; }
+.c-label { color: #d7b174; }
+.c-desc  { color: #bd9d71; font-style: italic; }
+.c-dis   { color: #a7a7a7; }
+.c-neg   { color: #CD2626; }
+.c-stack { color: #d6dbe9; }
+
+/* ---------------- 原版按钮（button_01/02/03/tab 贴图） ---------------- */
+.vb { position: relative; display: inline-block; vertical-align: middle; height: 4.3rem; line-height: 4.5rem; text-align: center; color: #dda21f; cursor: pointer; background-repeat: no-repeat; background-size: 100% 100%; font-size: 1.5rem; white-space: nowrap; user-select: none; }
+.vb.sel { text-shadow: 1px 1px #A36426, -1px -1px #000; }
+.vb1 { width: 17.5rem; background-image: url("_vanilla/gfx/ui/skin/button_01_default.png"); }
+.vb1:hover, .vb1.sel { background-image: url("_vanilla/gfx/ui/skin/button_01_hovered.png"); }
+.vb1.dis { background-image: url("_vanilla/gfx/ui/skin/button_01_inactive.png"); color: #a7a7a7; cursor: default; }
+.vb2 { width: 9.8rem; background-image: url("_vanilla/gfx/ui/skin/button_02_default.png"); }
+.vb2:hover, .vb2.sel { background-image: url("_vanilla/gfx/ui/skin/button_02_hovered.png"); }
+.vb2.dis { background-image: url("_vanilla/gfx/ui/skin/button_02_inactive.png.png"); color: #a7a7a7; cursor: default; }
+.vb3 { width: 5.2rem; height: 4.1rem; background-image: url("_vanilla/gfx/ui/skin/button_03_default.png"); }
+.vb3:hover, .vb3.sel { background-image: url("_vanilla/gfx/ui/skin/button_03_hovered.png"); }
+.vb3 img { position: absolute; left: 0; right: 0; top: 0; bottom: 0; margin: auto; width: 2.7rem; height: 2.7rem; }
+.vb3 img.flat { width: 3.0rem; height: 2.2rem; }
+.vb3.off img { -webkit-filter: grayscale(100%); filter: grayscale(100%); opacity: 0.6; }
+.vtab { width: 17.4rem; background-image: url("_vanilla/gfx/ui/skin/button_tab_default.png"); font-family: 'BB Han Serif', serif; font-weight: 600; font-size: 1.6rem; }
+.vtab:hover, .vtab.sel { background-image: url("_vanilla/gfx/ui/skin/button_tab_hovered.png"); }
+.vb .cnt { color: #d6dbe9; margin-left: 0.3rem; }
+
+/* ---------------- 原版格位 / 高亮 / 选中圈 ---------------- */
+.vslot { position: relative; float: left; width: 6.4rem; height: 6.4rem; margin: 0 0.15rem 0.15rem 0; background: url("_vanilla/gfx/ui/skin/inventory_slot.png") 0 0 / 100% 100%; cursor: pointer; }
+.vslot > img.it { position: absolute; left: 0.25rem; top: 0.2rem; width: 5.9rem; height: 5.9rem; z-index: 2; }
+.vslot > img.it.round { left: 0.7rem; top: 0.7rem; width: 5rem; height: 5rem; }
+.vslot:hover > img.it { -webkit-filter: brightness(1.18); filter: brightness(1.18); }
+.vslot .amt { position: absolute; right: 0.35rem; bottom: 0.15rem; z-index: 3; font-size: 1.3rem; color: #d6dbe9; text-shadow: 1px 1px 1px #000, -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000; }
+.vslot .tag { position: absolute; left: 0.35rem; top: 0.15rem; z-index: 3; font-size: 1.2rem; color: #dda21f; text-shadow: 1px 1px 1px #000, -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000; }
+.vslot .hl { position: absolute; left: -0.9rem; top: -1.1rem; width: 8.2rem; height: 8.6rem; z-index: 1; background: url("_vanilla/gfx/ui/skin/inventory_highlight.png") 0 0 / 100% 100%; pointer-events: none; }
+.vslot.dim > img.it { opacity: 0.33; }
+.vslot.sel-frame:after { content: ''; position: absolute; left: 0.3rem; top: 0.3rem; width: 5.8rem; height: 5.8rem; z-index: 4; background: url("_vanilla/gfx/ui/perks/selection_frame.png") 0 0 / 100% 100%; }
+
+/* ---------------- 原版进度条（inventory_bar_*_127） ---------------- */
+.vbar { position: relative; width: 12.7rem; height: 2.2rem; background: url("_vanilla/gfx/ui/skin/inventory_bar_empty_127.png") 0 0 / 100% 100%; }
+.vbar .f { position: absolute; left: 0; top: 0; bottom: 0; background-size: 12.7rem 2.2rem; background-repeat: no-repeat; }
+.vbar .f.hp     { background-image: url("_vanilla/gfx/ui/skin/inventory_bar_fill_health_127.png"); }
+.vbar .f.fat    { background-image: url("_vanilla/gfx/ui/skin/inventory_bar_fill_fatigue_127.png"); }
+.vbar .f.ap     { background-image: url("_vanilla/gfx/ui/skin/inventory_bar_fill_action_127.png"); }
+.vbar .f.armor  { background-image: url("_vanilla/gfx/ui/skin/inventory_bar_fill_armor_127.png"); }
+.vbar .f.neu    { background-image: url("_vanilla/gfx/ui/skin/inventory_bar_fill_neutral_127.png"); }
+.vbar .f.morale { background-image: url("_vanilla/gfx/ui/skin/inventory_bar_fill_morale_127.png"); }
+.vbar .v { position: absolute; left: 0; right: 0; top: 0; line-height: 2.2rem; text-align: center; font-size: 1.3rem; color: #c6c6c6; text-shadow: 1px 1px 1px #000; }
+.vxp { position: relative; height: 1rem; background: url("_vanilla/gfx/ui/skin/inventory_bar_experience_empty.png") 0 0 / 100% 100%; }
+.vxp .f { position: absolute; left: 0; top: 0; bottom: 0; background: url("_vanilla/gfx/ui/skin/inventory_bar_experience_fill.png") 0 0 / auto 100% no-repeat; }
+
+/* 原版勾选框（iCheck flat/orange 精灵图） */
+.vchk { display: inline-block; vertical-align: middle; cursor: pointer; white-space: nowrap; color: #d7b174; }
+.vchk i { display: inline-block; vertical-align: middle; width: 2rem; height: 2rem; margin: -0.3rem 0.6rem 0 0; background: url("_vanilla/ui/extern/iCheck/skins/flat/orange.png") 0 0 / 17.6rem 2.2rem no-repeat; }
+.vchk.on i { background-position: -2.2rem 0; }
+
+/* 原版输入框 */
+.vinput { display: inline-block; vertical-align: middle; width: 16rem; height: 3.4rem; padding: 0 1rem; border: none; outline: none; background: url("_vanilla/gfx/ui/skin/text_input_300x40_default.png") 0 0 / 100% 100%; color: #dda21f; font-family: 'BB Han', sans-serif; font-size: 1.4rem; text-shadow: 1px 1px 1px #000; }
+.vinput:focus { background-image: url("_vanilla/gfx/ui/skin/text_input_300x40_selected.png"); }
+.vinput::placeholder { color: #8a7454; }
+
+/* 原版滚动条（aciScrollBar 贴图近似） */
+.scroll { overflow-y: auto; overflow-x: hidden; }
+.scroll::-webkit-scrollbar { width: 1.1rem; }
+.scroll::-webkit-scrollbar-track { background: url("_vanilla/ui/extern/jquery-aciScrollBar/image/aciScrollBar.desk/track_v.png") center / 100% 100%; }
+.scroll::-webkit-scrollbar-thumb { background: url("_vanilla/ui/extern/jquery-aciScrollBar/image/aciScrollBar.desk/drag_g.png") center / 100% 100%; }
+
+/* 原版金线（line_gold.png） */
+.vline { height: 0.3rem; background: url("_vanilla/gfx/ui/skin/line_gold.png") center / 100% 100% no-repeat; }
+
+
+/* ---------------- 原版羊皮纸提示框（tooltip_315_*） ---------------- */
+.tip {
+	box-sizing: border-box; position: fixed; z-index: 9999; width: 31.5rem; pointer-events: none; display: none;
+	padding: 1.5rem 1.2rem 1.4rem 1.2rem; font-family: 'FreeUniversal', 'BB Han', sans-serif; font-size: 1.4rem; line-height: 2rem; color: #010035;
+	background: url("_vanilla/gfx/ui/skin/tooltip_315_top.png") top / 31.5rem 1.3rem no-repeat, url("_vanilla/gfx/ui/skin/tooltip_315_bottom.png") bottom / 31.5rem 55.3rem no-repeat;
+}
+.tip .tt { font-family: 'BB Han Serif', serif; font-weight: 600; font-size: 1.8rem; line-height: 2.4rem; }
+.tip .ts { font-style: italic; color: #3a2f4f; margin-bottom: 0.4rem; }
+.tip .tr { position: relative; padding-left: 2.6rem; }
+.tip .tr img { position: absolute; left: 0; top: 0.1rem; width: 2rem; height: 2rem; }
+.tip .pos { color: #135213; } .tip .neg { color: #8f1e1e; } .tip .gold { color: #6b4a00; }
+.tip .hint { margin-top: 0.4rem; font-size: 1.3rem; color: #4a3f5f; }
+
+/* ---------------- 原版弹窗（popup_background_600x300 木板 + 铁角） ---------------- */
+.backdrop { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 900; background: rgba(0,0,0,0.45); }
+.popup { position: absolute; left: 50%; top: 50%; background: url("_vanilla/gfx/ui/skin/popup_background_600x300.png") 0 0 / 100% 100%; padding: 2rem 3rem 1.6rem 3rem; }
+.popup .ph { text-align: center; font-size: 2.2rem; line-height: 3.2rem; margin-bottom: 1rem; }
+.popup .pb { font-size: 1.5rem; line-height: 2.2rem; color: #d7b174; }
+.popup .pf { margin-top: 1.4rem; text-align: center; white-space: nowrap; }
+.popup .pf .vb { margin: 0 0.4rem; }
+.popup .swap { text-align: center; white-space: nowrap; margin-bottom: 0.8rem; }
+.popup .swap .vslot { float: none; display: inline-block; vertical-align: middle; }
+.popup .swap .arr { display: inline-block; vertical-align: middle; margin: 0 1.6rem; font-size: 2rem; color: #dda21f; }
+.lvrow { position: relative; float: left; width: 24rem; height: 3.6rem; margin: 0 1rem 0.4rem 0; cursor: pointer; }
+.lvrow img.ico { position: absolute; left: 0.8rem; top: 0.5rem; width: 2.6rem; height: 2.6rem; }
+.lvrow .vbar { position: absolute; left: 4rem; top: 0.7rem; width: 12.7rem; }
+.lvrow img.talent { position: absolute; left: 4.4rem; top: -0.6rem; width: 3.6rem; height: 1.8rem; z-index: 2; }
+.lvrow .nm { position: absolute; left: 17.4rem; top: 0; line-height: 3.6rem; font-size: 1.4rem; }
+.lvrow:hover { background: rgba(129,50,24,0.25); }
+.lvrow.sel { background: rgba(129,50,24,0.6); }
+.lvrow.rep { background: rgba(143,30,30,0.55); }
+.lvrow.max { opacity: 0.4; cursor: default; }
+.odds { clear: both; padding-top: 0.6rem; font-size: 1.5rem; line-height: 2.2rem; }
+.pick { position: relative; height: 6.6rem; padding: 0.6rem 0 0 7.6rem; margin-bottom: 0.4rem; cursor: pointer; background: url("_vanilla/gfx/ui/skin/list_item_01.png") 0 0 / 100% 100%; }
+.pick:hover { background-image: url("_vanilla/gfx/ui/skin/list_item_01_hovered.png"); }
+.pick .vslot { position: absolute; left: 0.8rem; top: 0.1rem; }
+.pick .g { position: absolute; right: 1.6rem; top: 2rem; color: #dda21f; }
+

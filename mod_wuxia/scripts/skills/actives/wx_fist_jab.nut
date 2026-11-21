@@ -7,12 +7,16 @@ this.wx_fist_jab <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_fist_jab";
+		this.m.WX_VfxBrush <- "wx_vfx_09";
+		this.m.WX_AnimID <- "wx_anim_48";
+		this.m.WX_AnimMode <- "rapid_jab";
+		this.m.WX_ChoreoID <- "wx_fist_jab";
 		this.m.Name = "冲拳";
 		this.m.Description = "沉肩出拳直击中宫：轻快扎实的基础拳招，耗气低廉，造成钝劲外伤。";
 		this.m.KilledString = "震碎心脉";
-		this.m.Icon = "skills/active_08.png";
-		this.m.IconDisabled = "skills/active_08_sw.png";
-		this.m.Overlay = "active_08";
+		this.m.Icon = "skills/wx_fist_jab.png";
+		this.m.IconDisabled = "skills/wx_fist_jab_sw.png";
+		this.m.Overlay = "wx_ov_wx_fist_jab";
 		this.m.SoundOnUse = [
 			"sounds/combat/hand_01.wav",
 			"sounds/combat/hand_02.wav",
@@ -35,6 +39,7 @@ this.wx_fist_jab <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		return this.attackEntity(_user, _targetTile.getEntity());
 	}
 });

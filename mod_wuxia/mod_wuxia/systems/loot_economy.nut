@@ -1,39 +1,39 @@
 // M3 System: Enemy Wuxia Loadouts, Identical "What You See Is What You Drop" Loot & Town Shop Stocking
 
 ::Wuxia.Loot.EnemyLoadouts <- {
-	// Tier 1: Bandits / Outcasts (大路货)
-	bandit_thug = { Script = "scripts/entity/tactical/enemies/bandit_thug", DropChance = 24, IsBoss = false, Manuals = [
+	// Tier 1: Bandits / Outcasts (大路货 — strictly low drop rates on trash mobs)
+	bandit_thug = { Script = "scripts/entity/tactical/enemies/bandit_thug", DropChance = 6, IsBoss = false, Manuals = [
 		{ ManualID = "wx_manual_tuna",      Tier = 1, Weight = 40 },
 		{ ManualID = "wx_manual_wuhudao",   Tier = 1, Weight = 35 },
 		{ ManualID = "wx_manual_jichujian", Tier = 1, Weight = 25 }
 	] },
-	bandit_raider = { Script = "scripts/entity/tactical/enemies/bandit_raider", DropChance = 24, IsBoss = false, Manuals = [
+	bandit_raider = { Script = "scripts/entity/tactical/enemies/bandit_raider", DropChance = 9, IsBoss = false, Manuals = [
 		{ ManualID = "wx_manual_xingqi",    Tier = 1, Weight = 30 },
 		{ ManualID = "wx_manual_wuhudao",   Tier = 2, Weight = 30 },
 		{ ManualID = "wx_manual_heifeng",   Tier = 1, Weight = 25 },
 		{ ManualID = "wx_manual_yingpi",    Tier = 1, Weight = 15 }
 	] },
-	bandit_marksman = { Script = "scripts/entity/tactical/enemies/bandit_marksman", DropChance = 24, IsBoss = false, Manuals = [
+	bandit_marksman = { Script = "scripts/entity/tactical/enemies/bandit_marksman", DropChance = 9, IsBoss = false, Manuals = [
 		{ ManualID = "wx_manual_xiushou",   Tier = 2, Weight = 45 },
 		{ ManualID = "wx_manual_jianbu",    Tier = 1, Weight = 30 },
 		{ ManualID = "wx_manual_baoyu",     Tier = 1, Weight = 25 },
 		{ ManualID = "wx_manual_yanxing",   Tier = 2, Weight = 30 }
 	] },
-	// Tier 2: Elites / Sect Swordsmen / Mercenaries (门派上乘)
-	mercenary = { Script = "scripts/entity/tactical/humans/mercenary", DropChance = 40, IsBoss = false, Manuals = [
+	// Tier 2: Elites / Sect Swordsmen / Mercenaries (门派上乘残页)
+	mercenary = { Script = "scripts/entity/tactical/humans/mercenary", DropChance = 18, IsBoss = false, Manuals = [
 		{ ManualID = "wx_manual_songtao",   Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_weiyuan",   Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_qingfeng",  Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_tiebushan", Tier = 2, Weight = 25 }
 	] },
-	// Tier 3: Leaders / Bosses (绝学 & 孤本残页 + 洗髓丹)
-	bandit_leader = { Script = "scripts/entity/tactical/enemies/bandit_leader", DropChance = 75, IsBoss = true, Manuals = [
+	// Tier 3: Leaders / Bosses (上乘/绝学残页为主)
+	bandit_leader = { Script = "scripts/entity/tactical/enemies/bandit_leader", DropChance = 38, IsBoss = true, CustomBust = "wx_enemy_bandit_lord", Manuals = [
 		{ ManualID = "wx_manual_xuesha",    Tier = 2, Weight = 30 },
 		{ ManualID = "wx_manual_duanyue",   Tier = 2, Weight = 35 },
 		{ ManualID = "wx_manual_tiebushan", Tier = 2, Weight = 20 },
 		{ ManualID = "wx_manual_heifeng",   Tier = 3, Weight = 15 }
 	] },
-	swordmaster = { Script = "scripts/entity/tactical/humans/swordmaster", DropChance = 75, IsBoss = true, Manuals = [
+	swordmaster = { Script = "scripts/entity/tactical/humans/swordmaster", DropChance = 52, IsBoss = true, IsGrandmaster = true, CustomBust = "wx_enemy_sword_saint", Manuals = [
 		{ ManualID = "wx_manual_guiyuan",   Tier = 3, Weight = 25 },
 		{ ManualID = "wx_manual_huifeng",   Tier = 3, Weight = 30 },
 		{ ManualID = "wx_manual_taxue",     Tier = 3, Weight = 20 },
@@ -42,19 +42,19 @@
 	] },
 
 	// M4.2 Ecology Expansion: 塞外马贼 (Nomads)
-	nomad_outlaw = { Troop = "NomadOutlaw", DropChance = 26, IsBoss = false, Manuals = [
+	nomad_outlaw = { Troop = "NomadOutlaw", DropChance = 10, IsBoss = false, Manuals = [
 		{ ManualID = "wx_manual_hanhai_wandao_ru", Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_liusha_bu",        Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_liesha_tuna",      Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_chanzi",           Tier = 2, Weight = 25 }
 	] },
-	nomad_leader = { Troop = "NomadLeader", DropChance = 68, IsBoss = true, Manuals = [
+	nomad_leader = { Troop = "NomadLeader", DropChance = 38, IsBoss = true, CustomBust = "wx_enemy_nomad_khan", Manuals = [
 		{ ManualID = "wx_manual_hanhai_xinyue",    Tier = 3, Weight = 30 },
 		{ ManualID = "wx_manual_mingzun_huo",      Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_hanhai_guke",      Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_hanhai_shishen",   Tier = 2, Weight = 20 }
 	] },
-	southern_assassin = { Troop = "Assassin", DropChance = 82, IsBoss = true, Manuals = [
+	southern_assassin = { Troop = "Assassin", DropChance = 50, IsBoss = true, IsGrandmaster = true, CustomBust = "wx_enemy_blade_dancer", Manuals = [
 		{ ManualID = "wx_manual_youming_bi",       Tier = 3, Weight = 30 },
 		{ ManualID = "wx_manual_youming_guibu",    Tier = 3, Weight = 25 },
 		{ ManualID = "wx_manual_yinsha_guixi",     Tier = 3, Weight = 25 },
@@ -62,24 +62,24 @@
 	] },
 
 	// M4.2 Ecology Expansion: 地方藩镇与军镇高手 (Noble Military & City-State Elites)
-	sergeant = { Troop = "Sergeant", DropChance = 45, IsBoss = false, Manuals = [
+	sergeant = { Troop = "Sergeant", DropChance = 18, IsBoss = false, Manuals = [
 		{ ManualID = "wx_manual_juyiling",         Tier = 2, Weight = 35 },
 		{ ManualID = "wx_manual_baima_zhenshu",    Tier = 2, Weight = 35 },
 		{ ManualID = "wx_manual_luoyang_changfeng", Tier = 2, Weight = 30 }
 	] },
-	knight = { Troop = "Knight", DropChance = 72, IsBoss = true, Manuals = [
+	knight = { Troop = "Knight", DropChance = 42, IsBoss = true, CustomBust = "wx_enemy_garrison_capt", Manuals = [
 		{ ManualID = "wx_manual_hengshan_tiebi",   Tier = 3, Weight = 30 },
 		{ ManualID = "wx_manual_yanmen_zhenjun",   Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_cuijia_liuhua",    Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_shaolin_jinzhong", Tier = 2, Weight = 20 }
 	] },
-	officer = { Troop = "Officer", DropChance = 62, IsBoss = true, Manuals = [
+	officer = { Troop = "Officer", DropChance = 38, IsBoss = true, CustomBust = "wx_enemy_shenji_officer", Manuals = [
 		{ ManualID = "wx_manual_huaiyang_jindao",  Tier = 3, Weight = 30 },
 		{ ManualID = "wx_manual_shazhou_leihuo_chong", Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_wuwei_shuaiqi",    Tier = 2, Weight = 20 },
 		{ ManualID = "wx_manual_gufeng",           Tier = 2, Weight = 25 }
 	] },
-	gladiator = { Troop = "Gladiator", DropChance = 55, IsBoss = false, Manuals = [
+	gladiator = { Troop = "Gladiator", DropChance = 20, IsBoss = false, Manuals = [
 		{ ManualID = "wx_manual_qianjiang_nuchao_zhang", Tier = 2, Weight = 30 },
 		{ ManualID = "wx_manual_shuofang_jingua",  Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_lingnan_tengdun",  Tier = 2, Weight = 25 },
@@ -87,55 +87,55 @@
 	] },
 
 	// M4.2 Ecology Expansion: 关外铁骑战帮 (Barbarians)
-	barbarian_marauder = { Troop = "BarbarianMarauder", DropChance = 28, IsBoss = false, Manuals = [
+	barbarian_marauder = { Troop = "BarbarianMarauder", DropChance = 10, IsBoss = false, Manuals = [
 		{ ManualID = "wx_manual_heishui_xue",      Tier = 2, Weight = 35 },
 		{ ManualID = "wx_manual_heishui_kuangfu",  Tier = 2, Weight = 35 },
 		{ ManualID = "wx_manual_xueyuan_zong",     Tier = 2, Weight = 30 }
 	] },
-	barbarian_chosen = { Troop = "BarbarianChampion", DropChance = 72, IsBoss = true, Manuals = [
+	barbarian_chosen = { Troop = "BarbarianChampion", DropChance = 42, IsBoss = true, CustomBust = "wx_enemy_barb_chosen", Manuals = [
 		{ ManualID = "wx_manual_heishui_xueming_fu", Tier = 3, Weight = 35 },
 		{ ManualID = "wx_manual_pishan_kaitian",   Tier = 2, Weight = 30 },
 		{ ManualID = "wx_manual_zhenyue_qianjun",  Tier = 2, Weight = 35 }
 	] },
 
 	// M4.2 Ecology Expansion: 五毒奇门伏兵 (Goblins)
-	goblin_ambusher = { Troop = "GoblinAmbusher", DropChance = 28, IsBoss = false, Manuals = [
+	goblin_ambusher = { Troop = "GoblinAmbusher", DropChance = 10, IsBoss = false, CustomBust = "wx_enemy_wudu_blowgun", Manuals = [
 		{ ManualID = "wx_manual_wudu_chuijian",    Tier = 2, Weight = 35 },
 		{ ManualID = "wx_manual_wudu_shehang",     Tier = 2, Weight = 35 },
 		{ ManualID = "wx_manual_wudu",             Tier = 2, Weight = 30 }
 	] },
-	goblin_overseer = { Troop = "GoblinOverseer", DropChance = 68, IsBoss = true, Manuals = [
+	goblin_overseer = { Troop = "GoblinOverseer", DropChance = 40, IsBoss = true, CustomBust = "wx_enemy_wudu_overseer", Manuals = [
 		{ ManualID = "wx_manual_wudu_wanxian",     Tier = 3, Weight = 35 },
 		{ ManualID = "wx_manual_tangmen_guanyin_lei", Tier = 2, Weight = 35 },
 		{ ManualID = "wx_manual_wudu_jinshe_bian", Tier = 2, Weight = 30 }
 	] },
 
 	// M4.2 Ecology Expansion: 邪派炼体药人 (Orcs)
-	orc_berserker = { Troop = "OrcBerserker", DropChance = 32, IsBoss = false, Manuals = [
+	orc_berserker = { Troop = "OrcBerserker", DropChance = 14, IsBoss = false, CustomBust = "wx_enemy_bronze_yaoren", Manuals = [
 		{ ManualID = "wx_manual_xuesha",    Tier = 2, Weight = 50 },
 		{ ManualID = "wx_manual_duanyue",   Tier = 2, Weight = 50 }
 	] },
-	orc_warrior = { Troop = "OrcWarrior", DropChance = 35, IsBoss = false, Manuals = [
+	orc_warrior = { Troop = "OrcWarrior", DropChance = 16, IsBoss = false, Manuals = [
 		{ ManualID = "wx_manual_tiebushan", Tier = 3, Weight = 60 },
 		{ ManualID = "wx_manual_jinzhong",  Tier = 2, Weight = 40 }
 	] },
-	orc_warlord = { Troop = "OrcWarlord", DropChance = 85, IsBoss = true, Manuals = [
+	orc_warlord = { Troop = "OrcWarlord", DropChance = 52, IsBoss = true, IsGrandmaster = true, CustomBust = "wx_enemy_yaoren_lord", Manuals = [
 		{ ManualID = "wx_manual_jinzhong",  Tier = 3, Weight = 45 },
 		{ ManualID = "wx_manual_xuesha",    Tier = 3, Weight = 30 },
 		{ ManualID = "wx_manual_duanyue",   Tier = 3, Weight = 25 }
 	] },
 
 	// M4.2 Ecology Expansion: 前朝古墓与湘西尸傀邪宗 (Undead & Ancient Dead Elites)
-	skeleton_heavy = { Troop = "SkeletonHeavy", DropChance = 30, IsBoss = false, Manuals = [
+	skeleton_heavy = { Troop = "SkeletonHeavy", DropChance = 15, IsBoss = false, CustomBust = "wx_enemy_tomb_automaton", Manuals = [
 		{ ManualID = "wx_manual_tiebushan", Tier = 3, Weight = 55 },
 		{ ManualID = "wx_manual_weiyuan",   Tier = 3, Weight = 45 }
 	] },
-	necromancer = { Troop = "Necromancer", DropChance = 75, IsBoss = true, Manuals = [
+	necromancer = { Troop = "Necromancer", DropChance = 42, IsBoss = true, CustomBust = "wx_enemy_corpse_taoist", Manuals = [
 		{ ManualID = "wx_manual_zhenhun",   Tier = 2, Weight = 35 },
 		{ ManualID = "wx_manual_xuesha",    Tier = 2, Weight = 40 },
 		{ ManualID = "wx_manual_wudu",      Tier = 3, Weight = 25 }
 	] },
-	vampire = { Troop = "Vampire", DropChance = 65, IsBoss = true, Manuals = [
+	vampire = { Troop = "Vampire", DropChance = 38, IsBoss = true, CustomBust = "wx_enemy_blood_vampire", Manuals = [
 		{ ManualID = "wx_manual_suodi",     Tier = 3, Weight = 40 },
 		{ ManualID = "wx_manual_heifeng",   Tier = 3, Weight = 35 },
 		{ ManualID = "wx_manual_zhenhun",   Tier = 2, Weight = 25 }
@@ -220,15 +220,16 @@
 ::Wuxia.Loot.onEnemyKilledDrop <- function( _tile, _profile, _pool )
 {
 	local isBoss = _profile.IsBoss;
+	local isGrandmaster = ("IsGrandmaster" in _profile) && _profile.IsGrandmaster;
 
-	// Drop chance: 24% normal martial enemies, 75% elites/bosses
+	// Strictly gated drop rates: common street manuals or single torn pages (`wx_page_item`)
 	if (_pool.len() > 0 && ::Math.rand(1, 100) <= _profile.DropChance)
 	{
 		local manualID = ::Wuxia.Loot.pickWeightedManual(_pool);
 		local def = ::Wuxia.Slots.getManualDef(manualID);
 		if (def != null)
 		{
-			if (def.Quality == "common" || (isBoss && ::Math.rand(1, 100) <= 20))
+			if (def.Quality == "common" || (isGrandmaster && ::Math.rand(1, 100) <= 8))
 			{
 				local mItem = ::new("scripts/items/misc/wx_manual_item");
 				mItem.initManual(manualID);
@@ -237,20 +238,20 @@
 			else if (def.FragmentsNeeded > 0)
 			{
 				local pageItem = ::new("scripts/items/misc/wx_page_item");
-				pageItem.initPages(manualID, isBoss ? ::Math.rand(1, 2) : 1);
+				pageItem.initPages(manualID, 1);
 				pageItem.drop(_tile);
 			}
 		}
 	}
 
-	// Boss bonus drop: rare chance for 凝神丸 / 护脉丹 / 洗髓丹
-	if (isBoss && ::Math.rand(1, 100) <= 35)
+	// Boss bonus drop: basic healing/qi pills only (`洗髓丹` is strictly reserved for Boss-herb Alchemy!)
+	if (isBoss && ::Math.rand(1, 100) <= (isGrandmaster ? 24 : 15))
 	{
 		local pillRoll = ::Math.rand(1, 100);
-		local pid = "wx_pill_ningshen";
-		if (pillRoll <= 18)      pid = "wx_pill_xisui";
-		else if (pillRoll <= 45) pid = "wx_pill_humai";
-		else if (pillRoll <= 75) pid = "wx_pill_huxin";
+		local pid = "wx_pill_jinchuang";
+		if (isGrandmaster && pillRoll <= 20) pid = "wx_pill_humai";
+		else if (pillRoll <= 55)             pid = "wx_pill_ningshen";
+		else if (pillRoll <= 85)             pid = "wx_pill_huxin";
 
 		local pill = ::new("scripts/items/misc/wx_pill_item");
 		pill.initPill(pid);
@@ -282,6 +283,22 @@
 ::Wuxia.Loot.purchaseEventItem <- function( _item, _price, _successScreen )
 {
 	if (::World.Assets.getMoney() < _price) return "NoMoney";
+	if (_item != null && ::Wuxia.Library.isAutoStoreEnabled())
+	{
+		local id = _item.getID();
+		if (id == "misc.wx_manual_item")
+		{
+			::Wuxia.Library.addManual(_item.getManualID(), 1);
+			::World.Assets.addMoney(-_price);
+			return _successScreen;
+		}
+		else if (id == "misc.wx_page_item")
+		{
+			::Wuxia.Library.addPages(_item.getManualID(), _item.getPageCount());
+			::World.Assets.addMoney(-_price);
+			return _successScreen;
+		}
+	}
 	if (::World.Assets.getStash().add(_item) == null) return "NoRoom";
 	::World.Assets.addMoney(-_price);
 	return _successScreen;
@@ -308,13 +325,13 @@
 		if (it != null && it.getID() == "misc.wx_manual_item")
 			existingManuals += 1;
 	}
-	if (existingManuals >= 3) return;
+	if (existingManuals >= 2) return;
 
-	// Stock 3 random common manuals (大路货) from the 65+ street/folk manual pool for early 12-man slot filling
+	// Stock up to 2 random common manuals (大路货) from the street/folk manual pool
 	local commons = ::Wuxia.Loot.getManualIDsByQuality("common");
 	if (commons.len() > 0)
 	{
-		for (local i = existingManuals; i < 3; i = ++i)
+		for (local i = existingManuals; i < 2; i = ++i)
 		{
 			local mid = commons[::Math.rand(0, commons.len() - 1)];
 			local mItem = ::new("scripts/items/misc/wx_manual_item");
@@ -334,9 +351,16 @@
 		_stash.add(::new("scripts/items/weapons/wx_fist_wraps"));
 	}
 
-	// Stock core medical & training pills
+	// Strictly stock ONLY basic medical & common battle-prep powders in town markets!
+	// Rare elixirs, wash pills, Neidan cores & Spirit Herbs are NEVER sold in ordinary town shops.
 	local shopPills = ["wx_pill_jinchuang", "wx_pill_huxin"];
-	if (::Math.rand(1, 100) <= 50) shopPills.push("wx_pill_ningshen");
+	if (::Math.rand(1, 100) <= 35)
+		shopPills.push("wx_pill_ningshen");
+	if (::Math.rand(1, 100) <= 45)
+	{
+		local basicPrepPool = ["wx_pill_huoluo", "wx_pill_qingxin", "wx_pill_hugu", "wx_pill_dingshen"];
+		shopPills.push(basicPrepPool[::Math.rand(0, basicPrepPool.len() - 1)]);
+	}
 	foreach (pid in shopPills)
 	{
 		local p = ::new("scripts/items/misc/wx_pill_item");
@@ -357,14 +381,9 @@
 	if (existingFist >= 1) return;
 
 	_stash.add(::new("scripts/items/weapons/wx_fist_iron"));
-	if (::Math.rand(1, 100) <= 45)
+	if (::Math.rand(1, 100) <= 35)
 	{
 		_stash.add(::new("scripts/items/weapons/wx_fist_heavy"));
 	}
-	// Rare 8% famed weaponsmith roll: stock 1 Historical Famous Rare Weapon (传世神兵红武)!
-	if (::Math.rand(1, 100) <= 8)
-	{
-		local relic = ::Wuxia.Relics.createRandomRelic();
-		if (relic != null) _stash.add(relic);
-	}
+	// Famous Red Relics (`传世神兵`) are strictly earned via Stronghold/Boss conquests & Ghost Market auctions, never sold in town smithies!
 };

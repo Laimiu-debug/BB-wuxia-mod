@@ -7,19 +7,25 @@ this.wx_hammer_shatter <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_hammer_shatter";
+		this.m.WX_VfxBrush <- "wx_vfx_14";
+		this.m.WX_AnimID <- "wx_anim_57";
+		this.m.WX_AnimMode <- "armor_break";
+		this.m.WX_ChoreoID <- "wx_hammer_shatter";
 		this.m.Name = "震岳碎甲击";
 		this.m.Description = "抡动重锤挟千钧之势砸落：破甲伤害额外提升 35%，隔甲震腑保底造成 10 点气血实伤并令目标陷入「失衡」。";
 		this.m.KilledString = "一锤震碎胸甲";
-		this.m.Icon = "skills/active_135.png";
-		this.m.IconDisabled = "skills/active_135_sw.png";
-		this.m.Overlay = "active_135";
+		this.m.Icon = "skills/wx_hammer_shatter.png";
+		this.m.IconDisabled = "skills/wx_hammer_shatter_sw.png";
+		this.m.Overlay = "wx_ov_wx_hammer_shatter";
 		this.m.SoundOnUse = [
-			"sounds/combat/hammer_01.wav",
-			"sounds/combat/hammer_02.wav"
+			"sounds/combat/crush_armor_01.wav",
+			"sounds/combat/crush_armor_02.wav",
+			"sounds/combat/crush_armor_03.wav"
 		];
 		this.m.SoundOnHit = [
-			"sounds/combat/hammer_hit_01.wav",
-			"sounds/combat/hammer_hit_02.wav"
+			"sounds/combat/crush_armor_hit_01.wav",
+			"sounds/combat/crush_armor_hit_02.wav",
+			"sounds/combat/crush_armor_hit_03.wav"
 		];
 		this.m.ActionPointCost = 5;
 		this.m.FatigueCost = 20;
@@ -42,6 +48,7 @@ this.wx_hammer_shatter <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local target = _targetTile.getEntity();
 		local hit = this.attackEntity(_user, target);
 		if (hit && target != null && target.isAlive())

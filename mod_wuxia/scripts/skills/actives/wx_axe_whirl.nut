@@ -7,19 +7,25 @@ this.wx_axe_whirl <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_axe_whirl";
+		this.m.WX_VfxBrush <- "wx_vfx_06";
+		this.m.WX_AnimID <- "wx_anim_59";
+		this.m.WX_AnimMode <- "berserk_spin";
+		this.m.WX_ChoreoID <- "wx_axe_whirl";
 		this.m.Name = "旋风断魂斧";
 		this.m.Description = "借腰马合一之劲抡斧狂旋横扫身前扇面最多 3 名敌军：破甲伤害 +15%，见血附加撕裂流血。";
 		this.m.KilledString = "巨斧旋斩成两截";
-		this.m.Icon = "skills/active_24.png";
-		this.m.IconDisabled = "skills/active_24_sw.png";
-		this.m.Overlay = "active_24";
+		this.m.Icon = "skills/wx_axe_whirl.png";
+		this.m.IconDisabled = "skills/wx_axe_whirl_sw.png";
+		this.m.Overlay = "wx_ov_wx_axe_whirl";
 		this.m.SoundOnUse = [
-			"sounds/combat/axe_01.wav",
-			"sounds/combat/axe_02.wav"
+			"sounds/combat/round_swing_01.wav",
+			"sounds/combat/round_swing_02.wav",
+			"sounds/combat/round_swing_03.wav"
 		];
 		this.m.SoundOnHit = [
-			"sounds/combat/axe_hit_01.wav",
-			"sounds/combat/axe_hit_02.wav"
+			"sounds/combat/round_swing_hit_01.wav",
+			"sounds/combat/round_swing_hit_02.wav",
+			"sounds/combat/round_swing_hit_03.wav"
 		];
 		this.m.IsAOE = true;
 		this.m.ActionPointCost = 6;
@@ -40,6 +46,7 @@ this.wx_axe_whirl <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local targets = [];
 		local mainTarget = _targetTile.getEntity();
 		if (mainTarget != null) targets.push(mainTarget);
@@ -56,12 +63,13 @@ this.wx_axe_whirl <- this.inherit("scripts/skills/actives/wx_move_base", {
 				targets.push(ent);
 				if (targets.len() >= 3) break;
 			}
-		}
-
-		local anyHit = false;
+		};
+			local anyHit = false;
 		foreach (t in targets)
 		{
 			if (!t.isAlive()) continue;
+			if (mainTarget == null || t.getID() != mainTarget.getID())
+				::Wuxia.VFX.playAoESecondaryVfx(this, _user, t.getTile(), 55);
 			local hpBefore = t.getHitpoints();
 			local hit = this.attackEntity(_user, t);
 			if (hit)

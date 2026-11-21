@@ -8,11 +8,15 @@ this.wx_blood_burst <- this.inherit("scripts/skills/skill", {
 	function create()
 	{
 		this.m.ID = "actives.wx_blood_burst";
+		this.m.WX_VfxBrush <- "wx_vfx_20";
+		this.m.WX_AnimID <- "wx_anim_70";
+		this.m.WX_AnimMode <- "blood_flame";
+		this.m.WX_ChoreoID <- "wx_blood_burst";
 		this.m.Name = "燃血催劲";
 		this.m.Description = "燃烧自身 12% 气血，本回合立即临时 +2 AP。下次行动开始时自然回气减半，冷却 3 回合。";
-		this.m.Icon = "skills/active_36.png";
-		this.m.IconDisabled = "skills/active_36_sw.png";
-		this.m.Overlay = "active_36";
+		this.m.Icon = "skills/wx_blood_burst.png";
+		this.m.IconDisabled = "skills/wx_blood_burst_sw.png";
+		this.m.Overlay = "wx_ov_wx_blood_burst";
 		this.m.SoundOnUse = [
 			"sounds/combat/perfect_focus_01.wav"
 		];
@@ -54,6 +58,7 @@ this.wx_blood_burst <- this.inherit("scripts/skills/skill", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local hpCost = ::Math.max(6, ::Math.floor(_user.getHitpointsMax() * 0.12));
 		_user.setHitpoints(::Math.max(1, _user.getHitpoints() - hpCost));
 		local c = ::Wuxia.Slots.getContainer(_user);

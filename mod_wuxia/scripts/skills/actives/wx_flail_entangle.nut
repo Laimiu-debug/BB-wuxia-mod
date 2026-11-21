@@ -7,12 +7,16 @@ this.wx_flail_entangle <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_flail_entangle";
+		this.m.WX_VfxBrush <- "wx_vfx_31";
+		this.m.WX_AnimID <- "wx_anim_64";
+		this.m.WX_AnimMode <- "neck_coil";
+		this.m.WX_ChoreoID <- "wx_flail_entangle";
 		this.m.Name = "锁喉缠丝劲";
 		this.m.Description = "抖出九节软鞭或流星链索缠绕颈腕要穴（1~2 格）：无视盾牌防御补正、命中 +8，击中生人敌军附加「封穴」截断回气！";
 		this.m.KilledString = "软鞭绞断咽喉";
-		this.m.Icon = "skills/active_32.png";
-		this.m.IconDisabled = "skills/active_32_sw.png";
-		this.m.Overlay = "active_32";
+		this.m.Icon = "skills/wx_flail_entangle.png";
+		this.m.IconDisabled = "skills/wx_flail_entangle_sw.png";
+		this.m.Overlay = "wx_ov_wx_flail_entangle";
 		this.m.SoundOnUse = [
 			"sounds/combat/slash_01.wav"
 		];
@@ -42,6 +46,7 @@ this.wx_flail_entangle <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local target = _targetTile.getEntity();
 		local hit = this.attackEntity(_user, target);
 		if (hit && target != null && target.isAlive())

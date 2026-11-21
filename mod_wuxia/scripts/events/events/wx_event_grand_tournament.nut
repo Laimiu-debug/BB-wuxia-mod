@@ -67,7 +67,7 @@ this.wx_event_grand_tournament <- this.inherit("scripts/events/event", {
 				_event.m.SquadScore = ::Math.min(88, ::Math.max(20, ::Math.floor((bestPower - 125) * 0.75) + tier3Count * 3));
 
 				this.Characters.push(bestBro.getImagePath());
-				this.Text = "[img]gfx/ui/events/event_80.png[/img]旌旗蔽日，钟鼓齐鸣！各州名门大派、边塞奇人与世家供奉齐聚演武总擂，召开数年一度的「天下武林大会」。盟主高台之上，锦盒内赫然陈列着失传已久的江湖孤本与稀世洗髓灵丹。\n\n队中以 [color=#bcad8c]" + _event.m.ChampName + "[/color] 武功最为精纯（夺魁把握约 [color=#8f6b29]" + _event.m.SquadScore + "%[/color]）。是否登台一战？";
+				this.Text = "[img]gfx/ui/events/wx_ev_05.png[/img]旌旗蔽日，钟鼓齐鸣！各州名门大派、边塞奇人与世家供奉齐聚演武总擂，召开数年一度的「天下武林大会」。盟主高台之上，锦盒内赫然陈列着失传已久的江湖孤本与稀世洗髓灵丹。\n\n队中以 [color=#bcad8c]" + _event.m.ChampName + "[/color] 武功最为精纯（夺魁把握约 [color=#8f6b29]" + _event.m.SquadScore + "%[/color]）。是否登台一战？";
 			}
 		});
 
@@ -118,7 +118,7 @@ this.wx_event_grand_tournament <- this.inherit("scripts/events/event", {
 					}
 				}
 
-				this.Text = "[img]gfx/ui/events/event_80.png[/img]" + _event.m.ChampName + " 连破三关，于总擂之上拆解少室金刚掌、破去唐门暴雨针，终以一记绝招震退压轴宿老！满场喝彩如雷，大会盟主亲手奉上彩头（" + rewardText + "）！";
+				this.Text = "[img]gfx/ui/events/wx_ev_05.png[/img]" + _event.m.ChampName + " 连破三关，于总擂之上拆解少室金刚掌、破去唐门暴雨针，终以一记绝招震退压轴宿老！满场喝彩如雷，大会盟主亲手奉上彩头（" + rewardText + "）！";
 			}
 		});
 
@@ -143,7 +143,7 @@ this.wx_event_grand_tournament <- this.inherit("scripts/events/event", {
 						stash.add(p);
 					}
 				}
-				this.Text = "[img]gfx/ui/events/event_80.png[/img]" + _event.m.ChampName + " 一路鏖战闯入前四，奈何半决赛遭遇隐世绝顶名宿，苦斗百余合后棋差半着抱拳认输。虽未夺魁，豪勇风采仍赢得满堂敬重，获颁彩头银 1,500 两与两枚【凝神丸】。";
+				this.Text = "[img]gfx/ui/events/wx_ev_05.png[/img]" + _event.m.ChampName + " 一路鏖战闯入前四，奈何半决赛遭遇隐世绝顶名宿，苦斗百余合后棋差半着抱拳认输。虽未夺魁，豪勇风采仍赢得满堂敬重，获颁彩头银 1,500 两与两枚【凝神丸】。";
 			}
 		});
 
@@ -161,7 +161,7 @@ this.wx_event_grand_tournament <- this.inherit("scripts/events/event", {
 					if (bro != null && bro.isAlive())
 						::Wuxia.Mastery.addExpToEquipped(bro, 60);
 				}
-				this.Text = "[img]gfx/ui/events/event_80.png[/img]众弟兄立于演武台下凝神观摩各路名家换气拆招，彼此印证平日苦修滞涩之处，全队已修习武学火候齐涨 60 点！";
+				this.Text = "[img]gfx/ui/events/wx_ev_05.png[/img]众弟兄立于演武台下凝神观摩各路名家换气拆招，彼此印证平日苦修滞涩之处，全队已修习武学火候齐涨 60 点！";
 			}
 		});
 	}

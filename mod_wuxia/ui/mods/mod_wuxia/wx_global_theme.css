@@ -1,0 +1,881 @@
+/* ============================================================================
+ * BB Wuxia Mod - Global Vanilla-Isomorphic Style Theme (v2)
+ * Principle: 100% vanilla Battle Brothers textures, warm leather surfaces,
+ * and native typography palette (#dda21f / #d7b174 / #bd9d71 / #CD2626 / #d6dbe9).
+ * Wuxia flavor lives strictly in content (icons, Serif titles, terminology).
+ * ============================================================================ */
+
+/* Zero-stall CJK Serif stack: uses already-loaded 'BBMOD Map' (font-weight: 600) or OS memory-mapped Songti/YaHei,
+ * avoiding a 15 MB TTF decode freeze on first CharacterScreen / 藏经阁 open. */
+.title-font-big,
+.title-font-very-big,
+.title-font-big.bbmod-l10n-text,
+.title-font-very-big.bbmod-l10n-text,
+.ui-control.dialog > .header .title,
+.loading-screen > .screen-footer .text-container .title,
+.wx-t-title,
+.wx-sect-hdr-title
+{
+	font-family: 'BBMOD Map', 'STSong', 'SimSun', 'Songti SC', 'Microsoft YaHei', 'Cinzel-Bold', serif;
+	font-weight: 600;
+	color: #dda21f;
+	text-shadow: 1px 1px rgba(0, 0, 0, 0.5), -1px -1px #000;
+}
+
+/* 1. Main Menu & Loading Screen Atmospheric Polish */
+.main-menu-module
+{
+	background-image: url("coui://gfx/ui/wx_skin/wx_main_menu_banner.png") !important;
+	background-size: 24.5rem 59.5rem !important;
+}
+
+.main-menu-screen .dlc-container,
+.main-menu-screen .motd-container,
+.main-menu-screen .marketing-container
+{
+	display: none !important;
+	visibility: hidden !important;
+	pointer-events: none !important;
+}
+
+.loading-screen > .screen-footer
+{
+	background: linear-gradient(to top, rgba(10, 8, 6, 0.94) 0%, rgba(14, 11, 8, 0.72) 72%, rgba(14, 11, 8, 0.0) 100%);
+}
+
+.loading-screen > .screen-footer .text-container .title
+{
+	color: #dda21f !important;
+	text-shadow: 1px 1px 2px #000, -1px -1px 1px #000;
+}
+
+/* 2. Character Screen Frame: Vanilla Leather Board + Clean Half-Body Guardian Statues */
+.character-screen .character-screen-statuetes
+{
+	background-image: url("coui://gfx/ui/wx_skin/wx_background_inventory.png") !important;
+	background-size: 142.1rem 90.6rem !important;
+	background-repeat: no-repeat !important;
+}
+
+/* 3. Event Chapter Seal (on vanilla parchment Event Scrolls) */
+.wx-event-chapter-seal
+{
+	display: inline-block;
+	margin-bottom: 0.8rem;
+	padding: 0.15rem 0.75rem 0.15rem 0.55rem;
+	border-left: 3px solid #8f1e1e;
+	color: #8f1e1e;
+	font-size: 1.35rem;
+	font-style: italic;
+}
+
+.wx-event-chapter-seal img
+{
+	width: 1.7rem !important;
+	height: 1.7rem !important;
+	float: none !important;
+	display: inline-block;
+	vertical-align: middle;
+	margin: -0.2rem 0.4rem 0 0 !important;
+}
+
+/* 4. Tactical Combat HUD: Dynamic AP Cell Marks & Vanilla-Styled Skill AP Label */
+.wx-ap-marks
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	pointer-events: none;
+	z-index: 3;
+}
+
+.wx-ap-marks span
+{
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	border-right: 1px solid rgba(0, 0, 0, 0.42);
+}
+
+.wx-ap-marks span.wx-ap-burst
+{
+	background-color: rgba(221, 162, 31, 0.34);
+}
+
+.wx-tac-skill-cost
+{
+	position: absolute;
+	right: 0.3rem;
+	bottom: 0.1rem;
+	z-index: 4;
+	font-size: 1.2rem;
+	line-height: 1.3rem;
+	color: #d6dbe9;
+	text-shadow: 1px 1px 1px #000, -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000;
+	pointer-events: none;
+}
+
+/* 5. Town Screen Layout Separation & Leather Plaque Signboards */
+.world-town-screen > .l-main-dialog-container .settlement-container .slot0
+{
+	right: 17.5rem !important;
+	bottom: 22.0rem !important;
+	top: auto !important;
+	left: auto !important;
+}
+.world-town-screen > .l-main-dialog-container .settlement-container .slot1
+{
+	left: 13.5rem !important;
+	bottom: 19.8rem !important;
+	top: auto !important;
+	right: auto !important;
+}
+.world-town-screen > .l-main-dialog-container .settlement-container .slot2
+{
+	left: 0 !important;
+	right: 0 !important;
+	margin-left: auto !important;
+	margin-right: auto !important;
+	top: 28.4rem !important;
+	bottom: auto !important;
+	width: auto !important;
+	max-height: 16.4rem !important;
+}
+.world-town-screen > .l-main-dialog-container .settlement-container .slot3
+{
+	right: 68.5rem !important;
+	bottom: 4.2rem !important;
+	top: auto !important;
+	left: auto !important;
+}
+.world-town-screen > .l-main-dialog-container .settlement-container .slot4
+{
+	left: 68.5rem !important;
+	bottom: 4.2rem !important;
+	top: auto !important;
+	right: auto !important;
+}
+.world-town-screen > .l-main-dialog-container .settlement-container .slot5
+{
+	left: 0 !important;
+	right: 0 !important;
+	margin-left: auto !important;
+	margin-right: auto !important;
+	bottom: 2.2rem !important;
+	top: auto !important;
+	width: auto !important;
+	max-height: 11.8rem !important;
+}
+
+.wx-town-shop-sign
+{
+	position: absolute;
+	width: 11.2rem;
+	height: 2.6rem;
+	line-height: 2.6rem;
+	padding: 0 0.5rem;
+	text-align: center;
+	font-size: 1.3rem;
+	color: #d7b174;
+	text-shadow: 1px 1px 1px #000, -1px -1px 1px #000;
+	background-image: url("coui://gfx/ui/skin/dialog_panel_01.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.82);
+	pointer-events: none;
+	z-index: 12;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.wx-town-shop-sign.is-hovered
+{
+	color: #dda21f;
+	box-shadow: 0 0 8px rgba(221, 162, 31, 0.55), 0 2px 6px rgba(0, 0, 0, 0.9);
+}
+
+.wx-town-shop-sign.for-slot0 { right: 20.4rem; bottom: 21.8rem; }
+.wx-town-shop-sign.for-slot1 { left: 17.4rem;  bottom: 19.6rem; }
+.wx-town-shop-sign.for-slot2 { left: 45.6rem;  top: 42.8rem;    }
+.wx-town-shop-sign.for-slot3 { left: 12.4rem;  bottom: 3.4rem;  }
+.wx-town-shop-sign.for-slot4 { right: 12.4rem; bottom: 3.4rem;  }
+.wx-town-shop-sign.for-slot5 { left: 45.6rem;  bottom: 1.4rem;  }
+
+/* 6. Vanilla-Textured Item Slot Ownership Tags & Actionable Orange Glow */
+.wx-item-slot-hl
+{
+	position: absolute;
+	left: -0.9rem;
+	top: -1.1rem;
+	width: 8.8rem;
+	height: 9.2rem;
+	z-index: 1;
+	background-image: url("coui://gfx/ui/skin/inventory_highlight.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	pointer-events: none;
+}
+
+.wx-item-slot-badge
+{
+	position: absolute;
+	top: 0.15rem;
+	left: 0.35rem;
+	z-index: 6;
+	font-size: 1.2rem;
+	line-height: 1.4rem;
+	pointer-events: none;
+	text-shadow: 1px 1px 1px #000, -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000;
+}
+
+.wx-item-slot-badge.is-new
+{
+	color: #dda21f;
+}
+
+.wx-item-slot-badge.is-page
+{
+	color: #d6dbe9;
+}
+
+/* 7. World Map, Relations, Shop/Loot Sweep, Taxidermist & Banners (Vanilla Buttons) */
+.wx-world-sect-btn
+{
+	position: absolute;
+	top: 5.0rem;
+	right: 0.8rem;
+	width: 11.2rem;
+	height: 3.8rem;
+	line-height: 3.9rem;
+	text-align: center;
+	background-image: url("coui://gfx/ui/skin/button_02_default.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	color: #dda21f;
+	font-size: 1.4rem;
+	text-shadow: 1px 1px 1px #000;
+	cursor: pointer;
+	z-index: 15;
+	pointer-events: auto;
+	white-space: nowrap;
+}
+
+.wx-world-sect-btn img
+{
+	width: 2.0rem;
+	height: 2.0rem;
+	vertical-align: middle;
+	margin: -0.3rem 0.35rem 0 0;
+}
+
+.wx-world-sect-btn:hover
+{
+	background-image: url("coui://gfx/ui/skin/button_02_hovered.png");
+}
+
+/* Keep Active Contract Scroll Panel cleanly below 百草丹炉 & 江湖名刺 buttons (5.0rem..8.8rem) */
+.world-screen > .active-contract-panel-container
+{
+	top: 9.4rem !important;
+}
+
+.wx-rel-sect-btn
+{
+	position: absolute;
+	top: 0.1rem;
+	right: 1.2rem;
+	width: 17.5rem;
+	height: 4.1rem;
+	line-height: 4.2rem;
+	text-align: center;
+	background-image: url("coui://gfx/ui/skin/button_01_default.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	color: #dda21f;
+	font-size: 1.45rem;
+	text-shadow: 1px 1px 1px #000;
+	cursor: pointer;
+	z-index: 12;
+	white-space: nowrap;
+}
+
+.wx-rel-sect-btn img
+{
+	width: 2.0rem;
+	height: 2.0rem;
+	vertical-align: middle;
+	margin: -0.3rem 0.4rem 0 0;
+}
+
+.wx-rel-sect-btn:hover
+{
+	background-image: url("coui://gfx/ui/skin/button_01_hovered.png");
+}
+
+.wx-shop-sweep-btn,
+.wx-loot-sweep-btn
+{
+	width: 9.2rem;
+	height: 3.6rem;
+	line-height: 3.7rem;
+	margin: 0.6rem auto 0 auto;
+	text-align: center;
+	font-size: 1.35rem;
+	color: #dda21f;
+	text-shadow: 1px 1px 1px #000;
+	background-image: url("coui://gfx/ui/skin/button_02_default.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.wx-shop-sweep-btn:hover,
+.wx-loot-sweep-btn:hover
+{
+	background-image: url("coui://gfx/ui/skin/button_02_hovered.png");
+}
+
+.wx-screen-banner
+{
+	position: absolute;
+	top: 5.4rem;
+	left: 18.0rem;
+	right: 18.0rem;
+	z-index: 80;
+	padding: 0.55rem 1.8rem;
+	text-align: center;
+	font-size: 1.5rem;
+	line-height: 2.0rem;
+	color: #dda21f;
+	background-color: rgba(10, 6, 3, 0.88);
+	text-shadow: 1px 1px 1px #000;
+	pointer-events: none;
+}
+
+.wx-screen-banner.is-err
+{
+	color: #CD2626;
+}
+
+.wx-lvlup-slot-banner
+{
+	margin-top: 0.3rem;
+	text-align: center;
+	font-size: 1.35rem;
+	line-height: 1.8rem;
+	color: #dda21f;
+	text-shadow: 1px 1px 1px #000;
+}
+
+.wx-craft-filter-bar
+{
+	height: 3.6rem;
+	line-height: 3.6rem;
+	padding: 0 0.2rem;
+	margin-bottom: 0.3rem;
+	white-space: nowrap;
+}
+
+.wx-craft-filter-bar .wx-cflt-btn
+{
+	display: inline-block;
+	vertical-align: middle;
+	width: 8.6rem;
+	height: 3.4rem;
+	line-height: 3.5rem;
+	margin-right: 0.2rem;
+	text-align: center;
+	font-size: 1.35rem;
+	color: #dda21f;
+	text-shadow: 1px 1px 1px #000;
+	background-image: url("coui://gfx/ui/skin/button_02_default.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
+
+.wx-craft-filter-bar .wx-cflt-btn:hover,
+.wx-craft-filter-bar .wx-cflt-btn.is-active
+{
+	background-image: url("coui://gfx/ui/skin/button_02_hovered.png");
+	text-shadow: 1px 1px #A36426, -1px -1px #000;
+}
+
+.world-town-screen .l-taxidermist-dialog-container .column.is-left.has-wx-craft-filters .l-list-container
+{
+	top: 3.9rem;
+}
+
+/* 8. 江湖四十四宗门 · 名刺交情录 (Vanilla dialog_background_01 + list_item_01 + dialog_panel_01) */
+.wx-sect-backdrop
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 9990;
+	background-color: rgba(0, 0, 0, 0.55);
+}
+
+.wx-sect-dialog
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 98.0rem;
+	height: 70.0rem;
+	margin: auto;
+	padding: 2.0rem 2.8rem 1.8rem 2.8rem;
+	background-image: url("coui://gfx/ui/skin/dialog_background_01.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	color: #d7b174;
+	font-size: 1.4rem;
+	text-shadow: 1px 1px 1px #000;
+	box-shadow: 0 0 3.0rem rgba(0, 0, 0, 0.9);
+}
+
+.wx-sect-hdr
+{
+	position: relative;
+	height: 4.4rem;
+	line-height: 4.2rem;
+	text-align: center;
+}
+
+.wx-sect-hdr-title
+{
+	font-size: 2.3rem;
+	color: #dda21f;
+}
+
+.wx-sect-hdr-title img
+{
+	width: 2.6rem;
+	height: 2.6rem;
+	vertical-align: middle;
+	margin: -0.35rem 0.5rem 0 0;
+}
+
+.wx-sect-hdr-close
+{
+	position: absolute;
+	right: 0;
+	top: 0.1rem;
+	width: 4.8rem;
+	height: 4.1rem;
+	background-image: url("coui://gfx/ui/skin/button_03_default.png");
+	background-size: 100% 100%;
+	cursor: pointer;
+}
+
+.wx-sect-hdr-close:hover
+{
+	background-image: url("coui://gfx/ui/skin/button_03_hovered.png");
+}
+
+.wx-sect-hdr-close img
+{
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	margin: auto;
+	width: 2.2rem;
+	height: 2.2rem;
+}
+
+.wx-sect-gold-line
+{
+	height: 0.3rem;
+	margin: 0.3rem 0 0.7rem 0;
+	background-image: url("coui://gfx/ui/skin/line_gold.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+}
+
+.wx-sect-toolbar
+{
+	position: relative;
+	height: 4.1rem;
+	line-height: 4.1rem;
+	margin-bottom: 0.6rem;
+	white-space: nowrap;
+}
+
+.wx-sect-tab
+{
+	display: inline-block;
+	vertical-align: middle;
+	width: 8.2rem;
+	height: 3.7rem;
+	line-height: 3.8rem;
+	margin-right: 0.15rem;
+	text-align: center;
+	font-size: 1.35rem;
+	color: #dda21f;
+	background-image: url("coui://gfx/ui/skin/button_02_default.png");
+	background-size: 100% 100%;
+	cursor: pointer;
+}
+
+.wx-sect-tab:hover,
+.wx-sect-tab.is-active
+{
+	background-image: url("coui://gfx/ui/skin/button_02_hovered.png");
+	text-shadow: 1px 1px #A36426, -1px -1px #000;
+}
+
+.wx-sect-search
+{
+	position: absolute;
+	right: 0;
+	top: 0.25rem;
+	width: 16.5rem;
+	height: 3.5rem;
+	padding: 0 1.0rem;
+	border: none;
+	outline: none;
+	background-image: url("coui://gfx/ui/skin/text_input_300x40_default.png");
+	background-size: 100% 100%;
+	color: #dda21f;
+	font-size: 1.4rem;
+	text-shadow: 1px 1px 1px #000;
+	-webkit-user-select: text;
+	user-select: text;
+}
+
+.wx-sect-search:focus
+{
+	background-image: url("coui://gfx/ui/skin/text_input_300x40_selected.png");
+}
+
+.wx-sect-body
+{
+	position: absolute;
+	top: 12.2rem;
+	left: 2.8rem;
+	right: 2.8rem;
+	bottom: 6.4rem;
+}
+
+.wx-sect-list-pane
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: 51.5rem;
+	padding-right: 0.6rem;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.wx-sect-detail-pane
+{
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	width: 39.8rem;
+	padding: 1.4rem 1.6rem;
+	background-image: url("coui://gfx/ui/skin/dialog_panel_01.png");
+	background-size: 100% 100%;
+	overflow-y: auto;
+	overflow-x: hidden;
+	color: #d7b174;
+}
+
+.wx-sect-list-pane::-webkit-scrollbar,
+.wx-sect-detail-pane::-webkit-scrollbar
+{
+	width: 1.1rem;
+}
+
+.wx-sect-list-pane::-webkit-scrollbar-track,
+.wx-sect-detail-pane::-webkit-scrollbar-track
+{
+	background-image: url("coui://ui/extern/jquery-aciScrollBar/image/aciScrollBar.desk/track_v.png");
+	background-size: 100% 100%;
+}
+
+.wx-sect-list-pane::-webkit-scrollbar-thumb,
+.wx-sect-detail-pane::-webkit-scrollbar-thumb
+{
+	background-image: url("coui://ui/extern/jquery-aciScrollBar/image/aciScrollBar.desk/drag_g.png");
+	background-size: 100% 100%;
+}
+
+.wx-sect-foot
+{
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 1.4rem;
+	height: 4.3rem;
+	text-align: center;
+}
+
+.wx-sect-foot-btn
+{
+	display: inline-block;
+	width: 17.5rem;
+	height: 4.3rem;
+	line-height: 4.4rem;
+	text-align: center;
+	font-size: 1.5rem;
+	color: #dda21f;
+	background-image: url("coui://gfx/ui/skin/button_01_default.png");
+	background-size: 100% 100%;
+	cursor: pointer;
+}
+
+.wx-sect-foot-btn:hover
+{
+	background-image: url("coui://gfx/ui/skin/button_01_hovered.png");
+}
+
+.wx-sect-row
+{
+	position: relative;
+	height: 6.6rem;
+	padding: 1.0rem 1.4rem;
+	margin-bottom: 0.4rem;
+	background-image: url("coui://gfx/ui/skin/list_item_01.png");
+	background-size: 100% 100%;
+	cursor: pointer;
+}
+
+.wx-sect-row:hover,
+.wx-sect-row.is-selected
+{
+	background-image: url("coui://gfx/ui/skin/list_item_01_hovered.png");
+}
+
+.wx-sect-row.is-selected
+{
+	box-shadow: inset 0 0 0 1px #dda21f;
+}
+
+.wx-sect-row-top
+{
+	height: 2.2rem;
+	line-height: 2.2rem;
+}
+
+.wx-sect-name
+{
+	float: left;
+	font-size: 1.6rem;
+	color: #dda21f;
+}
+
+.wx-sect-rel-num
+{
+	float: right;
+	font-size: 1.4rem;
+}
+.wx-sect-rel-num.is-pos { color: #dda21f; }
+.wx-sect-rel-num.is-neg { color: #CD2626; }
+.wx-sect-rel-num.is-neu { color: #d7b174; }
+
+.wx-sect-row-sub
+{
+	margin-top: 0.3rem;
+	font-size: 1.35rem;
+	color: #bd9d71;
+	font-style: italic;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.wx-sect-manual-item
+{
+	padding: 0.55rem 0.2rem;
+	border-bottom: 1px solid rgba(90, 67, 37, 0.45);
+	font-size: 1.35rem;
+	line-height: 1.9rem;
+	color: #d7b174;
+}
+
+.wx-sect-own-tag
+{
+	float: right;
+	font-size: 1.3rem;
+	color: #bd9d71;
+}
+.wx-sect-own-tag.is-new
+{
+	color: #dda21f;
+}
+
+.wx-town-teahouse-btn
+{
+	position: absolute;
+	top: 8.4rem;
+	right: 1.4rem;
+	width: 12.2rem;
+	height: 3.8rem;
+	line-height: 3.9rem;
+	text-align: center;
+	background-image: url("coui://gfx/ui/skin/button_02_default.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	color: #dda21f;
+	font-size: 1.4rem;
+	text-shadow: 1px 1px 1px #000, -1px -1px 1px #000;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+	cursor: pointer;
+	z-index: 25;
+}
+.wx-town-teahouse-btn:hover
+{
+	background-image: url("coui://gfx/ui/skin/button_02_hovered.png");
+	color: #ffe28a;
+}
+.wx-town-teahouse-btn img,
+.wx-tavern-teahouse-btn img
+{
+	width: 1.8rem;
+	height: 1.8rem;
+	vertical-align: middle;
+	margin-right: 0.35rem;
+	margin-top: -0.2rem;
+}
+
+.wx-tavern-teahouse-btn
+{
+	position: absolute;
+	top: 1.2rem;
+	right: 5.4rem;
+	width: 15.6rem;
+	height: 3.6rem;
+	line-height: 3.7rem;
+	text-align: center;
+	background-image: url("coui://gfx/ui/skin/button_02_default.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	color: #dda21f;
+	font-size: 1.35rem;
+	text-shadow: 1px 1px 1px #000;
+	cursor: pointer;
+	z-index: 20;
+}
+.wx-tavern-teahouse-btn:hover
+{
+	background-image: url("coui://gfx/ui/skin/button_02_hovered.png");
+}
+
+.wx-sect-money-badge
+{
+	position: absolute;
+	right: 5.4rem;
+	top: 1.1rem;
+	font-size: 1.45rem;
+	color: #dda21f;
+	text-shadow: 1px 1px 1px #000;
+}
+
+.wx-sect-seat-pill
+{
+	display: inline-block;
+	padding: 0 0.5rem;
+	margin-left: 0.5rem;
+	font-size: 1.2rem;
+	line-height: 1.8rem;
+	color: #ffe28a;
+	background: rgba(145, 88, 22, 0.55);
+	border: 1px solid rgba(221, 162, 31, 0.65);
+	border-radius: 2px;
+}
+
+.wx-tea-actions
+{
+	margin: 0.6rem 0 0.85rem 0;
+	padding: 0.65rem 0.7rem;
+	background: rgba(20, 14, 9, 0.55);
+	border: 1px solid rgba(154, 114, 54, 0.45);
+}
+
+.wx-tea-btn
+{
+	display: inline-block;
+	height: 3.0rem;
+	line-height: 3.0rem;
+	padding: 0 0.75rem;
+	margin: 0.2rem 0.35rem 0.2rem 0;
+	font-size: 1.25rem;
+	color: #dda21f;
+	background-image: url("coui://gfx/ui/skin/button_02_default.png");
+	background-size: 100% 100%;
+	cursor: pointer;
+}
+.wx-tea-btn:hover
+{
+	background-image: url("coui://gfx/ui/skin/button_02_hovered.png");
+}
+.wx-tea-btn.is-danger
+{
+	color: #e6766b;
+}
+.wx-tea-btn.is-disabled
+{
+	opacity: 0.45;
+	cursor: default;
+	pointer-events: none;
+}
+
+.wx-tea-buy-btn
+{
+	float: right;
+	height: 2.5rem;
+	line-height: 2.5rem;
+	padding: 0 0.8rem;
+	margin-top: 0.1rem;
+	font-size: 1.25rem;
+	color: #dda21f;
+	background-image: url("coui://gfx/ui/skin/button_02_default.png");
+	background-size: 100% 100%;
+	cursor: pointer;
+}
+.wx-tea-buy-btn:hover
+{
+	background-image: url("coui://gfx/ui/skin/button_02_hovered.png");
+}
+.wx-tea-buy-btn.is-disabled
+{
+	opacity: 0.45;
+	cursor: default;
+	pointer-events: none;
+}
+
+.wx-sect-toast
+{
+	position: absolute;
+	left: 3.2rem;
+	right: 3.2rem;
+	bottom: 6.8rem;
+	padding: 0.7rem 1.2rem;
+	background: rgba(18, 13, 8, 0.94);
+	border: 1px solid #dda21f;
+	color: #ffe28a;
+	font-size: 1.38rem;
+	text-align: center;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+	z-index: 30;
+	pointer-events: none;
+}
+.wx-sect-toast.is-err
+{
+	border-color: #cd2626;
+	color: #ff9a8f;
+}

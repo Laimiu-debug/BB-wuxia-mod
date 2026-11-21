@@ -7,12 +7,16 @@ this.wx_fist_grapple <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_fist_grapple";
+		this.m.WX_VfxBrush <- "wx_vfx_09";
+		this.m.WX_AnimID <- "wx_anim_51";
+		this.m.WX_AnimMode <- "vacuum_pull";
+		this.m.WX_ChoreoID <- "wx_fist_grapple";
 		this.m.Name = "擒龙探爪";
 		this.m.Description = "吐气纵步探爪扣肩（1~2 格）：命中 +10，将 2 格外的敌方后排硬生生拽至身前 1 格并扯出「破绽」！";
 		this.m.KilledString = "鹰爪碎喉";
-		this.m.Icon = "skills/active_170.png";
-		this.m.IconDisabled = "skills/active_170_sw.png";
-		this.m.Overlay = "active_170";
+		this.m.Icon = "skills/wx_fist_grapple.png";
+		this.m.IconDisabled = "skills/wx_fist_grapple_sw.png";
+		this.m.Overlay = "wx_ov_wx_fist_grapple";
 		this.m.SoundOnUse = [
 			"sounds/combat/hand_03.wav"
 		];
@@ -41,6 +45,7 @@ this.wx_fist_grapple <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local target = _targetTile.getEntity();
 		local hit = this.attackEntity(_user, target);
 		if (hit && target != null && target.isAlive())

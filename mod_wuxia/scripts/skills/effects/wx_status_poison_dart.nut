@@ -12,7 +12,7 @@ this.wx_status_poison_dart <- this.inherit("scripts/skills/skill", {
 		this.m.ID = "effects.wx_status_poison_dart";
 		this.m.Name = "暗器剧毒";
 		this.m.Description = "毒针入血，每回合开始损失 8 点气血并散逸 5 点内息。";
-		this.m.Icon = "skills/status_effect_54.png";
+		this.m.Icon = "skills/wx_status_poison_dart.png";
 		this.m.IconMini = "status_effect_54_mini";
 		this.m.Type = this.Const.SkillType.StatusEffect;
 		this.m.IsActive = false;

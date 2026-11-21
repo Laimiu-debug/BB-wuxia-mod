@@ -202,6 +202,196 @@
 	}
 };
 
+::Wuxia.Slots.getSwitchWeaknessDays <- function( _quality )
+{
+	if (_quality == "unique") return 4;
+	if (_quality == "secret") return 3;
+	if (_quality == "sect")   return 2;
+	return 1;
+};
+
+// Consume a manual (or fragment page) to permanently add it to the character's LearnedManuals pool
+::Wuxia.Slots.learnManual <- function( _actor, _manualID, _isFragment = false )
+{
+	if (_actor == null)
+		return { Ok = false, Reason = "未选择侠客。" };
+	local def = ::Wuxia.Slots.getManualDef(_manualID);
+	if (def == null)
+		return { Ok = false, Reason = "未知武学秘籍。" };
+	if (_isFragment && !def.AllowFragmentLearn)
+		return { Ok = false, Reason = "此功法无残本强修路径。" };
+
+	local c = ::Wuxia.Slots.getContainer(_actor);
+	if (c == null)
+		return { Ok = false, Reason = "无法读取侠客武学数据。" };
+	c.ensureSlotsRegisteredInLearned();
+
+	if (_manualID in c.m.LearnedManuals)
+	{
+		local prev = c.m.LearnedManuals[_manualID];
+		if (!prev.IsFragment)
+		{
+			return {
+				Ok     = false,
+				Reason = _actor.getName() + " 已习得《" + def.Name + "》，无需重复研读消耗秘籍。"
+			};
+		}
+		if (_isFragment)
+		{
+			return {
+				Ok     = false,
+				Reason = _actor.getName() + " 已残修《" + def.Name + "》。"
+			};
+		}
+
+		// Upgrade previously fragment-learned manual to complete manual!
+		prev.IsFragment = false;
+		foreach (s in c.m.Slots)
+		{
+			if (s.ManualID == _manualID) s.IsFragment = false;
+		}
+		c.syncGrantedSkills();
+		_actor.getSkills().update();
+		return {
+			Ok               = true,
+			UpgradedFragment = true,
+			ManualName       = def.Name
+		};
+	}
+
+	c.m.LearnedManuals[_manualID] <- {
+		Tier       = 1,
+		Exp        = 0,
+		IsFragment = _isFragment
+	};
+
+	return {
+		Ok               = true,
+		UpgradedFragment = false,
+		ManualName       = def.Name
+	};
+};
+
+// Validate equipping a manual that the character has ALREADY learned (preserves outgoing manual mastery!)
+::Wuxia.Slots.canEquipLearnedManual <- function( _actor, _slotIndex, _manualID )
+{
+	local def = ::Wuxia.Slots.getManualDef(_manualID);
+	if (def == null)
+		return { Ok = false, Reason = "未知武学秘籍。" };
+	local c = ::Wuxia.Slots.getContainer(_actor);
+	if (c == null)
+		return { Ok = false, Reason = "无法读取侠客武学。" };
+	c.ensureSlotsRegisteredInLearned();
+
+	if (!(_manualID in c.m.LearnedManuals))
+		return { Ok = false, Reason = _actor.getName() + " 尚未研习《" + def.Name + "》，请先使用秘籍或前往藏经阁研读。" };
+
+	local entry = c.m.LearnedManuals[_manualID];
+	local check = ::Wuxia.Slots.canEquipManual(_actor, _slotIndex, _manualID, entry.IsFragment);
+	if (!check.Ok) return check;
+
+	local slot = c.m.Slots[_slotIndex];
+	if (slot.ManualID == _manualID)
+		return { Ok = false, Reason = "《" + def.Name + "》已装配于当前插槽。" };
+
+	local oldDef = (slot.ManualID != null) ? ::Wuxia.Slots.getManualDef(slot.ManualID) : null;
+	local switchDays = (oldDef != null) ? ::Wuxia.Slots.getSwitchWeaknessDays(oldDef.Quality) : 0;
+
+	return {
+		Ok            = true,
+		IsOverwrite   = (slot.ManualID != null),
+		OldManualName = (oldDef != null) ? oldDef.Name : "",
+		NewManualName = def.Name,
+		PenaltyDays   = switchDays,
+		IsFragment    = entry.IsFragment
+	};
+};
+
+// Equip a learned manual into a slot on the Perk page (outgoing manual returns to LearnedManuals with full Tier & Exp!)
+::Wuxia.Slots.equipLearnedManual <- function( _actor, _slotIndex, _manualID )
+{
+	local check = ::Wuxia.Slots.canEquipLearnedManual(_actor, _slotIndex, _manualID);
+	if (!check.Ok) return check;
+
+	local c = ::Wuxia.Slots.getContainer(_actor);
+	local slot = c.m.Slots[_slotIndex];
+	local entry = c.m.LearnedManuals[_manualID];
+
+	// Preserve outgoing manual's current Tier & Exp in LearnedManuals (never destroyed!)
+	if (slot.ManualID != null && slot.Tier > 0)
+	{
+		c.syncSlotToLearned(_slotIndex);
+		::Wuxia.Slots.applyScatterPenalty(_actor, check.PenaltyDays, false);
+	}
+
+	slot.ManualID   = _manualID;
+	slot.Tier       = entry.Tier;
+	slot.Exp        = entry.Exp;
+	slot.IsFragment = entry.IsFragment;
+
+	c.syncGrantedSkills();
+	_actor.getSkills().update();
+
+	// Re-check if stored capped Exp now meets Tier 3 requirements
+	if (!slot.IsFragment && slot.Tier < 3)
+	{
+		::Wuxia.Mastery.tryAdvanceSlot(_actor, _slotIndex);
+	}
+
+	return {
+		Ok            = true,
+		IsOverwrite   = check.IsOverwrite,
+		OldManualName = check.OldManualName,
+		NewManualName = check.NewManualName,
+		PenaltyDays   = check.PenaltyDays,
+		HasConflict   = ::Wuxia.Slots.hasNeigongConflict(_actor)
+	};
+};
+
+// Unequip an occupied slot back to LearnedManuals (preserves Tier & Exp, applies brief meridian recovery)
+::Wuxia.Slots.canUnequipSlot <- function( _actor, _slotIndex )
+{
+	local c = ::Wuxia.Slots.getContainer(_actor);
+	if (c == null || _slotIndex < 0 || _slotIndex >= c.m.Slots.len())
+		return { Ok = false, Reason = "无效的武学槽位。" };
+	local slot = c.m.Slots[_slotIndex];
+	if (slot.ManualID == null || slot.Tier <= 0)
+		return { Ok = false, Reason = "该插槽当前未装配功法。" };
+
+	local oldDef = ::Wuxia.Slots.getManualDef(slot.ManualID);
+	local days = (oldDef != null) ? ::Wuxia.Slots.getSwitchWeaknessDays(oldDef.Quality) : 1;
+	return {
+		Ok            = true,
+		OldManualName = (oldDef != null) ? oldDef.Name : slot.ManualID,
+		PenaltyDays   = days
+	};
+};
+
+::Wuxia.Slots.unequipSlot <- function( _actor, _slotIndex )
+{
+	local check = ::Wuxia.Slots.canUnequipSlot(_actor, _slotIndex);
+	if (!check.Ok) return check;
+
+	local c = ::Wuxia.Slots.getContainer(_actor);
+	c.syncSlotToLearned(_slotIndex);
+
+	local slot = c.m.Slots[_slotIndex];
+	slot.ManualID   = null;
+	slot.Tier       = 0;
+	slot.Exp        = 0;
+	slot.IsFragment = false;
+
+	::Wuxia.Slots.applyScatterPenalty(_actor, check.PenaltyDays, false);
+	c.syncGrantedSkills();
+	_actor.getSkills().update();
+
+	return {
+		Ok            = true,
+		OldManualName = check.OldManualName,
+		PenaltyDays   = check.PenaltyDays
+	};
+};
+
 ::Wuxia.Slots.equipManual <- function( _actor, _slotIndex, _manualID, _isFragment = false )
 {
 	local check = ::Wuxia.Slots.canEquipManual(_actor, _slotIndex, _manualID, _isFragment);
@@ -212,13 +402,16 @@
 
 	if (check.IsOverwrite)
 	{
+		c.syncSlotToLearned(_slotIndex);
 		::Wuxia.Slots.applyScatterPenalty(_actor, check.PenaltyDays, check.CausesInternalInjury);
 	}
 
+	local saved = c.getLearnedEntry(_manualID);
 	slot.ManualID   = _manualID;
-	slot.Tier       = 1;
-	slot.Exp        = 0;
-	slot.IsFragment = _isFragment;
+	slot.Tier       = (saved != null && saved.Tier > 1) ? saved.Tier : 1;
+	slot.Exp        = (saved != null) ? saved.Exp : 0;
+	slot.IsFragment = (saved != null && !saved.IsFragment) ? false : _isFragment;
+	c.syncSlotToLearned(_slotIndex);
 
 	c.syncGrantedSkills();
 	_actor.getSkills().update();

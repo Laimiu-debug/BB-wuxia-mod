@@ -10,7 +10,7 @@ this.wx_status_offbalance <- this.inherit("scripts/skills/skill", {
 		this.m.ID = "effects.wx_status_offbalance";
 		this.m.Name = "失衡";
 		this.m.Description = "脚下重心被扰动，招架 -10，身法 -15。";
-		this.m.Icon = "skills/status_effect_87.png";
+		this.m.Icon = "skills/wx_status_offbalance.png";
 		this.m.IconMini = "status_effect_87_mini";
 		this.m.Type = this.Const.SkillType.StatusEffect;
 		this.m.IsActive = false;

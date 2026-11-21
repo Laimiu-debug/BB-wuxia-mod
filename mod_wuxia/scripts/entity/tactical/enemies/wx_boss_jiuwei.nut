@@ -1,4 +1,4 @@
-// Shan Hai Jing Apex Boss Entity: 【山海大妖】青丘山·九尾天狐主
+// Shan Hai Jing Apex Boss Entity (南山经): 【山海大妖】青丘山·九尾天狐主
 
 this.wx_boss_jiuwei <- this.inherit("scripts/entity/tactical/enemies/hexe", {
 	m = {},

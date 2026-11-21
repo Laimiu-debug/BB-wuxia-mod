@@ -8,7 +8,7 @@ this.wx_status_poise_charge <- this.inherit("scripts/skills/skill", {
 		this.m.ID = "effects.wx_status_poise_charge";
 		this.m.Name = "蓄势";
 		this.m.Description = "沉气蓄势：下一次主动攻势命中 +15%、伤害 +20%；若在此前遭受重创则蓄势被打断。";
-		this.m.Icon = "skills/status_effect_74.png";
+		this.m.Icon = "skills/wx_status_poise_charge.png";
 		this.m.IconMini = "status_effect_74_mini";
 		this.m.Type = this.Const.SkillType.StatusEffect;
 		this.m.IsActive = false;

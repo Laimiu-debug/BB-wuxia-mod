@@ -7,12 +7,16 @@ this.wx_shield_bash_qi <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_shield_bash_qi";
+		this.m.WX_VfxBrush <- "wx_vfx_17";
+		this.m.WX_AnimID <- "wx_anim_60";
+		this.m.WX_AnimMode <- "shield_ram";
+		this.m.WX_ChoreoID <- "wx_shield_bash_qi";
 		this.m.Name = "铁壁震山靠";
 		this.m.Description = "运起横练内劲以藤牌或铁盾猛撞贴身强敌：命中 +15，将其震退 1 格、陷入「失衡」并损耗 12 点内息！";
 		this.m.KilledString = "铁盾震碎心脉";
-		this.m.Icon = "skills/active_33.png";
-		this.m.IconDisabled = "skills/active_33_sw.png";
-		this.m.Overlay = "active_33";
+		this.m.Icon = "skills/wx_shield_bash_qi.png";
+		this.m.IconDisabled = "skills/wx_shield_bash_qi_sw.png";
+		this.m.Overlay = "wx_ov_wx_shield_bash_qi";
 		this.m.SoundOnUse = [
 			"sounds/combat/hand_03.wav"
 		];
@@ -35,7 +39,7 @@ this.wx_shield_bash_qi <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		local container = this.getContainer();
 		local actor = container == null ? null : container.getActor();
-		return actor != null && ("isArmedWithShield" in actor) && actor.isArmedWithShield();
+		return actor != null && (::Wuxia.hasMember(actor, "isArmedWithShield")) && actor.isArmedWithShield();
 	}
 
 	function isHidden()
@@ -61,6 +65,7 @@ this.wx_shield_bash_qi <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 	function onUse( _user, _targetTile )
 	{
+		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local target = _targetTile.getEntity();
 		local hit = this.attackEntity(_user, target);
 		if (hit && target != null && target.isAlive())
@@ -69,7 +74,7 @@ this.wx_shield_bash_qi <- this.inherit("scripts/skills/actives/wx_move_base", {
 			if (!::Wuxia.CombatRules.isUndeadOrConstruct(target))
 			{
 				target.setFatigue(::Math.min(target.getFatigueMax(), target.getFatigue() + 12));
-			}
+			};
 			this.wxTryKnockback(_user, target);
 		}
 		return hit;

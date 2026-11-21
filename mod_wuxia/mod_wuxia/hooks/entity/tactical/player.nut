@@ -8,14 +8,18 @@
 		// Adding a skill triggers an attribute update. Wait until the actor is initialized.
 		::Wuxia.Slots.getContainer(this);
 		::Wuxia.Backgrounds.assignStarterManuals(this);
+		::Wuxia.Appearance.syncHeroineNameIfNeeded(this);
+		::Wuxia.Armory.syncActorHandheldAndArmor(this);
 		this.m.PerkPoints = 0;
 	};
 
 	q.onDeserialize = @(__original) function( _in )
 	{
 		__original(_in);
+		this.m.WX_HeroineNameChecked <- true;
 		// The saved skill reads its data before the game binds it to the actor.
 		::Wuxia.Slots.getContainer(this).syncGrantedSkills();
+		::Wuxia.Armory.syncActorHandheldAndArmor(this);
 		this.m.PerkPoints = 0;
 	};
 

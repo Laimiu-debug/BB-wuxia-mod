@@ -1,0 +1,557 @@
+/* ============================================================================
+ * BB Wuxia Mod — 设计令牌 & 基础组件（HTML 预览专用，不进游戏）
+ * 设计总纲：「乌木为骨 · 鎏金为界 · 骨白为文 · 朱砂为印 · 石青为气」
+ *
+ *  - 乌木 (wood)    : 所有可交互面板的底色，与原版深色皮革/木纹同调
+ *  - 鎏金 (gold)    : 唯一的结构线条色（描边、分隔、选中），取代原版铜边
+ *  - 骨白 (bone)    : 正文文字，暖白而非纯白，避免在深底上刺眼
+ *  - 朱砂 (cinnabar): 只给"不可逆/高风险/最重要"的那一个按钮或印章
+ *  - 石青 (jade)    : 内息、正向反馈、可装配提示，与 HUD 内息条同源
+ *  - 宣纸 (paper)   : 仅用于"读物"——题签、事件卷轴，不再铺满整面板
+ *
+ * 移植须知（CoherentUI / 早期 WebKit）：
+ *   1. 游戏内不支持 CSS 变量：移植时把 var(--x) 替换为下表字面值
+ *      （可在 tools/build_mod.py 里加一步简单的文本替换）。
+ *   2. 本文件的组件仅使用 absolute / float / inline-block，零 flex / grid / gap。
+ *   3. 只用 rem 单位，跟随原版分辨率缩放。
+ * ============================================================================ */
+
+@font-face {
+	font-family: 'WX Ming Serif';
+	src: url('../../mod_wuxia/ui/mods/mod_wuxia/fonts/wx_ming_serif.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+:root {
+	/* ---------- 1. 乌木 · 表面层级（由深到浅） ---------- */
+	--wx-wood-950: #0d0a07;   /* 凹槽/格位井底 */
+	--wx-wood-900: #15100b;   /* 面板底 */
+	--wx-wood-850: #1b140e;   /* 次级面板 */
+	--wx-wood-800: #221911;   /* 卡片 */
+	--wx-wood-750: #2a1f15;   /* 卡片悬停 */
+	--wx-wood-700: #33261a;   /* 按钮底 */
+	--wx-wood-600: #44321f;   /* 按钮悬停 */
+	--wx-lacquer-800: #2a110d; /* 紫檀漆（标题栏，同背景图顶栏） */
+	--wx-lacquer-700: #3b1913;
+
+	/* ---------- 2. 鎏金 · 线条与强调 ---------- */
+	--wx-gold-200: #f7e7b8;
+	--wx-gold-300: #ecd394;   /* 高亮标题 */
+	--wx-gold-400: #d8b36a;   /* 选中描边 */
+	--wx-gold-500: #b58f50;   /* 标准描边 */
+	--wx-gold-600: #806337;   /* 弱描边 */
+	--wx-gold-700: #4f3d24;   /* 分隔线 */
+	--wx-gold-800: #33281a;   /* 极弱分隔 */
+
+	/* ---------- 3. 骨白 · 文字 ---------- */
+	--wx-text-hi:   #f3e8cf;  /* 标题/数值 */
+	--wx-text:      #d9caa9;  /* 正文 */
+	--wx-text-dim:  #a8977a;  /* 次要说明 */
+	--wx-text-mute: #75664f;  /* 禁用/占位 */
+	--wx-text-ink:  #24180f;  /* 宣纸上的墨字 */
+
+	/* ---------- 4. 功能色（降饱和，对齐原版暗调） ---------- */
+	--wx-cinnabar-300: #e07a5f;
+	--wx-cinnabar-400: #c4432c;
+	--wx-cinnabar-500: #9e2f1f;  /* 朱砂主色 */
+	--wx-cinnabar-700: #5e1a11;
+	--wx-jade-300: #9fd6c1;
+	--wx-jade-400: #6fb39a;
+	--wx-jade-500: #4a8c75;      /* 石青主色 */
+	--wx-jade-700: #1f3d33;
+	--wx-amber-400: #e0a548;     /* 警示：换兵、残本、待突破 */
+	--wx-amber-600: #8a5a1c;
+	--wx-pos: #8fbf6a;           /* 数值正向（对齐原版绿） */
+	--wx-neg: #d8573f;           /* 数值负向（对齐原版红） */
+
+	/* ---------- 5. 资源条 ---------- */
+	--wx-bar-hp:     #93281f;
+	--wx-bar-qi:     #2f8f8a;    /* 内息：正向条，与 HUD 同色 */
+	--wx-bar-ap:     #c79534;
+	--wx-bar-armor:  #7f868d;
+	--wx-bar-morale: #a4803a;
+	--wx-bar-xp:     #b58f50;
+	--wx-bar-track:  #0b0806;
+
+	/* ---------- 6. 秘籍品阶（四档 + 山海特殊） ---------- */
+	--wx-q-common:  #a39a86;   /* 大路货 · 素绢 */
+	--wx-q-sect:    #5f93c4;   /* 门派上乘 · 靛蓝 */
+	--wx-q-secret:  #a173cf;   /* 绝学 · 紫绶 */
+	--wx-q-unique:  #dba642;   /* 江湖孤本 · 赤金 */
+	--wx-q-supreme: #d2553c;   /* 山海奇典 · 丹赤（若保留第五档） */
+
+	/* ---------- 7. 四脉武学（与 HUD 技能边框同源） ---------- */
+	--wx-cat-neigong:  #e3b85a;  /* 内功 · 金 */
+	--wx-cat-waigong:  #cf5f3f;  /* 外功 · 赤 */
+	--wx-cat-qinggong: #57bfb4;  /* 轻功 · 青 */
+	--wx-cat-henglian: #b98d55;  /* 横练杂学 · 褐 */
+
+	/* ---------- 8. 内功路数 ---------- */
+	--wx-el-zheng: #cdb47a;  /* 中正 */
+	--wx-el-yang:  #d06540;  /* 阳刚 */
+	--wx-el-yin:   #6aa6c4;  /* 阴柔 */
+	--wx-el-xie:   #a0458a;  /* 邪功 */
+
+	/* ---------- 9. 字体 ---------- */
+	--wx-font-title: 'WX Ming Serif', 'Noto Serif SC', 'Source Han Serif SC', 'SimSun', serif;
+	--wx-font-body:  'BBMOD Han', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+	--wx-fs-display: 2.6rem;  /* 屏幕大标题（明刻体） */
+	--wx-fs-h1:      2.0rem;  /* 人物名、弹窗标题（明刻体） */
+	--wx-fs-h2:      1.6rem;  /* 详览台书名（明刻体，≥1.55rem 才用明刻） */
+	--wx-fs-h3:      1.3rem;  /* 区块标题（黑体加粗） */
+	--wx-fs-body:    1.2rem;  /* 正文 */
+	--wx-fs-small:   1.08rem; /* 说明 */
+	--wx-fs-micro:   0.95rem; /* 角标（最小，不得再小） */
+
+	/* ---------- 10. 间距 / 尺寸 ---------- */
+	--wx-sp-1: 0.2rem;
+	--wx-sp-2: 0.4rem;
+	--wx-sp-3: 0.6rem;
+	--wx-sp-4: 0.8rem;
+	--wx-sp-5: 1.2rem;
+	--wx-sp-6: 1.6rem;
+	--wx-sp-7: 2.4rem;
+	--wx-radius: 0.15rem;     /* 原版近乎直角，仅微圆 */
+	--wx-ctrl-h: 2.5rem;      /* 按钮/输入框统一高度 */
+	--wx-slot: 6.2rem;        /* 仓库格位 */
+	--wx-icon-skill: 3.8rem;  /* 招式图标 */
+
+	/* ---------- 11. 阴影 ---------- */
+	--wx-shadow-well:   inset 0 1px 4px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(0,0,0,0.6);
+	--wx-shadow-raise:  0 2px 5px rgba(0,0,0,0.65);
+	--wx-shadow-modal:  0 0 3rem rgba(0,0,0,0.95);
+	--wx-glow-gold:     0 0 0.6rem rgba(216,179,106,0.45);
+	--wx-glow-jade:     0 0 0.7rem rgba(111,179,154,0.55);
+	--wx-glow-cinnabar: 0 0 0.7rem rgba(196,67,44,0.55);
+
+	/* ---------- 12. 动效 ---------- */
+	--wx-dur-fast: 120ms;
+	--wx-dur:      200ms;
+}
+
+/* ============================================================================
+ * 基础排版
+ * ============================================================================ */
+.wx-root, .wx-root * { box-sizing: border-box; }
+.wx-root {
+	font-family: var(--wx-font-body);
+	font-size: var(--wx-fs-body);
+	color: var(--wx-text);
+	line-height: 1.45;
+}
+.wx-title-font { font-family: var(--wx-font-title); letter-spacing: 0.04em; font-weight: normal; }
+.wx-hi   { color: var(--wx-text-hi); }
+.wx-dim  { color: var(--wx-text-dim); }
+.wx-mute { color: var(--wx-text-mute); }
+.wx-pos  { color: var(--wx-pos); }
+.wx-neg  { color: var(--wx-neg); }
+.wx-gold { color: var(--wx-gold-300); }
+.wx-jade { color: var(--wx-jade-300); }
+.wx-amber{ color: var(--wx-amber-400); }
+.clear { clear: both; }
+
+/* 区块小标题：左侧一道金线 + 黑体 */
+.wx-sec-title {
+	height: 2rem; line-height: 2rem;
+	font-size: var(--wx-fs-small); font-weight: bold;
+	color: var(--wx-gold-300); letter-spacing: 0.08em;
+	white-space: nowrap; overflow: hidden;
+}
+.wx-sec-title:before {
+	content: ''; display: inline-block; vertical-align: middle;
+	width: 0.3rem; height: 1.1rem; margin: -0.15rem 0.5rem 0 0;
+	background: var(--wx-gold-500);
+}
+.wx-sec-title .wx-sec-sub { font-weight: normal; color: var(--wx-text-mute); margin-left: 0.5rem; letter-spacing: 0; }
+
+/* ============================================================================
+ * 面板：乌木底 + 鎏金细框 + 回纹四角
+ * ============================================================================ */
+.wx-panel {
+	position: relative;
+	background: var(--wx-wood-900);
+	background-image: linear-gradient(to bottom, rgba(255,235,200,0.025), rgba(0,0,0,0.12));
+	border: 1px solid var(--wx-gold-700);
+	box-shadow: inset 0 0 0 1px rgba(0,0,0,0.6);
+}
+/* 回纹角：两个伪元素画 L 形金角，早期 WebKit 安全 */
+.wx-corners { position: relative; }
+.wx-corners:before, .wx-corners:after {
+	content: ''; position: absolute; width: 0.9rem; height: 0.9rem;
+	border: 1px solid var(--wx-gold-500); pointer-events: none; z-index: 2;
+}
+.wx-corners:before { top: 0.25rem; left: 0.25rem; border-right: none; border-bottom: none; }
+.wx-corners:after  { bottom: 0.25rem; right: 0.25rem; border-left: none; border-top: none; }
+
+/* 凹井：格位、进度条、输入框的统一下沉感 */
+.wx-well { background: var(--wx-wood-950); box-shadow: var(--wx-shadow-well); border: 1px solid var(--wx-gold-800); }
+
+/* 分隔线：中间亮两头暗的金线 */
+.wx-rule {
+	height: 1px; border: none; margin: 0.6rem 0;
+	background: linear-gradient(to right, rgba(181,143,80,0), rgba(181,143,80,0.7) 20%, rgba(181,143,80,0.7) 80%, rgba(181,143,80,0));
+}
+
+/* ============================================================================
+ * 按钮：默认（乌木）/ 主要（鎏金描边）/ 朱砂（唯一高风险）/ 幽灵（文字）
+ * ============================================================================ */
+.wx-btn {
+	display: inline-block; vertical-align: middle; position: relative;
+	height: var(--wx-ctrl-h); line-height: 2.35rem;
+	padding: 0 0.9rem; margin: 0;
+	font-family: var(--wx-font-body); font-size: var(--wx-fs-small); font-weight: bold;
+	color: var(--wx-text); white-space: nowrap; cursor: pointer; user-select: none;
+	background: var(--wx-wood-700);
+	background-image: linear-gradient(to bottom, rgba(255,230,180,0.07), rgba(0,0,0,0.18));
+	border: 1px solid var(--wx-gold-600);
+	border-radius: var(--wx-radius);
+	box-shadow: inset 0 1px 0 rgba(255,230,180,0.08), 0 1px 2px rgba(0,0,0,0.6);
+	transition: background-color var(--wx-dur-fast), border-color var(--wx-dur-fast), color var(--wx-dur-fast);
+}
+.wx-btn img { width: 1.6rem; height: 1.6rem; vertical-align: middle; margin: -0.2rem 0.35rem 0 -0.2rem; }
+.wx-btn:hover { background-color: var(--wx-wood-600); border-color: var(--wx-gold-400); color: var(--wx-text-hi); }
+.wx-btn:active { background-image: linear-gradient(to top, rgba(255,230,180,0.05), rgba(0,0,0,0.25)); }
+.wx-btn.is-disabled { opacity: 0.4; cursor: default; pointer-events: none; }
+.wx-btn .wx-count {
+	display: inline-block; min-width: 1.5rem; height: 1.5rem; line-height: 1.5rem; margin-left: 0.4rem;
+	padding: 0 0.3rem; text-align: center; font-size: var(--wx-fs-micro);
+	background: var(--wx-wood-950); color: var(--wx-gold-300); border-radius: 0.75rem;
+}
+
+.wx-btn-primary {
+	color: var(--wx-gold-200);
+	border-color: var(--wx-gold-400);
+	background-color: #3a2a17;
+	box-shadow: inset 0 0 0 1px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,230,180,0.15), 0 1px 2px rgba(0,0,0,0.6);
+}
+.wx-btn-primary:hover { background-color: #4b371e; box-shadow: var(--wx-glow-gold); }
+
+.wx-btn-seal { /* 朱砂印：一屏最多一个 */
+	color: #fff1df; border-color: #d0654c;
+	background-color: var(--wx-cinnabar-500);
+	background-image: linear-gradient(to bottom, rgba(255,200,170,0.18), rgba(0,0,0,0.2));
+}
+.wx-btn-seal:hover { background-color: var(--wx-cinnabar-400); border-color: #f08a6e; color: #fff; box-shadow: var(--wx-glow-cinnabar); }
+
+.wx-btn-ghost { background: transparent; border-color: transparent; box-shadow: none; color: var(--wx-text-dim); }
+.wx-btn-ghost:hover { background: rgba(216,179,106,0.08); border-color: var(--wx-gold-700); }
+
+.wx-btn-sm { height: 2.1rem; line-height: 1.95rem; padding: 0 0.6rem; font-size: var(--wx-fs-micro); }
+
+/* 印章式关闭（圆形朱砂印 ×），替代原先的长胶囊 */
+.wx-seal-close {
+	display: inline-block; width: 2.6rem; height: 2.6rem; line-height: 2.35rem;
+	text-align: center; cursor: pointer;
+	font-family: var(--wx-font-title); font-size: 1.6rem; color: #ffe9d6;
+	background: var(--wx-cinnabar-500);
+	border: 1px solid #d36a51; border-radius: 0.3rem;
+	box-shadow: inset 0 0 0 2px rgba(0,0,0,0.25), 0 1px 3px rgba(0,0,0,0.7);
+	transform: rotate(-3deg);
+}
+.wx-seal-close:hover { background: var(--wx-cinnabar-400); box-shadow: var(--wx-glow-cinnabar); }
+
+/* ============================================================================
+ * 页签（右栏顶栏三页签 & 子页签）
+ * ============================================================================ */
+.wx-tab {
+	display: inline-block; vertical-align: bottom; position: relative;
+	height: 3rem; line-height: 2.9rem; padding: 0 1.6rem; margin: 0 0.15rem;
+	font-family: var(--wx-font-title); font-size: 1.55rem; letter-spacing: 0.12em;
+	color: var(--wx-text-dim); cursor: pointer; text-align: center;
+	background: var(--wx-lacquer-800);
+	background-image: linear-gradient(to bottom, rgba(255,210,170,0.06), rgba(0,0,0,0.3));
+	border: 1px solid var(--wx-gold-700); border-bottom: none;
+}
+.wx-tab:hover { color: var(--wx-text-hi); border-color: var(--wx-gold-600); }
+.wx-tab.is-active {
+	color: var(--wx-gold-200); background-color: var(--wx-lacquer-700);
+	border-color: var(--wx-gold-500);
+}
+.wx-tab.is-active:after { /* 选中页签下方一道亮金 */
+	content: ''; position: absolute; left: 0.6rem; right: 0.6rem; bottom: 0; height: 2px;
+	background: var(--wx-gold-400); box-shadow: var(--wx-glow-gold);
+}
+.wx-tab .wx-tab-badge {
+	position: absolute; top: -0.75rem; right: -0.75rem; z-index: 3;
+	min-width: 1.7rem; height: 1.7rem; line-height: 1.55rem; padding: 0 0.35rem;
+	font-family: var(--wx-font-body); font-size: var(--wx-fs-micro); font-weight: bold; letter-spacing: 0;
+	color: #fff1df; background: var(--wx-cinnabar-500); border: 1px solid #d36a51; border-radius: 0.85rem;
+}
+.wx-tab .wx-tab-badge.is-jade { background: var(--wx-jade-700); border-color: var(--wx-jade-400); color: var(--wx-jade-300); }
+
+/* 子页签：下划线式，轻量 */
+.wx-subtab {
+	display: inline-block; vertical-align: middle; height: 2.4rem; line-height: 2.4rem;
+	padding: 0 0.7rem; margin-right: 0.2rem; cursor: pointer;
+	font-size: var(--wx-fs-small); font-weight: bold; color: var(--wx-text-dim);
+	border-bottom: 2px solid transparent; white-space: nowrap;
+}
+.wx-subtab:hover { color: var(--wx-text-hi); }
+.wx-subtab.is-active { color: var(--wx-gold-300); border-bottom-color: var(--wx-gold-400); }
+.wx-subtab .wx-n { font-weight: normal; color: var(--wx-text-mute); margin-left: 0.2rem; }
+
+/* 图标切换钮（四脉筛选） */
+.wx-icon-toggle {
+	display: inline-block; vertical-align: middle; width: 2.4rem; height: 2.4rem; margin-left: 0.2rem;
+	padding: 0.2rem; cursor: pointer; opacity: 0.45;
+	border: 1px solid transparent; border-radius: var(--wx-radius);
+}
+.wx-icon-toggle img { width: 100%; height: 100%; display: block; }
+.wx-icon-toggle:hover { opacity: 0.85; }
+.wx-icon-toggle.is-on { opacity: 1; border-color: var(--wx-gold-500); background: rgba(216,179,106,0.1); }
+
+/* 输入框 */
+.wx-input {
+	display: inline-block; vertical-align: middle; height: var(--wx-ctrl-h); padding: 0 0.6rem 0 2rem;
+	font-family: var(--wx-font-body); font-size: var(--wx-fs-small); color: var(--wx-text-hi);
+	background: var(--wx-wood-950) no-repeat 0.55rem center;
+	background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><circle cx='5' cy='5' r='3.6' fill='none' stroke='%23806337' stroke-width='1.4'/><line x1='7.7' y1='7.7' x2='11' y2='11' stroke='%23806337' stroke-width='1.6'/></svg>");
+	background-size: 1.1rem 1.1rem;
+	border: 1px solid var(--wx-gold-700); border-radius: var(--wx-radius);
+	box-shadow: var(--wx-shadow-well); outline: none;
+}
+.wx-input:focus { border-color: var(--wx-gold-500); }
+.wx-input::placeholder { color: var(--wx-text-mute); }
+
+/* 复选：方印式 */
+.wx-check { display: inline-block; vertical-align: middle; cursor: pointer; font-size: var(--wx-fs-small); color: var(--wx-text); white-space: nowrap; user-select: none; }
+.wx-check .wx-box {
+	display: inline-block; vertical-align: middle; width: 1.35rem; height: 1.35rem; margin: -0.15rem 0.45rem 0 0;
+	border: 1px solid var(--wx-gold-600); background: var(--wx-wood-950); box-shadow: var(--wx-shadow-well);
+	text-align: center; line-height: 1.2rem; font-size: 1rem; color: transparent;
+}
+.wx-check.is-on .wx-box { background: var(--wx-cinnabar-500); border-color: #d36a51; color: #fff1df; }
+.wx-check.is-on .wx-box:after { content: '✓'; }
+.wx-check.is-disabled { opacity: 0.4; pointer-events: none; }
+
+/* 开关：自动入阁 */
+.wx-switch { display: inline-block; vertical-align: middle; cursor: pointer; white-space: nowrap; font-size: var(--wx-fs-small); font-weight: bold; color: var(--wx-text-dim); user-select: none; }
+.wx-switch .wx-track {
+	display: inline-block; vertical-align: middle; position: relative; width: 3.2rem; height: 1.6rem; margin: -0.15rem 0.45rem 0 0;
+	background: var(--wx-wood-950); border: 1px solid var(--wx-gold-700); border-radius: 0.8rem; box-shadow: var(--wx-shadow-well);
+}
+.wx-switch .wx-knob {
+	position: absolute; top: 0.1rem; left: 0.12rem; width: 1.25rem; height: 1.25rem; border-radius: 50%;
+	background: var(--wx-text-mute); transition: left var(--wx-dur), background-color var(--wx-dur);
+}
+.wx-switch.is-on { color: var(--wx-jade-300); }
+.wx-switch.is-on .wx-track { border-color: var(--wx-jade-500); }
+.wx-switch.is-on .wx-knob { left: 1.75rem; background: var(--wx-jade-400); box-shadow: var(--wx-glow-jade); }
+
+/* ============================================================================
+ * 标签 / 角标 / 状态章
+ * ============================================================================ */
+.wx-chip {
+	display: inline-block; vertical-align: middle; height: 2rem; line-height: 1.85rem; padding: 0 0.6rem; margin-right: 0.35rem;
+	font-size: var(--wx-fs-small); font-weight: bold; white-space: nowrap;
+	color: var(--wx-text); background: var(--wx-wood-850); border: 1px solid var(--wx-gold-700); border-radius: var(--wx-radius);
+}
+.wx-chip img { width: 1.5rem; height: 1.5rem; vertical-align: middle; margin: -0.2rem 0.3rem 0 -0.2rem; }
+.wx-chip.is-clickable { cursor: pointer; }
+.wx-chip.is-clickable:hover { border-color: var(--wx-gold-500); color: var(--wx-text-hi); }
+.wx-chip.is-ok     { color: var(--wx-jade-300); border-color: var(--wx-jade-700); background: rgba(31,61,51,0.5); }
+.wx-chip.is-danger { color: #f0a08a; border-color: var(--wx-cinnabar-700); background: rgba(94,26,17,0.55); }
+.wx-chip.is-warn   { color: var(--wx-amber-400); border-color: var(--wx-amber-600); background: rgba(138,90,28,0.22); }
+.wx-chip .wx-chip-act { margin-left: 0.4rem; padding-left: 0.4rem; border-left: 1px solid rgba(255,255,255,0.15); color: var(--wx-gold-300); }
+
+/* 物品格角标（新篇 / 阁藏 / 已习 / 残页进度） */
+.wx-badge {
+	position: absolute; z-index: 3; padding: 0 0.3rem; height: 1.4rem; line-height: 1.3rem;
+	font-size: var(--wx-fs-micro); font-weight: bold; white-space: nowrap; pointer-events: none;
+	border: 1px solid; border-radius: var(--wx-radius); text-shadow: 0 1px 1px #000;
+}
+.wx-badge.is-new   { background: #1d3a2e; border-color: var(--wx-jade-400); color: #c9f2e0; }
+.wx-badge.is-owned { background: #2b2116; border-color: var(--wx-gold-600); color: var(--wx-gold-300); }
+.wx-badge.is-page  { background: #1c2936; border-color: #5d87ad; color: #d1e6fa; }
+.wx-badge.is-ready { background: var(--wx-cinnabar-500); border-color: #e0806a; color: #fff1df; }
+.wx-badge.tl { top: 0.2rem; left: 0.2rem; }
+.wx-badge.tr { top: 0.2rem; right: 0.2rem; }
+.wx-badge.br { bottom: 0.2rem; right: 0.2rem; }
+.wx-badge.bl { bottom: 0.2rem; left: 0.2rem; }
+
+/* 品阶竖印（详览台书名旁的小朱印） */
+.wx-q-seal {
+	display: inline-block; vertical-align: top; width: 1.9rem; padding: 0.25rem 0; text-align: center;
+	font-family: var(--wx-font-title); font-size: 1.2rem; line-height: 1.25rem; color: #1a110a;
+	border-radius: 0.15rem; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.35);
+}
+.wx-q-seal.q-common { background: var(--wx-q-common); }
+.wx-q-seal.q-sect   { background: var(--wx-q-sect); }
+.wx-q-seal.q-secret { background: var(--wx-q-secret); }
+.wx-q-seal.q-unique { background: var(--wx-q-unique); }
+
+.q-text-common { color: var(--wx-q-common); }
+.q-text-sect   { color: var(--wx-q-sect); }
+.q-text-secret { color: var(--wx-q-secret); }
+.q-text-unique { color: var(--wx-q-unique); }
+
+/* ============================================================================
+ * 格位（物品/秘籍图标框）：凹井 + 品阶描边
+ * ============================================================================ */
+.wx-slot {
+	position: relative; display: inline-block; vertical-align: top;
+	width: var(--wx-slot); height: var(--wx-slot);
+	background: var(--wx-wood-950);
+	background-image: radial-gradient(circle at 50% 40%, rgba(255,230,180,0.05), rgba(0,0,0,0) 70%);
+	border: 1px solid var(--wx-gold-800);
+	box-shadow: var(--wx-shadow-well);
+}
+.wx-slot > img.wx-item { position: absolute; left: 6%; top: 6%; width: 88%; height: 88%; }
+.wx-slot:hover { border-color: var(--wx-gold-500); }
+.wx-slot.q-common { border-color: #5a5446; }
+.wx-slot.q-sect   { border-color: #3c6185; box-shadow: var(--wx-shadow-well), inset 0 0 0.8rem rgba(95,147,196,0.25); }
+.wx-slot.q-secret { border-color: #6a4a8a; box-shadow: var(--wx-shadow-well), inset 0 0 0.8rem rgba(161,115,207,0.28); }
+.wx-slot.q-unique { border-color: #9c7428; box-shadow: var(--wx-shadow-well), inset 0 0 0.9rem rgba(219,166,66,0.32); }
+
+/* 招式图标（与战斗 HUD 一致：左上四脉色角、右上 AP、右下内息） */
+.wx-skill {
+	position: relative; display: inline-block; vertical-align: middle;
+	width: var(--wx-icon-skill); height: var(--wx-icon-skill); margin-right: 0.35rem;
+	background: #000; border: 1px solid var(--wx-gold-700); cursor: pointer;
+}
+.wx-skill img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.wx-skill:hover { border-color: var(--wx-gold-400); box-shadow: var(--wx-glow-gold); }
+.wx-skill.is-off img { opacity: 0.35; filter: grayscale(1); }
+.wx-skill .wx-cat-tick { position: absolute; left: 0; top: 0; width: 0; height: 0; border-style: solid; border-width: 0.8rem 0.8rem 0 0; z-index: 2; }
+.wx-skill .wx-cost-ap, .wx-skill .wx-cost-qi {
+	position: absolute; right: 0; z-index: 2; padding: 0 0.2rem; height: 1.2rem; line-height: 1.2rem;
+	font-size: var(--wx-fs-micro); font-weight: bold; background: rgba(8,6,4,0.88);
+}
+.wx-skill .wx-cost-ap { top: 0; color: var(--wx-gold-300); }
+.wx-skill .wx-cost-qi { bottom: 0; color: var(--wx-jade-300); }
+
+/* ============================================================================
+ * 进度条：凹槽 + 填充 + 居中数值
+ * ============================================================================ */
+.wx-bar {
+	position: relative; height: 1.7rem; overflow: hidden;
+	background: var(--wx-bar-track); border: 1px solid #000; box-shadow: inset 0 1px 3px rgba(0,0,0,0.9), 0 0 0 1px var(--wx-gold-800);
+}
+.wx-bar .wx-fill { position: absolute; left: 0; top: 0; bottom: 0; background-image: linear-gradient(to bottom, rgba(255,255,255,0.22), rgba(255,255,255,0) 45%, rgba(0,0,0,0.25)); }
+.wx-bar .wx-fill.hp     { background-color: var(--wx-bar-hp); }
+.wx-bar .wx-fill.qi     { background-color: var(--wx-bar-qi); }
+.wx-bar .wx-fill.ap     { background-color: var(--wx-bar-ap); }
+.wx-bar .wx-fill.armor  { background-color: var(--wx-bar-armor); }
+.wx-bar .wx-fill.morale { background-color: var(--wx-bar-morale); }
+.wx-bar .wx-fill.neutral{ background-color: #6b5a42; }
+.wx-bar .wx-val {
+	position: absolute; left: 0; right: 0; top: 0; text-align: center; line-height: 1.55rem;
+	font-size: var(--wx-fs-small); font-weight: bold; color: #fff6e5;
+	text-shadow: 1px 1px 1px #000, -1px -1px 1px #000, 0 0 3px #000;
+}
+.wx-bar-thin { height: 0.45rem; box-shadow: inset 0 1px 2px rgba(0,0,0,0.9); }
+.wx-bar-thin .wx-fill { background-image: none; }
+
+/* 三重境界刻度：三枚菱形 */
+.wx-tiers { display: inline-block; vertical-align: middle; height: 1rem; line-height: 1rem; white-space: nowrap; }
+.wx-tiers i {
+	display: inline-block; vertical-align: middle; width: 0.6rem; height: 0.6rem; margin: 0 0.16rem;
+	background: var(--wx-wood-950); border: 1px solid var(--wx-gold-600); transform: rotate(45deg);
+}
+.wx-tiers i.is-lit { background: var(--wx-gold-400); border-color: var(--wx-gold-200); box-shadow: 0 0 0.35rem rgba(236,211,148,0.6); }
+.wx-tiers i.is-frag { background: var(--wx-amber-600); border-color: var(--wx-amber-400); }
+
+/* ============================================================================
+ * 详览台（Inspector）：乌木绢本 + 宣纸题签
+ * ============================================================================ */
+.wx-inspector {
+	position: absolute; overflow: hidden;
+	background: #1a130d;
+	background-image: linear-gradient(to bottom, rgba(255,235,200,0.04), rgba(0,0,0,0) 30%);
+	border: 1px solid var(--wx-gold-600);
+	box-shadow: inset 0 0 0 1px rgba(0,0,0,0.7), inset 0 0 2rem rgba(0,0,0,0.5);
+}
+.wx-insp-body { position: absolute; left: 0; right: 0; top: 0; bottom: 3.6rem; overflow-y: auto; padding: 0.9rem 1rem 0.6rem 1rem; }
+.wx-insp-foot { position: absolute; left: 0; right: 0; bottom: 0; height: 3.6rem; padding: 0.55rem 0.8rem; border-top: 1px solid var(--wx-gold-800); background: rgba(0,0,0,0.25); text-align: right; white-space: nowrap; }
+.wx-insp-foot .wx-btn { margin-left: 0.35rem; }
+
+/* 题签：宣纸小条，书名竖向印章在右 */
+.wx-tiqian {
+	position: relative; padding: 0.55rem 0.8rem 0.5rem 0.8rem; margin-bottom: 0.7rem; min-height: 4.8rem;
+	background: #e7dcc3; color: var(--wx-text-ink);
+	background-image: linear-gradient(to bottom, rgba(255,255,255,0.25), rgba(0,0,0,0.06));
+	border: 1px solid #8f7650; box-shadow: 0 2px 4px rgba(0,0,0,0.6), inset 0 0 0 3px #e7dcc3, inset 0 0 0 4px rgba(120,90,50,0.35);
+}
+.wx-tiqian .wx-tq-icon { float: left; width: 3.8rem; height: 3.8rem; margin-right: 0.7rem; background: #1a120c; border: 1px solid #6b5332; }
+.wx-tiqian .wx-tq-icon img { width: 100%; height: 100%; display: block; }
+.wx-tiqian .wx-tq-name { font-family: var(--wx-font-title); font-size: var(--wx-fs-h2); line-height: 2.1rem; color: #1d130b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 2.2rem; }
+.wx-tiqian .wx-tq-meta { font-size: var(--wx-fs-small); color: #5a4630; line-height: 1.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 2.2rem; }
+.wx-tiqian .wx-q-seal { position: absolute; right: 0.55rem; top: 0.5rem; }
+
+.wx-insp-desc { font-size: var(--wx-fs-small); color: var(--wx-text-dim); line-height: 1.6rem; margin-bottom: 0.7rem; }
+.wx-insp-line { font-size: var(--wx-fs-small); line-height: 1.6rem; margin-bottom: 0.3rem; }
+.wx-insp-line b { color: var(--wx-text-hi); }
+
+/* 三重境界时间线 */
+.wx-tierline { position: relative; padding-left: 1.6rem; margin: 0.3rem 0 0.6rem 0; }
+.wx-tierline:before { content: ''; position: absolute; left: 0.5rem; top: 0.6rem; bottom: 0.6rem; width: 1px; background: var(--wx-gold-700); }
+.wx-tl-item { position: relative; margin-bottom: 0.55rem; font-size: var(--wx-fs-small); line-height: 1.55rem; color: var(--wx-text-mute); }
+.wx-tl-item:before {
+	content: ''; position: absolute; left: -1.38rem; top: 0.35rem; width: 0.6rem; height: 0.6rem;
+	background: var(--wx-wood-950); border: 1px solid var(--wx-gold-700); transform: rotate(45deg);
+}
+.wx-tl-item .wx-tl-head { font-weight: bold; color: var(--wx-text-dim); }
+.wx-tl-item.is-done { color: var(--wx-text); }
+.wx-tl-item.is-done .wx-tl-head { color: var(--wx-gold-300); }
+.wx-tl-item.is-done:before { background: var(--wx-gold-400); border-color: var(--wx-gold-200); }
+.wx-tl-item.is-next:before { border-color: var(--wx-jade-400); box-shadow: var(--wx-glow-jade); }
+.wx-tl-item.is-next .wx-tl-head { color: var(--wx-jade-300); }
+.wx-tl-item .wx-bar-thin { margin-top: 0.3rem; }
+
+/* 门槛校验行 */
+.wx-req { font-size: var(--wx-fs-small); line-height: 1.55rem; }
+.wx-req .ok  { color: var(--wx-pos); }
+.wx-req .bad { color: var(--wx-neg); }
+
+/* ============================================================================
+ * 原版式悬浮提示（Tooltip）：乌木 + 金框 + 标题栏
+ * ============================================================================ */
+.wx-tooltip {
+	position: fixed; z-index: 9999; width: 26rem; pointer-events: none;
+	background: #17110c; border: 1px solid var(--wx-gold-500);
+	box-shadow: 0 0 0 1px #000, 0 4px 14px rgba(0,0,0,0.85);
+	font-size: var(--wx-fs-small); color: var(--wx-text);
+}
+.wx-tooltip .wx-tt-head {
+	padding: 0.45rem 0.8rem; background: var(--wx-lacquer-800); border-bottom: 1px solid var(--wx-gold-700);
+	font-family: var(--wx-font-title); font-size: 1.55rem; color: var(--wx-gold-200);
+}
+.wx-tooltip .wx-tt-sub { font-family: var(--wx-font-body); font-size: var(--wx-fs-micro); color: var(--wx-text-dim); }
+.wx-tooltip .wx-tt-body { padding: 0.55rem 0.8rem 0.65rem 0.8rem; line-height: 1.6rem; }
+.wx-tooltip .wx-tt-row { padding-left: 1.7rem; position: relative; margin-bottom: 0.15rem; }
+.wx-tooltip .wx-tt-row img { position: absolute; left: 0; top: 0.1rem; width: 1.4rem; height: 1.4rem; }
+.wx-tooltip .wx-tt-foot { padding: 0.4rem 0.8rem; border-top: 1px solid var(--wx-gold-800); color: var(--wx-text-mute); font-size: var(--wx-fs-micro); }
+
+/* ============================================================================
+ * 弹窗（Modal）：乌木对话框 + 紫檀标题栏 + 回纹角 + 朱砂印关闭
+ * ============================================================================ */
+.wx-backdrop { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 900; background: rgba(5,3,2,0.72); }
+.wx-modal {
+	position: absolute; left: 50%; top: 50%;
+	background: var(--wx-wood-900); border: 1px solid var(--wx-gold-500);
+	box-shadow: 0 0 0 1px #000, inset 0 0 0 3px var(--wx-wood-900), inset 0 0 0 4px var(--wx-gold-700), var(--wx-shadow-modal);
+}
+.wx-modal-head {
+	position: relative; height: 4.2rem; line-height: 4.2rem; padding: 0 4.4rem 0 1.4rem; margin: 0.4rem 0.4rem 0 0.4rem;
+	background: var(--wx-lacquer-800); background-image: linear-gradient(to bottom, rgba(255,210,170,0.06), rgba(0,0,0,0.25));
+	border-bottom: 1px solid var(--wx-gold-600);
+	font-family: var(--wx-font-title); font-size: var(--wx-fs-h1); color: var(--wx-gold-200); white-space: nowrap; overflow: hidden;
+}
+.wx-modal-head .wx-mh-sub { font-family: var(--wx-font-body); font-size: var(--wx-fs-small); color: var(--wx-text-dim); margin-left: 0.8rem; letter-spacing: 0; }
+.wx-modal-head .wx-seal-close { position: absolute; right: 0.8rem; top: 0.8rem; line-height: 2.35rem; }
+.wx-modal-body { padding: 1.1rem 1.6rem; }
+.wx-modal-foot { padding: 0.8rem 1.6rem 1.2rem 1.6rem; text-align: right; border-top: 1px solid var(--wx-gold-800); margin: 0 0.4rem; }
+.wx-modal-foot .wx-btn { margin-left: 0.5rem; min-width: 8rem; text-align: center; }
+
+/* ============================================================================
+ * 浮动提示（Toast）：顶部居中横幅，左侧一道色条
+ * ============================================================================ */
+.wx-toast {
+	position: absolute; z-index: 950; left: 50%; min-width: 30rem; max-width: 56rem;
+	padding: 0.6rem 1.4rem 0.6rem 1.2rem; text-align: center;
+	font-size: var(--wx-fs-body); font-weight: bold; color: var(--wx-text-hi);
+	background: rgba(18,13,9,0.96); border: 1px solid var(--wx-gold-600); border-left: 4px solid var(--wx-jade-400);
+	box-shadow: 0 4px 14px rgba(0,0,0,0.8);
+}
+.wx-toast.is-error { border-left-color: var(--wx-cinnabar-400); }

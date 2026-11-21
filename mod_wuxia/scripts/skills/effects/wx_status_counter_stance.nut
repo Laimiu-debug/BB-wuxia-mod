@@ -11,7 +11,7 @@ this.wx_status_counter_stance <- this.inherit("scripts/skills/skill", {
 		this.m.ID = "effects.wx_status_counter_stance";
 		this.m.Name = "回锋架势";
 		this.m.Description = "凝剑守势：直至下回合开始前，敌方近战攻势落空时自动回锋反击（每次反击耗 4 内息）。";
-		this.m.Icon = "skills/status_effect_33.png";
+		this.m.Icon = "skills/wx_status_counter_stance.png";
 		this.m.IconMini = "status_effect_33_mini";
 		this.m.Type = this.Const.SkillType.StatusEffect;
 		this.m.IsActive = false;
@@ -55,6 +55,7 @@ this.wx_status_counter_stance <- this.inherit("scripts/skills/skill", {
 		if (counterSkill != null)
 		{
 			::Wuxia.CombatRules.spendQi(actor, this.m.QiCostPerCounter);
+			if ("VFX" in ::Wuxia) ::Wuxia.VFX.playTriggerVfx(actor, "wx_vfx_01", "wx_fx_bagua", 0, 140, 1.08);
 			this.m.IsCountering = true;
 			try { counterSkill.useForFree(_attacker.getTile()); }
 			catch (error) { this.m.IsCountering = false; throw error; }

@@ -2,11 +2,18 @@
 
 this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 	m = {
-		SchemaVersion      = 1,
+		SchemaVersion      = 4,
 		Slots              = [],
+		LearnedManuals     = {},
 		PendingWashChances = 0,
 		UsedUniqueEffects  = {},
 		MarrowWashCount    = 0,
+		FaceIdx            = 0,  // 0 = auto-seed; 1..48 = wx_head_01..48
+		HairIdx            = -1, // -1 = auto-seed; 0 = shaved bald; 1..24 = wx_hair_01..24
+		HairToneIdx        = -1, // -1 = auto-seed; 0..3 = black/brown/grey/white
+		BeardIdx           = -1, // -1 = auto-seed; 0 = clean-shaven; 1..24 = wx_beard_01..24
+		ScarIdx            = -1, // -1 = auto-seed; 0 = unscarred; 1..12 = wx_scar_01..12
+		BackIdx            = -1, // -1 = auto-seed; 0 = none; 1..16 = wx_back_01..16
 		GrantedSkills      = {},
 		TemporaryAPOverflow = 0,
 		HitsRegenThisTurn  = 0,
@@ -24,15 +31,63 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		this.m.ID = "special.wx_martial_container";
 		this.m.Name = "武学修为";
 		this.m.Description = "记录侠客所修习的七大武学插槽、重数火候与洗髓机缘。";
-		this.m.Icon = "ui/perks/perk_54.png";
+		this.m.Icon = "ui/perks/wx_martial_container.png";
 		this.m.Type = this.Const.SkillType.Special;
 		this.m.Order = this.Const.SkillOrder.First;
 		this.m.IsActive = false;
 		this.m.IsStacking = false;
 		this.m.IsHidden = true;
 		this.m.IsSerialized = true;
+		this.m.LearnedManuals = {};
 
 		this.initEmptySlots();
+	}
+
+	function hasLearnedManual( _manualID )
+	{
+		return _manualID != null && (_manualID in this.m.LearnedManuals);
+	}
+
+	function getLearnedEntry( _manualID )
+	{
+		if (_manualID != null && (_manualID in this.m.LearnedManuals))
+			return this.m.LearnedManuals[_manualID];
+		return null;
+	}
+
+	function syncSlotToLearned( _slotIndex )
+	{
+		if (_slotIndex < 0 || _slotIndex >= this.m.Slots.len()) return;
+		local s = this.m.Slots[_slotIndex];
+		if (s.ManualID == null || s.Tier <= 0) return;
+		this.m.LearnedManuals[s.ManualID] <- {
+			Tier       = s.Tier,
+			Exp        = s.Exp,
+			IsFragment = s.IsFragment
+		};
+	}
+
+	function ensureSlotsRegisteredInLearned()
+	{
+		for (local i = 0; i < this.m.Slots.len(); i = ++i)
+		{
+			local s = this.m.Slots[i];
+			if (s.ManualID == null || s.Tier <= 0) continue;
+			if (!(s.ManualID in this.m.LearnedManuals))
+			{
+				this.syncSlotToLearned(i);
+			}
+			else
+			{
+				local prev = this.m.LearnedManuals[s.ManualID];
+				if (s.Tier > prev.Tier || (s.Tier == prev.Tier && s.Exp > prev.Exp))
+				{
+					prev.Tier = s.Tier;
+					prev.Exp  = s.Exp;
+				}
+				if (!s.IsFragment) prev.IsFragment = false;
+			}
+		}
 	}
 
 	function initEmptySlots()
@@ -212,7 +267,7 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 			_properties.IsAffectedByNight = false;
 		if (agg.FirstRoundInit > 0 && this.wxIsFirstCombatRound())
 			_properties.Initiative += agg.FirstRoundInit;
-		if (actor != null && ("isArmedWithShield" in actor) && actor.isArmedWithShield())
+		if (actor != null && (::Wuxia.hasMember(actor, "isArmedWithShield")) && actor.isArmedWithShield())
 		{
 			if (agg.ShieldDefBonus > 0)
 			{
@@ -336,23 +391,23 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		{
 			if (f.VsUndeadDmg > 0.0 && ::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity))
 				_properties.DamageTotalMult *= (1.0 + f.VsUndeadDmg);
-			if (f.ExecuteLowHpDmg > 0.0 && ("getHitpoints" in _targetEntity) && ("getHitpointsMax" in _targetEntity) && _targetEntity.getHitpointsMax() > 0)
+			if (f.ExecuteLowHpDmg > 0.0 && (::Wuxia.hasMember(_targetEntity, "getHitpoints")) && (::Wuxia.hasMember(_targetEntity, "getHitpointsMax")) && _targetEntity.getHitpointsMax() > 0)
 			{
 				if ((_targetEntity.getHitpoints().tofloat() / _targetEntity.getHitpointsMax().tofloat()) < 0.50)
 					_properties.DamageTotalMult *= (1.0 + f.ExecuteLowHpDmg);
 			}
-			if (f.UnbrokenArmorBonus > 0.0 && ("getArmor" in _targetEntity) && ("getArmorMax" in _targetEntity))
+			if (f.UnbrokenArmorBonus > 0.0 && (::Wuxia.hasMember(_targetEntity, "getArmor")) && (::Wuxia.hasMember(_targetEntity, "getArmorMax")))
 			{
 				local curA = _targetEntity.getArmor(::Const.BodyPart.Body) + _targetEntity.getArmor(::Const.BodyPart.Head);
 				local maxA = _targetEntity.getArmorMax(::Const.BodyPart.Body) + _targetEntity.getArmorMax(::Const.BodyPart.Head);
 				if (maxA >= 80 && curA * 2 >= maxA)
 					_properties.DamageArmorMult *= (1.0 + f.UnbrokenArmorBonus);
 			}
-			if (f.UnarmoredBonusDmg > 0.0 && ("getArmor" in _targetEntity) && _targetEntity.getArmor(::Const.BodyPart.Body) <= 0)
+			if (f.UnarmoredBonusDmg > 0.0 && (::Wuxia.hasMember(_targetEntity, "getArmor")) && _targetEntity.getArmor(::Const.BodyPart.Body) <= 0)
 			{
 				_properties.DamageRegularMult *= (1.0 + f.UnarmoredBonusDmg);
 			}
-			if (f.VsPoisonedHit > 0 && "getSkills" in _targetEntity && _targetEntity.getSkills() != null)
+			if (f.VsPoisonedHit > 0 && ::Wuxia.hasMember(_targetEntity, "getSkills") && _targetEntity.getSkills() != null)
 			{
 				local tsk = _targetEntity.getSkills();
 				if (tsk.hasSkill("effects.wx_status_poison_dart") || tsk.hasSkill("effects.spider_poison") || tsk.hasSkill("effects.goblin_poison"))
@@ -368,7 +423,7 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		if (adaptHit + firstRoundHit > 0) _properties.RangedSkill += adaptHit + firstRoundHit;
 		if (f.RangedHeadshotBonus > 0) _properties.HitChance[::Const.BodyPart.Head] += f.RangedHeadshotBonus;
 		local myActor = this.getContainer() != null ? this.getContainer().getActor() : null;
-		if (myActor != null && _targetEntity != null && ("isPlacedOnMap" in myActor) && myActor.isPlacedOnMap() && ("isPlacedOnMap" in _targetEntity) && _targetEntity.isPlacedOnMap())
+		if (myActor != null && _targetEntity != null && (::Wuxia.hasMember(myActor, "isPlacedOnMap")) && myActor.isPlacedOnMap() && (::Wuxia.hasMember(_targetEntity, "isPlacedOnMap")) && _targetEntity.isPlacedOnMap())
 		{
 			local rDist = myActor.getTile().getDistanceTo(_targetEntity.getTile());
 			if (f.LongRangeAccBonus > 0 && rDist >= 4)  _properties.RangedSkill += f.LongRangeAccBonus;
@@ -401,20 +456,22 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 			if (mult < 0.50) mult = 0.50;
 			_properties.DamageReceivedArmorMult *= mult;
 		}
-		if (agg.ReflectArmorDmg > 0 && _attacker != null && _attacker.getID() != actor.getID() && _attacker.isAlive() && _skill != null && !_skill.isRanged() && "getItems" in _attacker && _attacker.getItems() != null)
+		if (agg.ReflectArmorDmg > 0 && _attacker != null && _attacker.getID() != actor.getID() && _attacker.isAlive() && _skill != null && !_skill.isRanged() && ::Wuxia.hasMember(_attacker, "getItems") && _attacker.getItems() != null)
 		{
 			local atkBody = _attacker.getItems().getItemAtSlot(::Const.ItemSlot.Body);
 			if (atkBody != null && atkBody.getArmor() > 0)
 			{
 				atkBody.setArmor(::Math.max(0, atkBody.getArmor() - agg.ReflectArmorDmg));
+				if ("VFX" in ::Wuxia) ::Wuxia.VFX.playTriggerVfx(actor, "wx_vfx_17", "wx_fx_golden_bell", 0, 0, 1.06);
 			}
 		}
-		if (agg.FrostChillOnHit && _attacker != null && _attacker.getID() != actor.getID() && _attacker.isAlive() && _skill != null && !_skill.isRanged() && "getSkills" in _attacker && _attacker.getSkills() != null)
+		if (agg.FrostChillOnHit && _attacker != null && _attacker.getID() != actor.getID() && _attacker.isAlive() && _skill != null && !_skill.isRanged() && ::Wuxia.hasMember(_attacker, "getSkills") && _attacker.getSkills() != null)
 		{
 			local ask = _attacker.getSkills();
 			local ob = ask.getSkillByID("effects.wx_status_offbalance");
 			if (ob == null) ask.add(::new("scripts/skills/effects/wx_status_offbalance"));
 			else ob.resetDuration();
+			if ("VFX" in ::Wuxia) ::Wuxia.VFX.playTriggerVfx(_attacker, "wx_vfx_21", "wx_fx_ice_spikes", 0, 0, 1.06);
 		}
 
 		// True Qi Shield (阴柔内功护体: 1 Qi mitigates 2 HP damage, capped by QiShieldPct)
@@ -439,6 +496,7 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 					if (ratio < 0.50) ratio = 0.50;
 					_properties.DamageReceivedRegularMult *= ratio;
 					::Wuxia.CombatRules.spendQi(actor, qiSpent);
+					if ("VFX" in ::Wuxia) ::Wuxia.VFX.playTriggerVfx(actor, "wx_vfx_18", "wx_fx_bagua", -18, 90, 1.02);
 				}
 			}
 		}
@@ -462,6 +520,7 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 					local p = tsk0.getSkillByID("effects.wx_status_poison_dart");
 					if (p == null) tsk0.add(::new("scripts/skills/effects/wx_status_poison_dart"));
 					else if ("resetDuration" in p) p.resetDuration();
+					if ("VFX" in ::Wuxia) ::Wuxia.VFX.playTriggerVfx(_targetEntity, "wx_vfx_28", "wx_fx_poison_skull", -24, 0, 1.02);
 				}
 			}
 			if (agg.BleedOnHitPct > 0 && _damageInflictedHitpoints >= 6 && !::Wuxia.CombatRules.isImmuneToMeridianAndPoison(_targetEntity) && ::Math.rand(1, 100) <= agg.BleedOnHitPct)
@@ -483,6 +542,7 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 					local acu = tsk0.getSkillByID("effects.wx_status_acupoint");
 					if (acu == null) tsk0.add(::new("scripts/skills/effects/wx_status_acupoint"));
 					else if ("resetDuration" in acu) acu.resetDuration();
+					if ("VFX" in ::Wuxia) ::Wuxia.VFX.playTriggerVfx(_targetEntity, "wx_vfx_16", "wx_fx_lotus_seal", 0, 110, 1.04);
 				}
 			}
 			if (!_skill.isRanged())
@@ -493,14 +553,15 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 					if (ob0 == null) tsk0.add(::new("scripts/skills/effects/wx_status_offbalance"));
 					else ob0.resetDuration();
 				}
-				if (agg.ShieldBreakBonus > 0 && ("isArmedWithShield" in _targetEntity) && _targetEntity.isArmedWithShield())
+				if (agg.ShieldBreakBonus > 0 && (::Wuxia.hasMember(_targetEntity, "isArmedWithShield")) && _targetEntity.isArmedWithShield())
 				{
 					local sh = _targetEntity.getItems().getItemAtSlot(::Const.ItemSlot.Offhand);
 					if (sh != null) sh.applyShieldDamage(agg.ShieldBreakBonus);
 				}
-				if (agg.OnHitDrainQi > 0 && (_damageInflictedHitpoints >= 1 || _damageInflictedArmor >= 10) && !::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity) && ("getFatigue" in _targetEntity))
+				if (agg.OnHitDrainQi > 0 && (_damageInflictedHitpoints >= 1 || _damageInflictedArmor >= 10) && !::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity) && (::Wuxia.hasMember(_targetEntity, "getFatigue")))
 				{
 					_targetEntity.setFatigue(::Math.min(_targetEntity.getFatigueMax(), _targetEntity.getFatigue() + agg.OnHitDrainQi));
+					if ("VFX" in ::Wuxia) ::Wuxia.VFX.playTriggerVfx(_targetEntity, "wx_vfx_19", null, 0, 150, 0.96);
 				}
 			}
 		}
@@ -620,7 +681,8 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 	function onSerialize( _out )
 	{
 		this.skill.onSerialize(_out);
-		_out.writeU8(this.m.SchemaVersion);
+		this.ensureSlotsRegisteredInLearned();
+		_out.writeU8(4);
 		_out.writeU8(this.m.Slots.len());
 		foreach (s in this.m.Slots)
 		{
@@ -636,14 +698,38 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		foreach (k, _ in this.m.UsedUniqueEffects) usedKeys.push(k);
 		_out.writeU8(usedKeys.len());
 		foreach (k in usedKeys) _out.writeString(k);
+
+		// SchemaVersion >= 2: 1000-Faces Modular Appearance indices
+		_out.writeI8(this.m.FaceIdx);
+		_out.writeI8(this.m.HairIdx);
+		_out.writeI8(this.m.BeardIdx);
+		_out.writeI8(this.m.ScarIdx);
+
+		// SchemaVersion >= 3: Per-character LearnedManuals library & preserved mastery
+		local learnedKeys = [];
+		foreach (mid, _ in this.m.LearnedManuals) learnedKeys.push(mid);
+		_out.writeU16(learnedKeys.len());
+		foreach (mid in learnedKeys)
+		{
+			local entry = this.m.LearnedManuals[mid];
+			_out.writeString(mid);
+			_out.writeU8(entry.Tier);
+			_out.writeI32(entry.Exp);
+			_out.writeBool(entry.IsFragment);
+		}
+
+		// SchemaVersion >= 4: Hair/Beard color tone (0..3) & Back cloak/sword-box/banner (0..16)
+		_out.writeI8(this.m.HairToneIdx);
+		_out.writeI8(this.m.BackIdx);
 	}
 
 	function onDeserialize( _in )
 	{
 		this.skill.onDeserialize(_in);
 		this.initEmptySlots();
+		this.m.LearnedManuals = {};
 
-		this.m.SchemaVersion = _in.readU8();
+		local savedVer = _in.readU8();
 		local slotCount = _in.readU8();
 		for (local i = 0; i < slotCount; i = ++i)
 		{
@@ -670,5 +756,54 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 			local key = _in.readString();
 			this.m.UsedUniqueEffects[key] <- true;
 		}
+
+		if (savedVer >= 2)
+		{
+			this.m.FaceIdx  = _in.readI8();
+			this.m.HairIdx  = _in.readI8();
+			this.m.BeardIdx = _in.readI8();
+			this.m.ScarIdx  = _in.readI8();
+		}
+		else
+		{
+			this.m.FaceIdx  = 0;
+			this.m.HairIdx  = -1;
+			this.m.BeardIdx = -1;
+			this.m.ScarIdx  = -1;
+		}
+
+		if (savedVer >= 3)
+		{
+			local learnedCount = _in.readU16();
+			for (local k = 0; k < learnedCount; k = ++k)
+			{
+				local lmid  = _in.readString();
+				local ltier = _in.readU8();
+				local lexp  = _in.readI32();
+				local lfrag = _in.readBool();
+				if (lmid != "" && ltier > 0)
+				{
+					this.m.LearnedManuals[lmid] <- {
+						Tier       = ltier,
+						Exp        = lexp,
+						IsFragment = lfrag
+					};
+				}
+			}
+		}
+
+		if (savedVer >= 4)
+		{
+			this.m.HairToneIdx = _in.readI8();
+			this.m.BackIdx     = _in.readI8();
+		}
+		else
+		{
+			this.m.HairToneIdx = -1;
+			this.m.BackIdx     = -1;
+		}
+
+		this.ensureSlotsRegisteredInLearned();
+		this.m.SchemaVersion = 4;
 	}
 });
