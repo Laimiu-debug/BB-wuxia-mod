@@ -117,20 +117,37 @@
 	pointer-events: none;
 }
 
+.turnsequencebar-module .skills-container .wx-skill-page
+{
+	position: absolute;
+	left: 24rem;
+	bottom: 5.3rem;
+	padding: 0.3rem 0.7rem;
+	border: 1px solid #987741;
+	background-color: #33291e;
+	color: #f2d488;
+	font-size: 1.3rem;
+	cursor: pointer;
+}
+
 /* 5. Town Screen Layout Separation & Leather Plaque Signboards */
 .world-town-screen > .l-main-dialog-container .settlement-container .slot0
 {
 	right: 17.5rem !important;
-	bottom: 22.0rem !important;
+	bottom: 26.8rem !important;
 	top: auto !important;
 	left: auto !important;
+	max-height: 17.6rem !important;
+	width: auto !important;
 }
 .world-town-screen > .l-main-dialog-container .settlement-container .slot1
 {
 	left: 13.5rem !important;
-	bottom: 19.8rem !important;
+	bottom: 26.8rem !important;
 	top: auto !important;
 	right: auto !important;
+	max-height: 17.6rem !important;
+	width: auto !important;
 }
 .world-town-screen > .l-main-dialog-container .settlement-container .slot2
 {
@@ -138,24 +155,28 @@
 	right: 0 !important;
 	margin-left: auto !important;
 	margin-right: auto !important;
-	top: 28.4rem !important;
+	top: 23.2rem !important;
 	bottom: auto !important;
 	width: auto !important;
-	max-height: 16.4rem !important;
+	max-height: 15.2rem !important;
 }
 .world-town-screen > .l-main-dialog-container .settlement-container .slot3
 {
-	right: 68.5rem !important;
-	bottom: 4.2rem !important;
+	left: 11.2rem !important;
+	bottom: 3.6rem !important;
 	top: auto !important;
-	left: auto !important;
+	right: auto !important;
+	max-height: 16.6rem !important;
+	width: auto !important;
 }
 .world-town-screen > .l-main-dialog-container .settlement-container .slot4
 {
-	left: 68.5rem !important;
-	bottom: 4.2rem !important;
+	right: 11.2rem !important;
+	bottom: 3.6rem !important;
 	top: auto !important;
-	right: auto !important;
+	left: auto !important;
+	max-height: 16.6rem !important;
+	width: auto !important;
 }
 .world-town-screen > .l-main-dialog-container .settlement-container .slot5
 {
@@ -163,7 +184,7 @@
 	right: 0 !important;
 	margin-left: auto !important;
 	margin-right: auto !important;
-	bottom: 2.2rem !important;
+	bottom: 2.0rem !important;
 	top: auto !important;
 	width: auto !important;
 	max-height: 11.8rem !important;
@@ -241,78 +262,52 @@
 	color: #d6dbe9;
 }
 
-/* 7. World Map, Relations, Shop/Loot Sweep, Taxidermist & Banners (Vanilla Buttons) */
-.wx-world-sect-btn
+/* 7. Relations Ledger (`江湖录 [R]`), Shop/Loot Sweep, Taxidermist & Banners (Vanilla Buttons) */
+.wx-rel-sect-btn,
+.wx-rel-alc-btn
 {
 	position: absolute;
-	top: 5.0rem;
-	right: 0.8rem;
-	width: 11.2rem;
-	height: 3.8rem;
-	line-height: 3.9rem;
-	text-align: center;
-	background-image: url("coui://gfx/ui/skin/button_02_default.png");
-	background-size: 100% 100%;
-	background-repeat: no-repeat;
-	color: #dda21f;
-	font-size: 1.4rem;
-	text-shadow: 1px 1px 1px #000;
-	cursor: pointer;
-	z-index: 15;
-	pointer-events: auto;
-	white-space: nowrap;
-}
-
-.wx-world-sect-btn img
-{
-	width: 2.0rem;
-	height: 2.0rem;
-	vertical-align: middle;
-	margin: -0.3rem 0.35rem 0 0;
-}
-
-.wx-world-sect-btn:hover
-{
-	background-image: url("coui://gfx/ui/skin/button_02_hovered.png");
-}
-
-/* Keep Active Contract Scroll Panel cleanly below 百草丹炉 & 江湖名刺 buttons (5.0rem..8.8rem) */
-.world-screen > .active-contract-panel-container
-{
-	top: 9.4rem !important;
-}
-
-.wx-rel-sect-btn
-{
-	position: absolute;
-	top: 0.1rem;
-	right: 1.2rem;
-	width: 17.5rem;
-	height: 4.1rem;
-	line-height: 4.2rem;
+	top: 1.2rem;
+	width: 16.8rem;
+	height: 3.9rem;
+	line-height: 4.0rem;
 	text-align: center;
 	background-image: url("coui://gfx/ui/skin/button_01_default.png");
 	background-size: 100% 100%;
 	background-repeat: no-repeat;
 	color: #dda21f;
-	font-size: 1.45rem;
+	font-size: 1.42rem;
 	text-shadow: 1px 1px 1px #000;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.72);
 	cursor: pointer;
-	z-index: 12;
+	z-index: 20;
 	white-space: nowrap;
 }
 
-.wx-rel-sect-btn img
+.wx-rel-sect-btn
 {
-	width: 2.0rem;
-	height: 2.0rem;
-	vertical-align: middle;
-	margin: -0.3rem 0.4rem 0 0;
+	left: 2.2rem;
 }
 
-.wx-rel-sect-btn:hover
+.wx-rel-alc-btn
+{
+	right: 2.2rem;
+}
+
+.wx-rel-sect-btn img,
+.wx-rel-alc-btn img
+{
+	width: 1.9rem;
+	height: 1.9rem;
+	vertical-align: middle;
+	margin: -0.28rem 0.35rem 0 0;
+}
+
+.wx-rel-sect-btn:hover,
+.wx-rel-alc-btn:hover
 {
 	background-image: url("coui://gfx/ui/skin/button_01_hovered.png");
+	color: #ffe28a;
 }
 
 .wx-shop-sweep-btn,
@@ -700,11 +695,57 @@
 
 .wx-sect-manual-item
 {
-	padding: 0.55rem 0.2rem;
+	padding: 0.55rem 0.25rem;
 	border-bottom: 1px solid rgba(90, 67, 37, 0.45);
 	font-size: 1.35rem;
 	line-height: 1.9rem;
 	color: #d7b174;
+}
+
+.wx-sect-manual-item.has-book .wx-sect-manual-fig
+{
+	position: relative;
+	float: left;
+	width: 4.4rem;
+	height: 4.4rem;
+	margin-right: 0.75rem;
+	background: rgba(12, 8, 5, 0.68);
+	border: 1px solid rgba(150, 112, 58, 0.62);
+	text-align: center;
+}
+
+.wx-sect-manual-ico
+{
+	display: inline-block;
+	max-width: 4.0rem;
+	max-height: 4.0rem;
+	width: auto;
+	height: auto;
+	margin-top: 0.15rem;
+}
+
+.wx-sect-manual-ico.is-dim
+{
+	-webkit-filter: grayscale(85%) brightness(0.65);
+	opacity: 0.72;
+}
+
+.wx-sect-manual-skico
+{
+	position: absolute;
+	right: -0.25rem;
+	bottom: -0.25rem;
+	width: 1.95rem;
+	height: 1.95rem;
+	background: rgba(16, 11, 7, 0.92);
+	border: 1px solid #9a7438;
+	border-radius: 2px;
+}
+
+.wx-sect-manual-item.has-book .wx-sect-manual-body
+{
+	overflow: hidden;
+	min-height: 4.4rem;
 }
 
 .wx-sect-own-tag
@@ -718,61 +759,35 @@
 	color: #dda21f;
 }
 
-.wx-town-teahouse-btn
+.wx-sect-manual-item.is-masked
 {
-	position: absolute;
-	top: 8.4rem;
-	right: 1.4rem;
-	width: 12.2rem;
-	height: 3.8rem;
-	line-height: 3.9rem;
-	text-align: center;
-	background-image: url("coui://gfx/ui/skin/button_02_default.png");
-	background-size: 100% 100%;
-	background-repeat: no-repeat;
-	color: #dda21f;
-	font-size: 1.4rem;
-	text-shadow: 1px 1px 1px #000, -1px -1px 1px #000;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
-	cursor: pointer;
-	z-index: 25;
-}
-.wx-town-teahouse-btn:hover
-{
-	background-image: url("coui://gfx/ui/skin/button_02_hovered.png");
-	color: #ffe28a;
-}
-.wx-town-teahouse-btn img,
-.wx-tavern-teahouse-btn img
-{
-	width: 1.8rem;
-	height: 1.8rem;
-	vertical-align: middle;
-	margin-right: 0.35rem;
-	margin-top: -0.2rem;
+	opacity: 0.78;
 }
 
-.wx-tavern-teahouse-btn
+.wx-sect-rumor-btn
 {
-	position: absolute;
-	top: 1.2rem;
-	right: 5.4rem;
-	width: 15.6rem;
-	height: 3.6rem;
-	line-height: 3.7rem;
+	display: inline-block;
+	vertical-align: middle;
+	height: 3.7rem;
+	line-height: 3.8rem;
+	padding: 0 1.0rem;
+	margin-left: 0.25rem;
 	text-align: center;
+	font-size: 1.3rem;
+	color: #ffe28a;
 	background-image: url("coui://gfx/ui/skin/button_02_default.png");
 	background-size: 100% 100%;
-	background-repeat: no-repeat;
-	color: #dda21f;
-	font-size: 1.35rem;
-	text-shadow: 1px 1px 1px #000;
 	cursor: pointer;
-	z-index: 20;
 }
-.wx-tavern-teahouse-btn:hover
+.wx-sect-rumor-btn:hover
 {
 	background-image: url("coui://gfx/ui/skin/button_02_hovered.png");
+}
+.wx-sect-rumor-btn.is-disabled
+{
+	opacity: 0.45;
+	cursor: default;
+	pointer-events: none;
 }
 
 .wx-sect-money-badge
@@ -806,18 +821,44 @@
 	border: 1px solid rgba(154, 114, 54, 0.45);
 }
 
+.wx-tea-hall-hdr
+{
+	font-size: 1.25rem;
+	color: #e6c687;
+	margin: 0.45rem 0 0.22rem 0;
+	padding-left: 0.45rem;
+	border-left: 2px solid #dda21f;
+	line-height: 1.5rem;
+}
+
 .wx-tea-btn
 {
 	display: inline-block;
-	height: 3.0rem;
-	line-height: 3.0rem;
-	padding: 0 0.75rem;
-	margin: 0.2rem 0.35rem 0.2rem 0;
+	height: 3.3rem;
+	line-height: 3.3rem;
+	padding: 0 0.85rem;
+	margin: 0.22rem 0.4rem 0.22rem 0;
 	font-size: 1.25rem;
 	color: #dda21f;
 	background-image: url("coui://gfx/ui/skin/button_02_default.png");
 	background-size: 100% 100%;
 	cursor: pointer;
+	vertical-align: middle;
+}
+
+.wx-tea-btn.has-ico
+{
+	padding-left: 0.65rem;
+	padding-right: 0.9rem;
+}
+
+.wx-tea-btn-ico
+{
+	display: inline-block;
+	vertical-align: middle;
+	width: 2.1rem;
+	height: 2.1rem;
+	margin: -0.22rem 0.42rem 0 0;
 }
 .wx-tea-btn:hover
 {
@@ -878,4 +919,170 @@
 {
 	border-color: #cd2626;
 	color: #ff9a8f;
+}
+
+/* 9. 铜镜江湖易容阁 (WorldTownScreenBarberDialogModule — 1000-Faces + Rename + Disguise) */
+.world-town-screen > .l-barber-dialog-container .details-container.wx-barber-details
+{
+	position: relative !important;
+	height: 100% !important;
+}
+
+.world-town-screen > .l-barber-dialog-container .details-container.wx-barber-details > .row.is-character-container
+{
+	height: 16.8rem !important;
+	position: relative !important;
+}
+
+.wx-disguise-root
+{
+	position: absolute;
+	left: 0.8rem;
+	right: 0.8rem;
+	top: 17.4rem;
+	bottom: 0.8rem;
+	padding: 0.7rem 0.9rem;
+	background-image: url("coui://gfx/ui/skin/dialog_panel_01.png");
+	background-size: 100% 100%;
+	color: #d7b174;
+	font-size: 1.32rem;
+	text-shadow: 1px 1px 1px #000;
+	overflow-y: auto;
+	overflow-x: hidden;
+	z-index: 10;
+	box-sizing: border-box;
+}
+
+.wx-disguise-sec-hdr
+{
+	font-size: 1.45rem;
+	color: #dda21f;
+	margin-bottom: 0.35rem;
+}
+
+.wx-disguise-step-row
+{
+	position: relative;
+	height: 2.9rem;
+	line-height: 2.9rem;
+	margin-bottom: 0.28rem;
+	padding: 0 0.4rem;
+	background: rgba(18, 13, 8, 0.45);
+	border-bottom: 1px solid rgba(90, 67, 37, 0.35);
+}
+
+.wx-disguise-step-lbl
+{
+	float: left;
+	width: 7.4rem;
+	color: #bd9d71;
+	font-size: 1.3rem;
+}
+
+.wx-disguise-step-val
+{
+	display: inline-block;
+	width: 14.8rem;
+	text-align: center;
+	color: #ffe28a;
+	font-size: 1.32rem;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	vertical-align: top;
+}
+
+.wx-disguise-arr
+{
+	display: inline-block;
+	width: 3.1rem;
+	height: 2.6rem;
+	line-height: 2.6rem;
+	margin-top: 0.15rem;
+	text-align: center;
+	color: #dda21f;
+	font-size: 1.4rem;
+	background-image: url("coui://gfx/ui/skin/button_03_default.png");
+	background-size: 100% 100%;
+	cursor: pointer;
+	vertical-align: top;
+}
+.wx-disguise-arr:hover
+{
+	background-image: url("coui://gfx/ui/skin/button_03_hovered.png");
+	color: #ffe28a;
+}
+.wx-disguise-arr.is-disabled
+{
+	opacity: 0.38;
+	pointer-events: none;
+}
+
+.wx-disguise-mini-bar
+{
+	margin: 0.4rem 0 0.65rem 0;
+}
+
+.wx-disguise-btn
+{
+	display: inline-block;
+	height: 3.0rem;
+	line-height: 3.1rem;
+	padding: 0 0.85rem;
+	margin: 0.15rem 0.35rem 0.15rem 0;
+	text-align: center;
+	font-size: 1.28rem;
+	color: #dda21f;
+	background-image: url("coui://gfx/ui/skin/button_02_default.png");
+	background-size: 100% 100%;
+	cursor: pointer;
+}
+.wx-disguise-btn:hover
+{
+	background-image: url("coui://gfx/ui/skin/button_02_hovered.png");
+	color: #ffe28a;
+}
+.wx-disguise-btn.is-disabled
+{
+	opacity: 0.45;
+	cursor: default;
+	pointer-events: none;
+}
+
+.wx-disguise-inp-row
+{
+	margin-bottom: 0.4rem;
+	white-space: nowrap;
+}
+
+.wx-disguise-inp
+{
+	display: inline-block;
+	width: 11.2rem;
+	height: 2.9rem;
+	padding: 0 0.65rem;
+	margin-right: 0.35rem;
+	border: none;
+	outline: none;
+	background-image: url("coui://gfx/ui/skin/text_input_300x40_default.png");
+	background-size: 100% 100%;
+	color: #dda21f;
+	font-size: 1.32rem;
+	text-shadow: 1px 1px 1px #000;
+	vertical-align: middle;
+	-webkit-user-select: text;
+	user-select: text;
+}
+.wx-disguise-inp:focus
+{
+	background-image: url("coui://gfx/ui/skin/text_input_300x40_selected.png");
+}
+
+.wx-disguise-status
+{
+	font-size: 1.25rem;
+	line-height: 1.75rem;
+	color: #bd9d71;
+	font-style: italic;
+	margin-bottom: 0.4rem;
 }

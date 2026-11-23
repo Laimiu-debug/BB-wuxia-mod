@@ -52,7 +52,8 @@
 		{ ManualID = "wx_manual_hanhai_xinyue",    Tier = 3, Weight = 30 },
 		{ ManualID = "wx_manual_mingzun_huo",      Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_hanhai_guke",      Tier = 2, Weight = 25 },
-		{ ManualID = "wx_manual_hanhai_shishen",   Tier = 2, Weight = 20 }
+		{ ManualID = "wx_manual_hanhai_shishen",   Tier = 2, Weight = 20 },
+		{ ManualID = "wx_manual_hamagong",         Tier = 2, Weight = 20 }
 	] },
 	southern_assassin = { Troop = "Assassin", DropChance = 50, IsBoss = true, IsGrandmaster = true, CustomBust = "wx_enemy_blade_dancer", Manuals = [
 		{ ManualID = "wx_manual_youming_bi",       Tier = 3, Weight = 30 },
@@ -61,7 +62,42 @@
 		{ ManualID = "wx_manual_mingzun_shenghuoling", Tier = 3, Weight = 20 }
 	] },
 
+	// M4.2 Ecology Expansion: 常规官军与基层战兵 (Standard Human Line Troops — lightweight Tier-1 martial cohesion)
+	footman = { Troop = "Footman", DropChance = 7, IsBoss = false, Manuals = [
+		{ ManualID = "wx_manual_tiebushan", Tier = 1, Weight = 50 },
+		{ ManualID = "wx_manual_wuhudao",   Tier = 1, Weight = 50 }
+	] },
+	billman = { Troop = "Billman", DropChance = 7, IsBoss = false, Manuals = [
+		{ ManualID = "wx_manual_xingqi",    Tier = 1, Weight = 50 },
+		{ ManualID = "wx_manual_weiyuan",   Tier = 1, Weight = 50 }
+	] },
+	arbalester = { Troop = "Arbalester", DropChance = 7, IsBoss = false, Manuals = [
+		{ ManualID = "wx_manual_xiushou",   Tier = 1, Weight = 55 },
+		{ ManualID = "wx_manual_jianbu",    Tier = 1, Weight = 45 }
+	] },
+	conscript = { Troop = "Conscript", DropChance = 7, IsBoss = false, Manuals = [
+		{ ManualID = "wx_manual_liesha_tuna",      Tier = 1, Weight = 50 },
+		{ ManualID = "wx_manual_hanhai_wandao_ru", Tier = 1, Weight = 50 }
+	] },
+	gunner = { Troop = "Gunner", DropChance = 9, IsBoss = false, Manuals = [
+		{ ManualID = "wx_manual_shazhou_leihuo_chong", Tier = 1, Weight = 60 },
+		{ ManualID = "wx_manual_jianbu",               Tier = 1, Weight = 40 }
+	] },
+	nomad_cutthroat = { Troop = "NomadCutthroat", DropChance = 6, IsBoss = false, Manuals = [
+		{ ManualID = "wx_manual_liesha_tuna", Tier = 1, Weight = 50 },
+		{ ManualID = "wx_manual_liusha_bu",   Tier = 1, Weight = 50 }
+	] },
+	barbarian_thrall = { Troop = "BarbarianThrall", DropChance = 6, IsBoss = false, Manuals = [
+		{ ManualID = "wx_manual_heishui_xue",     Tier = 1, Weight = 50 },
+		{ ManualID = "wx_manual_heishui_kuangfu", Tier = 1, Weight = 50 }
+	] },
+
 	// M4.2 Ecology Expansion: 地方藩镇与军镇高手 (Noble Military & City-State Elites)
+	standard_bearer = { Troop = "StandardBearer", DropChance = 20, IsBoss = false, Manuals = [
+		{ ManualID = "wx_manual_yaqi_zhenzhen",    Tier = 2, Weight = 40 },
+		{ ManualID = "wx_manual_juyiling",         Tier = 2, Weight = 35 },
+		{ ManualID = "wx_manual_baima_zhenshu",    Tier = 2, Weight = 25 }
+	] },
 	sergeant = { Troop = "Sergeant", DropChance = 18, IsBoss = false, Manuals = [
 		{ ManualID = "wx_manual_juyiling",         Tier = 2, Weight = 35 },
 		{ ManualID = "wx_manual_baima_zhenshu",    Tier = 2, Weight = 35 },
@@ -71,13 +107,15 @@
 		{ ManualID = "wx_manual_hengshan_tiebi",   Tier = 3, Weight = 30 },
 		{ ManualID = "wx_manual_yanmen_zhenjun",   Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_cuijia_liuhua",    Tier = 2, Weight = 25 },
-		{ ManualID = "wx_manual_shaolin_jinzhong", Tier = 2, Weight = 20 }
+		{ ManualID = "wx_manual_shaolin_jinzhong", Tier = 2, Weight = 20 },
+		{ ManualID = "wx_manual_babao_liangyinqiang", Tier = 2, Weight = 20 }
 	] },
 	officer = { Troop = "Officer", DropChance = 38, IsBoss = true, CustomBust = "wx_enemy_shenji_officer", Manuals = [
 		{ ManualID = "wx_manual_huaiyang_jindao",  Tier = 3, Weight = 30 },
 		{ ManualID = "wx_manual_shazhou_leihuo_chong", Tier = 2, Weight = 25 },
 		{ ManualID = "wx_manual_wuwei_shuaiqi",    Tier = 2, Weight = 20 },
-		{ ManualID = "wx_manual_gufeng",           Tier = 2, Weight = 25 }
+		{ ManualID = "wx_manual_gufeng",           Tier = 2, Weight = 25 },
+		{ ManualID = "wx_manual_taiyuan_huoyandao", Tier = 2, Weight = 20 }
 	] },
 	gladiator = { Troop = "Gladiator", DropChance = 20, IsBoss = false, Manuals = [
 		{ ManualID = "wx_manual_qianjiang_nuchao_zhang", Tier = 2, Weight = 30 },
@@ -185,7 +223,67 @@
 	}
 
 	c.syncGrantedSkills();
-	_actor.getSkills().update();
+	local skills = _actor.getSkills();
+	skills.update();
+
+	// Anti-double-stacking fairness: strip overlapping vanilla defensive perks when an enemy equips equivalent Wuxia manuals!
+	// Note: `perk.brawny` and `perk.steel_brow` are granted directly via `GrantSkills` in `syncGrantedSkills()` (non-stacking),
+	// so removing them here would strip the manual's own granted perk.
+	if (c.m.CachedAggFlags != null)
+	{
+		local agg = c.m.CachedAggFlags;
+		if (agg.LightArmorMitigation > 0 && skills.hasSkill("perk.nimble"))
+			skills.removeByID("perk.nimble");
+		if (agg.HeavyArmorScale > 0 && skills.hasSkill("perk.battle_forged"))
+			skills.removeByID("perk.battle_forged");
+		if (agg.InitToDefRatio > 0 && skills.hasSkill("perk.dodge"))
+			skills.removeByID("perk.dodge");
+		if ((agg.StaffGuard || agg.UnderdogGuard) && skills.hasSkill("perk.underdog"))
+			skills.removeByID("perk.underdog");
+		if (agg.EmptyOffhandPen > 0 && skills.hasSkill("perk.duelist"))
+			skills.removeByID("perk.duelist");
+		skills.update();
+	}
+
+	// Ensure martial enemies possess the matching vanilla AI behavior drivers for their Wuxia tactical skills!
+	if (::Wuxia.hasMember(_actor, "getAIAgent") && _actor.getAIAgent() != null)
+	{
+		local agent = _actor.getAIAgent();
+		local ensureBeh = function( _agent, _behID, _behScript )
+		{
+			try
+			{
+				if (::Wuxia.hasMember(_agent, "getBehavior") && _agent.getBehavior(_behID) == null)
+					_agent.addBehavior(::new(_behScript));
+			}
+			catch (_e) {}
+		};
+		local hasPrefix = function( _skContainer, _pfx )
+		{
+			foreach (s in _skContainer.getAllSkillsOfType(::Const.SkillType.Active))
+			{
+				if (s != null && s.getID().find(_pfx) == 0) return true;
+			}
+			return false;
+		};
+		if (skills.hasSkill("actives.wx_meditate") || hasPrefix(skills, "actives.wx_neigong_"))
+			ensureBeh(agent, ::Const.AI.Behavior.ID.Recover, "scripts/ai/tactical/behaviors/ai_recover");
+		if (hasPrefix(skills, "actives.wx_neigong_") || hasPrefix(skills, "actives.wx_henglian_") || hasPrefix(skills, "actives.wx_shield_"))
+			ensureBeh(agent, ::Const.AI.Behavior.ID.Indomitable, "scripts/ai/tactical/behaviors/ai_indomitable");
+		if (skills.hasSkill("actives.wx_blood_burst"))
+			ensureBeh(agent, ::Const.AI.Behavior.ID.Adrenaline, "scripts/ai/tactical/behaviors/ai_adrenaline");
+		if (hasPrefix(skills, "actives.wx_qinggong_"))
+			ensureBeh(agent, ::Const.AI.Behavior.ID.Disengage, "scripts/ai/tactical/behaviors/ai_disengage");
+		if (hasPrefix(skills, "actives.wx_tactics_") || skills.hasSkill("actives.wx_staff_challenge"))
+		{
+			ensureBeh(agent, ::Const.AI.Behavior.ID.Warcry, "scripts/ai/tactical/behaviors/ai_warcry");
+			ensureBeh(agent, ::Const.AI.Behavior.ID.Rally, "scripts/ai/tactical/behaviors/ai_rally");
+		}
+		if (skills.hasSkill("actives.wx_saber_sweep") || skills.hasSkill("actives.wx_pole_sweep") || skills.hasSkill("actives.wx_axe_whirl")
+			|| skills.hasSkill("actives.wx_sword_wanjian") || skills.hasSkill("actives.wx_saber_abi") || skills.hasSkill("actives.wx_saber_kuanglan")
+			|| skills.hasSkill("actives.wx_fist_rulai") || skills.hasSkill("actives.wx_pole_pojun") || skills.hasSkill("actives.wx_staff_qingou") || skills.hasSkill("actives.wx_hammer_pocheng"))
+			ensureBeh(agent, ::Const.AI.Behavior.ID.Swing, "scripts/ai/tactical/behaviors/ai_attack_swing");
+	}
 };
 
 ::Wuxia.Loot.pickWeightedManual <- function( _loadout )
@@ -223,7 +321,12 @@
 	local isGrandmaster = ("IsGrandmaster" in _profile) && _profile.IsGrandmaster;
 
 	// Strictly gated drop rates: common street manuals or single torn pages (`wx_page_item`)
-	if (_pool.len() > 0 && ::Math.rand(1, 100) <= _profile.DropChance)
+	local effDropChance = _profile.DropChance;
+	if ("World" in getroottable() && ::World != null && ("Assets" in ::World) && ::World.Assets != null && ::World.Assets.getOrigin() != null && ::World.Assets.getOrigin().getID() == "scenario.wx_origin_blood_remnant")
+	{
+		effDropChance = ::Math.min(100, ::Math.round(effDropChance * 1.25).tointeger());
+	}
+	if (_pool.len() > 0 && ::Math.rand(1, 100) <= effDropChance)
 	{
 		local manualID = ::Wuxia.Loot.pickWeightedManual(_pool);
 		local def = ::Wuxia.Slots.getManualDef(manualID);
@@ -318,25 +421,50 @@
 {
 	if (_stash == null) return;
 
-	// Avoid over-stuffing if shop already has Wuxia manuals
+	// Avoid over-stuffing if shop already has a full Wuxia manual shelf (4 balanced common books)
 	local existingManuals = 0;
+	local seenManuals = {};
 	foreach (it in _stash.getItems())
 	{
 		if (it != null && it.getID() == "misc.wx_manual_item")
-			existingManuals += 1;
-	}
-	if (existingManuals >= 2) return;
-
-	// Stock up to 2 random common manuals (大路货) from the street/folk manual pool
-	local commons = ::Wuxia.Loot.getManualIDsByQuality("common");
-	if (commons.len() > 0)
-	{
-		for (local i = existingManuals; i < 2; i = ++i)
 		{
-			local mid = commons[::Math.rand(0, commons.len() - 1)];
-			local mItem = ::new("scripts/items/misc/wx_manual_item");
-			mItem.initManual(mid);
-			_stash.add(mItem);
+			existingManuals += 1;
+			if (::Wuxia.hasMember(it, "getManualID"))
+				seenManuals[it.getManualID()] <- true;
+		}
+	}
+	if (existingManuals < 4)
+	{
+		// Stock 4 category-balanced common manuals (1 Neigong + 1 Qinggong/Henglian + 2 Waigong)
+		// to eliminate early-game RNG droughts when filling 12-bro starter slots!
+		local byCat = { neigong = [], support = [], waigong = [] };
+		foreach (mid, def in ::Wuxia.Config.Manuals)
+		{
+			if (def.Quality != "common") continue;
+			if (def.Category == "neigong") byCat.neigong.push(mid);
+			else if (def.Category == "waigong") byCat.waigong.push(mid);
+			else byCat.support.push(mid);
+		}
+		local desiredPools = [byCat.neigong, byCat.support, byCat.waigong, byCat.waigong];
+		for (local i = existingManuals; i < 4; i = ++i)
+		{
+			local pool = desiredPools[i % desiredPools.len()];
+			if (pool.len() == 0) pool = ::Wuxia.Loot.getManualIDsByQuality("common");
+			local picked = null;
+			for (local tries = 0; tries < 8 && pool.len() > 0; tries = ++tries)
+			{
+				local cand = pool[::Math.rand(0, pool.len() - 1)];
+				if (!(cand in seenManuals)) { picked = cand; break; }
+			}
+			if (picked == null && pool.len() > 0)
+				picked = pool[::Math.rand(0, pool.len() - 1)];
+			if (picked != null)
+			{
+				seenManuals[picked] <- true;
+				local mItem = ::new("scripts/items/misc/wx_manual_item");
+				mItem.initManual(picked);
+				_stash.add(mItem);
+			}
 		}
 	}
 

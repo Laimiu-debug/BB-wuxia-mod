@@ -8,9 +8,15 @@ this.wx_jianghu_start <- this.inherit("scripts/scenarios/world/starting_scenario
 	{
 		this.m.ID = "scenario.wx_jianghu_start";
 		this.m.Name = "初走江湖 · 威远散镖队";
-		this.m.Description = "[p=c][img]gfx/ui/events/wx_ev_06.png[/img][/p][p]五名出身各异的江湖散客结伴同行，凭一纸护镖红契踏入风云激荡的九州武林。队中并无铁律绑定的不死主角——谁觅得秘籍机缘、熬过刀光剑影，谁便是名震天下的当家大哥；亦人人皆可马革裹尸。[/p][p][color=#bcad8c]• 开局阵容：5 名江湖散客（刀枪剑拳弓齐备，各带基础大路货武学）\n• 起始资财：2,500 两纹银，附金疮散、护心丹与健步功各一\n• 义社规模：12 人上阵 / 20 人花名册，无领队阵亡强制败局[/color][/p]";
+		this.m.Description = "[p=c][img]gfx/ui/events/wx_ev_06.png[/img][/p][p]五名出身各异的江湖散客结伴同行，凭一纸护镖红契踏入风云激荡的九州武林。队中并无铁律绑定的不死主角——谁觅得秘籍机缘、熬过刀光剑影，谁便是名震天下的当家大哥；亦人人皆可马革裹尸。[/p][p][color=#bcad8c]• 开局阵容：5 名江湖散客（刀枪剑拳弓齐备，各带基础大路货武学）\n• 起始资财：2,500 两纹银，附金疮散、护心丹与健步功各一\n• 四海皆友：州府友好度衰减减缓 25%，九州宗门正面交情涨幅 +10%，无门派禁令[/color][/p]";
 		this.m.Difficulty = 2;
 		this.m.Order = 1;
+	}
+
+	function onInit()
+	{
+		if ("RelationDecayGoodMult" in this.World.Assets.m)
+			this.World.Assets.m.RelationDecayGoodMult *= 0.75;
 	}
 
 	function onSpawnAssets()
@@ -72,7 +78,7 @@ this.wx_jianghu_start <- this.inherit("scripts/scenarios/world/starting_scenario
 					::Wuxia.Slots.equipManual(bro, 1, waiID, false);
 					grantedNames.push(::Wuxia.Slots.getManualDef(waiID).Name);
 				}
-				if (bro.getBackground() != null && ("WX_RefreshStarterNote" in bro.getBackground()))
+				if (bro.getBackground() != null && ::Wuxia.hasMember(bro.getBackground(), "WX_RefreshStarterNote"))
 					bro.getBackground().WX_RefreshStarterNote(grantedNames);
 				bro.getSkills().update();
 			}

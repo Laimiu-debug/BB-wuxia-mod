@@ -2,9 +2,10 @@
 
 this.wx_internal_injury <- this.inherit("scripts/skills/skill", {
 	m = {
-		Severity          = 1,     // 1 = 轻度内伤, 2 = 经脉震荡(重度内伤)
-		DaysRemaining     = 3,
-		PermanentScars    = 0      // 永久经脉暗疾层数（洗髓冲高星失败未服护脉丹所致）
+		Severity               = 1,     // 1 = 轻度内伤, 2 = 经脉震荡(重度内伤)
+		DaysRemaining          = 3,
+		PermanentScars         = 0,     // 永久经脉暗疾层数（洗髓冲高星失败未服护脉丹所致）
+		WX_HasExplicitDuration = false
 	},
 
 	function create()
@@ -23,8 +24,20 @@ this.wx_internal_injury <- this.inherit("scripts/skills/skill", {
 
 	function applySeverity( _severity, _days )
 	{
-		this.m.Severity = ::Math.max(this.m.Severity, _severity);
-		this.m.DaysRemaining = ::Math.max(this.m.DaysRemaining, _days);
+		local adjDays = _days;
+		if (adjDays > 1 && "World" in getroottable() && ::World != null && ("Retinue" in ::World) && ::World.Retinue != null && ::World.Retinue.hasFollower("follower.surgeon"))
+			adjDays = ::Math.max(1, adjDays - 1);
+		if (!this.m.WX_HasExplicitDuration)
+		{
+			this.m.WX_HasExplicitDuration = true;
+			this.m.Severity = _severity;
+			this.m.DaysRemaining = adjDays;
+		}
+		else
+		{
+			this.m.Severity = ::Math.max(this.m.Severity, _severity);
+			this.m.DaysRemaining = ::Math.max(this.m.DaysRemaining, adjDays);
+		}
 		this.updateLabel();
 	}
 
@@ -38,6 +51,7 @@ this.wx_internal_injury <- this.inherit("scripts/skills/skill", {
 	{
 		this.m.Severity = 0;
 		this.m.DaysRemaining = 0;
+		this.m.WX_HasExplicitDuration = false;
 		if (this.m.PermanentScars <= 0)
 		{
 			this.removeSelf();
@@ -115,6 +129,7 @@ this.wx_internal_injury <- this.inherit("scripts/skills/skill", {
 			if (this.m.DaysRemaining <= 0)
 			{
 				this.m.Severity = 0;
+				this.m.WX_HasExplicitDuration = false;
 				if (this.m.PermanentScars <= 0)
 				{
 					this.removeSelf();
@@ -139,6 +154,7 @@ this.wx_internal_injury <- this.inherit("scripts/skills/skill", {
 		this.m.Severity = _in.readU8();
 		this.m.DaysRemaining = _in.readU8();
 		this.m.PermanentScars = _in.readU8();
+		this.m.WX_HasExplicitDuration = (this.m.DaysRemaining > 0);
 		this.updateLabel();
 	}
 });

@@ -14,7 +14,8 @@ this.wx_pill_battle_buff <- this.inherit("scripts/skills/skill", {
 		HasBaishe    = false, // 五毒百草辟瘴丸: Poison immunity, +4 MeleeDef, +4 RangedDef
 		HasJinzun    = false, // 金刚铁骨护体丸: -12% HP & Armor damage taken, Knockback immunity
 		HasHerbSwift = false, // 生嚼杜衡草: +10 Initiative
-		HasHerbCalm  = false  // 生服迷榖/帝休/植楮: +6 Bravery & Night immunity
+		HasHerbCalm  = false, // 生服迷榖/帝休/植楮: Bravery & Night immunity
+		HerbCalmBravery = 6
 	},
 
 	function create()
@@ -32,7 +33,7 @@ this.wx_pill_battle_buff <- this.inherit("scripts/skills/skill", {
 		this.m.IsRemovedAfterBattle = true;
 	}
 
-	function addPillBuff( _kind )
+	function addPillBuff( _kind, _herbCalmBravery = 6 )
 	{
 		if (_kind == "buff_qingxin") this.m.HasQingxin = true;
 		else if (_kind == "buff_hugu") this.m.HasHugu = true;
@@ -45,7 +46,11 @@ this.wx_pill_battle_buff <- this.inherit("scripts/skills/skill", {
 		else if (_kind == "buff_baishe") this.m.HasBaishe = true;
 		else if (_kind == "buff_jinzun") this.m.HasJinzun = true;
 		else if (_kind == "herb_swift") this.m.HasHerbSwift = true;
-		else if (_kind == "herb_calm") this.m.HasHerbCalm = true;
+		else if (_kind == "herb_calm")
+		{
+			this.m.HasHerbCalm = true;
+			this.m.HerbCalmBravery = _herbCalmBravery;
+		}
 		this.updateLabel();
 	}
 
@@ -109,7 +114,7 @@ this.wx_pill_battle_buff <- this.inherit("scripts/skills/skill", {
 		if (this.m.HasBaishe) list.push("百草辟瘴(免毒+4防)");
 		if (this.m.HasJinzun) list.push("金刚护体(减伤12%)");
 		if (this.m.HasHerbSwift) list.push("奇草善走(+10身)");
-		if (this.m.HasHerbCalm) list.push("奇草醒神(+6定)");
+		if (this.m.HasHerbCalm) list.push("奇草醒神(+" + this.m.HerbCalmBravery + "定)");
 		return list;
 	}
 
@@ -144,7 +149,7 @@ this.wx_pill_battle_buff <- this.inherit("scripts/skills/skill", {
 		if (this.m.HasHerbSwift)
 			ret.push({ id = 20, type = "text", icon = "ui/icons/initiative.png", text = "【杜衡奇草】身法临时 [color=" + pos + "]+10[/color]" });
 		if (this.m.HasHerbCalm)
-			ret.push({ id = 21, type = "text", icon = "ui/icons/bravery.png", text = "【山海灵枝】定力临时 [color=" + pos + "]+6[/color] 且免除夜盲" });
+			ret.push({ id = 21, type = "text", icon = "ui/icons/bravery.png", text = "【山海灵枝】定力临时 [color=" + pos + "]+" + this.m.HerbCalmBravery + "[/color] 且免除夜盲" });
 		return ret;
 	}
 
@@ -156,7 +161,7 @@ this.wx_pill_battle_buff <- this.inherit("scripts/skills/skill", {
 		// Use Math.max across same-stat battle pills to prevent stacking abuse!
 		local stamAdd = ::Math.max(this.m.HasHugu ? 12 : 0, this.m.HasZhuyu ? 16 : 0);
 		local recAdd  = ::Math.max(this.m.HasZhuyu ? 3 : 0, (this.m.HasHugu || this.m.HasGuiyuan) ? 2 : 0);
-		local bravAdd = ::Math.max(this.m.HasDixiu ? 14 : 0, ::Math.max(this.m.HasDingshen ? 10 : 0, this.m.HasHerbCalm ? 6 : 0));
+		local bravAdd = ::Math.max(this.m.HasDixiu ? 14 : 0, ::Math.max(this.m.HasDingshen ? 10 : 0, this.m.HasHerbCalm ? this.m.HerbCalmBravery : 0));
 		local initAdd = ::Math.max(this.m.HasDuheng ? 18 : 0, this.m.HasHerbSwift ? 10 : 0);
 
 		if (stamAdd > 0) _properties.Stamina += stamAdd;

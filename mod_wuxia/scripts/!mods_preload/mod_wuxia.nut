@@ -1,7 +1,7 @@
 ::Wuxia <- {
 	ID = "mod_wuxia",
 	Name = "山海武侠 (BB Wuxia)",
-	Version = "0.7.2",
+	Version = "0.8.8",
 	SchemaVersion = 1,
 	Config = {},
 	Text = {},
@@ -33,6 +33,38 @@
 	try { local _ = _obj[_key]; return true; } catch (_e) { return false; }
 };
 
+::Wuxia.hasWorldField <- function( _key )
+{
+	return ("World" in getroottable()) && ::Wuxia.hasMember(::World, _key) && ::World[_key] != null;
+};
+
+::Wuxia.isOnMap <- function( _ent )
+{
+	return _ent != null && ::Wuxia.hasMember(_ent, "isPlacedOnMap") && _ent.isPlacedOnMap();
+};
+
+// Modern Hooks `q` is a Squirrel class instance (`::Hooks.__Q.Q`), where `"fn" in q` checks Q's own class slots
+// rather than `q.__Prototype`; always query `q.contains(_key, _checkAncestors)` via `::Wuxia.qHas`!
+::Wuxia.qHas <- function( _q, _key, _checkAncestors = true )
+{
+	if (_q == null) return false;
+	if (typeof _q == "instance")
+		return _q.contains(_key, _checkAncestors);
+	return _checkAncestors ? ::Wuxia.hasMember(_q, _key) : (_key in _q);
+};
+
+::Wuxia.markWithdrawnForSale <- function( _item )
+{
+	_item.m.WX_WithdrawnForSale <- true;
+	_item.getFlags().set("WX_WithdrawnForSale", true);
+};
+
+::Wuxia.isWithdrawnForSale <- function( _item )
+{
+	return (("WX_WithdrawnForSale" in _item.m) && _item.m.WX_WithdrawnForSale)
+		|| _item.getFlags().has("WX_WithdrawnForSale");
+};
+
 ::Wuxia.HooksMod <- ::Hooks.register(::Wuxia.ID, ::Wuxia.Version, ::Wuxia.Name);
 
 // Pure Modern Hooks + Vanilla (zero MSU / DPF hard dependency!)
@@ -51,10 +83,12 @@
 	::Hooks.registerCSS("ui/mods/mod_wuxia/mod_wuxia.css");
 	::Hooks.registerCSS("ui/mods/mod_wuxia/wx_global_theme.css");
 	::Hooks.registerCSS("ui/mods/mod_wuxia/wx_alchemy_ui.css");
+	::Hooks.registerCSS("ui/mods/mod_wuxia/wx_gambling_ui.css");
 	::Hooks.registerLateJS("ui/mods/mod_wuxia/wx_ui_global_overhaul.js");
 	::Hooks.registerLateJS("ui/mods/mod_wuxia/screens_wuxia.js");
 	::Hooks.registerLateJS("ui/mods/mod_wuxia/character_screen_wuxia_module.js");
 	::Hooks.registerLateJS("ui/mods/mod_wuxia/wx_alchemy_ui.js");
+	::Hooks.registerLateJS("ui/mods/mod_wuxia/wx_gambling_ui.js");
 	::Hooks.registerLateJS("ui/mods/mod_wuxia/tactical_hud_wuxia.js");
 
 	// Load Core Framework Modules
@@ -84,15 +118,20 @@ if ("QueueBucket" in ::Hooks && "Last" in ::Hooks.QueueBucket)
 			if (entry.Prototype == null)
 				targets.push(srcPath);
 		}
+		targets.sort();
 		foreach (s in targets)
 			preloadSrc(s);
 
 		foreach (dir in [
+			"scripts/entity/tactical",
+			"scripts/entity/tactical/enemies",
+			"scripts/entity/tactical/humans",
 			"scripts/contracts/contracts",
 			"scripts/ambitions/ambitions",
 			"scripts/skills/backgrounds",
+			"scripts/skills/racial",
 			"scripts/entity/world/settlements/buildings",
-			"scripts/entity/world/attached_locations",
+			"scripts/entity/world/attached_location",
 			"scripts/items/weapons",
 			"scripts/items/weapons/named",
 			"scripts/items/weapons/oriental",
@@ -186,6 +225,12 @@ if ("QueueBucket" in ::Hooks && "AfterHooks" in ::Hooks.QueueBucket)
 			});
 		}
 
+		if ("WorldVisuals" in ::Wuxia && "initGlobals" in ::Wuxia.WorldVisuals)
+			::Wuxia.WorldVisuals.initGlobals();
+		if ("WorldVisuals" in ::Wuxia && "bindMapLabelsBridge" in ::Wuxia.WorldVisuals)
+			::Wuxia.WorldVisuals.bindMapLabelsBridge();
+		if ("Ecology" in ::Wuxia && "applyEntityNames" in ::Wuxia.Ecology)
+			::Wuxia.Ecology.applyEntityNames();
 		if (("TooltipEvents" in ::getroottable()) && ::TooltipEvents != null && ("UI" in ::Wuxia) && ("bindTooltipEventsInstance" in ::Wuxia.UI))
 			::Wuxia.UI.bindTooltipEventsInstance(::TooltipEvents);
 		if ("Appearance" in ::Wuxia && "applyShanHaiEntityStrings" in ::Wuxia.Appearance)

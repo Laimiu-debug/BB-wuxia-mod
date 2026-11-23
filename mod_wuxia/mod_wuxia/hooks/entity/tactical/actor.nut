@@ -2,6 +2,16 @@
 
 ::Wuxia.HooksMod.hook("scripts/entity/tactical/actor", function( q )
 {
+	q.checkMorale = @(__original) function( _change, _difficulty, _type = 0, _showIconBeforeMoraleIcon = "", _noNewLine = false )
+	{
+		if (_change < 0 && this.getSkills() != null)
+		{
+			local stance = this.getSkills().getSkillByID("actives.wx_neigong_junwu");
+			if (stance != null && stance.m.ActiveBuff) return false;
+		}
+		return __original(_change, _difficulty, _type, _showIconBeforeMoraleIcon, _noNewLine);
+	};
+
 	q.onAttackOfOpportunity = @(__original) function( _entity, _isOnEnter )
 	{
 		local c = this.getSkills().getSkillByID("special.wx_martial_container");
@@ -26,11 +36,14 @@
 		local skills = this.getSkills();
 		local container = skills == null ? null : skills.getSkillByID("special.wx_martial_container");
 		if (container == null) return baseMax;
-		return ::Math.min(::Wuxia.Config.Constants.MaxPermanentAP, baseMax + container.getPermanentAPBonus()) + container.m.TemporaryAPOverflow;
+		local permanent = ::Math.min(::Wuxia.Config.Constants.MaxPermanentAP, baseMax + container.getPermanentAPBonus());
+		return ::Math.min(::Wuxia.Config.Constants.MaxTemporaryAP, permanent + container.m.TemporaryAPOverflow);
 	};
 
 	q.onDeath = @(__original) function( _killer, _skill, _tile, _fatalityType )
 	{
+		if ("VFX" in ::Wuxia && "clearActorMotion" in ::Wuxia.VFX)
+			::Wuxia.VFX.clearActorMotion(this);
 		local isHandled = ("WX_DeathHandled" in this.m) && this.m.WX_DeathHandled;
 		local wxSnap = isHandled ? null : ::Wuxia.Appearance.captureDeathLayers(this);
 		local canDropBeast = (!this.isPlayerControlled() && _tile != null && _killer != null && _killer.isPlayerControlled() && !this.isAlliedWith(_killer));
@@ -39,11 +52,54 @@
 		__original(_killer, _skill, _tile, _fatalityType);
 		if (!isHandled && wxSnap != null)
 			::Wuxia.Appearance.applyWuxiaCorpseDecals(this, _tile, _fatalityType, wxSnap);
+		::Wuxia.Appearance.ensurePostDeathPortraitSprite(this);
 		if (canDropBeast && ("ShanHai" in ::Wuxia) && ("tryDropWildBeastLoot" in ::Wuxia.ShanHai))
 			::Wuxia.ShanHai.tryDropWildBeastLoot(this, _tile);
 		if (canDropBeast && ("BeastCraft" in ::Wuxia))
 			::Wuxia.BeastCraft.tryDropWildBeastMaterial(this, _killer, _tile);
 	};
+
+	if (::Wuxia.qHas(q, "onRender"))
+	{
+		q.onRender = @(__original) function()
+		{
+			__original();
+			if (("WX_Motion" in this.m) && this.m.WX_Motion != null && ("VFX" in ::Wuxia) && ("tickActorMotion" in ::Wuxia.VFX))
+			{
+				::Wuxia.VFX.tickActorMotion(this);
+			}
+		};
+	}
+	else
+	{
+		q.onRender <- function()
+		{
+			if (("WX_Motion" in this.m) && this.m.WX_Motion != null && ("VFX" in ::Wuxia) && ("tickActorMotion" in ::Wuxia.VFX))
+			{
+				::Wuxia.VFX.tickActorMotion(this);
+			}
+		};
+	}
+
+	if (::Wuxia.qHas(q, "onMovementStart"))
+	{
+		q.onMovementStart = @(__original) function( _tile, _numTiles )
+		{
+			if (("WX_Motion" in this.m) && this.m.WX_Motion != null && ("VFX" in ::Wuxia) && ("clearActorMotion" in ::Wuxia.VFX))
+				::Wuxia.VFX.clearActorMotion(this);
+			return __original(_tile, _numTiles);
+		};
+	}
+
+	if (::Wuxia.qHas(q, "onCombatFinished"))
+	{
+		q.onCombatFinished = @(__original) function()
+		{
+			if (("WX_Motion" in this.m) && this.m.WX_Motion != null && ("VFX" in ::Wuxia) && ("clearActorMotion" in ::Wuxia.VFX))
+				::Wuxia.VFX.clearActorMotion(this);
+			return __original();
+		};
+	}
 
 	q.getTooltip = @(__original) function( _targetedWithSkill = null )
 	{
@@ -58,8 +114,19 @@
 			ret.push({
 				id = 97,
 				type = "text",
-				icon = "ui/perks/wx_shanhai_boss_trait.png",
-				text = "[color=#e6b447]【山海凶威】" + shTrait.getName() + "[/color]"
+				icon = shTrait.getIcon(),
+				text = "[color=#721010]【山海凶威】" + shTrait.getName() + "[/color]"
+			});
+		}
+
+		local setRes = skills.getSkillByID("special.wx_shanhai_set_resonance");
+		if (setRes != null && !setRes.isHidden())
+		{
+			ret.push({
+				id = 98,
+				type = "text",
+				icon = setRes.getIcon(),
+				text = "[color=#5e2c00]【" + setRes.getName() + "】[/color]"
 			});
 		}
 
@@ -86,7 +153,7 @@
 					id = 96,
 					type = "text",
 					icon = "ui/wx_icons/wx_icon_qi.png",
-					text = "[color=#8ed1c8]【武学气象】" + elTxt + " · 身怀 " + cnt + " 门功法" + apNote + "[/color]"
+					text = "[color=#094039]【武学气象】" + elTxt + " · 身怀 " + cnt + " 门功法" + apNote + "[/color]"
 				});
 			}
 		}

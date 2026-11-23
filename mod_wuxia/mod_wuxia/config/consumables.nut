@@ -1,4 +1,4 @@
-// 22 Jianghu & Shan Hai Alchemy Spirit Pills + 17《山海本草》Rare Spirit Herbs
+// 22 Jianghu & Shan Hai Alchemy Spirit Pills + 49《山海本草》Spirit Herbs (expanded in wx_alchemy.nut -> 50 Pills + 49 Herbs)
 // Zero permanent stat bloat: all battle-prep pills & raw herb field buffs expire automatically after 1 combat.
 
 ::Wuxia.Config.MarrowWash <- {
@@ -248,7 +248,7 @@
 	}
 };
 
-// 17《山海本草》Rare Spirit Herbs (craftable into Spirit Pills at 百工炼丹房, or usable raw in emergencies!)
+// 49《山海本草》Spirit Herbs (craftable into Spirit Pills at 百工丹坊·八卦丹炉, or usable raw in emergencies!)
 ::Wuxia.Config.Herbs <- {
 	wx_marrow_herb = {
 		ID          = "wx_marrow_herb",
@@ -329,6 +329,7 @@
 		Quality     = "secret",
 		Kind        = "herb_calm",
 		Icon        = "misc/wx_herb_dixiu.png",
+		CalmBravery = 8,
 		Value       = 680,
 		Description = "《中山经》少室山黑文黄华神木枝，服者心平不怒：可在百工坊主炼「帝休定岳丹」，直接含服亦可令下场战斗定力 +8、夜战清明。"
 	},
@@ -448,5 +449,381 @@
 		Icon        = "misc/wx_herb_bingpocao.png",
 		Value       = 1100,
 		Description = "从极寒渊冰夷潜居处生出的剔透冰晶兰草：可在百工坊合炼「天山雪莲冰心丹」或淬炼寒系山海重宝，亦可拖入插槽灌注 +100 火候。"
+	},
+
+	// ==================== 卷二：五藏山经 · 道地本草与山泽灵卉（16 味） ====================
+	wx_herb_huangguan = {
+		ID          = "wx_herb_huangguan",
+		Name        = "北岳黄雚辟浴草",
+		Chapter     = "北山经",
+		SubLabel    = "浴之已疥",
+		Quality     = "common",
+		Kind        = "herb_ward_fire",
+		Icon        = "misc/wx_herb_huangguan.png",
+		Value       = 340,
+		Description = "《北山经》泰器与北岳山谷常生奇草，圆叶绿茎、白华紫颖，浴之已疥清火：可入八卦丹炉作玄阴臣佐辅药，临阵捣敷可令下场战斗免疫山海灼甲毒火光环。"
+	},
+	wx_herb_tiaocao = {
+		ID          = "wx_herb_tiaocao",
+		Name        = "独山条草白缕茎",
+		Chapter     = "东山经",
+		SubLabel    = "食之不惑",
+		Quality     = "common",
+		Kind        = "herb_calm",
+		CalmBravery = 5,
+		Icon        = "misc/wx_herb_tiaocao.png",
+		Value       = 330,
+		Description = "《东山经》独山与姑儿山道地灵草，状如葵而赤华黄实如婴儿舌，食之使人不惑：可入八卦丹炉配炼镇魂定神散剂，生嚼可令下场战斗定力 +5 且免夜盲。"
+	},
+	wx_herb_pincao = {
+		ID          = "wx_herb_pincao",
+		Name        = "太行薲草青华叶",
+		Chapter     = "北山经",
+		SubLabel    = "食之已疠",
+		Quality     = "common",
+		Kind        = "herb_hp",
+		HealAmount  = 22,
+		Icon        = "misc/wx_herb_pincao.png",
+		Value       = 310,
+		Description = "《北山经》太行水泽四叶奇草，青华白实，食之已疠疏风：乃八卦丹炉熬炼「金疮止血散」「易筋活络膏」之良善生机本草，生嚼亦可立回 22 点气血。"
+	},
+	wx_herb_mangcao = {
+		ID          = "wx_herb_mangcao",
+		Name        = "蕀山芒草麻叶枝",
+		Chapter     = "中山经",
+		SubLabel    = "可以毒鱼",
+		Quality     = "common",
+		Kind        = "herb_detox",
+		Icon        = "misc/wx_herb_mangcao.png",
+		Value       = 350,
+		Description = "《中山经》蕀山与朝歌山奇木枝，状如棠而锯齿赤叶、汁带微麻，可以毒鱼辟虫：可入八卦丹炉充任奇毒药引，微量含服以毒攻毒令下战免疫奇毒。"
+	},
+	wx_herb_wutiao = {
+		ID           = "wx_herb_wutiao",
+		Name         = "高氏山无条圆草",
+		Chapter      = "东山经",
+		SubLabel     = "行血消瘿",
+		Quality      = "common",
+		Kind         = "herb_hp",
+		HealAmount   = 20,
+		CureOneWound = true,
+		Icon         = "misc/wx_herb_wutiao.png",
+		Value        = 360,
+		Description  = "《东山经》高氏山阳坡灵草，赤茎白华状如山樱，食之活血消瘿：可入八卦丹炉辅炼赤阳疗伤膏散，急用外敷可化去 1 处临时外伤并恢复 20 点气血。"
+	},
+	wx_herb_gurong = {
+		ID          = "wx_herb_gurong",
+		Name        = "幡冢山蓇蓉香草",
+		Chapter     = "南山经",
+		SubLabel    = "壮气健骨",
+		Quality     = "common",
+		Kind        = "herb_qi",
+		Icon        = "misc/wx_herb_gurong.png",
+		Value       = 370,
+		Description = "《山海经》幡冢山奇草，叶如兰蕙、根似桔梗而开玄黑奇花，佩服壮气强筋：可入八卦丹炉合炼「虎骨壮气丸」，临战嚼服令下场战斗内息 +12、回气 +2。"
+	},
+	wx_herb_jiancao = {
+		ID          = "wx_herb_jiancao",
+		Name        = "伦山葌草紫茸株",
+		Chapter     = "北山经",
+		SubLabel    = "清寒敛脉",
+		Quality     = "common",
+		Kind        = "herb_internal",
+		Icon        = "misc/wx_herb_jiancao.png",
+		Value       = 360,
+		Description = "《北山经》伦山寒涧奇草，紫茎青华状如霜韭，药性清冽敛血：可入八卦丹炉辅炼「护心丹」「忘尘归元散」，生服可平复散功虚弱或临时内伤。"
+	},
+	wx_herb_gouwen = {
+		ID          = "wx_herb_gouwen",
+		Name        = "南荒钩吻断肠藤",
+		Chapter     = "海内南经",
+		SubLabel    = "以毒攻毒",
+		Quality     = "sect",
+		Kind        = "herb_detox",
+		Icon        = "misc/wx_herb_gouwen.png",
+		Value       = 590,
+		Description = "《海内南经》南荒瘴林紫蔓黄花剧毒奇藤，俗称野葛断肠草：入八卦丹炉正是熬炼「南疆孔雀胆淬毒膏」「五仙腐骨散」的上乘奇毒主引，微量淬服反辟五毒。"
+	},
+	wx_herb_longchu = {
+		ID          = "wx_herb_longchu",
+		Name        = "东海龙刍骏骨草",
+		Chapter     = "东山经",
+		SubLabel    = "日行千里",
+		Quality     = "sect",
+		Kind        = "herb_swift",
+		Icon        = "misc/wx_herb_longchu.png",
+		Value       = 610,
+		Description = "《东山经》东海洲岛赤节盘须灵草，传为骏马食之日行千里之神刍：可在八卦丹炉主炼「杜衡追风丸」「龙虎提纵散」，生嚼可令下场战斗临时 +10 身法。"
+	},
+	wx_herb_baiman = {
+		ID          = "wx_herb_baiman",
+		Name        = "泰戏山白䔄凝血根",
+		Chapter     = "北山经",
+		SubLabel    = "凝肌封创",
+		Quality     = "sect",
+		Kind        = "herb_staunch",
+		Icon        = "misc/wx_herb_baiman.png",
+		Value       = 580,
+		Description = "《北山经》泰戏山白华玉根奇草，津液凝红如脂，专擅封疮止血：可在八卦丹炉主炼「玉肌止血散」，临阵敷服令下场战斗全程免疫流血割裂。"
+	},
+	wx_herb_xuanji = {
+		ID          = "wx_herb_xuanji",
+		Name        = "北嚣山玄棘寒实",
+		Chapter     = "北山经",
+		SubLabel    = "冰实涤火",
+		Quality     = "sect",
+		Kind        = "herb_ward_fire",
+		Icon        = "misc/wx_herb_xuanji.png",
+		Value       = 620,
+		Description = "《北山经》北嚣寒岭黑刺铁木所结幽蓝冰果，寒气彻骨：可在八卦丹炉主炼「玄冰辟火丸」「踏雪凌风露」，生吞令下场战斗免疫毒火灼甲光环并减远伤。"
+	},
+	wx_herb_yaocao = {
+		ID          = "wx_herb_yaocao",
+		Name        = "姑媱山帝女蘨草",
+		Chapter     = "中山经",
+		SubLabel    = "凝魂忘忧",
+		Quality     = "sect",
+		Kind        = "herb_calm",
+		CalmBravery = 7,
+		Icon        = "misc/wx_herb_yaocao.png",
+		Value       = 630,
+		Description = "《中山经》姑媱之山帝女精魂所化奇草，叠叶黄华、实如菟丝，服之忘忧定魄：可入八卦丹炉主炼「太清镇魔定脉丹」「九宫磐石丸」，含服令下战定力 +7 免夜盲。"
+	},
+	wx_herb_guimu = {
+		ID          = "wx_herb_guimu",
+		Name        = "东荒鬼目蚀骨蕈",
+		Chapter     = "东山经",
+		SubLabel    = "瘴蕈淬蛊",
+		Quality     = "sect",
+		Kind        = "herb_detox",
+		Icon        = "misc/wx_herb_guimu.png",
+		Value       = 640,
+		Description = "《东山经》阴湿幽谷腐骨上丛生的赤伞黑瞳奇蕈，孢雾腥冽：乃八卦丹炉炼制「五仙腐骨蚀甲散」「透骨寻隙封脉散」的奇毒灵材，焙干吞服可辟蛇蝎蛊毒。"
+	},
+	wx_herb_zhugu = {
+		ID          = "wx_herb_zhugu",
+		Name        = "钟山朱果赤丹实",
+		Chapter     = "西山经",
+		SubLabel    = "食之不倦",
+		Quality     = "sect",
+		Kind        = "herb_qi",
+		Icon        = "misc/wx_herb_zhugu.png",
+		Value       = 620,
+		Description = "《西山经》钟山钦䴔与鼓所守赤丹酸枣灵果，热力绵长食之不倦：可在八卦丹炉主炼「巨灵披甲行气丸」「醉仙望月狂酒」，生食令下战内息 +12、回气 +2。"
+	},
+	wx_herb_hanshui = {
+		ID          = "wx_herb_hanshui",
+		Name        = "敦薨寒水玉藻",
+		Chapter     = "北山经",
+		SubLabel    = "清渊护脉",
+		Quality     = "sect",
+		Kind        = "herb_internal",
+		Icon        = "misc/wx_herb_hanshui.png",
+		Value       = 600,
+		Description = "《北山经》敦薨寒潭赤鲑潜游处采得的碧玉冰藻，柔韧清润：可在八卦丹炉合炼「护脉丹」「先天真气护体丹」，生服可立解临时内伤与散功虚弱。"
+	},
+	wx_herb_sutiao = {
+		ID          = "wx_herb_sutiao",
+		Name        = "劳山夙条长青木",
+		Chapter     = "东山经",
+		SubLabel    = "四时不凋",
+		Quality     = "sect",
+		Kind        = "herb_infuse",
+		ExpAmount   = 70,
+		Icon        = "misc/wx_herb_sutiao.png",
+		Value       = 680,
+		Description = "《东山经》东海劳山苍皮碧芽长青古木枝，四时吞吐海岳元气：可在八卦丹炉合炼「凝神丸」「九转大还丹」，亦可拖入武学插槽生服参悟（+70 火候）。"
+	},
+
+	// ==================== 卷三：海外·海内·大荒经 · 秘境奇珍与天地仙株（16 味） ====================
+	wx_herb_zhenyu = {
+		ID          = "wx_herb_zhenyu",
+		Name        = "羽山鸩羽紫毒兰",
+		Chapter     = "海外南经",
+		SubLabel    = "霸毒续骨",
+		Quality     = "secret",
+		Kind        = "herb_infuse",
+		ExpAmount   = 95,
+		Icon        = "misc/wx_herb_zhenyu.png",
+		Value       = 980,
+		Description = "《海外南经》羽山绝壑受鸩鸟毒羽浸染而生的黑紫孔雀奇兰：其霸道奇毒药力正是八卦丹炉催炼「黑玉断续膏」根除永久残废之绝佳君药，亦可灌注 +95 火候。"
+	},
+	wx_herb_xiangliuxue = {
+		ID           = "wx_herb_xiangliuxue",
+		Name         = "共工台相柳腥血蕈",
+		Chapter      = "海外北经",
+		SubLabel     = "九首毒芝",
+		Quality      = "secret",
+		Kind         = "herb_hp",
+		HealAmount   = 42,
+		CureOneWound = true,
+		Icon         = "misc/wx_herb_xiangliuxue.png",
+		Value        = 1020,
+		Description  = "《海外北经》共工之台外围相柳毒血浸土三载凝出的九瓣腥红妖蕈：高阶奇毒与狂暴血气交融，可主炼「黑玉断续膏」「疯魔燃血丸」，急敷愈 1 处外伤并回 42 血。"
+	},
+	wx_herb_wuzhi = {
+		ID          = "wx_herb_wuzhi",
+		Name        = "巫咸山登葆百巫草",
+		Chapter     = "海外西经",
+		SubLabel    = "通天定识",
+		Quality     = "secret",
+		Kind        = "herb_infuse",
+		ExpAmount   = 95,
+		Icon        = "misc/wx_herb_wuzhi.png",
+		Value       = 950,
+		Description = "《海外西经》巫咸国登葆山群巫采药通灵之紫叶星纹仙草：乃八卦丹炉炼制「紫芝醍醐悟道丹」「九转大还丹」之上品镇魂君药，亦可拖入插槽灌注 +95 火候。"
+	},
+	wx_herb_danmu = {
+		ID           = "wx_herb_danmu",
+		Name         = "峚山丹木五色玉膏",
+		Chapter      = "西山经",
+		SubLabel     = "黄帝所食",
+		Quality      = "secret",
+		Kind         = "herb_hp",
+		HealAmount   = 52,
+		CureOneWound = true,
+		Icon         = "misc/wx_herb_danmu.png",
+		Value        = 960,
+		Description  = "《西山经》峚山赤茎圆叶丹木伴沸涌白玉膏凝结的五色灵脂，味甘如饴：可主炼「易筋锻骨丸」「洗髓丹」与「血竭续骨圣膏」，内服立愈 1 处外伤并回 52 气血。"
+	},
+	wx_herb_xunmu = {
+		ID          = "wx_herb_xunmu",
+		Name        = "大荒寻木千里灵蕊",
+		Chapter     = "海外北经",
+		SubLabel     = "垂荫千里",
+		Quality     = "secret",
+		Kind        = "herb_hp",
+		HealAmount  = 55,
+		Icon        = "misc/wx_herb_xunmu.png",
+		Value       = 940,
+		Description = "《海外北经》生于河上长千里之巨神木金绿花蕊，蕴藏磅礴生机：乃八卦丹炉主炼「生生造化丹」「天王吊命保心丹」之上品生机主药，生服直补 55 点气血。"
+	},
+	wx_herb_yushu = {
+		ID          = "wx_herb_yushu",
+		Name        = "昆仑开明琪花玉树",
+		Chapter     = "海内西经",
+		SubLabel    = "琼枝涤髓",
+		Quality     = "secret",
+		Kind        = "herb_internal",
+		Icon        = "misc/wx_herb_yushu.png",
+		Value       = 990,
+		Description = "《海内西经》昆仑开明兽北侧文玉琪树折下的琼枝珠花，冰清彻骨：可在八卦丹炉主炼「天山雪莲冰心丹」「先天真气护体丹」，生服立消临时内伤与散功虚弱。"
+	},
+	wx_herb_ruomu = {
+		ID          = "wx_herb_ruomu",
+		Name        = "灰野若木青叶赤华",
+		Chapter     = "大荒北经",
+		SubLabel    = "夕照神华",
+		Quality     = "secret",
+		Kind        = "herb_infuse",
+		ExpAmount   = 100,
+		Icon        = "misc/wx_herb_ruomu.png",
+		Value       = 1080,
+		Description = "《大荒北经》大荒灰野日落神树之青叶赤花，光华下照九地：可在八卦丹炉主炼「龙虎纯阳破邪丹」「孤锋破玉淬劲散」或「洗髓丹」，亦可插槽灌注 +100 火候。"
+	},
+	wx_herb_yinglu = {
+		ID          = "wx_herb_yinglu",
+		Name        = "沃民之野甘露嘉果",
+		Chapter     = "海外西经",
+		SubLabel    = "百凤衔露",
+		Quality     = "secret",
+		Kind        = "herb_staunch",
+		Icon        = "misc/wx_herb_yinglu.png",
+		Value       = 920,
+		Description = "《海外西经》沃民之国鸾歌凤舞处甘露凝成的双生金果：可在八卦丹炉主炼「神农百草返魂丹」「生生造化丹」，生食令下场战斗免流血割裂并持续回血。"
+	},
+	wx_herb_youduhua = {
+		ID          = "wx_herb_youduhua",
+		Name        = "幽都玄冥引魂冥花",
+		Chapter     = "海内经",
+		SubLabel    = "北海镇魄",
+		Quality     = "secret",
+		Kind        = "herb_calm",
+		CalmBravery = 10,
+		Icon        = "misc/wx_herb_youduhua.png",
+		Value       = 960,
+		Description = "《海内经》北海黑水幽都山玄虎守御的苍蓝引魂彼岸奇花：可在八卦丹炉主炼「太清镇魔定脉丹」「帝休定岳丹」，生服令下场战斗定力 +10 且暗夜明目。"
+	},
+	wx_herb_langgan = {
+		ID          = "wx_herb_langgan",
+		Name        = "昆仑琅玕凤食碧实",
+		Chapter     = "海内西经",
+		SubLabel    = "凤凰所食",
+		Quality     = "secret",
+		Kind        = "herb_infuse",
+		ExpAmount   = 105,
+		Icon        = "misc/wx_herb_langgan.png",
+		Value       = 1120,
+		Description = "《海内西经》昆仑山三头人伺守的琅玕碧玉树珠实，唯凤凰食之：乃炼制「山海造化护脉金丹」「紫芝醍醐悟道丹」之造化奇珍，亦可插槽灌注 +105 火候。"
+	},
+	wx_herb_zhusang = {
+		ID          = "wx_herb_zhusang",
+		Name        = "空桑冰蚕寒丝雪椹",
+		Chapter     = "东山经",
+		SubLabel    = "霜雪凝丝",
+		Quality     = "secret",
+		Kind        = "herb_ward_fire",
+		Icon        = "misc/wx_herb_zhusang.png",
+		Value       = 950,
+		Description = "《东山经》空桑山千年霜雪与冰蚕寒丝裹结的晶白桑椹：可主炼「天山雪莲冰心丹」「透骨寻隙封脉散」，临战吞服令下场战斗免疫毒火灼甲光环并减远伤。"
+	},
+	wx_herb_panmu = {
+		ID          = "wx_herb_panmu",
+		Name        = "度索山蟠桃仙枝",
+		Chapter     = "海外东经",
+		SubLabel    = "万鬼辟易",
+		Quality     = "secret",
+		Kind        = "herb_qi",
+		Icon        = "misc/wx_herb_panmu.png",
+		Value       = 980,
+		Description = "《山海经》东海度索山盘曲三千里大桃木之向阳花果灵枝，神荼郁垒立于其下：可主炼「天王吊命保心丹」「易筋锻骨丸」，生服令下战内息 +12、回气 +2。"
+	},
+	wx_herb_fusang = {
+		ID          = "wx_herb_fusang",
+		Name        = "汤谷十日扶桑赤椹",
+		Chapter     = "大荒东经",
+		SubLabel    = "十日所浴",
+		Quality     = "unique",
+		Kind        = "herb_infuse",
+		ExpAmount   = 125,
+		Icon        = "misc/wx_herb_fusang.png",
+		Value       = 1450,
+		Description = "《海外东经·大荒东经》汤谷十日沐浴之扶桑神木九千年赤金桑椹，纯阳药力冠绝山海：可主炼「洗髓丹」「易筋锻骨丸」，或直接拖入插槽灌顶 +125 火候！"
+	},
+	wx_herb_busicao = {
+		ID          = "wx_herb_busicao",
+		Name        = "员丘不死长生仙草",
+		Chapter     = "海外南经",
+		SubLabel    = "赤泉长生",
+		Quality     = "unique",
+		Kind        = "herb_infuse",
+		ExpAmount   = 125,
+		Icon        = "misc/wx_herb_busicao.png",
+		Value       = 1480,
+		Description = "《海外南经》员丘赤泉畔不死神树下伴生的金叶玉茎长生仙草：乃炼制「生生造化丹」「神农百草返魂丹」「洗髓丹」的无上圣药，亦可插槽灌顶 +125 火候！"
+	},
+	wx_herb_jianmu = {
+		ID          = "wx_herb_jianmu",
+		Name        = "都广天梯建木青叶",
+		Chapter     = "海内经",
+		SubLabel    = "天地之中",
+		Quality     = "unique",
+		Kind        = "herb_infuse",
+		ExpAmount   = 130,
+		Icon        = "misc/wx_herb_jianmu.png",
+		Value       = 1520,
+		Description = "《海内经》天地之中都广之野众帝上下天梯「建木」的紫茎青叶黄实：禀极致造化药力，可直接主炼天品「太乙紫金洗髓丹」「太虚紫金大丹」，或灌顶 +130 火候！"
+	},
+	wx_herb_yuegui = {
+		ID          = "wx_herb_yuegui",
+		Name        = "大荒广寒月桂冰魄花",
+		Chapter     = "大荒西经",
+		SubLabel    = "太阴月魄",
+		Quality     = "unique",
+		Kind        = "herb_infuse",
+		ExpAmount   = 125,
+		Icon        = "misc/wx_herb_yuegui.png",
+		Value       = 1450,
+		Description = "《大荒西经》日月所入大荒绝巅沐太阴月华万载而开的银桂冰花，至阴涤髓：乃玄阴绝品仙株，可合炼一切冰寒护脉仙丹，或拖入武学插槽灌顶 +125 火候！"
 	}
 };

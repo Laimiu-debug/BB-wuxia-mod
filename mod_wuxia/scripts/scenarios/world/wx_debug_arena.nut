@@ -86,7 +86,7 @@ this.wx_debug_arena <- this.inherit("scripts/scenarios/world/starting_scenario",
 			"armor/named/wx_armor_zhuyan", "armor/named/wx_armor_feiyi", "armor/named/wx_armor_qiongqi", "armor/named/wx_armor_jumang",
 			"helmets/named/wx_helm_taotie", "helmets/named/wx_helm_bashe",
 			"accessory/wx_acc_jiuwei", "accessory/wx_acc_wuzhiqi",
-			"weapons/wx_beast_sword", "armor/wx_beast_armor_mid", "armor_upgrades/wx_up_chiling",
+			"weapons/wx_beast_sword", "armor/wx_beast_armor_med", "armor_upgrades/wx_up_chiling",
 			"misc/wx_core_zhuyan", "misc/wx_core_feiyi", "misc/wx_herb_zizhi", "misc/wx_herb_xuelian",
 			"misc/wx_mat_chiling", "misc/wx_mat_xuanlin", "misc/wx_mat_xiongjiao",
 			"misc/wx_mat_shagu", "misc/wx_mat_renjin", "misc/wx_mat_gujing"
@@ -114,7 +114,7 @@ this.wx_debug_arena <- this.inherit("scripts/scenarios/world/starting_scenario",
 		{
 			local mItem = ::new("scripts/items/misc/wx_manual_item");
 			mItem.initManual(stMid);
-			mItem.m.WX_WithdrawnForSale = true;
+			::Wuxia.markWithdrawnForSale(mItem);
 			stash.add(mItem);
 		}
 

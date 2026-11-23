@@ -461,7 +461,7 @@ def compile_all():
     world_entries = []
     for a in assets:
         aid = a["id"]
-        if (aid.startswith("wx_lair_") or (aid.startswith("wx_shanhai_") and a["stage"] == "4_beasts")) and a.get("hdPath"):
+        if (aid.startswith("wx_lair_") or (aid.startswith("wx_shanhai_") and a["stage"] in ("4_beasts", "6_world"))) and a.get("hdPath"):
             hp = os.path.join(ROOT, a["hdPath"])
             if os.path.exists(hp):
                 src_im = Image.open(hp).convert("RGBA")

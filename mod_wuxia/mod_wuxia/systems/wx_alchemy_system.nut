@@ -8,20 +8,64 @@ if (!("Alchemy" in ::Wuxia))
 	::Wuxia.Alchemy <- {};
 
 ::Wuxia.Alchemy.Fallback <- {
-	AutoStore      = true,
-	AutoTrophy     = false,
-	Keys           = {},
-	Counts         = {},
-	Meta           = {}
+	AutoStore          = true,
+	AutoTrophy         = false,
+	Keys               = {},
+	Counts             = {},
+	Meta               = {},
+	DiscoveredFormulas = {}
 };
 
 ::Wuxia.Alchemy.resetFallback <- function()
 {
-	::Wuxia.Alchemy.Fallback.AutoStore  = true;
-	::Wuxia.Alchemy.Fallback.AutoTrophy = false;
-	::Wuxia.Alchemy.Fallback.Keys       = {};
-	::Wuxia.Alchemy.Fallback.Counts     = {};
-	::Wuxia.Alchemy.Fallback.Meta       = {};
+	::Wuxia.Alchemy.Fallback.AutoStore          = true;
+	::Wuxia.Alchemy.Fallback.AutoTrophy         = false;
+	::Wuxia.Alchemy.Fallback.Keys               = {};
+	::Wuxia.Alchemy.Fallback.Counts             = {};
+	::Wuxia.Alchemy.Fallback.Meta               = {};
+	::Wuxia.Alchemy.Fallback.DiscoveredFormulas = {};
+};
+
+::Wuxia.Alchemy.isFormulaDiscovered <- function( _formulaID )
+{
+	if (_formulaID == null || _formulaID == "") return false;
+	if (("Alchemy" in ::Wuxia.Config) && ("StarterFormulas" in ::Wuxia.Config.Alchemy) && (_formulaID in ::Wuxia.Config.Alchemy.StarterFormulas))
+		return true;
+	if (::Wuxia.Alchemy.hasWorldFlags())
+		return ::World.Flags.get("wx_alc_known_" + _formulaID) ? true : false;
+	return (_formulaID in ::Wuxia.Alchemy.Fallback.DiscoveredFormulas);
+};
+
+::Wuxia.Alchemy.discoverFormula <- function( _formulaID )
+{
+	if (_formulaID == null || _formulaID == "") return false;
+	local wasNew = !::Wuxia.Alchemy.isFormulaDiscovered(_formulaID);
+	if (::Wuxia.Alchemy.hasWorldFlags())
+		::World.Flags.set("wx_alc_known_" + _formulaID, true);
+	else
+		::Wuxia.Alchemy.Fallback.DiscoveredFormulas[_formulaID] <- true;
+	return wasNew;
+};
+
+::Wuxia.Alchemy.unlockRandomUndiscoveredFormula <- function( _maxMinJunPotency = 5 )
+{
+	local preferred = [];
+	local fallback  = [];
+	foreach (f in ::Wuxia.Config.Alchemy.Formulas)
+	{
+		if (::Wuxia.Alchemy.isFormulaDiscovered(f.ID)) continue;
+		if (f.MinJunPotency <= _maxMinJunPotency)
+			preferred.push(f);
+		else
+			fallback.push(f);
+	}
+	local pool = preferred.len() > 0 ? preferred : fallback;
+	if (pool.len() == 0) return "";
+	local picked = pool[::Math.rand(0, pool.len() - 1)];
+	::Wuxia.Alchemy.discoverFormula(picked.ID);
+	if (picked.PillID in ::Wuxia.Config.Pills)
+		return ::Wuxia.Config.Pills[picked.PillID].Name;
+	return picked.ID;
 };
 
 ::Wuxia.Alchemy.hasWorldFlags <- function()
@@ -224,7 +268,7 @@ if (!("Alchemy" in ::Wuxia))
 			ItemID      = id,
 			SubID       = hasHerbMember ? _item.m.HerbID : "",
 			Kind        = "herb",
-			IsRare      = true,
+			IsRare      = (potH >= 3),
 			Nature      = natH,
 			Potency     = potH,
 			Name        = nmH,
@@ -545,7 +589,7 @@ if (!("Alchemy" in ::Wuxia))
 	{
 		local it = items[i];
 		if (it == null) continue;
-		if (!_includeWithdrawn && ("WX_WithdrawnForSale" in it.m) && it.m.WX_WithdrawnForSale)
+		if (!_includeWithdrawn && ::Wuxia.isWithdrawnForSale(it))
 			continue;
 
 		local meta = ::Wuxia.Alchemy.classifyItem(it);
@@ -591,7 +635,7 @@ if (!("Alchemy" in ::Wuxia))
 				return { Ok = false, Reason = "无法还原该药材物品实例。" };
 			break;
 		}
-		item.m.WX_WithdrawnForSale <- true;
+		::Wuxia.markWithdrawnForSale(item);
 		if (_stash.add(item) == null)
 		{
 			if (moved == 0)
@@ -766,6 +810,17 @@ if (!("Alchemy" in ::Wuxia))
 		catch (_e) {}
 	}
 
+	// 1b. Origin persistent rule: Wudu Healer (`scenario.wx_origin_wudu_healer`) alchemy specialization (+15% double/grade chance, -15% charcoal cost)
+	if ("World" in getroottable() && ::World != null && ("Assets" in ::World) && ::World.Assets != null && ::World.Assets.getOrigin() != null)
+	{
+		if (::World.Assets.getOrigin().getID() == "scenario.wx_origin_wudu_healer")
+		{
+			bonusDoublePct += 15;
+			costMult *= 0.85;
+			masterLabel = (masterLabel == "随军自炼") ? "南疆百草丹脉" : (masterLabel + " · 南疆百草");
+		}
+	}
+
 	// 2. Check Roster Brothers for Physician / Herbalist / Monk / Taoist / Scholar backgrounds
 	if ("World" in getroottable() && ::World != null && ("getPlayerRoster" in ::World) && ::World.getPlayerRoster() != null)
 	{
@@ -804,7 +859,7 @@ if (!("Alchemy" in ::Wuxia))
 	}
 
 	return {
-		BonusDoublePct = ::Math.min(35, bonusDoublePct),
+		BonusDoublePct = ::Math.min(45, bonusDoublePct),
 		CostMult       = costMult,
 		MasterLabel    = masterLabel
 	};
@@ -1021,6 +1076,7 @@ if (!("Alchemy" in ::Wuxia))
 	return {
 		Ok             = (haveMoney >= silverCost),
 		Reason         = (haveMoney < silverCost) ? ("炉火纹银不足（需 " + silverCost + " 两）。") : "",
+		IngredientsReady = true,
 		PillID         = formula.PillID,
 		PillName       = pdef.Name,
 		BaseYield      = formula.BaseYield,
@@ -1189,9 +1245,9 @@ if (!("Alchemy" in ::Wuxia))
 		else slotsFreed += 1;
 	}
 
-	local maxOutputPills = formula.BaseYield + 1;
-	if (freeSlots + slotsFreed < formula.BaseYield)
-		return { Ok = false, Reason = "战团仓库空位不足（至少需留出 " + formula.BaseYield + " 格空位盛放成丹；可先将奇草内丹收入百草药柜腾位）。" };
+	local maxOutputPills = (preview.DoubleChance > 0) ? (formula.BaseYield + 1) : formula.BaseYield;
+	if (freeSlots + slotsFreed < maxOutputPills)
+		return { Ok = false, Reason = "战团仓库空位不足（成丹及炉韵双丹至少需预留 " + maxOutputPills + " 格空位；可先将奇草内丹收入百草药柜腾位）。" };
 
 	// Deduct Silver & Ingredients
 	::World.Assets.addMoney(-preview.SilverCost);
@@ -1210,16 +1266,19 @@ if (!("Alchemy" in ::Wuxia))
 	local auxNat   = ("AuxNature" in preview) ? preview.AuxNature : "";
 	local auxTag   = (("AuxTitle" in preview) && preview.AuxTitle != "") ? ("·" + preview.AuxTitle) : "";
 
+	local brewedHighGrade = false;
 	for (local n = 0; n < formula.BaseYield; n = ++n)
 	{
 		local p = ::new("scripts/items/misc/wx_pill_item");
 		local rVar = ::Wuxia.Alchemy.rollPillVariant(gChances, auxNat);
+		if (rVar.Grade >= 2) brewedHighGrade = true;
 		p.initPillVariant(formula.PillID, rVar.Grade, rVar.PotencyPct, rVar.AuxNature);
 		stash.add(p);
 		createdSummaries.push("「" + p.getName() + "」（药效" + rVar.PotencyPct + "%" + auxTag + "）");
 	}
 
 	local bonusMsg = "";
+	local bonusDelivered = false;
 	if (isCrit && stash.getNumberOfEmptySlots() > 0)
 	{
 		local bonusPillID = ("BonusByproduct" in formula && formula.BonusByproduct != "")
@@ -1227,25 +1286,241 @@ if (!("Alchemy" in ::Wuxia))
 			: formula.PillID;
 		local bp = ::new("scripts/items/misc/wx_pill_item");
 		local bpVar = ::Wuxia.Alchemy.rollPillVariant(gChances, auxNat);
+		if (bpVar.Grade >= 2) brewedHighGrade = true;
 		bp.initPillVariant(bonusPillID, bpVar.Grade, bpVar.PotencyPct, bpVar.AuxNature);
 		stash.add(bp);
+		bonusDelivered = true;
 		if (bonusPillID == formula.PillID)
 			bonusMsg = " 炉生紫霞、丹韵双成，额外凝出 1 枚「" + bp.getName() + "」（药效" + bpVar.PotencyPct + "%）！";
 		else
 			bonusMsg = " 鼎内余韵凝丹，额外伴生 1 枚「" + bp.getName() + "」（药效" + bpVar.PotencyPct + "%）！";
 	}
 
+	if (brewedHighGrade && ::Wuxia.Alchemy.hasWorldFlags())
+		::World.Flags.set("wx_brewed_high_pill", true);
+
 	local outStr = createdSummaries[0];
 	for (local ci2 = 1; ci2 < createdSummaries.len(); ci2 = ++ci2)
 		outStr += "、" + createdSummaries[ci2];
 
+	local newlyRecorded = ::Wuxia.Alchemy.discoverFormula(formula.ID);
+	local discNote = newlyRecorded ? (" 【新录丹方】《" + preview.PillName + "》配伍法度已载入《丹经手札》！") : "";
+
 	return {
-		Ok        = true,
-		IsCrit    = isCrit,
-		PillID    = formula.PillID,
-		PillName  = preview.PillName,
-		BaseYield = formula.BaseYield,
-		Message   = "开炉功成！炼得 " + outStr + "（耗纹银 " + preview.SilverCost + " 两）！" + bonusMsg
+		Ok                  = true,
+		IsCrit              = bonusDelivered,
+		PillID              = formula.PillID,
+		PillName            = preview.PillName,
+		BaseYield           = formula.BaseYield,
+		DiscoveredFormulaID = newlyRecorded ? formula.ID : "",
+		Message             = "开炉功成！炼得 " + outStr + "（耗纹银 " + preview.SilverCost + " 两）！" + bonusMsg + discNote
+	};
+};
+
+// Match `[junKey, aux1Key, aux2Key]` against all 50 Bagua Cauldron Formulas (preferring undiscovered formulas & PreferredAuxNatures!)
+::Wuxia.Alchemy.matchBestFormulaForFreeBrew <- function( _slotKeys, _ingMap = null, _legacyAux2Nat = null, _legacyTotalPot = 0 )
+{
+	local jun = null;
+	local auxCount = 0;
+	local totalPot = 0;
+	local auxNatures = [];
+
+	if (typeof _slotKeys == "string")
+	{
+		// Support direct nature-probe signature `(junNature, aux1Nature, aux2Nature, totalPot)` used by selftest
+		local pPot = (_legacyTotalPot > 0) ? _legacyTotalPot : 6;
+		jun = { Nature = _slotKeys, Potency = ::Math.max(2, pPot / 2), IsRare = true };
+		if (typeof _ingMap == "string" && _ingMap != "") { auxCount += 1; auxNatures.push(_ingMap); }
+		if (typeof _legacyAux2Nat == "string" && _legacyAux2Nat != "") { auxCount += 1; auxNatures.push(_legacyAux2Nat); }
+		totalPot = pPot;
+	}
+	else
+	{
+		if (_slotKeys == null || _slotKeys.len() == 0 || _slotKeys[0] == null || _slotKeys[0] == "" || _ingMap == null || !(_slotKeys[0] in _ingMap))
+			return null;
+
+		jun = _ingMap[_slotKeys[0]];
+		totalPot = jun.Potency;
+		for (local si = 1; si < _slotKeys.len() && si <= 2; si = ++si)
+		{
+			local ak = _slotKeys[si];
+			if (ak == null || ak == "" || !(ak in _ingMap)) continue;
+			auxCount += 1;
+			totalPot += _ingMap[ak].Potency;
+			auxNatures.push(_ingMap[ak].Nature);
+		}
+	}
+	if (auxCount < 1) return null;
+
+	local bestF = null;
+	local bestScore = -1;
+	foreach (f in ::Wuxia.Config.Alchemy.Formulas)
+	{
+		if (!::Wuxia.Alchemy.doesJunMatchFormula(jun, f)) continue;
+		if (auxCount < f.MinAuxCount || totalPot < f.TargetPotency) continue;
+
+		local isUndisc = !::Wuxia.Alchemy.isFormulaDiscovered(f.ID);
+		local score = (isUndisc ? 100000 : 0) + f.TargetPotency * 200 + f.MinJunPotency * 40 + (f.RequireRareJun ? 25 : 0);
+		if (f.JunNatures.len() > 0 && f.JunNatures[0] == jun.Nature)
+			score += 30;
+		foreach (an in auxNatures)
+		{
+			if ("PreferredAuxNatures" in f)
+			{
+				foreach (pn in f.PreferredAuxNatures)
+				{
+					if (an == pn) { score += 45; break; }
+				}
+			}
+			foreach (jn in f.JunNatures)
+			{
+				if (an == jn) { score += 12; break; }
+			}
+		}
+		if (score > bestScore)
+		{
+			bestScore = score;
+			bestF = f;
+		}
+	}
+	return bestF;
+};
+
+// Free-Exploration Brew (`自由投药 · 盲投试丹`):
+// - If `[jun, aux1, aux2]` matches a true formula -> brews that pill AND permanently records the formula in《丹经手札》!
+// - If no exact formula matches -> refines a basic nature-aligned remedy pill (never destroys rare materials empty-handed) + gives Wuxia Cauldron Insight!
+::Wuxia.Alchemy.executeFreeBrew <- function( _slotKeys )
+{
+	if (!("World" in getroottable()) || ::World == null || !("Assets" in ::World) || ::World.Assets == null)
+		return { Ok = false, Reason = "当前仅可在大地图行军、营帐或城镇中开炉试丹。" };
+
+	local stash = ::World.Assets.getStash();
+	if (stash == null)
+		return { Ok = false, Reason = "无法访问战团仓库。" };
+
+	if (_slotKeys == null || _slotKeys.len() == 0 || _slotKeys[0] == null || _slotKeys[0] == "")
+		return { Ok = false, Reason = "请先在【君药主引】鼎位投入 1 味主药。" };
+
+	local ingList = ::Wuxia.Alchemy.getUnifiedIngredients(stash);
+	local ingMap = {};
+	foreach (e in ingList) ingMap[e.Key] <- e;
+
+	local junKey = _slotKeys[0];
+	if (!(junKey in ingMap))
+		return { Ok = false, Reason = "所选君药存量不足。" };
+
+	local jun = ingMap[junKey];
+	local usedCounts = {};
+	usedCounts[junKey] <- 1;
+	local auxCount = 0;
+	local totalPot = jun.Potency;
+
+	for (local si = 1; si < _slotKeys.len() && si <= 2; si = ++si)
+	{
+		local ak = _slotKeys[si];
+		if (ak == null || ak == "") continue;
+		if (!(ak in ingMap))
+			return { Ok = false, Reason = "所选臣佐辅药存量不足。" };
+		usedCounts[ak] <- ((ak in usedCounts) ? usedCounts[ak] : 0) + 1;
+		if (usedCounts[ak] > ingMap[ak].TotalCount)
+			return { Ok = false, Reason = "「" + ingMap[ak].Name + "」存量不足以同炉重复投入。" };
+		auxCount += 1;
+		totalPot += ingMap[ak].Potency;
+	}
+	if (usedCounts[junKey] > jun.TotalCount)
+		return { Ok = false, Reason = "「" + jun.Name + "」存量不足。" };
+	if (auxCount < 1)
+		return { Ok = false, Reason = "开炉试丹除君药外，至少须配入 1 味【臣佐辅药】调和鼎火。" };
+
+	// Check if an exact formula matches!
+	local matched = ::Wuxia.Alchemy.matchBestFormulaForFreeBrew(_slotKeys, ingMap);
+	if (matched != null)
+	{
+		local wasUndiscovered = !::Wuxia.Alchemy.isFormulaDiscovered(matched.ID);
+		local res = ::Wuxia.Alchemy.executeBrew(matched.ID, _slotKeys);
+		if (res.Ok && wasUndiscovered)
+		{
+			res.DiscoveredFormulaID <- matched.ID;
+			res.Message = "【新悟丹方！】炉生瑞霭，你自君臣药变间悟透《" + res.PillName + "》秘传古方并永久载入《丹经手札》——" + res.Message;
+		}
+		return res;
+	}
+
+	// No exact formula matched -> produce 1 basic nature remedy + Cauldron Insight hint!
+	local mastery = ::Wuxia.Alchemy.getAlchemistMastery();
+	local trialCost = ::Math.max(80, ::Math.floor((90 + totalPot * 28) * mastery.CostMult));
+	if (::World.Assets.getMoney() < trialCost)
+		return { Ok = false, Reason = "试炉炭火纹银不足（需 " + trialCost + " 两）。" };
+
+	local cabSim = {};
+	local slotsFreed = 0;
+	for (local kIdx = 0; kIdx < _slotKeys.len(); kIdx = ++kIdx)
+	{
+		local kk = _slotKeys[kIdx];
+		if (kk == null || kk == "") continue;
+		if (!(kk in cabSim)) cabSim[kk] <- ::Wuxia.Alchemy.Cabinet.getCount(kk);
+		if (cabSim[kk] > 0) cabSim[kk] -= 1;
+		else slotsFreed += 1;
+	}
+	if (stash.getNumberOfEmptySlots() + slotsFreed < 1)
+		return { Ok = false, Reason = "战团仓库空位不足（至少需留 1 格空位盛放试炼药散）。" };
+
+	::World.Assets.addMoney(-trialCost);
+	for (local ci = 0; ci < _slotKeys.len(); ci = ++ci)
+	{
+		local ck = _slotKeys[ci];
+		if (ck != null && ck != "")
+			::Wuxia.Alchemy.consumeOneIngredient(ck, stash);
+	}
+
+	local fallbackPillID = "wx_pill_huoluo";
+	if (jun.Nature == "yin" || jun.Nature == "venom") fallbackPillID = "wx_pill_qingxin";
+	else if (jun.Nature == "spirit") fallbackPillID = "wx_pill_huxin";
+	else if (jun.Nature == "yang") fallbackPillID = "wx_pill_longhu";
+
+	local auxNat = ::Wuxia.Alchemy.resolveDominantAuxNature(_slotKeys, ingMap);
+	local p = ::new("scripts/items/misc/wx_pill_item");
+	p.initPillVariant(fallbackPillID, 1, 96, auxNat);
+	stash.add(p);
+
+	// Find closest undiscovered formula for `jun.Nature` to provide non-spoiler Wuxia alchemy insight
+	local nearF = null;
+	local bestDist = 9999;
+	foreach (candF in ::Wuxia.Config.Alchemy.Formulas)
+	{
+		if (::Wuxia.Alchemy.isFormulaDiscovered(candF.ID)) continue;
+		local sharesNat = false;
+		foreach (jn in candF.JunNatures)
+		{
+			if (jn == jun.Nature) { sharesNat = true; break; }
+		}
+		if (!sharesNat) continue;
+		local dist = ::Math.abs(candF.TargetPotency - totalPot) + (candF.RequireRareJun && !jun.IsRare ? 4 : 0);
+		if (dist < bestDist) { bestDist = dist; nearF = candF; }
+	}
+
+	local insight = "【丹火感悟】此路药性配伍尚差契机，可尝试换用不同药性奇草或大妖内丹为主引推演新方。";
+	if (nearF != null)
+	{
+		if (nearF.RequireRareJun && !jun.IsRare)
+			insight = "【丹火感悟】寻常兽材难以承载高阶药变——若换用同属【" + jun.NatureName + "】的天下奇草或山海内丹为君药，必有奇丹凝成！";
+		else if (jun.Potency < nearF.MinJunPotency)
+			insight = "【丹火感悟】当前君药药力尚浅（药力 " + jun.Potency + "），须择药力 ≥" + nearF.MinJunPotency + " 之【" + jun.NatureName + "】主药方可引动丹变！";
+		else if (auxCount < nearF.MinAuxCount)
+			insight = "【丹火感悟】此味【" + jun.NatureName + "】君药灵韵充沛，唯独辅火单薄——若配满 " + nearF.MinAuxCount + " 味臣佐辅药调和，定可成方！";
+		else if (totalPot < nearF.TargetPotency)
+			insight = "【丹火感悟】炉中异香初凝而未聚（当前总药力 " + totalPot + "）——若添入更高品阶辅药将总药力推至 " + nearF.TargetPotency + " 点以上，必悟新丹！";
+	}
+
+	return {
+		Ok                  = true,
+		IsCrit              = false,
+		IsTrialFallback     = true,
+		PillID              = fallbackPillID,
+		PillName            = p.getName(),
+		BaseYield           = 1,
+		DiscoveredFormulaID = "",
+		Message             = "试炉成散：凝得「" + p.getName() + "」×1（耗纹银 " + trialCost + " 两）。" + insight
 	};
 };
 
@@ -1370,12 +1645,14 @@ if (!("Alchemy" in ::Wuxia))
 		}
 	}
 
+	local hasSurgeon = ("World" in getroottable() && ::World != null && ("Retinue" in ::World) && ::World.Retinue != null && ::World.Retinue.hasFollower("follower.surgeon"));
 	local avoidZeroShock = (("AvoidShock" in pv) && pv.AvoidShock);
 	pv.PillBonus       <- pillBonus;
 	pv.WashPillID      <- _washPillID;
 	pv.WashPillName    <- pillName;
 	pv.AvoidHeavyShock <- (avoidHeavyShock || avoidZeroShock);
 	pv.AvoidAllShock   <- avoidZeroShock;
+	pv.LightShockDays  <- hasSurgeon ? 1 : 2;
 	pv.FinalChance     = ::Math.min(maxCap, pv.BaseChance + pv.PrepBonus + pillBonus);
 	return pv;
 };
@@ -1408,6 +1685,8 @@ if (!("Alchemy" in ::Wuxia))
 		}
 		_actor.m.Talents[_targetAttrIdx] = preview.NextStar;
 		::Wuxia.MarrowWash.refreshFutureRolls(_actor, _targetAttrIdx);
+		if (::Wuxia.Alchemy.hasWorldFlags())
+			::World.Flags.set("wx_marrow_wash_success", true);
 
 		return {
 			Ok        = true,
@@ -1459,17 +1738,17 @@ if (!("Alchemy" in ::Wuxia))
 		Message            = gotPerm
 			? "洗经伐髓未成！真气逆冲留下永久「经脉暗疾」（可用生生造化丹拔除）！"
 			: (preview.AvoidHeavyShock
-				? "洗经伐髓未成，幸得「太乙紫金洗髓丹」护住心脉，免去重度震荡，仅余 2 日轻度调息。"
+				? ("洗经伐髓未成，幸得「" + preview.WashPillName + "」护住心脉，免去重度震荡，仅余 " + inj.m.DaysRemaining + " 日轻度调息。")
 				: "洗经伐髓失败！真气逆冲引发「经脉震荡」，需以护心丹或名医调养。")
 	};
 };
 
 // Non-destructively wrap Slot Manager so `忘尘归元散` (`effects.wx_wangchen_grace`) waives PenaltyDays cleanly!
 {
-	local origCanEquipLearned = ::Wuxia.Slots.canEquipLearnedManual;
-	::Wuxia.Slots.canEquipLearnedManual = function( _actor, _slotIndex, _manualID )
+	local origPreviewSwitch = ::Wuxia.Slots.previewManualSwitch;
+	::Wuxia.Slots.previewManualSwitch = function( _actor, _slotIndex, _manualID, _isFragment )
 	{
-		local res = origCanEquipLearned(_actor, _slotIndex, _manualID);
+		local res = origPreviewSwitch(_actor, _slotIndex, _manualID, _isFragment);
 		if (res.Ok && res.PenaltyDays > 0 && _actor != null && _actor.getSkills() != null && _actor.getSkills().hasSkill("effects.wx_wangchen_grace"))
 		{
 			res.PenaltyDays = 0;

@@ -8,9 +8,15 @@ this.wx_origin_shaolin_monks <- this.inherit("scripts/scenarios/world/starting_s
 	{
 		this.m.ID = "scenario.wx_origin_shaolin_monks";
 		this.m.Name = "少室下山 · 护法行者";
-		this.m.Description = "[p=c][img]gfx/ui/events/wx_ev_03.png[/img][/p][p]乱世妖氛四起，三名奉方丈法旨下山历练的少室武院行者，携成对精铁护手与齐眉棍踏入红尘。禅门拳掌隔甲震腑、空手夺刃，硬功护体金刚不坏。[/p][p][color=#bcad8c]• 开局阵容：3 名少室护法行者（兼修拳掌《罗汉散手》、长棍与《铁布衫》）\n• 宗门渊源：少室禅院初始交情 +35，茶肆可直接请教禅门上乘绝学\n• 起始资财：2,000 两纹银，附护心丹与金疮散[/color][/p]";
+		this.m.Description = "[p=c][img]gfx/ui/events/wx_ev_03.png[/img][/p][p]乱世妖氛四起，三名奉方丈法旨下山历练的少室武院行者，携成对精铁护手与齐眉棍踏入红尘。禅门拳掌隔甲震腑、空手夺刃，硬功护体金刚不坏。[/p][p][color=#bcad8c]• 开局阵容：3 名少室护法行者（兼修拳掌、长棍与《铁布衫》），少室禅院初始交情 +35\n• 禅武双修：全队内功与横练武学战后熟稔度获取 +20%，初始声德卓著\n• 禅门戒律：严禁对天下名门正派山门发起「生死踢馆」，唯可堂堂正正切磋破阵[/color][/p]";
 		this.m.Difficulty = 2;
 		this.m.Order = 3;
+	}
+
+	function onInit()
+	{
+		if ("MoralReputation" in this.World.Assets.m && this.World.Assets.m.MoralReputation < 72.0)
+			this.World.Assets.m.MoralReputation = 72.0;
 	}
 
 	function onSpawnAssets()
@@ -56,7 +62,7 @@ this.wx_origin_shaolin_monks <- this.inherit("scripts/scenarios/world/starting_s
 				::Wuxia.Slots.equipManual(bro, 1, waiID, false);
 				foreach (exMid in mk.Extras)
 					::Wuxia.Slots.learnManual(bro, exMid, false);
-				if (bro.getBackground() != null && ("WX_RefreshStarterNote" in bro.getBackground()))
+				if (bro.getBackground() != null && ::Wuxia.hasMember(bro.getBackground(), "WX_RefreshStarterNote"))
 					bro.getBackground().WX_RefreshStarterNote([::Wuxia.Slots.getManualDef(neiID).Name, ::Wuxia.Slots.getManualDef(waiID).Name]);
 				bro.getSkills().update();
 			}

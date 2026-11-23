@@ -199,6 +199,16 @@
 		local matItem = ::new("scripts/items/misc/" + matID);
 		matItem.drop(_tile);
 	}
+	// 【百工猎妖录】4 件神通「百工庖丁」：亲手猎杀野外异兽额外 35% 独立概率再剥取 1 份百工奇材！
+	if (spec.Pool.len() > 0 && ("ShanHaiSets" in ::Wuxia) && ::Wuxia.ShanHaiSets.hasActiveTier(_killer, "wx_set_baigong", 4))
+	{
+		if (::Math.rand(1, 100) <= 35)
+		{
+			local bonusMatID = spec.Pool[::Math.rand(0, spec.Pool.len() - 1)];
+			local bonusItem = ::new("scripts/items/misc/" + bonusMatID);
+			bonusItem.drop(_tile);
+		}
+	}
 };
 
 ::Wuxia.BeastCraft.dropBossCompanionMaterials <- function( _bossKey, _tile )
@@ -257,6 +267,45 @@
 	return out;
 };
 
+// Reserve distinct units and all output slots before the town charges for this batch.
+::Wuxia.BeastCraft.prepareCraft <- function( _bp, _stash )
+{
+	local plan = { Reason = null, Consume = [], Keep = [], Cabinet = {}, Products = [] };
+	local reserved = {}, cabinetReserved = {};
+	local alchemist = ::World.Retinue.hasFollower("follower.alchemist");
+	foreach (component in _bp.m.PreviewComponents)
+	{
+		local need = component.Num;
+		foreach (it in _stash.getItems())
+		{
+			if (need == 0) break;
+			if (it == null || it in reserved || it.getID() != component.Instance.getID()) continue;
+			reserved[it] <- true;
+			if (alchemist && it.getMagicNumber() <= 25) plan.Keep.push(it);
+			else plan.Consume.push(it);
+			--need;
+		}
+
+		if (need == 0) continue;
+		local meta = ::Wuxia.Alchemy.classifyItem(component.Instance);
+		local prior = meta != null && meta.Key in cabinetReserved ? cabinetReserved[meta.Key] : 0;
+		if (meta == null || ::Wuxia.Alchemy.Cabinet.getCount(meta.Key) < prior + need)
+			return { Reason = "制作材料不足，请重新选择丹方。" };
+		cabinetReserved[meta.Key] <- prior + need;
+		if (!(meta.Key in plan.Cabinet)) plan.Cabinet[meta.Key] <- 0;
+		for (local i = 0; i < need; ++i)
+			if (!alchemist || ::Math.rand(1, 100) > 25) ++plan.Cabinet[meta.Key];
+	}
+
+	// Recipes can yield several different items. Collect the actual batch before consuming anything.
+	local products = plan.Products;
+	_bp.onCraft({ add = function( item ) { products.push(item); return products.len() - 1; } });
+	if (products.len() == 0) return { Reason = "此配方未产生物品。" };
+	if (!_stash.isResizable() && products.len() > _stash.getNumberOfEmptySlots() + plan.Consume.len())
+		return { Reason = "仓库空间不足，无法放下本炉全部成品。" };
+	return plan;
+};
+
 ::Wuxia.BeastCraft.bindTraitMethods <- function( _item )
 {
 	if (_item == null || !("m" in _item))
@@ -278,11 +327,13 @@
 					{
 						local ucfg = ::Wuxia.Config.BeastGear[this.m.WX_UpgCfgID];
 						local bTxt = this.getEffectiveBonusText();
-						ret.push({ id = 69, type = "text", icon = "ui/icons/special.png", text = "[color=#2f6e62]【百工镶缀】[/color]" + bTxt });
+						ret.push({ id = 69, type = "text", icon = "ui/icons/special.png", text = "[color=#094039]【百工镶缀】[/color]" + bTxt });
 					}
 				}
 				if ("Forge" in ::Wuxia && "injectForgeTooltip" in ::Wuxia.Forge)
 					ret = ::Wuxia.Forge.injectForgeTooltip(this, ret);
+				if ("ShanHaiSets" in ::Wuxia && "injectSetTooltip" in ::Wuxia.ShanHaiSets)
+					ret = ::Wuxia.ShanHaiSets.injectSetTooltip(this, ret);
 				return ret;
 			}).bindenv(_item);
 			_item.getTooltip <- wrappedUpgTT;
@@ -303,7 +354,7 @@
 						local ucfg = ::Wuxia.Config.BeastGear[this.m.WX_UpgCfgID];
 						local bTxt2 = this.getEffectiveBonusText();
 						local gTag = (("WX_ForgeGradeTitle" in this.m) && this.m.WX_ForgeGradeTitle != null && this.m.WX_ForgeGradeTitle != "") ? (this.m.WX_ForgeGradeTitle + "·") : "";
-						_result.push({ id = 69, type = "text", icon = "ui/icons/special.png", text = "[color=#2f6e62]【" + gTag + ucfg.Name + "】[/color]" + bTxt2 });
+						_result.push({ id = 69, type = "text", icon = "ui/icons/special.png", text = "[color=#094039]【" + gTag + ucfg.Name + "】[/color]" + bTxt2 });
 					}
 				}
 			}).bindenv(_item);
@@ -323,6 +374,8 @@
 				local ret = baseRelicTT.call(this);
 				if ("Forge" in ::Wuxia && "injectForgeTooltip" in ::Wuxia.Forge)
 					ret = ::Wuxia.Forge.injectForgeTooltip(this, ret);
+				if ("ShanHaiSets" in ::Wuxia && "injectSetTooltip" in ::Wuxia.ShanHaiSets)
+					ret = ::Wuxia.ShanHaiSets.injectSetTooltip(this, ret);
 				return ret;
 			}).bindenv(_item);
 			_item.getTooltip <- wrappedRelicTT;
@@ -391,10 +444,10 @@
 	}
 	local tcfg = ::Wuxia.Config.GearTraits[tid];
 	local tagPrefix = (tcfg.Tier == "shanhai")
-		? ("[color=#d99b26]【山海神通 · " + tcfg.Title + "】[/color]")
-		: ("[color=#2f6e62]【百工兽魄 · " + tcfg.Title + "】[/color]");
+		? ("[color=#5e2c00]【山海神通 · " + tcfg.Title + "】[/color]")
+		: ("[color=#094039]【百工兽魄 · " + tcfg.Title + "】[/color]");
 	local mwSuffix = (("WX_ForgeGrade" in _item.m) && _item.m.WX_ForgeGrade >= 3)
-		? " [color=#f0bc42]（神工共鸣：触发率/效能额外精进！）[/color]"
+		? " [color=#6c1f04]（神工共鸣：触发率/效能额外精进！）[/color]"
 		: "";
 	_ret.push({
 		id = 968,
@@ -404,6 +457,8 @@
 	});
 	if ("Forge" in ::Wuxia && "injectForgeTooltip" in ::Wuxia.Forge)
 		_ret = ::Wuxia.Forge.injectForgeTooltip(_item, _ret);
+	if ("ShanHaiSets" in ::Wuxia && "injectSetTooltip" in ::Wuxia.ShanHaiSets)
+		_ret = ::Wuxia.ShanHaiSets.injectSetTooltip(_item, _ret);
 	return _ret;
 };
 
@@ -420,7 +475,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 	{
 		::Wuxia.HooksMod.hook(clsPath, function( q )
 		{
-			if ("onEquip" in q)
+			if (::Wuxia.qHas(q, "onEquip"))
 			{
 				q.onEquip = @(__original) function()
 				{
@@ -429,7 +484,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 				};
 			}
 
-			if ("getTooltip" in q)
+			if (::Wuxia.qHas(q, "getTooltip"))
 			{
 				q.getTooltip = @(__original) function()
 				{
@@ -440,123 +495,62 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 		});
 	}
 
-	// 2. Zero-Friction Blueprint Auto-Discovery & Seamless 百草药柜 Ingredient Consumption in 百工丹坊!
 	::Wuxia.HooksMod.hook("scripts/crafting/blueprint", function( q )
 	{
-		if ("isQualified" in q)
+		q.isCraftable = @(__original) function()
 		{
-			q.isQualified = @(__original) function()
-			{
-				if (__original()) return true;
-				local bpID = (::Wuxia.hasMember(this.m, "ID") && this.m.ID != null) ? this.m.ID : "";
-				if (bpID.find("blueprint.wx_") != 0 || this.m.PreviewCraftable == null) return false;
-				local comps = ::Wuxia.BeastCraft.getBlueprintComponents(this);
-				if (comps == null || comps.len() == 0) return false;
-				if (!("World" in getroottable()) || ::World == null) return false;
+			if (__original()) return true;
+			if (this.getID().find("blueprint.wx_") != 0) return false;
+			local items = ::World.Assets.getStash().getItems();
+			foreach (c in this.m.PreviewComponents)
+				if (::Wuxia.BeastCraft.countIngredient(c, items).Total < c.Num) return false;
+			return this.m.PreviewComponents.len() != 0;
+		};
 
-				local statsFlags = ("Statistics" in ::World && ::World.Statistics != null) ? ::World.Statistics.getFlags() : null;
-				local stash = ("Assets" in ::World && ::World.Assets != null) ? ::World.Assets.getStash() : null;
-
-				foreach (ing in comps)
-				{
-					if (ing == null || !("Instance" in ing) || ing.Instance == null) continue;
-					local itemID = ing.Instance.getID();
-					if (statsFlags != null && statsFlags.get(itemID + "_identified"))
-						return true;
-					if (stash != null && stash.getItemByID(itemID) != null)
-						return true;
-				}
-				return false;
-			};
-		}
-
-		if ("isCraftable" in q)
+		q.isQualified = @(__original) function()
 		{
-			q.isCraftable = @(__original) function()
-			{
-				if (__original()) return true;
-				if (!this.isQualified()) return false;
-				local comps = ::Wuxia.BeastCraft.getBlueprintComponents(this);
-				if (comps == null || comps.len() == 0) return false;
-				if (!("World" in getroottable()) || ::World == null || !("Assets" in ::World) || ::World.Assets == null) return false;
-				local stash = ::World.Assets.getStash();
-				if (stash == null) return false;
-				local items = stash.getItems();
-				foreach (c in comps)
-				{
-					if (c == null || !("Instance" in c) || c.Instance == null) return false;
-					local cnt = ::Wuxia.BeastCraft.countIngredient(c, items);
-					if (cnt.Total < c.Num) return false;
-				}
-				return true;
-			};
-		}
+			if (__original()) return true;
+			if (this.getID().find("blueprint.wx_") != 0) return false;
+			local items = ::World.Assets.getStash().getItems();
+			foreach (c in this.m.PreviewComponents)
+				if (::World.Statistics.getFlags().get(c.Instance.getID() + "_identified")
+					|| ::Wuxia.BeastCraft.countIngredient(c, items).Total > 0) return true;
+			return false;
+		};
 
-		if ("getIngredients" in q)
+		q.getIngredients = @(__original) function()
 		{
-			q.getIngredients = @(__original) function()
+			local rows = __original();
+			if (this.getID().find("blueprint.wx_") != 0) return rows;
+			local items = ::World.Assets.getStash().getItems();
+			local seen = {}, counts = {};
+			foreach (row in rows)
 			{
-				local ret = __original();
-				local comps = ::Wuxia.BeastCraft.getBlueprintComponents(this);
-				if (ret == null || typeof ret != "array" || comps == null) return ret;
-				if (!("World" in getroottable()) || ::World == null || !("Assets" in ::World) || ::World.Assets == null) return ret;
-				local stash = ::World.Assets.getStash();
-				if (stash == null) return ret;
-				local items = stash.getItems();
-				local n = ::Math.min(ret.len(), comps.len());
-				for (local i = 0; i < n; i = ++i)
+				local i = row.InstanceID;
+				if (!(i in seen))
 				{
-					local r = ret[i];
-					local c = comps[i];
-					if (r != null && typeof r == "table" && ("IsMissing" in r) && r.IsMissing && c != null)
-					{
-						local cnt = ::Wuxia.BeastCraft.countIngredient(c, items);
-						if (cnt.Total >= c.Num) r.IsMissing = false;
-					}
+					seen[i] <- 0;
+					counts[i] <- ::Wuxia.BeastCraft.countIngredient(this.m.PreviewComponents[i], items).Total;
 				}
-				return ret;
-			};
-		}
+				row.IsMissing = ++seen[i] > counts[i];
+			}
+			return rows;
+		};
 
-		if ("craft" in q)
+		q.craft = @(__original) function()
 		{
-			q.craft = @(__original) function()
-			{
-				local stash = (("World" in getroottable()) && ::World != null && ("Assets" in ::World) && ::World.Assets != null)
-					? ::World.Assets.getStash()
-					: null;
-				local origLen = (stash != null && stash.getItems() != null) ? stash.getItems().len() : -1;
-				local comps = ::Wuxia.BeastCraft.getBlueprintComponents(this);
-				if (stash != null && comps != null)
-				{
-					local items = stash.getItems();
-					foreach (c in comps)
-					{
-						if (c == null || !("Instance" in c) || c.Instance == null) continue;
-						local cnt = ::Wuxia.BeastCraft.countIngredient(c, items);
-						if (cnt.Stash < c.Num && cnt.Cabinet > 0 && cnt.Meta != null)
-						{
-							local take = ::Math.min(c.Num - cnt.Stash, cnt.Cabinet);
-							for (local k = 0; k < take; k = ++k)
-							{
-								local tmp = ::Wuxia.Alchemy.instantiateByCabinetKey(cnt.Meta.Key, cnt.Meta.Script, cnt.Meta.SubID);
-								if (tmp != null)
-								{
-									::Wuxia.Alchemy.Cabinet.addCount(cnt.Meta.Key, -1);
-									items.push(tmp);
-								}
-							}
-						}
-					}
-				}
-				__original();
-				if (stash != null && origLen >= 0)
-				{
-					local itemsAfter = stash.getItems();
-					while (itemsAfter.len() > origLen && itemsAfter.top() == null)
-						itemsAfter.pop();
-				}
-			};
-		}
+			if (this.getID().find("blueprint.wx_") != 0) return __original();
+			local stash = ::World.Assets.getStash();
+			local plan = ("WX_CraftPlan" in this.m && this.m.WX_CraftPlan != null)
+				? this.m.WX_CraftPlan : ::Wuxia.BeastCraft.prepareCraft(this, stash);
+			if (plan.Reason != null) return;
+			::Wuxia.Forge.rollTownProducts(plan.Products);
+			foreach (it in plan.Consume) stash.remove(it);
+			foreach (it in plan.Keep) it.setMagicNumber(::Math.rand(1, 100));
+			foreach (key, n in plan.Cabinet) ::Wuxia.Alchemy.Cabinet.addCount(key, -n);
+			foreach (product in plan.Products) stash.add(product);
+			++this.m.TimesCrafted;
+			this.updateAchievement("IMadeThis", 1, 1);
+		};
 	});
 }

@@ -46,7 +46,7 @@
 		}
 		else if (wtName == "Spear" || wtName == "Polearm")
 		{
-			if (wid.find("spear") != null || wid.find("pike") != null || wid.find("bill") != null || wid.find("halberd") != null || wid.find("spetum") != null || wid.find("pole") != null || wid.find("glaive") != null || wid.find("trident") != null || cats.find("spear") != null || cats.find("polearm") != null || cats.find("矛") != null || cats.find("枪") != null || cats.find("长柄") != null)
+			if (wid.find("spear") != null || wid.find("pike") != null || wid.find("bill") != null || wid.find("halberd") != null || wid.find("spetum") != null || wid.find("pole") != null || wid.find("glaive") != null || wid.find("trident") != null || wid.find("banner") != null || wid.find("pitchfork") != null || wid.find("warfork") != null || wid.find("hooked_blade") != null || wid.find("warscythe") != null || wid.find("swordlance") != null || wid.find("firelance") != null || cats.find("spear") != null || cats.find("polearm") != null || cats.find("矛") != null || cats.find("枪") != null || cats.find("长柄") != null || cats.find("长杆") != null || cats.find("长兵") != null || cats.find("战旗") != null)
 				return true;
 		}
 		else if (wtName == "Throwing")
@@ -144,6 +144,7 @@
 		ShieldBreakBonus     = 0,
 		ShieldDefBonus       = 0,
 		ShieldWallExpert     = false,
+		PolearmMastery       = false,
 		UnderdogGuard        = false,
 		LoneWolfBonus        = 0,
 		FormationBondDef     = 0,
@@ -176,6 +177,11 @@
 		// Quick Hands also applies when switching *to* the throwing weapon.
 		if ("QuickHands" in f && f.QuickHands) agg.QuickHands = true;
 		if (!::Wuxia.CombatRules.matchesWeapon(weapon, def.WeaponTypes)) continue;
+		if (def.Category == "waigong" && def.WeaponTypes.find("Polearm") != null)
+		{
+			local isBannerWpn = (weapon != null && ::Wuxia.hasMember(weapon, "getID") && weapon.getID() != null && weapon.getID().tolower().find("banner") != null);
+			if (s.Tier >= 2 || isBannerWpn) agg.PolearmMastery = true;
+		}
 		foreach (stat, delta in level.Stats)
 		{
 			local value = delta;
@@ -207,7 +213,7 @@
 		if ("ArmorPenBonus" in f && f.ArmorPenBonus > agg.DirectDmgBonus) agg.DirectDmgBonus = f.ArmorPenBonus;
 		// These bonuses use the strongest equipped source, including fractional damage.
 		foreach (key in ["AntiInternalInjury", "IgnoreDodgeHalf", "StaffGuard", "PoisonImmune",
-			"AntiFearAura", "FrostChillOnHit", "ShieldWallExpert", "UnderdogGuard", "NightOwl"])
+			"AntiFearAura", "FrostChillOnHit", "ShieldWallExpert", "PolearmMastery", "UnderdogGuard", "NightOwl"])
 			if (key in f && f[key]) agg[key] = true;
 		foreach (key in ["BloodBurstAP", "CounterBonus", "CritHeadBonus", "HitChanceBonus",
 			"MoveAPDiscount", "ThrowingDmgBonus", "ZoCBonusHit", "SupportShotChance",
@@ -250,7 +256,7 @@
 	FirstRoundHit = true, UnbrokenArmorBonus = true, UnarmoredBonusDmg = true,
 	BleedOnHitPct = true, DazeOnHeavyHitPct = true, ExposeOnHitPct = true,
 	AcupointOnCritPct = true, ShieldBreakBonus = true, ShieldDefBonus = true,
-	ShieldWallExpert = true, UnderdogGuard = true, LoneWolfBonus = true,
+	ShieldWallExpert = true, PolearmMastery = true, UnderdogGuard = true, LoneWolfBonus = true,
 	FormationBondDef = true, OnKillHealHP = true, OnHitDrainQi = true,
 	RangedHeadshotBonus = true, LongRangeAccBonus = true, CloseRangeShotBonus = true,
 	NightOwl = true, DodgeRangedBonus = true, TurnStartCleansePct = true,
@@ -293,10 +299,31 @@
 {
 	if (_actor == null || _amount <= 0) return 0;
 	local avail = _actor.getFatigueMax() - _actor.getFatigue();
-	local actual = ::Math.min(avail, _amount);
+	local actual = ::Math.max(0, ::Math.min(avail, _amount));
 	if (actual > 0)
 	{
 		_actor.setFatigue(_actor.getFatigue() + actual);
 	}
 	return actual;
+};
+
+::Wuxia.CombatRules.drainAdjacentQi <- function( _actor )
+{
+	local tile = _actor.getTile();
+	local drained = 0;
+	for (local dir = 0; dir < ::Const.Direction.COUNT; ++dir)
+	{
+		if (!tile.hasNextTile(dir)) continue;
+		local adjacent = tile.getNextTile(dir);
+		if (!adjacent.IsOccupiedByActor) continue;
+		local target = adjacent.getEntity();
+		if (_actor.isAlliedWith(target) || this.isUndeadOrConstruct(target)) continue;
+		drained += this.spendQi(target, 6);
+	}
+	if (drained > 0)
+	{
+		this.restoreQi(_actor, drained);
+		_actor.setHitpoints(::Math.min(_actor.getHitpointsMax(), _actor.getHitpoints() + drained));
+	}
+	return drained;
 };

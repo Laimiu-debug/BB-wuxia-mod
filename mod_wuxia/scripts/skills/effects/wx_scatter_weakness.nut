@@ -21,7 +21,10 @@ this.wx_scatter_weakness <- this.inherit("scripts/skills/skill", {
 
 	function setDaysRemaining( _days )
 	{
-		this.m.DaysRemaining = ::Math.max(this.m.DaysRemaining, _days);
+		local adjDays = _days;
+		if (adjDays > 1 && "World" in getroottable() && ::World != null && ("Retinue" in ::World) && ::World.Retinue != null && ::World.Retinue.hasFollower("follower.surgeon"))
+			adjDays = ::Math.max(1, adjDays - 1);
+		this.m.DaysRemaining = ::Math.max(this.m.DaysRemaining, adjDays);
 	}
 
 	function getTooltip()

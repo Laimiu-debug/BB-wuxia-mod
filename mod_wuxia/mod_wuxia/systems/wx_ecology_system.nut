@@ -34,12 +34,13 @@
 ::Wuxia.CombatRules.isImmuneToMeridianAndPoison <- function( _target )
 {
 	if (_target == null) return true;
-	if (::Wuxia.hasMember(_target, "getFlags") && _target.getFlags() != null && _target.getFlags().has("undead"))
+	if (::Wuxia.CombatRules.isUndeadOrConstruct(_target))
 		return true;
 	if (::Wuxia.hasMember(_target, "getCurrentProperties"))
 	{
 		local p = _target.getCurrentProperties();
-		if (p != null && (!p.IsAffectedByPoison || !p.IsAffectedByInjuries))
+		if (p != null && ((::Wuxia.hasMember(p, "IsImmuneToPoison") && p.IsImmuneToPoison)
+			|| (::Wuxia.hasMember(p, "IsAffectedByInjuries") && !p.IsAffectedByInjuries)))
 			return true;
 	}
 	return false;
@@ -50,7 +51,7 @@
 	if (_target == null) return false;
 	if (::Wuxia.hasMember(_target, "getFlags") && _target.getFlags() != null && _target.getFlags().has("undead"))
 		return true;
-	return false;
+	return ("SandGolem" in ::Const.EntityType) && ::Wuxia.hasMember(_target, "getType") && _target.getType() == ::Const.EntityType.SandGolem;
 };
 
 // Apply EntityName mappings immediately on load

@@ -66,6 +66,14 @@ this.wx_stronghold <- this.inherit("scripts/entity/world/location", {
 			if (shHerb != null) this.m.Loot.add(shHerb);
 			local shRelic = (::Math.rand(1, 100) <= 68) ? ::Wuxia.Relics.createRandomShanHaiRelic() : ::Wuxia.Relics.createRandomRelic();
 			if (shRelic != null) this.m.Loot.add(shRelic);
+			local bID = ("getBossIDForSite" in ::Wuxia.ShanHai) ? ::Wuxia.ShanHai.getBossIDForSite(this.m.WX_Site) : null;
+			local bTier = (bID != null && "getBossTier" in ::Wuxia.ShanHai) ? ::Wuxia.ShanHai.getBossTier(bID) : 2;
+			local sovChance = (bTier >= 3) ? 85 : ((bTier == 2) ? 45 : 25);
+			if (::Math.rand(1, 100) <= sovChance)
+			{
+				local sovCore = ::Wuxia.ShanHai.createRandomSovereignCore();
+				if (sovCore != null) this.m.Loot.add(sovCore);
+			}
 		}
 		else if (::Math.rand(1, 100) <= 30)
 		{
@@ -73,6 +81,45 @@ this.wx_stronghold <- this.inherit("scripts/entity/world/location", {
 			if (relic != null) this.m.Loot.add(relic);
 		}
 		this.getFlags().set("wx_garrison_ready", true);
+	}
+
+	function getTooltip()
+	{
+		local ret = this.location.getTooltip();
+		if (ret != null && typeof ret == "array" && this.m.WX_Site != null && ("ShanHai" in ::Wuxia) && ("getBossIDForSite" in ::Wuxia.ShanHai))
+		{
+			local bossID = ::Wuxia.ShanHai.getBossIDForSite(this.m.WX_Site);
+			if (bossID != null && (bossID in ::Wuxia.Config.ShanHaiBosses))
+			{
+				local cfg = ::Wuxia.Config.ShanHaiBosses[bossID];
+				local tier = ::Wuxia.ShanHai.getBossTier(bossID);
+				local tInfo = ::Wuxia.ShanHai.getBossTierInfo(tier);
+				local hint = ::Wuxia.ShanHai.getBossCounterHint(bossID);
+				local tCol = ("TooltipColor" in tInfo) ? tInfo.TooltipColor : tInfo.Color;
+				ret.push({
+					id   = 50,
+					type = "text",
+					icon = "ui/icons/special.png",
+					text = "险地品阶：[color=" + tCol + "]【" + tInfo.Label + "】[/color]（" + tInfo.Advice + "）"
+				});
+				ret.push({
+					id   = 51,
+					type = "text",
+					icon = "ui/icons/melee_skill.png",
+					text = "凶兽神通：[color=#5e2c00]" + cfg.TraitName + "[/color] — " + cfg.TraitDesc
+				});
+				if (hint != "")
+				{
+					ret.push({
+						id   = 52,
+						type = "text",
+						icon = "ui/icons/vision.png",
+						text = "战前备策：[color=#0a4213]" + hint + "[/color]"
+					});
+				}
+			}
+		}
+		return ret;
 	}
 
 	function onCombatLost()

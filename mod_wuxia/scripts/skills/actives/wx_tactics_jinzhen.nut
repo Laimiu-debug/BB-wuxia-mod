@@ -48,9 +48,10 @@ this.wx_tactics_jinzhen <- this.inherit("scripts/skills/skill", {
 			sk.removeByID("effects.goblin_poison");
 			sk.removeByID("effects.wx_status_poison_dart");
 			sk.removeByID("effects.wx_status_acupoint");
-			sk.removeByID("effects.wx_internal_injury");
-		};
-			target.setHitpoints(::Math.min(target.getHitpointsMax(), target.getHitpoints() + 14));
+			local injury = sk.getSkillByID("effects.wx_internal_injury");
+			if (injury != null) injury.cureTemporary();
+		}
+		target.setHitpoints(::Math.min(target.getHitpointsMax(), target.getHitpoints() + 14));
 		return true;
 	}
 });

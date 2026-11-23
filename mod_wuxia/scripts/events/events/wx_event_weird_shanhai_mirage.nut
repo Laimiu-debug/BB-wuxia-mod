@@ -30,7 +30,7 @@ this.wx_event_weird_shanhai_mirage <- this.inherit("scripts/events/event", {
 				if (::Wuxia.Events.isAlive(sh)) this.Characters.push(sh.getImagePath());
 				else if (::Wuxia.Events.isAlive(bro)) this.Characters.push(bro.getImagePath());
 
-				this.Text = "[img]gfx/ui/events/wx_ev_24.png[/img]入暮时分，一阵乳白浓雾毫无征兆地漫过山谷，五步之外只剩灰蒙蒙的人影。正当队伍缩紧阵型缓行，左侧崖壁的雾墙后竟响起熟悉的唤声——有人听见早年战死的老伙计在喊自己小名，有人听见家乡老娘在催着回家吃热面，声声凄切，直往人心缝里钻！\n\n" + ::Wuxia.Events.fmtName(bro) + " 脸色煞白，脚步已不受控制地往悬崖边挪了半步——老江湖瞬间醒悟，这是山野「幽谷梦魇讹兽」吐雾惑人、诱杀落单行旅的妖伎！";
+				this.Text = "[img]gfx/ui/events/wx_ev_33.png[/img]入暮时分，一阵乳白浓雾毫无征兆地漫过山谷，五步之外只剩灰蒙蒙的人影。正当队伍缩紧阵型缓行，左侧崖壁的雾墙后竟响起熟悉的唤声——有人听见早年战死的老伙计在喊自己小名，有人听见家乡老娘在催着回家吃热面，声声凄切，直往人心缝里钻！\n\n" + ::Wuxia.Events.fmtName(bro) + " 脸色煞白，脚步已不受控制地往悬崖边挪了半步——老江湖瞬间醒悟，这是山野「幽谷梦魇讹兽」吐雾惑人、诱杀落单行旅的妖伎！";
 
 				this.Options.push({
 					Text = "麻绳连腰捆紧全队，击盾报数稳步冲出白雾！",
@@ -75,7 +75,7 @@ this.wx_event_weird_shanhai_mirage <- this.inherit("scripts/events/event", {
 				}
 				::Wuxia.Events.addCompanyMood(0.5, "众志成城破除山谷迷障", this.List);
 
-				this.Text = "[img]gfx/ui/events/wx_ev_24.png[/img]你一巴掌扇醒发愣的 " + ::Wuxia.Events.fmtName(bro) + "，当机立断拿拴马麻绳将全队腰带串成一串，刀背敲盾齐声报数。任凭雾里哭笑声愈发凄厉尖锐，众人咬紧牙关一步不乱，硬生生踩着官道石板冲出了三里白雾，回头望去时山谷里只剩一片死寂。";
+				this.Text = "[img]gfx/ui/events/wx_ev_33.png[/img]你一巴掌扇醒发愣的 " + ::Wuxia.Events.fmtName(bro) + "，当机立断拿拴马麻绳将全队腰带串成一串，刀背敲盾齐声报数。任凭雾里哭笑声愈发凄厉尖锐，众人咬紧牙关一步不乱，硬生生踩着官道石板冲出了三里白雾，回头望去时山谷里只剩一片死寂。";
 			}
 		});
 
@@ -102,7 +102,7 @@ this.wx_event_weird_shanhai_mirage <- this.inherit("scripts/events/event", {
 					::Wuxia.Events.addMood(sh, 1.0, "一箭惊退讹兽夺得诡眼", this.List);
 				}
 
-				this.Text = "[img]gfx/ui/events/wx_ev_24.png[/img]" + ::Wuxia.Events.fmtName(sh) + " 眯起左眼，死死锁定雾墙高处一点若隐若现的惨绿萤火，挽满硬弓连珠疾射！雾中骤然发出一声似兔似婴的惨嚎，白障瞬间溃散如潮。众人提灯摸上乱石堆，只见血迹旁留下一颗晶莹诡异的讹兽妖目，外加一包早年遇害方士遗落的【明目定神散】。";
+				this.Text = "[img]gfx/ui/events/wx_ev_33.png[/img]" + ::Wuxia.Events.fmtName(sh) + " 眯起左眼，死死锁定雾墙高处一点若隐若现的惨绿萤火，挽满硬弓连珠疾射！雾中骤然发出一声似兔似婴的惨嚎，白障瞬间溃散如潮。众人提灯摸上乱石堆，只见血迹旁留下一颗晶莹诡异的讹兽妖目，外加一包早年遇害方士遗落的【明目定神散】。";
 			}
 		});
 
@@ -117,7 +117,7 @@ this.wx_event_weird_shanhai_mirage <- this.inherit("scripts/events/event", {
 			{
 				this.Characters = [];
 				this.List = [];
-				this.Text = "[img]gfx/ui/events/wx_ev_24.png[/img]箭囊已空，连十支齐射的羽箭都凑不齐。眼看雾气越逼越紧，只得立刻改用麻绳串队强行冲谷！";
+				this.Text = "[img]gfx/ui/events/wx_ev_33.png[/img]箭囊已空，连十支齐射的羽箭都凑不齐。眼看雾气越逼越紧，只得立刻改用麻绳串队强行冲谷！";
 			}
 		});
 
@@ -141,7 +141,7 @@ this.wx_event_weird_shanhai_mirage <- this.inherit("scripts/events/event", {
 					::Wuxia.Events.addMood(bro, -0.75, "落入讹兽幻音险些坠崖", this.List);
 				}
 
-				this.Text = "[img]gfx/ui/events/wx_ev_24.png[/img]" + ::Wuxia.Events.fmtName(bro) + " 举着松明刚踏入白雾十步，火光便如被冷风吞没，紧接着崖边传来一声闷响与碎石滚落声！众人急忙抛下缆绳将满身擦伤的他拽回官道。他浑身发抖地嘟囔着雾里什么活人都没有，唯有两只惨白巨眼紧贴着自己鼻尖发笑。";
+				this.Text = "[img]gfx/ui/events/wx_ev_33.png[/img]" + ::Wuxia.Events.fmtName(bro) + " 举着松明刚踏入白雾十步，火光便如被冷风吞没，紧接着崖边传来一声闷响与碎石滚落声！众人急忙抛下缆绳将满身擦伤的他拽回官道。他浑身发抖地嘟囔着雾里什么活人都没有，唯有两只惨白巨眼紧贴着自己鼻尖发笑。";
 			}
 		});
 	}

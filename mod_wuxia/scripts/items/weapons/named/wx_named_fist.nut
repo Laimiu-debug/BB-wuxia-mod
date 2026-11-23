@@ -34,7 +34,8 @@ this.wx_named_fist <- this.inherit("scripts/items/weapons/named/named_weapon", {
 		this.m.ArmorDamageMult = 1.10;
 		this.m.DirectDamageMult = 0.45;
 
-		this.m.WX_VariantIdx = ::Math.rand(4, 9);
+		this.m.Variant = ::Math.rand(1, 10);
+		this.m.WX_VariantIdx = this.m.Variant;
 		this.wxApplyFistVisual();
 		this.randomizeValues();
 		local pfx = this.m.PrefixList[::Math.rand(0, this.m.PrefixList.len() - 1)];
@@ -44,10 +45,13 @@ this.wx_named_fist <- this.inherit("scripts/items/weapons/named/named_weapon", {
 
 	function wxApplyFistVisual()
 	{
-		local v = "wx_wpn_fist_0" + this.m.WX_VariantIdx;
+		local idx = (this.m.Variant >= 1 && this.m.Variant <= 10) ? this.m.Variant : this.m.WX_VariantIdx;
+		local isFamedArt = (idx >= 1 && idx <= 4);
+		local v = isFamedArt ? ("wx_famed_fist_0" + idx) : ("wx_wpn_fist_0" + ::Math.min(9, ::Math.max(4, idx)));
+		local sub = isFamedArt ? "named" : "melee";
 		this.m.ID = "weapon.wx_named_fist";
-		this.m.IconLarge = "weapons/melee/" + v + ".png";
-		this.m.Icon = "weapons/melee/" + v + "_70x70.png";
+		this.m.IconLarge = "weapons/" + sub + "/" + v + ".png";
+		this.m.Icon = "weapons/" + sub + "/" + v + "_70x70.png";
 		this.m.ShowArmamentIcon = true;
 		this.m.ArmamentIcon = "arm_" + v;
 		this.m.WX_ArmBrush <- "arm_" + v;

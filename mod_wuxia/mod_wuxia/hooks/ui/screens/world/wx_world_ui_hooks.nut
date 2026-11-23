@@ -2,12 +2,384 @@
 
 ::Wuxia.HooksMod.hook("scripts/ui/screens/world/modules/topbar/world_screen_topbar_options_module", function( q )
 {
-	::Wuxia.UI.attachSectTeaHouseRPCs(q);
+	::Wuxia.UI.attachSectTeaHouseRPCs(q, false, true);
+});
+
+::Wuxia.HooksMod.hook("scripts/ui/screens/world/world_screen", function( q )
+{
+	::Wuxia.UI.attachSectTeaHouseRPCs(q, false, true);
 });
 
 ::Wuxia.HooksMod.hook("scripts/ui/screens/world/world_relations_screen", function( q )
 {
-	::Wuxia.UI.attachSectTeaHouseRPCs(q);
+	::Wuxia.UI.attachSectTeaHouseRPCs(q, false, false);
+});
+
+::Wuxia.HooksMod.hook("scripts/ui/screens/world/modules/world_town_screen/town_tavern_dialog_module", function( q )
+{
+	::Wuxia.UI.attachSectTeaHouseRPCs(q, true, false);
+});
+
+// Town Disguise & Appearance Pavilion (`铜镜江湖易容阁` — 1000-Faces Wuxia Customization + Rename + Jianghu Vendetta/Official Disguise)
+::Wuxia.HooksMod.hook("scripts/ui/screens/world/modules/world_town_screen/town_barber_dialog_module", function( q )
+{
+	if (::Wuxia.qHas(q, "queryRosterInformation"))
+	{
+		q.queryRosterInformation = @(__original) function()
+		{
+			local ret = __original();
+			if (ret != null && typeof ret == "table")
+			{
+				ret.Title    <- "铜镜江湖易容阁";
+				ret.SubTitle <- "千面修容改换冠发名号 · 敛息潜踪消解江湖恩怨";
+			}
+			return ret;
+		};
+	}
+
+	if (::Wuxia.qHas(q, "onEntrySelected"))
+	{
+		q.onEntrySelected = @(__original) function( _entityID )
+		{
+			local bro = this.WX_FindBro(_entityID);
+			if (bro != null)
+			{
+				::Wuxia.Appearance.getOrInitState(bro);
+				::Wuxia.Appearance.refreshActorSprites(bro);
+				return bro.getImagePath();
+			}
+			return __original(_entityID);
+		};
+	}
+
+	if (::Wuxia.qHas(q, "onChangeAppearance"))
+	{
+		q.onChangeAppearance = @(__original) function( _entityID )
+		{
+			local bro = this.WX_FindBro(_entityID);
+			if (bro != null)
+			{
+				::Wuxia.Appearance.refreshActorSprites(bro);
+			}
+			if ("WorldVisuals" in ::Wuxia && "syncPlayerLeadAppearance" in ::Wuxia.WorldVisuals)
+				::Wuxia.WorldVisuals.syncPlayerLeadAppearance();
+			if (bro != null)
+				return bro.getImagePath();
+			return __original(_entityID);
+		};
+	}
+
+	q.WX_FindBro <- function( _id )
+	{
+		if (!("World" in getroottable()) || ::World == null || ::World.getPlayerRoster() == null)
+			return null;
+		local roster = ::World.getPlayerRoster().getAll();
+		if (roster == null || roster.len() == 0)
+			return null;
+		if (_id != null && _id != 0)
+		{
+			foreach (b in roster)
+			{
+				if (b != null && b.getID() == _id)
+					return b;
+			}
+		}
+		return roster[0];
+	};
+
+	q.WX_GetDisguiseCooldown <- function( _key, _cooldownDays )
+	{
+		if (!("World" in getroottable()) || ::World == null || !("Flags" in ::World) || ::World.Flags == null)
+			return 0;
+		if (!::World.Flags.has(_key))
+			return 0;
+		local lastDay = ::World.Flags.getAsInt(_key);
+		local curDay  = ::World.getTime().Days;
+		return ::Math.max(0, _cooldownDays - (curDay - lastDay));
+	};
+
+	q.WX_BuildDisguiseData <- function( _bro )
+	{
+		if (_bro == null)
+			return { ok = false, reason = "未找到该名侠客。" };
+
+		local st = ::Wuxia.Appearance.getOrInitState(_bro);
+		::Wuxia.Appearance.refreshActorSprites(_bro);
+		local labels = ::Wuxia.Appearance.getLabelsForState(st, _bro);
+
+		local money = ("World" in getroottable() && ::World != null && ::World.Assets != null) ? ::World.Assets.getMoney() : 0;
+		local curDay = ("World" in getroottable() && ::World != null && ::World.getTime() != null) ? ::World.getTime().Days : 1;
+		local ignoreFeud = ("World" in getroottable() && ::World != null && ::World.Assets != null && ::World.Assets.getOrigin() != null && ::World.Assets.getOrigin().getID() == "scenario.wx_origin_blood_remnant");
+		local hasBloodFeud     = false;
+		local hostileSectCount = 0;
+		local vendettaCount    = 0;
+		local hostileNames     = [];
+
+		if ("Sects" in ::Wuxia.Config && "SectRelations" in ::Wuxia)
+		{
+			foreach (sid, sdef in ::Wuxia.Config.Sects)
+			{
+				local rel = ::Wuxia.SectRelations.getRelation(sid);
+				if (rel < 0)
+				{
+					hostileSectCount += 1;
+					if (rel <= sdef.VendettaRel)
+						vendettaCount += 1;
+					if (!ignoreFeud && ("World" in getroottable()) && ::World != null && ("Flags" in ::World) && ::World.Flags != null)
+					{
+						local bfKey = "wx_blood_feud_" + sid;
+						if (::World.Flags.has(bfKey) && (curDay - ::World.Flags.getAsInt(bfKey) < 30))
+							hasBloodFeud = true;
+					}
+					if (hostileNames.len() < 3)
+						hostileNames.push(sdef.Name + "(" + rel + ")");
+				}
+			}
+		}
+
+		local coldFactionCount = 0;
+		local coldFactionName  = "";
+		local lowestFacRel     = 999.0;
+		if ("World" in getroottable() && ::World != null && "FactionManager" in ::World && ::World.FactionManager != null)
+		{
+			local facs = ::World.FactionManager.getFactions();
+			if (facs != null)
+			{
+				foreach (f in facs)
+				{
+					if (f == null) continue;
+					local ft = f.getType();
+					if (ft != ::Const.FactionType.NobleHouse && ft != ::Const.FactionType.OrientalCityState)
+						continue;
+					local fRel = f.getPlayerRelation();
+					if (fRel < 30.0)
+					{
+						coldFactionCount += 1;
+						if (fRel < lowestFacRel)
+						{
+							lowestFacRel    = fRel;
+							coldFactionName = f.getName();
+						}
+					}
+				}
+			}
+		}
+
+		return {
+			ok               = true,
+			broId            = _bro.getID(),
+			name             = _bro.getNameOnly(),
+			title            = _bro.getTitle(),
+			fullName         = _bro.getName(),
+			imagePath        = _bro.getImagePath(),
+			labels           = labels,
+			money            = money,
+			hostileSectCount = hostileSectCount,
+			vendettaCount    = vendettaCount,
+			hostileSectNames = hostileNames,
+			coldFactionCount = coldFactionCount,
+			coldFactionName  = coldFactionName,
+			vendettaCost     = hasBloodFeud ? 900 : 600,
+			disguiseCd       = this.WX_GetDisguiseCooldown("wx_disguise_vendetta_day", 5),
+			officialCd       = this.WX_GetDisguiseCooldown("wx_disguise_faction_day", 7)
+		};
+	};
+
+	q.onWXBarberGetState <- function( _data )
+	{
+		local broID = (typeof _data == "array" && _data.len() > 0) ? _data[0] : _data;
+		return this.WX_BuildDisguiseData(this.WX_FindBro(broID));
+	};
+
+	q.onWXBarberStepPart <- function( _data )
+	{
+		if (_data == null || typeof _data != "array" || _data.len() < 3)
+			return { ok = false, reason = "参数缺失。" };
+		local bro = this.WX_FindBro(_data[0]);
+		if (bro == null)
+			return { ok = false, reason = "未找到该名侠客。" };
+
+		::Wuxia.Appearance.stepAppearance(bro, "" + _data[1], _data[2]);
+		if ("WorldVisuals" in ::Wuxia && "syncPlayerLeadAppearance" in ::Wuxia.WorldVisuals)
+			::Wuxia.WorldVisuals.syncPlayerLeadAppearance();
+
+		return this.WX_BuildDisguiseData(bro);
+	};
+
+	q.onWXBarberRename <- function( _data )
+	{
+		if (_data == null || typeof _data != "array" || _data.len() < 3)
+			return { ok = false, reason = "参数缺失。" };
+		local bro = this.WX_FindBro(_data[0]);
+		if (bro == null)
+			return { ok = false, reason = "未找到该名侠客。" };
+
+		local newName  = _data[1] != null ? strip("" + _data[1]) : "";
+		local newTitle = _data[2] != null ? strip("" + _data[2]) : "";
+		if (newName == "")
+			return { ok = false, reason = "侠客本名不可为空。" };
+
+		bro.setName(newName);
+		bro.setTitle(newTitle);
+
+		local res = this.WX_BuildDisguiseData(bro);
+		res.actionMessage <- "铜镜易名：已将此侠改换名号为【" + bro.getName() + "】！";
+		return res;
+	};
+
+	q.onWXBarberClearVendetta <- function( _data )
+	{
+		local broID = (typeof _data == "array" && _data.len() > 0) ? _data[0] : _data;
+		local bro = this.WX_FindBro(broID);
+		if (!("World" in getroottable()) || ::World == null || ::World.Assets == null)
+			return { ok = false, reason = "当前无法访问义社盘缠。" };
+
+		local cd = this.WX_GetDisguiseCooldown("wx_disguise_vendetta_day", 5);
+		if (cd > 0)
+			return { ok = false, reason = "风声未平：还需隔 " + cd + " 日方可再次施展秘术易容敛息。" };
+
+		local curDay = ::World.getTime().Days;
+		local ignoreFeud = (::World.Assets.getOrigin() != null && ::World.Assets.getOrigin().getID() == "scenario.wx_origin_blood_remnant");
+		local cands = [];
+		local hasBloodFeud = false;
+		foreach (sid, sdef in ::Wuxia.Config.Sects)
+		{
+			local rel = ::Wuxia.SectRelations.getRelation(sid);
+			if (rel < 0)
+			{
+				local bfKey = "wx_blood_feud_" + sid;
+				local isFeud = !ignoreFeud && ::World.Flags.has(bfKey) && (curDay - ::World.Flags.getAsInt(bfKey) < 30);
+				if (isFeud) hasBloodFeud = true;
+				cands.push({ id = sid, name = sdef.Name, rel = rel, feud = isFeud });
+			}
+		}
+		if (cands.len() == 0)
+			return { ok = false, reason = "当前与九州各派并无恶交或寻仇追杀令，无需耗银敛息。" };
+
+		local cost = hasBloodFeud ? 900 : 600;
+		if (::World.Assets.getMoney() < cost)
+			return { ok = false, reason = "纹银不足（" + (hasBloodFeud ? "血洗山门风声极紧，易容避祸需 " : "施展秘术易容敛息需 ") + cost + " 两纹银）。" };
+
+		cands.sort(function( _a, _b ) {
+			if (_a.rel != _b.rel) return _a.rel < _b.rel ? -1 : 1;
+			return _a.id <=> _b.id;
+		});
+
+		::World.Assets.addMoney(-cost);
+		::World.Flags.set("wx_disguise_vendetta_day", curDay);
+
+		local easedNames = [];
+		local despawnedHunt = 0;
+		local feudCapped = false;
+		local limit = ::Math.min(2, cands.len());
+		for (local i = 0; i < limit; i = ++i)
+		{
+			local entry = cands[i];
+			local maxEase = entry.feud ? 8 : 22;
+			if (entry.feud) feudCapped = true;
+			local gain = ::Math.min(maxEase, -entry.rel);
+			local afterRel = ::Wuxia.SectRelations.addRelation(entry.id, gain, true);
+			::Wuxia.SectRelations.discoverSect(entry.id);
+			easedNames.push("【" + entry.name + "】(" + entry.rel + "→" + afterRel + (entry.feud ? "·血仇未平" : "") + ")");
+
+			local huntFlag = "wx_hunt_" + entry.id + "_id";
+			if (::World.Flags.has(huntFlag))
+			{
+				local hid = ::World.Flags.getAsInt(huntFlag);
+				if (hid > 0)
+				{
+					local hParty = ::World.getEntityByID(hid);
+					if (hParty != null && !hParty.isNull() && hParty.isAlive() && !hParty.isInCombat())
+					{
+						hParty.fadeOutAndDie();
+						despawnedHunt += 1;
+					}
+				}
+				::World.Flags.set(huntFlag, 0);
+			}
+		}
+
+		local res = this.WX_BuildDisguiseData(bro);
+		local feudNote = feudCapped ? "（踢馆血仇非一纸易容可尽消，仅暂缓少许风声）" : "";
+		res.actionMessage <- "易容敛息：耗银 " + cost + " 两改换形貌暗记，已消解 " + easedNames[0] + (easedNames.len() > 1 ? ("、" + easedNames[1]) : "") + " 之追缉敌意" + (despawnedHunt > 0 ? "，并甩脱城外追杀执事队！" : "！") + feudNote;
+		return res;
+	};
+
+	q.onWXBarberEaseFaction <- function( _data )
+	{
+		local broID = (typeof _data == "array" && _data.len() > 0) ? _data[0] : _data;
+		local bro = this.WX_FindBro(broID);
+		if (!("World" in getroottable()) || ::World == null || ::World.Assets == null)
+			return { ok = false, reason = "当前无法访问义社盘缠。" };
+
+		local cd = this.WX_GetDisguiseCooldown("wx_disguise_faction_day", 7);
+		if (cd > 0)
+			return { ok = false, reason = "驿路盘查尚严：还需隔 " + cd + " 日方可再次托暗桩打点官凭。" };
+
+		local cost = 800;
+		if (::World.Assets.getMoney() < cost)
+			return { ok = false, reason = "纹银不足（伪造路引打点藩镇官凭需 " + cost + " 两纹银）。" };
+
+		local bestFac = null;
+		local lowestRel = 999.0;
+		local facs = ::World.FactionManager.getFactions();
+		if (facs != null)
+		{
+			foreach (f in facs)
+			{
+				if (f == null) continue;
+				local ft = f.getType();
+				if (ft != ::Const.FactionType.NobleHouse && ft != ::Const.FactionType.OrientalCityState)
+					continue;
+				local fRel = f.getPlayerRelation();
+				if (fRel < 30.0 && fRel < lowestRel)
+				{
+					lowestRel = fRel;
+					bestFac   = f;
+				}
+			}
+		}
+		if (bestFac == null)
+			return { ok = false, reason = "当前与各大地方藩镇及西域都护府关系尚佳（皆 ≥30），无需打点官凭。" };
+
+		::World.Assets.addMoney(-cost);
+		::World.Flags.set("wx_disguise_faction_day", ::World.getTime().Days);
+		bestFac.addPlayerRelation(12.0, "易容改换路引、托暗桩周旋");
+
+		local res = this.WX_BuildDisguiseData(bro);
+		res.actionMessage <- "伪造官凭：耗银 " + cost + " 两托驿馆暗桩换发路引，【" + bestFac.getName() + "】对义社之盘查敌意已显著缓和（关系 +12）！";
+		return res;
+	};
+
+	if (::Wuxia.qHas(q, "onUpdateAppearance"))
+	{
+		q.onUpdateAppearance = @(__original) function( _data )
+		{
+			if (_data != null && typeof _data == "array" && _data.len() >= 3)
+			{
+				local bro = this.WX_FindBro(_data[0]);
+				if (bro != null)
+				{
+					local layerId = "" + _data[1];
+					local dir     = _data[2];
+					local partMap = {
+						head   = "face",
+						hair   = "hair",
+						color  = "tone",
+						beard  = "beard",
+						tattoo = "scar",
+						body   = "random"
+					};
+					local wxPart = (layerId in partMap) ? partMap[layerId] : "face";
+					::Wuxia.Appearance.stepAppearance(bro, wxPart, dir);
+					if ("WorldVisuals" in ::Wuxia && "syncPlayerLeadAppearance" in ::Wuxia.WorldVisuals)
+						::Wuxia.WorldVisuals.syncPlayerLeadAppearance();
+					return bro.getImagePath();
+				}
+			}
+			return __original(_data);
+		};
+	}
 });
 
 // Town Shop: 1-click sweep into 藏经阁 + auto-sweep newly purchased manuals/pages on leaving shop (respecting WithdrawnForSale)
@@ -44,7 +416,7 @@
 		};
 	};
 
-	if ("onLeaveButtonPressed" in q)
+	if (::Wuxia.qHas(q, "onLeaveButtonPressed"))
 	{
 		q.onLeaveButtonPressed = @(__original) function()
 		{
@@ -118,7 +490,7 @@
 		return res;
 	};
 
-	if ("onLootAllItemsButtonPressed" in q)
+	if (::Wuxia.qHas(q, "onLootAllItemsButtonPressed"))
 	{
 		q.onLootAllItemsButtonPressed = @(__original) function()
 		{
@@ -189,24 +561,24 @@
 		// 3. Town Screen Buildings (`world-town-screen.main-dialog-module.*`)
 		["world-town-screen.main-dialog-module.Crowd"]        = ["江湖招贤茶摊", "各路走镖趟子手、行脚武僧、退隐剑客与落魄武人在此歇脚寻东家；可查看身价、切磋看相并招揽入伙。"],
 		["world-town-screen.main-dialog-module.Marketplace"]  = ["州县百货集市", "南北客商云集的繁华街市，可采买行军干粮、百工修甲资材、箭矢药材及寻常布衣兵刃，亦可售卖战利货物。"],
-		["world-town-screen.main-dialog-module.Tavern"]       = ["迎风八方酒楼", "三教九流把酒高歌之地：可犒赏美酒提振同袍心情，亦可向酒保打听四方秘宝传闻、宗门动向与山海异兽踪迹。"],
+		["world-town-screen.main-dialog-module.Tavern"]       = ["迎风八方酒楼", "三教九流把酒高歌之地：一楼设『长乐赌桌』（马吊廿一点、四家叶子戏、红四牛骨骰、夜走黑风道等七门博戏）并可向酒保打探山门秘闻与武林大会邸报；二楼特设『江湖茶座』，可与云游各派门人设茗论交、拆招切磋。"],
 		["world-town-screen.main-dialog-module.Temple"]       = ["古刹济世医馆", "名医高僧坐堂施诊，可耗费纹银为麾下侠客金针拔毒、正骨接筋，迅速治愈各类跌打刀伤与经脉内伤。"],
 		["world-town-screen.main-dialog-module.Weaponsmith"]  = ["百炼神兵铁铺", "炉火纯青的刀剑名匠坐镇，专售百炼长剑、雁翎快刀、破甲重锤、成对拳掌护手及偶现人间的传世红武。"],
 		["world-town-screen.main-dialog-module.Armorsmith"]   = ["精工玄甲坊", "裁缝劲装锦袍、锻造山文重甲、扎甲战笠与百炼铁盾的官督甲坊，偶有巧夺天工的名家宝甲压箱。"],
 		["world-town-screen.main-dialog-module.Fletcher"]     = ["神机弓弩铺", "专制桑木角弓、踏张劲弩、诸葛连珠弩与满袋雕翎破甲箭矢的巧匠铺面。"],
 		["world-town-screen.main-dialog-module.TrainingHall"] = ["讲武堂演武院", "前朝退隐教头开设的演武大院，可出资请名师指点麾下侠客拆招喂招，在数场实战中获得额外武学历练加成。"],
-		["world-town-screen.main-dialog-module.Taxidermist"]  = ["百工猎妖炼丹房", "内设青铜八卦丹炉与百工案台，可将斩杀异兽大妖所得的山海内丹、奇骨毒腺炼制成『洗髓丹』『护脉丹』与传世神装。"],
+		["world-town-screen.main-dialog-module.Taxidermist"]  = ["百工丹坊", "内设青铜八卦丹炉、百炼铁砧与百草药柜总枢，唯有入此城镇百工坊方可开炉炼丹、重锻神兵、铸造山海护具及取放药柜奇材。"],
 		["world-town-screen.main-dialog-module.Alchemist"]    = ["西域火器奇珍局", "售卖霹雳雷火弹、唐门五云烟弹、蚀甲化骨毒瓶、神机手铳火药及西域秘制灵散的奇巧商局。"],
-		["world-town-screen.main-dialog-module.Arena"]        = ["红绸生死演武擂", "每日开擂的三对三生死演武场，登台力挫群雄不仅可赢取丰厚彩头纹银，更能铸就不败擂主威名。"],
+		["world-town-screen.main-dialog-module.Arena"]        = ["红绸生死演武擂 · 武林大会总坛", "内分两道门楼：左门『红绸生死擂』可接三对三赏金死斗契约；右门『天下武林大会』可点选五人登台争魁（点到为止不伤性命），或审阅四十四派与山海奇兽签表、购买单场及六场连环外围红盘银票入席观战！"],
 		["world-town-screen.main-dialog-module.Port"]         = ["漕运硬帆官渡口", "可支付船资雇请硬帆福船顺江海航道疾行千里，瞬息往返南北沿海港埠。"],
-		["world-town-screen.main-dialog-module.Barber"]       = ["铜镜江湖易容铺", "可自由定制麾下侠客的面容相貌、发髻发色与胡须战痕。"],
+		["world-town-screen.main-dialog-module.Barber"]       = ["铜镜江湖易容阁", "精修麾下侠客四十八相男女面容、发髻鬓色、胡须战痕与江湖名号；并可耗银『易容敛息』消解宗门追杀令或周旋藩镇官凭。"],
 		["world-town-screen.main-dialog-module.Kennel"]       = ["塞外猛獒驯犬坊", "售卖凶悍忠心的关外猛獒与护院猎犬，临阵放出可追剿残敌、牵制弓手。"],
 		["world-town-screen.main-dialog-module.Contract"]     = ["官府与乡绅榜文委托", "点击接洽此项江湖差事，商议酬银并听取委托原委（骷髅数代表凶险品阶）。"],
 		["world-town-screen.main-dialog-module.ContractNegotiated"] = ["已议定酬银之差事", "已与东家谈妥酬银条款，随时可拍板应承动身。"],
-		["world-town-screen.main-dialog-module.ContractLocked"]     = ["威名未显 · 尚难接洽", "此乃地方藩镇或名门重托，需义社江湖声望更高或有随行说客引荐方肯委任。"],
+		["world-town-screen.main-dialog-module.ContractLocked"]     = ["威名未显 · 尚难接洽", "此乃地方藩镇或名门重托，需义社江湖威名更高或有茶楼折冲客引荐方肯委任。"],
 		["world-town-screen.main-dialog-module.LeaveButton"]        = ["出城起行", "整顿人马离开此城，重返九州大地图。"],
 
-		// 4. World Topbar Assets & Character Screen Buttons
+		// 4. World Topbar Assets, Campfire Retinue & Character Screen Buttons
 		["assets.Money"]              = ["纹银盘缠", "行囊现存纹银两数，用于发放同袍每日月俸、采买粮草兵甲、请教门派秘籍与炼丹竞拍。"],
 		["assets.DailyMoney"]         = ["每日月俸开销", "麾下全体侠客每日所需的饷银合计；银钱断绝将致人心思变、愤然离队。"],
 		["assets.Food"]               = ["行军干粮", "随军携行的米面熏肉果脯总量；断粮挨饿将令同袍内息衰弱、怨声载道。"],
@@ -215,17 +587,24 @@
 		["assets.Supplies"]           = ["百工修甲资材", "精铁甲片、熟革麻绳与磨刀石，行军与扎营时自动修复受损兵刃与护甲。"],
 		["assets.Medicine"]           = ["金疮灵药储备", "三七金疮散、夹板与汤药，每日自动救治同袍身上的内外创伤与疾病。"],
 		["assets.Brothers"]           = ["麾下同袍人数", "义社当前在册侠客人数与上阵/替补编制上限。"],
-		["assets.BusinessReputation"] = ["江湖声望", "义社在九州黑白两道闯出的赫赫威名；声望越高，越能接取藩镇重托并在茶楼结交大派名宿。"],
+		["assets.BusinessReputation"] = ["江湖威名", "义社在九州黑白两道闯出的赫赫威名；威名愈盛，可解锁更多随营江湖幕僚席位、接取地方藩镇重托，并赢取更高的差事酬银。"],
 		["assets.MoralReputation"]    = ["侠义风评", "义社行事守信抑或心狠手辣的江湖风评，影响部分正邪奇遇走向。"],
-		["assets.Ambition"]           = ["当前江湖志向", "义社当下立誓达成的声望目标；功成之日将名动一方、振奋全军斗志。"],
+		["assets.Ambition"]           = ["当前江湖志向", "义社当下立誓达成的威名志向；功成之日将名动一方、振奋全军斗志。"],
 		["character-screen.right-panel-header-module.InventoryButton"] = ["兵甲行囊", "查阅并调配全队公用仓库中的兵刃、甲胄、丹药与山海奇材。"],
 		["character-screen.right-panel-header-module.PerksButton"]     = ["武学修为（七槽经脉）", "进入该侠客的七大武学插槽、个人已习武库与洗经伐髓修行界面。"],
 		["character-screen.left-panel-header-module.Dismiss"]          = ["遣散归乡", "赠予路费或令该名侠客解甲归田、重返江湖人海。"],
 		["world-screen.topbar.options-module.ActiveContractButton"]    = ["当前江湖委托卷宗", "展开或收起正在履行的差事榜文要略。"],
-		["world-screen.topbar.options-module.RelationsButton"]         = ["朝堂藩镇与江湖宗门", "查阅各大地方藩镇、西域城邦交情，并可一键展开『九州四十四宗门名刺录』。"],
-		["world-screen.topbar.options-module.CampButton"]              = ["安营扎寨调息", "就地驻马扎营，加快气血疗伤与兵甲修缮，并可打理随营幕僚奇人。"],
+		["world-screen.topbar.options-module.RelationsButton"]         = ["江湖录 · 朝堂与百草丹经", "查阅各大地方藩镇交情，并可在此翻阅随身只读卷宗『江湖宗门名刺』与『丹经手札·百草器谱』（结交宗门请赴酒肆茶座或山门；开炉炼丹与重锻请赴城镇百工坊）。"],
+		["world-screen.topbar.options-module.CampButton"]              = ["安营扎寨调息", "就地驻马扎营，加快气血疗伤与兵甲修缮。"],
 		["world-screen.topbar.options-module.ObituaryButton"]          = ["忠烈英魂录", "缅怀自开山立社以来血洒疆场、马革裹尸的逝去同袍。"],
-		["world-screen.topbar.options-module.PerksButton"]             = ["随营幕僚与行营总览", "打开篝火行营界面，延请丹鼎方士、百炼随匠、杏林医官等十八路江湖奇人辅佐义社。"]
+		["world-screen.topbar.options-module.PerksButton"]             = ["行营篝火 · 江湖幕僚", "打开行营幕僚界面，延请丹鼎方士、百炼随匠、杏林医官等十八路江湖奇人随军襄助，并可扩建重装镖车。"],
+		["world-campfire-screen.main-dialog-module.LeaveButton"]       = ["拔营返程", "离开行营篝火幕僚席，重返九州大地图。"],
+		["world-campfire-screen.hire-dialog-module.HireFollowerButton"]= ["奉银延请幕僚", "奉上礼银延请此位江湖奇人入驻行营幕僚席，常驻襄助义社。"],
+		["world-campfire-screen.hire-dialog-module.LeaveButton"]       = ["返回行营", "返回行营篝火主界面。"],
+
+		// 5. Options Menu -> Gameplay: Wuxia Combat VFX & Actor Motion Toggles
+		["menu-screen.options.WXSkillVfx"]    = ["显示武学招式特效动画", "开启后，施展武学招式、轻功与内功心法时将播放渐入渐出的气芒、残影与法相特效（战斗加载时一次性预载至显存，消除施法卡顿）；关闭后仅保留简洁打击反馈并进一步降低战斗显存占用。"],
+		["menu-screen.options.WXActorMotion"] = ["启用侠客出招身法动作", "开启后，侠客出招与受击时将演出蓄力后撤、疾驰突进、腾空劈斩、旋风回旋、瞬步闪袭以及受击击退/侧身闪避身法；关闭后恢复原版静态摇晃表现。"]
 	};
 
 	if (!("UI" in ::Wuxia)) ::Wuxia.UI <- {};
@@ -256,11 +635,18 @@
 		if (_elementId != null && ("FullTooltips" in ::Wuxia.UI) && (_elementId in ::Wuxia.UI.FullTooltips))
 		{
 			local spec = ::Wuxia.UI.FullTooltips[_elementId];
+			local descTxt = spec[1];
+			if (_elementId == "assets.BusinessReputation" && ("World" in getroottable()) && ::World != null && ::World.Assets != null)
+			{
+				local repVal = ::World.Assets.getBusinessReputation();
+				local repRank = ::World.Assets.getBusinessReputationAsText();
+				descTxt = descTxt + "\n\n当前威名阶位：[color=#5e2c00]" + repRank + "[/color]（威名值 " + repVal + "）";
+			}
 			if (_ret == null || typeof _ret != "array" || _ret.len() == 0)
 			{
 				return [
 					{ id = 1, type = "title", text = spec[0] },
-					{ id = 2, type = "description", text = spec[1] }
+					{ id = 2, type = "description", text = descTxt }
 				];
 			}
 			local replacedTitle = false;
@@ -276,7 +662,7 @@
 					}
 					else if (_ret[i].type == "description" && !replacedDesc)
 					{
-						_ret[i].text = spec[1];
+						_ret[i].text = descTxt;
 						replacedDesc = true;
 					}
 				}
@@ -284,7 +670,7 @@
 			if (!replacedTitle)
 				_ret.insert(0, { id = 1, type = "title", text = spec[0] });
 			if (!replacedDesc)
-				_ret.insert(1, { id = 2, type = "description", text = spec[1] });
+				_ret.insert(1, { id = 2, type = "description", text = descTxt });
 		}
 		return ::Wuxia.UI.harmonizeTooltipArray(_ret);
 	};
@@ -335,7 +721,7 @@
 
 	foreach (elFnName in ["general_queryUIElementTooltipData", "strategic_queryUIElementTooltipData", "tactical_queryUIElementTooltipData"])
 	{
-		if (elFnName in q)
+		if (::Wuxia.qHas(q, elFnName))
 		{
 			q[elFnName] = @(__original) function( _entityId, _elementId, _elementOwner )
 			{
@@ -346,19 +732,219 @@
 	}
 });
 
-// Replace medieval European loading tips with authentic Wuxia Jianghu & Tactical rules
-if ("Const" in getroottable() && "TipOfTheDay" in ::Const)
+// Town Temple Clinic (`古刹济世医馆`): Allow healing temporary `effects.wx_internal_injury` & `effects.wx_scatter_weakness`!
+::Wuxia.HooksMod.hook("scripts/ui/screens/world/modules/world_town_screen/town_temple_dialog_module", function( q )
 {
-	::Const.TipOfTheDay = [
-		"内息与疲劳同源：沉重甲胄虽能抵御刀剑，却会大幅压制可用内息上限与身法；轻装侠客则宜修《金蝉卸力》与阴柔真气护体。",
-		"角色在 1、3、5、7、9、11 级共解锁 7 大武学插槽，单人至多兼修 2 门内功与 2 门轻功，辅修第二门内功常驻内息与回气折半。",
-		"所有武功秘籍与残页皆可归入『藏经阁』不占仓库格管理；角色研习领悟秘籍后永久记入个人武库，方可在『武学修为』页自由选装入槽。",
-		"兼修多门外功或轻功时，主动绝招池可合并施展，但同系常驻攻防面板与穿甲、破甲、身法转防比例一律取最高值（不线性累加）。",
-		"闲置残页无需压箱底：可在藏经阁一键拼合成书、2:1 同阶融会补缺，或直接对未满重武学槽『参悟化功』注入火候！",
-		"洗经伐髓可助侠客冲星或易筋换星：提前调满气血、提升主修内功重数并辅服「护脉丹」，可显著提高胜算并免留永久暗疾。",
-		"拳掌指爪护手成对占满主副手，出招仅耗 4 AP，专擅高穿甲内劲、封穴震慑与空手夺白刃，乃重甲硬功之克星。",
-		"单手持刀剑而空出副手，既得双握增伤，配合杂学《孤锋诀》更可补足穿甲锋芒，潇洒破敌。",
-		"统帅杂学《聚义令》将振奋军心号令解绑出战旗武器——掌门手持本命刀剑亦能稳住全队定力，力抗湘西尸傀与古墓邪祟。",
-		"行经中原、名山、巴蜀、水泽、关外、大漠六大地域城镇茶肆时，可查阅『江湖名刺录』择席结交当地宗门、请教独门秘籍。"
-	];
-}
+	q.WX_GetWuxiaInjuryPrice <- function( _eff )
+	{
+		local mult = 1.0;
+		try
+		{
+			if ("World" in getroottable() && ::World != null && ::World.State != null && ::World.State.getCurrentTown() != null)
+				mult = ::World.State.getCurrentTown().getBuyPriceMult();
+		}
+		catch (_e) {}
+		if (_eff.getID() == "effects.wx_internal_injury")
+		{
+			local sev = ("Severity" in _eff.m) ? _eff.m.Severity : 1;
+			local baseP = (sev >= 2) ? 340 : 200;
+			return ::Math.max(120, ::Math.round(baseP * mult).tointeger());
+		}
+		return ::Math.max(110, ::Math.round(180 * mult).tointeger());
+	};
+
+	q.WX_CollectWuxiaInjuries <- function( _bro )
+	{
+		local out = [];
+		if (_bro == null || _bro.getSkills() == null) return out;
+		local sk = _bro.getSkills();
+		local inj = sk.getSkillByID("effects.wx_internal_injury");
+		if (inj != null && ("Severity" in inj.m) && inj.m.Severity > 0)
+		{
+			out.push({
+				id    = "effects.wx_internal_injury",
+				icon  = "skills/wx_internal_injury.png",
+				name  = "内伤调理 · " + inj.getName() + "（余 " + inj.m.DaysRemaining + " 日）",
+				price = this.WX_GetWuxiaInjuryPrice(inj)
+			});
+		}
+		local scat = sk.getSkillByID("effects.wx_scatter_weakness");
+		if (scat != null && ("DaysRemaining" in scat.m) && scat.m.DaysRemaining > 0)
+		{
+			out.push({
+				id    = "effects.wx_scatter_weakness",
+				icon  = "skills/wx_scatter_weakness.png",
+				name  = "归元稳脉 · 散功虚弱（余 " + scat.m.DaysRemaining + " 日）",
+				price = this.WX_GetWuxiaInjuryPrice(scat)
+			});
+		}
+		return out;
+	};
+
+	q.WX_BuildBroTempleEntry <- function( _bro, _existingEntry )
+	{
+		local entry = _existingEntry;
+		if (entry == null)
+		{
+			local bg = _bro.getBackground();
+			entry = {
+				ID                  = _bro.getID(),
+				Name                = _bro.getName(),
+				ImagePath           = _bro.getImagePath(),
+				ImageOffsetX        = _bro.getImageOffsetX(),
+				ImageOffsetY        = _bro.getImageOffsetY(),
+				BackgroundImagePath = (bg != null) ? bg.getIconColored() : "",
+				Injuries            = []
+			};
+		}
+		local wxList = this.WX_CollectWuxiaInjuries(_bro);
+		foreach (w in wxList)
+		{
+			local exists = false;
+			foreach (cur in entry.Injuries)
+				if (cur.id == w.id) { exists = true; break; }
+			if (!exists) entry.Injuries.push(w);
+		}
+		return entry;
+	};
+
+	if (::Wuxia.qHas(q, "queryRosterInformation"))
+	{
+		q.queryRosterInformation = @(__original) function()
+		{
+			local ret = __original();
+			if (ret == null || typeof ret != "table" || !("Roster" in ret) || typeof ret.Roster != "array")
+				return ret;
+			if (!("World" in getroottable()) || ::World == null || ::World.getPlayerRoster() == null)
+				return ret;
+
+			local byID = {};
+			foreach (row in ret.Roster)
+			{
+				if (row != null && ("ID" in row)) byID[row.ID] <- row;
+			}
+			foreach (bro in ::World.getPlayerRoster().getAll())
+			{
+				if (bro == null || !bro.isAlive()) continue;
+				local wxList = this.WX_CollectWuxiaInjuries(bro);
+				if (wxList.len() == 0) continue;
+				if (bro.getID() in byID)
+				{
+					this.WX_BuildBroTempleEntry(bro, byID[bro.getID()]);
+				}
+				else
+				{
+					ret.Roster.push(this.WX_BuildBroTempleEntry(bro, null));
+				}
+			}
+			return ret;
+		};
+	}
+
+	if (::Wuxia.qHas(q, "onTreatInjury"))
+	{
+		q.onTreatInjury = @(__original) function( _data )
+		{
+			if (_data != null && typeof _data == "array" && _data.len() >= 2 && (_data[1] == "effects.wx_internal_injury" || _data[1] == "effects.wx_scatter_weakness"))
+			{
+				local entityID = _data[0];
+				local injID = _data[1];
+				local bro = null;
+				foreach (b in ::World.getPlayerRoster().getAll())
+				{
+					if (b != null && b.getID() == entityID) { bro = b; break; }
+				}
+				if (bro != null && bro.getSkills() != null)
+				{
+					local eff = bro.getSkills().getSkillByID(injID);
+					if (eff != null)
+					{
+						local price = this.WX_GetWuxiaInjuryPrice(eff);
+						if (::World.Assets.getMoney() >= price)
+						{
+							::World.Assets.addMoney(-price);
+							if (injID == "effects.wx_internal_injury" && ("cureTemporary" in eff))
+								eff.cureTemporary();
+							else
+								eff.removeSelf();
+							bro.getSkills().update();
+							try { ::Sound.play("sounds/combat/first_aid_01.wav", ::Const.Sound.Volume.Inventory); } catch (_e) {}
+						}
+					}
+					// Rebuild updated entry (including any remaining vanilla + Wuxia injuries)
+					local refreshed = this.queryRosterInformation();
+					local updatedEntity = null;
+					if (refreshed != null && ("Roster" in refreshed))
+					{
+						foreach (r in refreshed.Roster)
+							if (r.ID == entityID) { updatedEntity = r; break; }
+					}
+					if (updatedEntity == null)
+						updatedEntity = this.WX_BuildBroTempleEntry(bro, null);
+					return {
+						Assets = (this.m.Parent != null && ::Wuxia.hasMember(this.m.Parent, "queryAssetsInformation"))
+							? this.m.Parent.queryAssetsInformation()
+							: ::UIDataHelper.convertAssetsInformationToUIData(),
+						Entity = updatedEntity
+					};
+				}
+			}
+			return __original(_data);
+		};
+	}
+});
+
+// Town Training Hall (`讲武演武木人馆`): Highlight +45% martial mastery XP bonus on training options!
+::Wuxia.HooksMod.hook("scripts/ui/screens/world/modules/world_town_screen/town_training_dialog_module", function( q )
+{
+	if (::Wuxia.qHas(q, "queryRosterInformation"))
+	{
+		q.queryRosterInformation = @(__original) function()
+		{
+			local ret = __original();
+			if (ret != null && typeof ret == "table")
+			{
+				ret.Title    <- "讲武演武木人馆";
+				ret.SubTitle <- "闭关演武不仅加速境界经验，更令战后武学功法火候获取额外 +45%！";
+			}
+			return ret;
+		};
+	}
+});
+
+// Town Hire Dialog (`江湖牙人` Recruiter Synergy + Tryout Starter-Manual Preview)
+::Wuxia.HooksMod.hook("scripts/ui/screens/world/modules/world_town_screen/town_hire_dialog_module", function( q )
+{
+	if (::Wuxia.qHas(q, "convertEntityHireInformationToUIDataAltered"))
+	{
+		q.convertEntityHireInformationToUIDataAltered = @(__original) function( _entity )
+		{
+			local ret = __original(_entity);
+			if (ret == null || typeof ret != "table" || _entity == null) return ret;
+			local hasRecruiter = ("World" in getroottable() && ::World != null && ("Retinue" in ::World) && ::World.Retinue != null && ::World.Retinue.hasFollower("follower.recruiter"));
+			local tried = (::Wuxia.hasMember(_entity, "isTryoutDone") && _entity.isTryoutDone());
+			if (hasRecruiter || tried)
+			{
+				local c = ::Wuxia.Slots.getContainer(_entity);
+				if (c != null && ("Slots" in c.m))
+				{
+					local names = [];
+					foreach (sl in c.m.Slots)
+					{
+						if (sl.ManualID != null && sl.Tier > 0)
+						{
+							local md = ::Wuxia.Slots.getManualDef(sl.ManualID);
+							if (md != null) names.push("《" + md.Name + "》");
+						}
+					}
+					local note = names.len() > 0
+						? ("\n\n[color=#d8b467]【自带武学底子】[/color]" + (hasRecruiter && !tried ? "（江湖牙人相面识破）" : "") + "入队即身怀 " + names[0] + (names.len() > 1 ? ("、" + names[1]) : "") + "。")
+						: ("\n\n[color=#9c927d]【自带武学底子】[/color]草莽白身，尚未习得成套武功。");
+					if ("BackgroundText" in ret && typeof ret.BackgroundText == "string" && ret.BackgroundText.find("【自带武学底子】") == null)
+						ret.BackgroundText += note;
+				}
+			}
+			return ret;
+		};
+	}
+});

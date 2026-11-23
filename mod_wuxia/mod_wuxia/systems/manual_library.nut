@@ -291,7 +291,7 @@ if (!("Library" in ::Wuxia))
 	{
 		local it = items[i];
 		if (it == null) continue;
-		if (!_includeWithdrawn && ("WX_WithdrawnForSale" in it.m) && it.m.WX_WithdrawnForSale)
+		if (!_includeWithdrawn && ::Wuxia.isWithdrawnForSale(it))
 			continue;
 
 		local id = it.getID();
@@ -323,7 +323,7 @@ if (!("Library" in ::Wuxia))
 	{
 		local it = items[i];
 		if (it == null) continue;
-		if (!_includeWithdrawn && ("WX_WithdrawnForSale" in it.m) && it.m.WX_WithdrawnForSale)
+		if (!_includeWithdrawn && ::Wuxia.isWithdrawnForSale(it))
 			continue;
 
 		local id = it.getID();
@@ -372,7 +372,7 @@ if (!("Library" in ::Wuxia))
 
 	local item = ::new("scripts/items/misc/wx_manual_item");
 	item.initManual(_manualID);
-	item.m.WX_WithdrawnForSale = true;
+	::Wuxia.markWithdrawnForSale(item);
 
 	if (_stash.add(item) == null)
 		return { Ok = false, Reason = "战团仓库已满，请先腾出一格空位。" };
@@ -399,7 +399,7 @@ if (!("Library" in ::Wuxia))
 	local batch = def.FragmentsNeeded > 0 ? ::Math.min(cur, def.FragmentsNeeded) : cur;
 	local item = ::new("scripts/items/misc/wx_page_item");
 	item.initPages(_manualID, batch);
-	item.m.WX_WithdrawnForSale = true;
+	::Wuxia.markWithdrawnForSale(item);
 
 	if (_stash.add(item) == null)
 		return { Ok = false, Reason = "战团仓库已满，请先腾出一格空位。" };
@@ -499,6 +499,8 @@ if (!("Library" in ::Wuxia))
 	{
 		::Wuxia.Library.addPages(_manualID, -def.FragmentsNeeded);
 		::Wuxia.Library.addManual(_manualID, 1);
+		if (::Wuxia.Library.hasWorldFlags())
+			::World.Flags.set("wx_crafted_page_manual", true);
 		return {
 			Ok              = true,
 			ManualName      = def.Name,
@@ -530,6 +532,8 @@ if (!("Library" in ::Wuxia))
 		rem -= take;
 	}
 	::Wuxia.Library.addManual(_manualID, 1);
+	if (::Wuxia.Library.hasWorldFlags())
+		::World.Flags.set("wx_crafted_page_manual", true);
 
 	return {
 		Ok              = true,
@@ -563,6 +567,9 @@ if (!("Library" in ::Wuxia))
 			names.push("《" + def.Name + "》" + (num > 1 ? ("×" + num) : ""));
 		}
 	}
+
+	if (booksCrafted > 0 && ::Wuxia.Library.hasWorldFlags())
+		::World.Flags.set("wx_crafted_page_manual", true);
 
 	return {
 		booksCrafted = booksCrafted,
@@ -620,23 +627,88 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 {
 	::Wuxia.HooksMod.hook("scripts/states/world_state", function( q )
 	{
-		if ("startNewCampaign" in q)
+		if (::Wuxia.qHas(q, "startNewCampaign"))
 		{
-			q.startNewCampaign = @(__original) function()
+			q.startNewCampaign = @(__original) function( ... )
 			{
 				::Wuxia.Library.invalidateCache();
-				__original();
+				local callArgs = [this];
+				for (local a = 0; a < vargv.len(); a = ++a)
+					callArgs.push(vargv[a]);
+				local ret = __original.acall(callArgs);
 				::Wuxia.Library.invalidateCache();
+				return ret;
 			};
 		}
-		if ("loadCampaign" in q)
+		if (::Wuxia.qHas(q, "loadCampaign"))
 		{
 			q.loadCampaign = @(__original) function( _file )
 			{
 				::Wuxia.Library.invalidateCache();
-				__original(_file);
+				local ret = __original(_file);
 				::Wuxia.Library.invalidateCache();
+				return ret;
 			};
 		}
 	});
 }
+
+::Wuxia.Library.learnAndEquip <- function( bro, slotIndex, manualID, isFragment = false, confirmed = false, checkPrevious = false, previousManual = null )
+{
+	if (bro == null)
+		return { ok = false, reason = "未找到该名侠客。" };
+
+	local def = ::Wuxia.Slots.getManualDef(manualID);
+	if (def == null)
+		return { ok = false, reason = "未知武学秘籍。" };
+
+	local container = ::Wuxia.Slots.getContainer(bro);
+	container.ensureSlotsRegisteredInLearned();
+	local existing = container.getLearnedEntry(manualID);
+	local needsLearn = (existing == null || (!isFragment && existing.IsFragment));
+	local needsEquip = false;
+	local check = null;
+	if (typeof slotIndex != "integer" || slotIndex < -1)
+		return { ok = false, reason = "无效的武学槽位。" };
+	if (slotIndex >= 0)
+	{
+		check = ::Wuxia.Slots.previewManualSwitch(bro, slotIndex, manualID, needsLearn ? isFragment : existing.IsFragment);
+		if (!check.Ok) return { ok = false, reason = check.Reason };
+		if (confirmed && checkPrevious && previousManual != check.OldManualID)
+			return { ok = false, reason = "该穴位功法已变更，请重新确认。" };
+		needsEquip = check.OldManualID != manualID;
+	}
+
+	if (!needsLearn && !needsEquip)
+		return { ok = false, reason = slotIndex < 0 ? "该侠客已研习此功法。" : "该穴位已装配此功法。" };
+	local learnFragment = needsLearn && isFragment;
+	if (!confirmed && (learnFragment || (check != null && check.IsOverwrite)))
+	{
+		return {
+			ok = false, needsConfirm = true,
+			confirmKind = learnFragment ? "fragment_learn" : "switch_slot",
+			isOverwrite = check != null && check.IsOverwrite,
+			oldManualID = check != null ? check.OldManualID : null,
+			oldManualName = check != null ? check.OldManualName : "",
+			newManualName = def.Name,
+			penaltyDays = check != null ? check.PenaltyDays : 0,
+			isFragment = learnFragment
+		};
+	}
+
+	if (needsLearn)
+	{
+		local learnRes = ::Wuxia.Library.learnFromLibrary(bro, manualID, isFragment);
+		if (!learnRes.Ok)
+			return { ok = false, reason = learnRes.Reason };
+	}
+
+	if (needsEquip)
+	{
+		local eqRes = ::Wuxia.Slots.equipLearnedManual(bro, slotIndex, manualID);
+		if (!eqRes.Ok)
+			return { ok = false, reason = eqRes.Reason };
+		return { ok = true, actionMessage = bro.getName() + " 已装配《" + def.Name + "》。" };
+	}
+	return { ok = true, actionMessage = existing != null ? ("已补全《" + def.Name + "》残本，重数与火候已保留。") : (bro.getName() + " 已领悟《" + def.Name + "》。") };
+};

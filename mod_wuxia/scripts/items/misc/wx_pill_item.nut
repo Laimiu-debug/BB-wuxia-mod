@@ -66,7 +66,7 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 	{
 		if ("Alchemy" in ::Wuxia.Config && "PillGrades" in ::Wuxia.Config.Alchemy && (this.m.PillGrade in ::Wuxia.Config.Alchemy.PillGrades))
 			return ::Wuxia.Config.Alchemy.PillGrades[this.m.PillGrade];
-		return { Grade = 1, Title = "成丹", Prefix = "", Color = "#d7b174", ValueMult = 1.0, WashBonus = 0, ProtectBonus = 0 };
+		return { Grade = 1, Title = "成丹", Prefix = "", Color = "#d7b174", TooltipColor = "#3f362a", ValueMult = 1.0, WashBonus = 0, ProtectBonus = 0 };
 	}
 
 	function getAuxSpec()
@@ -191,13 +191,14 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 			local gSpec = this.getGradeSpec();
 			local isPreview = ("WX_IsBlueprintPreview" in this.m) && this.m.WX_IsBlueprintPreview;
 
+			local gCol = ("TooltipColor" in gSpec) ? gSpec.TooltipColor : gSpec.Color;
 			ret.push({
 				id = 15,
 				type = "text",
 				icon = "ui/icons/special.png",
 				text = "丹药品阶：【" + qLabel + " · " + sub + "】" +
 					((!isPreview && (this.m.PillGrade >= 2 || this.m.PotencyPct != 100))
-						? ("  [color=" + gSpec.Color + "]（" + gSpec.Title + " · 药效 " + this.m.PotencyPct + "%）[/color]")
+						? ("  [color=" + gCol + "]（" + gSpec.Title + " · 药效 " + this.m.PotencyPct + "%）[/color]")
 						: "")
 			});
 
@@ -208,20 +209,20 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 				{
 					local loE = ::Math.round(def.ExpAmount * 0.92).tointeger();
 					local hiE = ::Math.round(def.ExpAmount * 1.55).tointeger();
-					rangeHint = "灌注火候区间 [color=#7ee29a]+" + loE + " ~ +" + hiE + "[/color]";
+					rangeHint = "灌注火候区间 [color=#0a4213]+" + loE + " ~ +" + hiE + "[/color]";
 				}
 				else if (def.Kind != null && def.Kind.find("marrow_wash") == 0)
-					rangeHint = "灵纹成功率额外 [color=#5ec47a]+4%[/color]，丹霞极品额外 [color=#f0bc42]+8%[/color]";
+					rangeHint = "灵纹成功率额外 [color=#0a4213]+4%[/color]，丹霞极品额外 [color=#5e2c00]+8%[/color]";
 				else if (def.Kind == "wash_protect")
-					rangeHint = "灵纹护脉额外 [color=#5ec47a]+2%[/color]，丹霞极品额外 [color=#f0bc42]+5%[/color] 且减轻震荡";
+					rangeHint = "灵纹护脉额外 [color=#0a4213]+2%[/color]，丹霞极品额外 [color=#5e2c00]+5%[/color] 且减轻震荡";
 				else if (def.Kind != null && def.Kind.find("buff_") == 0)
-					rangeHint = "备战主药效可提升至 [color=#f0bc42]155%[/color]，且【丹霞】极品免第 3 丹丹毒与内伤反噬";
+					rangeHint = "备战主药效可提升至 [color=#5e2c00]155%[/color]，且【丹霞】极品免第 3 丹丹毒与内伤反噬";
 
 				ret.push({
 					id = 18,
 					type = "text",
 					icon = "ui/icons/xp_received.png",
-					text = "[color=#dda21f]【开炉丹纹品相】[/color]随机凝出 成丹 / [color=#5ec47a]灵纹[/color] / [color=#f0bc42]丹霞极品[/color]（" + rangeHint + "）"
+					text = "[color=#533200]【开炉丹纹品相】[/color]随机凝出 成丹 / [color=#0a4213]灵纹[/color] / [color=#5e2c00]丹霞极品[/color]（" + rangeHint + "）"
 				});
 			}
 			else
@@ -229,11 +230,12 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 				local aux = this.getAuxSpec();
 				if (aux != null)
 				{
+					local auxCol = ("TooltipColor" in aux) ? aux.TooltipColor : aux.Color;
 					ret.push({
 						id = 18,
 						type = "text",
 						icon = "ui/icons/special.png",
-						text = "[color=" + aux.Color + "]【" + aux.Title + "】[/color]" + this.getAuxContextLine(def.Kind)
+						text = "[color=" + auxCol + "]【" + aux.Title + "】[/color]" + this.getAuxContextLine(def.Kind)
 					});
 				}
 				if (this.m.PillGrade >= 3 && def.Kind != null && def.Kind.find("buff_") == 0)
@@ -242,7 +244,7 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 						id = 19,
 						type = "text",
 						icon = "ui/icons/health.png",
-						text = "[color=#f0bc42]【丹霞无瑕】[/color]药力纯粹圆融：作为第 3 枚备战丹服食不致「丹毒郁结」，且免除疯魔内伤反噬！"
+						text = "[color=#5e2c00]【丹霞无瑕】[/color]药力纯粹圆融：作为第 3 枚备战丹服食不致「丹毒郁结」，且免除疯魔内伤反噬！"
 					});
 				}
 				else if ((this.m.PillGrade >= 2) && (def.Kind != null && (def.Kind.find("marrow_wash") == 0 || def.Kind == "wash_protect")))
@@ -252,7 +254,7 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 						id = 19,
 						type = "text",
 						icon = "ui/icons/bravery.png",
-						text = "[color=" + gSpec.Color + "]【" + gSpec.Title + "神效】[/color]洗经伐髓启用此丹时，成功率额外再 [color=#7ee29a]+" + wb + "%[/color]！"
+						text = "[color=" + gCol + "]【" + gSpec.Title + "神效】[/color]洗经伐髓启用此丹时，成功率额外再 [color=#0a4213]+" + wb + "%[/color]！"
 					});
 				}
 			}
@@ -390,6 +392,7 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 				inj2.cureTemporary();
 			}
 			local buff = skills.getSkillByID("effects.wx_pill_battle_buff");
+			local firstBattleEffect = buff == null;
 			local alreadyBuff = (buff != null && buff.hasBuffKind("buff_bingxin"));
 			if (cured2.len() == 0 && alreadyBuff)
 				return { Ok = false, Reason = _actor.getName() + " 当前经脉清净且已有冰心药力护持。" };
@@ -400,7 +403,7 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 			}
 			buff.addPillBuff("buff_bingxin");
 			if ("applyPillPotencyAndAux" in buff)
-				buff.applyPillPotencyAndAux(this.m.PotencyPct, this.m.AuxNature, false);
+				buff.applyPillPotencyAndAux(this.m.PotencyPct, this.m.AuxNature, false, firstBattleEffect);
 			local auxNote2 = this.applyAuxHealBonus(_actor, skills);
 			skills.update();
 			return { Ok = true, Message = _actor.getName() + " 服下「" + this.m.Name + "」，涤清内患并获下场战斗冰心辟毒药力" + auxNote2 + "！" };
@@ -481,6 +484,7 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 		if (def.Kind.find("buff_") == 0)
 		{
 			local buff2 = skills.getSkillByID("effects.wx_pill_battle_buff");
+			local firstBattleEffect = buff2 == null;
 			if (buff2 != null && buff2.hasBuffKind(def.Kind))
 				return { Ok = false, Reason = _actor.getName() + " 体内已有「" + def.Name + "」药力流转，无需重复服食。" };
 			if (buff2 == null)
@@ -492,7 +496,7 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 			if ("applyPillPotencyAndAux" in buff2)
 			{
 				local waiveFengmo = (def.Kind == "buff_fengmo" && this.m.PillGrade >= 3);
-				buff2.applyPillPotencyAndAux(this.m.PotencyPct, this.m.AuxNature, waiveFengmo);
+				buff2.applyPillPotencyAndAux(this.m.PotencyPct, this.m.AuxNature, waiveFengmo, firstBattleEffect);
 			}
 			if (this.m.AuxNature == "vital" && _actor.getHitpoints() < _actor.getHitpointsMax())
 			{

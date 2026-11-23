@@ -38,6 +38,8 @@ this.wx_shanhai_boss_trait <- this.inherit("scripts/skills/skill", {
 	function setBossID( _bossID )
 	{
 		this.m.BossID = _bossID;
+		this.m.Icon = "ui/perks/wx_boss_trait_" + _bossID + ".png";
+		this.m.IconDisabled = "ui/perks/wx_boss_trait_" + _bossID + "_sw.png";
 		local fullKey = "boss_" + _bossID;
 		if ("ShanHaiBosses" in ::Wuxia.Config && (fullKey in ::Wuxia.Config.ShanHaiBosses))
 		{
@@ -255,6 +257,7 @@ this.wx_shanhai_boss_trait <- this.inherit("scripts/skills/skill", {
 		{
 			this.m.ReviveUsed = true;
 			actor.setHitpoints(::Math.min(actor.getHitpointsMax(), actor.getHitpoints() + mech.ReviveOnceHP));
+			if ("VFX" in ::Wuxia) ::Wuxia.VFX.playTriggerVfx(actor, "wx_vfx_20", "wx_fx_blood_orb", -25, 110, 1.28);
 		}
 	}
 
@@ -304,18 +307,30 @@ this.wx_shanhai_boss_trait <- this.inherit("scripts/skills/skill", {
 			if ("VFX" in ::Wuxia) ::Wuxia.VFX.playTriggerVfx(_targetEntity, "wx_vfx_28", "wx_fx_poison_skull", -20, 0, 1.06);
 		}
 		if ("OnHitInternalInjury" in mech && mech.OnHitInternalInjury && !immuneBio)
+		{
 			this.applyDebuffSafe(tsk, "effects.wx_internal_injury", "scripts/skills/effects/wx_internal_injury");
+			if ("VFX" in ::Wuxia) ::Wuxia.VFX.playTriggerVfx(_targetEntity, "wx_vfx_11", "wx_fx_blood_orb", 0, 0, 1.08);
+		}
 		if ("OnHitAcupoint" in mech && mech.OnHitAcupoint && !immuneBio)
 		{
 			this.applyDebuffSafe(tsk, "effects.wx_status_acupoint", "scripts/skills/effects/wx_status_acupoint");
 			if ("VFX" in ::Wuxia) ::Wuxia.VFX.playTriggerVfx(_targetEntity, "wx_vfx_16", "wx_fx_lotus_seal", 0, 100, 1.06);
 		}
 		if ("OnHitScatter" in mech && mech.OnHitScatter && !immuneBio)
+		{
 			this.applyDebuffSafe(tsk, "effects.wx_scatter_weakness", "scripts/skills/effects/wx_scatter_weakness");
+			if ("VFX" in ::Wuxia) ::Wuxia.VFX.playTriggerVfx(_targetEntity, "wx_vfx_19", "wx_fx_bagua", 0, -90, 1.08);
+		}
 		if ("OnHitOffbalance" in mech && mech.OnHitOffbalance)
+		{
 			this.applyDebuffSafe(tsk, "effects.wx_status_offbalance", "scripts/skills/effects/wx_status_offbalance");
+			if ("VFX" in ::Wuxia) ::Wuxia.VFX.playTriggerVfx(_targetEntity, "wx_vfx_14", "wx_fx_sonic_ring", 0, 0, 1.06);
+		}
 		if ("OnHitOpening" in mech && mech.OnHitOpening)
+		{
 			this.applyDebuffSafe(tsk, "effects.wx_status_opening", "scripts/skills/effects/wx_status_opening");
+			if ("VFX" in ::Wuxia) ::Wuxia.VFX.playTriggerVfx(_targetEntity, "wx_vfx_07", "wx_fx_sword_phantom", 0, 0, 1.06);
+		}
 	}
 
 	function onTargetKilled( _targetEntity, _skill )

@@ -18,6 +18,7 @@
 ::include("mod_wuxia/config/wx_shanhai.nut");
 ::include("mod_wuxia/config/wx_shanhai_expansion.nut");
 ::include("mod_wuxia/config/wx_beast_craft.nut");
+::include("mod_wuxia/config/wx_shanhai_sets.nut");
 ::include("mod_wuxia/config/wx_backgrounds.nut");
 ::include("mod_wuxia/config/wx_names.nut");
 ::include("mod_wuxia/config/bios/wx_bios_tier0_a.nut");
@@ -32,6 +33,7 @@
 ::include("mod_wuxia/config/wx_projectiles.nut");
 ::include("mod_wuxia/config/wx_world_visuals.nut");
 ::include("mod_wuxia/config/wx_music.nut");
+::include("mod_wuxia/config/wx_gambling.nut");
 
 // 2. Core Rule Systems
 ::include("mod_wuxia/systems/slot_manager.nut");
@@ -47,8 +49,10 @@
 ::include("mod_wuxia/systems/wx_relic_system.nut");
 ::include("mod_wuxia/systems/wx_shanhai_system.nut");
 ::include("mod_wuxia/systems/wx_beast_craft_system.nut");
+::include("mod_wuxia/systems/wx_shanhai_set_system.nut");
 ::include("mod_wuxia/systems/wx_forge_system.nut");
 ::include("mod_wuxia/systems/sect_relations.nut");
+::include("mod_wuxia/systems/wx_sect_sanctum_halls.nut");
 ::include("mod_wuxia/systems/loot_economy.nut");
 ::include("mod_wuxia/systems/wx_event_helpers.nut");
 ::include("mod_wuxia/systems/wx_world_encounters.nut");
@@ -57,6 +61,8 @@
 ::include("mod_wuxia/systems/wx_world_visuals_system.nut");
 ::include("mod_wuxia/systems/wx_vanilla_purification.nut");
 ::include("mod_wuxia/systems/wx_contracts_and_ambitions.nut");
+::include("mod_wuxia/systems/wx_casino_system.nut");
+::include("mod_wuxia/systems/wx_tournament_system.nut");
 ::include("mod_wuxia/systems/scenario_start.nut");
 ::include("mod_wuxia/systems/selftest.nut");
 
@@ -72,5 +78,6 @@
 ::include("mod_wuxia/hooks/ui/screens/character/character_screen.nut");
 ::include("mod_wuxia/hooks/ui/screens/world/wx_world_ui_hooks.nut");
 ::include("mod_wuxia/hooks/ui/wx_alchemy_hooks.nut");
+::include("mod_wuxia/hooks/ui/wx_gambling_hooks.nut");
 ::include("mod_wuxia/hooks/config/wx_music_hook.nut");
 ::include("mod_wuxia/hooks/config/wx_screens_hook.nut");

@@ -182,26 +182,39 @@
 				: patrolDefs[(slot - 1 + (_day / 6)) % patrolDefs.len()];
 
 			local anchor = ::Wuxia.SectRelations.getSectAnchorInfo(def.SectID);
-			local homeTown = anchor.townObj;
+			local homeSite = ("sanctumObj" in anchor) ? anchor.sanctumObj : anchor.townObj;
 			local spawnFac = _banditFaction;
 			local spawnTile = null;
 
 			if (!isOutlawSlot)
 			{
-				if (homeTown != null && "FactionManager" in ::World && ::World.FactionManager != null && ::Wuxia.hasMember(homeTown, "getFactions"))
+				if ("FactionManager" in ::World && ::World.FactionManager != null && ::World.EntityManager != null)
 				{
-					foreach (fid in homeTown.getFactions())
+					local refTile = (homeSite != null && homeSite.getTile() != null) ? homeSite.getTile() : player.getTile();
+					local bestD = 9999;
+					local nearSet = null;
+					foreach (st in ::World.EntityManager.getSettlements())
 					{
-						local candF = ::World.FactionManager.getFaction(fid);
-						if (candF != null) { spawnFac = candF; break; }
+						if (st == null || !st.isAlive() || st.getTile() == null) continue;
+						local d = refTile != null ? refTile.getDistanceTo(st.getTile()) : 10;
+						if (d < bestD) { bestD = d; nearSet = st; }
+					}
+					if (nearSet != null && ::Wuxia.hasMember(nearSet, "getFactions"))
+					{
+						foreach (fid in nearSet.getFactions())
+						{
+							local candF = ::World.FactionManager.getFaction(fid);
+							if (candF != null) { spawnFac = candF; break; }
+						}
 					}
 				}
-				spawnTile = this.findRoadTileNearTown(homeTown);
+				spawnTile = this.findRoadTileNearTown(homeSite);
 				if (spawnTile == null) spawnTile = this.findTile(true);
 			}
 			else
 			{
-				spawnTile = this.findTile(false, slot == 5);
+				spawnTile = (homeSite != null) ? this.findRoadTileNearTown(homeSite) : null;
+				if (spawnTile == null) spawnTile = this.findTile(false, slot == 5);
 			}
 			if (spawnTile == null || spawnFac == null) continue;
 
@@ -217,7 +230,7 @@
 			party.getFlags().set("wx_sect_patrol_fig", def.Fig);
 			party.getFlags().set("wx_sect_patrol_banner", def.Banner);
 
-			if ("WX_RefreshPartyVisuals" in party)
+			if (::Wuxia.hasMember(party, "WX_RefreshPartyVisuals"))
 			{
 				party.m.WX_LastBodyBrush <- "";
 				party.m.WX_LastBannerBrush <- "";
@@ -225,11 +238,11 @@
 			}
 
 			local ro = ::new("scripts/ai/world/orders/roam_order");
-			if ("setPivot" in ro) ro.setPivot((homeTown != null && !isOutlawSlot && homeTown.getTile() != null) ? homeTown.getTile() : spawnTile);
-			if ("setMinRange" in ro) ro.setMinRange(2);
-			if ("setMaxRange" in ro) ro.setMaxRange(14);
-			if ("setAllTerrainAvailable" in ro) ro.setAllTerrainAvailable();
-			if ("setTime" in ro) ro.setTime(720.0);
+			if (::Wuxia.hasMember(ro, "setPivot") && homeSite != null && !isOutlawSlot) ro.setPivot(homeSite);
+			if (::Wuxia.hasMember(ro, "setMinRange")) ro.setMinRange(2);
+			if (::Wuxia.hasMember(ro, "setMaxRange")) ro.setMaxRange(14);
+			if (::Wuxia.hasMember(ro, "setAllTerrainAvailable")) ro.setAllTerrainAvailable();
+			if (::Wuxia.hasMember(ro, "setTime")) ro.setTime(720.0);
 			party.getController().addOrder(ro);
 
 			::World.Flags.set(fKey + "_id", party.getID());
@@ -262,6 +275,24 @@
 				Desc = "状如雕而戴角、声若婴儿啼哭的大漠蛊雕与文豹恶兽。",
 				Fig  = "wx_fig_beast_gudiao",
 				Troops = (_day >= 18) ? ["Hyena", "Hyena", "Hyena", "Hyena", "Hyena"] : ["Hyena", "Hyena", "Hyena", "Hyena"]
+			},
+			{
+				Name = "山海翼兽 · 穷奇虎豹群",
+				Desc = "自荒原啸聚而出的翼虎凶兽与食人猛彘，迅疾凶狠。",
+				Fig  = "wx_fig_beast_qiongqi",
+				Troops = (_day >= 18) ? ["Hyena", "Hyena", "Direwolf", "Direwolf", "Direwolf"] : ["Hyena", "Hyena", "Direwolf", "Direwolf"]
+			},
+			{
+				Name = "山海灵骏 · 鹿蜀飞马群",
+				Desc = "奔腾于群山幽谷间的杻阳鹿蜀与马成飞天马，蹄疾如电。",
+				Fig  = "wx_fig_beast_fuzhu",
+				Troops = (_day >= 18) ? ["Direwolf", "Direwolf", "Direwolf", "Hyena", "Hyena"] : ["Direwolf", "Direwolf", "Direwolf", "Hyena"]
+			},
+			{
+				Name = "山海奇虫 · 昆仑玄蜂群",
+				Desc = "自枯木毒谷蜂拥而出的透铁玄蜂与蜚虫毒群，尾针蚀甲。",
+				Fig  = "wx_fig_beast_qinyuan",
+				Troops = (_day >= 18) ? ["Spider", "Spider", "Spider", "Spider", "Spider"] : ["Spider", "Spider", "Spider", "Spider"]
 			}
 		];
 		if (_day >= 10)
@@ -278,6 +309,57 @@
 				Fig  = "wx_fig_beast_bashe",
 				Troops = ["Serpent", "Serpent", "Serpent", "Serpent"]
 			});
+			templates.push({
+				Name = "山海凶豚 · 豪彘狸力群",
+				Desc = "鬃毛如铁笄、掘地冲阵的凶猪豪彘与双首黑彘群。",
+				Fig  = "wx_fig_beast_dangkang",
+				Troops = ["Ghoul", "Ghoul", "Ghoul", "Hyena", "Hyena"]
+			});
+			templates.push({
+				Name = "山海奇禽 · 三青蛮蛮群",
+				Desc = "盘空俯掠的比翼蛮蛮与三青神禽群，利爪专袭轻甲武人。",
+				Fig  = "wx_fig_beast_jinwu",
+				Troops = ["Hyena", "Hyena", "Hyena", "Direwolf", "Direwolf"]
+			});
+			templates.push({
+				Name = "山海翼鱼 · 文鳐冉遗群",
+				Desc = "乘雾掠水而行的夜飞文鳐鱼与独角毒茈鱼水妖群。",
+				Fig  = "wx_fig_beast_wenyao",
+				Troops = ["Serpent", "Serpent", "Serpent", "Spider", "Spider"]
+			});
+			templates.push({
+				Name = "山海诡祟 · 幽谷讹兽群",
+				Desc = "眉生竖瞳、散播梦魇的幽谷讹兽与诡鸟游荡群。",
+				Fig  = "wx_fig_beast_eshou",
+				Troops = ["Alp", "Alp", "Alp", "Direwolf"]
+			});
+		}
+		if (_day >= 20)
+		{
+			templates.push({
+				Name = "山海魅影 · 青丘妖狐群",
+				Desc = "林间雾气中传出惑心笑声的青丘妖魅与赤鱬精怪。",
+				Fig  = "wx_fig_beast_yaomei",
+				Troops = ["Hexe", "Direwolf", "Direwolf", "Direwolf", "Spider"]
+			});
+			templates.push({
+				Name = "山海异民 · 大荒羽民猎群",
+				Desc = "背生黑铁羽翼、结群巡猎荒野的羽民与驩头异族。",
+				Fig  = "wx_fig_beast_yumin",
+				Troops = ["Alp", "Alp", "Hyena", "Hyena", "Direwolf"]
+			});
+			templates.push({
+				Name = "山海甲兽 · 玄龟能鳖群",
+				Desc = "背负铁石重甲盘踞水泽的三足能鳖与吐珠巨鳖群。",
+				Fig  = "wx_fig_beast_xuangui",
+				Troops = ["UnholdBog", "Serpent", "Serpent", "Serpent"]
+			});
+			templates.push({
+				Name = "山海雷兽 · 夔犊軨軨群",
+				Desc = "踏地生雷、力能碎盾的奔雷夔犊与巨牛軨軨群。",
+				Fig  = "wx_fig_beast_kui",
+				Troops = ["UnholdFrost", "Direwolf", "Direwolf", "Hyena"]
+			});
 		}
 		if (_day >= 26)
 		{
@@ -292,6 +374,45 @@
 				Desc = "感天地灵煞化形而行的千年建木枯荣树精，木甲坚逾精铁。",
 				Fig  = "wx_fig_beast_jianmu",
 				Troops = ["Schrat", "Schrat"]
+			});
+			templates.push({
+				Name = "山海泽怪 · 天吴相柳嗣",
+				Desc = "自深泽泥沼爬出的八首天吴与毒水泽妖，凶瘴弥漫。",
+				Fig  = "wx_fig_beast_xiangliu",
+				Troops = ["UnholdBog", "UnholdBog", "Serpent", "Serpent"]
+			});
+			templates.push({
+				Name = "山海寒兽 · 雪岭獓狠群",
+				Desc = "纵横寒原雪峰的四角獓狠与北荒雪兽群，皮厚耐寒。",
+				Fig  = "wx_fig_beast_bingyi",
+				Troops = ["UnholdFrost", "UnholdFrost", "Direwolf"]
+			});
+			templates.push({
+				Name = "山海异煞 · 浑沌视肉群",
+				Desc = "大荒深处游荡的奇异混元妖物与不死视肉群。",
+				Fig  = "wx_fig_beast_hundun",
+				Troops = ["Unhold", "Ghoul", "Ghoul", "Alp", "Alp"]
+			});
+			templates.push({
+				Name = "山海巨灵 · 一目蛮群",
+				Desc = "手拄巨木棒阔步横行荒野的北荒一目蛮与山魈巨灵。",
+				Fig  = "wx_fig_beast_kuafu",
+				Troops = ["Unhold", "Unhold", "Hyena"]
+			});
+		}
+		if (_day >= 36)
+		{
+			templates.push({
+				Name = "山海大妖 · 太华肥遗毒蛟",
+				Desc = "六足四翼、紫血蚀铁的太华肥遗毒蛟出渊游猎，切忌轻甲近身硬拼。",
+				Fig  = "wx_fig_beast_feiyi",
+				Troops = ["Lindwurm", "Serpent", "Serpent"]
+			});
+			templates.push({
+				Name = "山海凶魔 · 凶黎铜角妖群",
+				Desc = "自上古古战场游荡而出的凶黎魔兵与穿胸不死凶妖。",
+				Fig  = "wx_fig_beast_xingtian",
+				Troops = ["Unhold", "Ghoul", "Ghoul", "Ghoul", "Hyena"]
 			});
 		}
 
@@ -336,11 +457,10 @@
 				pack.getSprite("banner").Visible = false;
 
 			local ro = ::new("scripts/ai/world/orders/roam_order");
-			if ("setPivot" in ro) ro.setPivot(tile);
-			if ("setMinRange" in ro) ro.setMinRange(2);
-			if ("setMaxRange" in ro) ro.setMaxRange(12);
-			if ("setAllTerrainAvailable" in ro) ro.setAllTerrainAvailable();
-			if ("setTime" in ro) ro.setTime(600.0);
+			if (::Wuxia.hasMember(ro, "setMinRange")) ro.setMinRange(2);
+			if (::Wuxia.hasMember(ro, "setMaxRange")) ro.setMaxRange(12);
+			if (::Wuxia.hasMember(ro, "setAllTerrainAvailable")) ro.setAllTerrainAvailable();
+			if (::Wuxia.hasMember(ro, "setTime")) ro.setTime(600.0);
 			pack.getController().addOrder(ro);
 
 			::World.Flags.set(flagKey + "_id", pack.getID());
@@ -370,7 +490,7 @@
 		this.addTroops(squad, spec.Troops);
 		squad.setDescription(_sect.Name + "派出的寻仇人马，正沿路追查你的行踪。");
 		squad.getFlags().set("wx_vendetta", _sect.ID);
-		if ("WX_RefreshPartyVisuals" in squad)
+		if (::Wuxia.hasMember(squad, "WX_RefreshPartyVisuals"))
 		{
 			squad.m.WX_LastBodyBrush <- "";
 			squad.WX_RefreshPartyVisuals();
@@ -404,14 +524,15 @@
 		else if (::Wuxia.hasMember(fm, "isCivilWar") && fm.isCivilWar())              activeKey = "civilwar";
 		else if (::Wuxia.hasMember(fm, "isHolyWar") && fm.isHolyWar())                activeKey = "holywar";
 
-		local prev = ::World.Flags.get("wx_active_crisis");
+		local prev = ::World.Flags.has("wx_active_crisis") ? ::World.Flags.get("wx_active_crisis") : "";
+		if (typeof prev != "string") prev = "";
 		if (activeKey != "" && prev != activeKey && (activeKey in ::Wuxia.Config.CrisisLore))
 		{
 			::World.Flags.set("wx_active_crisis", activeKey);
 			local lore = ::Wuxia.Config.CrisisLore[activeKey];
 			::logInfo("[mod_wuxia] " + lore.Title + " -> " + lore.Summary);
 		}
-		else if (activeKey == "" && prev != null && prev != "")
+		else if (activeKey == "" && prev != "")
 		{
 			::World.Flags.set("wx_active_crisis", "");
 		}
@@ -428,6 +549,9 @@
 		this.syncCrisisFlags();
 		local shanhaiPending = [];
 		local activeShanHai = 0;
+		local curRenown = (("Assets" in ::World) && ::World.Assets != null && ::Wuxia.hasMember(::World.Assets, "getBusinessReputation")) ? ::World.Assets.getBusinessReputation() : 0;
+		local crVal = ::World.Flags.has("wx_active_crisis") ? ::World.Flags.get("wx_active_crisis") : "";
+		local crisisActive = (typeof crVal == "string" && crVal != "");
 		foreach (id, config in ::Wuxia.Config.Strongholds)
 		{
 			if (!("IsShanHai" in config) || !config.IsShanHai)
@@ -445,18 +569,24 @@
 				break;
 			}
 			if (aliveOnMap) activeShanHai += 1;
-			else if (!defeated) shanhaiPending.push(id);
+			else if (!defeated)
+			{
+				local bossID = ("ShanHai" in ::Wuxia && "getBossIDForSite" in ::Wuxia.ShanHai) ? ::Wuxia.ShanHai.getBossIDForSite(id) : null;
+				if (bossID == null || ::Wuxia.ShanHai.isBossUnlockedForCampaign(bossID, day, curRenown))
+					shanhaiPending.push(id);
+			}
 		}
-		// Maintain up to 12 active undefeated Shan Hai Lairs hidden in the world fog of war
-		local maxSpawnToday = (activeShanHai < 4) ? 8 : 3;
+		// Maintain tiered active Shan Hai Lairs hidden in the world fog of war (expands during late-game Crisis!)
+		local targetActive = crisisActive ? 15 : (day >= 35 ? 12 : 8);
+		local maxSpawnToday = (activeShanHai < 4) ? 6 : 3;
 		local spawnedToday = 0;
-		while (activeShanHai < 12 && spawnedToday < maxSpawnToday && shanhaiPending.len() > 0)
+		while (activeShanHai < targetActive && spawnedToday < maxSpawnToday && shanhaiPending.len() > 0)
 		{
 			local pickIdx = ::Math.rand(0, shanhaiPending.len() - 1);
 			local pickID = shanhaiPending[pickIdx];
 			shanhaiPending.remove(pickIdx);
 			local cfg = ::Wuxia.Config.Strongholds[pickID];
-			local spawned = this.ensureStronghold(pickID, this.resolveStrongholdFaction(cfg, banditFaction), spawnedToday < 2);
+			local spawned = this.ensureStronghold(pickID, this.resolveStrongholdFaction(cfg, banditFaction), spawnedToday < 1);
 			if (spawned != null)
 				activeShanHai += 1;
 			spawnedToday += 1;
@@ -471,10 +601,13 @@
 
 ::Wuxia.HooksMod.hook("scripts/states/world_state", function( q )
 {
-	q.startNewCampaign = @(__original) function()
+	q.startNewCampaign = @(__original) function( ... )
 	{
 		this.m.WX_EncounterDay <- null;
-		__original();
+		local callArgs = [this];
+		for (local a = 0; a < vargv.len(); a = ++a)
+			callArgs.push(vargv[a]);
+		__original.acall(callArgs);
 		this.m.WX_EncounterDay = -1;
 		::Wuxia.Encounters.update(this);
 	};

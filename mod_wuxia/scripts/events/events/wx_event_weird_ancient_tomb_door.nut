@@ -77,23 +77,7 @@ this.wx_event_weird_ancient_tomb_door <- this.inherit("scripts/events/event", {
 
 				::Wuxia.Events.addMoney(420, this.List);
 				::Wuxia.Events.givePage("sect", 1, this.List);
-				local gotAsh = false;
-				try
-				{
-					::Wuxia.Events.giveItem("scripts/items/misc/shimmering_ashes_item", this.List);
-					gotAsh = true;
-				}
-				catch (_e) {}
-				if (!gotAsh)
-				{
-					try
-					{
-						::Wuxia.Events.giveItem("scripts/items/misc/vampire_dust_item", this.List);
-						gotAsh = true;
-					}
-					catch (_e2) {}
-				}
-				if (!gotAsh) ::Wuxia.Events.addMoney(240, this.List);
+				::Wuxia.Events.giveItem("scripts/items/misc/vampire_dust_item", this.List);
 				::Wuxia.Events.addMood(expert, 1.0, "巧解前朝墓锁满载而归", this.List);
 
 				this.Text = "[img]gfx/ui/events/wx_ev_17.png[/img]" + eName + " 削了两根硬栎木楔，卡准石门右下方的暗孔轻轻一顶，又以匕首挑开铜丝，只听墓门内里『咔哒』一声闷响，三百斤流沙暗闸竟被死死锁在墙中！\n\n推开沉重石扉，前室虽被岁月侵蚀得蛛网密布，石案上却仍完好陈放着一匣前朝陪葬银饼、一卷以蜂蜡封在铜筒内的门派古谱残页，还有一只寒玉小罐，里头盛满幽幽发亮的微光灵烬——不知是哪具古墓剑魔溃散后留下的异物。众人见好就收，绝不多碰主墓室棺椁，悄然退了出去。";

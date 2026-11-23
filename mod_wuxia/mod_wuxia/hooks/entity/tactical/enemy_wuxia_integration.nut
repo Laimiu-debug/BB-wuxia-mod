@@ -18,11 +18,9 @@ local registerEnemyHook = function( _scriptPath, _archetypeKey )
 				local items = this.getItems();
 				local old = items.getItemAtSlot(::Const.ItemSlot.Mainhand);
 				if (old != null) items.unequip(old);
-				if (fighter.Weapon == "javelin")
-				{
-					local quiver = items.getItemAtSlot(::Const.ItemSlot.Ammo);
-					if (quiver != null) items.unequip(quiver);
-				}
+				local oldAmmo = items.getItemAtSlot(::Const.ItemSlot.Ammo);
+				if (oldAmmo != null) items.unequip(oldAmmo);
+
 				local w = ::new("scripts/items/weapons/" + fighter.Weapon);
 				if (::Wuxia.hasMember(w, "getBlockedSlotType") && w.getBlockedSlotType() == ::Const.ItemSlot.Offhand)
 				{
@@ -30,6 +28,14 @@ local registerEnemyHook = function( _scriptPath, _archetypeKey )
 					if (off != null) items.unequip(off);
 				}
 				items.equip(w);
+
+				if (fighter.Weapon.find("handgonne") != null)
+					items.equip(::new("scripts/items/ammo/powder_bag"));
+				else if (fighter.Weapon.find("crossbow") != null)
+					items.equip(::new("scripts/items/ammo/quiver_of_bolts"));
+				else if (fighter.Weapon.find("bow") != null)
+					items.equip(::new("scripts/items/ammo/quiver_of_arrows"));
+
 				this.setName(fighter.Name);
 			}
 
@@ -51,10 +57,12 @@ local registerEnemyHook = function( _scriptPath, _archetypeKey )
 			local eligible = profile != null && _tile != null && killedByPlayer
 				&& ("WX_LoadoutKey" in this.m) && this.m.WX_LoadoutKey == key;
 			local pool = eligible ? ::Wuxia.Loot.getEquippedDropPool(this, profile) : null;
+			local troop = killedByPlayer ? this.getWorldTroop() : null;
+			local party = troop != null && "Party" in troop ? troop.Party : null;
 			__original(_killer, _skill, _tile, _fatalityType);
 			if (eligible) ::Wuxia.Loot.onEnemyKilledDrop(_tile, profile, pool);
 			if (killedByPlayer && ("SectRelations" in ::Wuxia) && ("onCombatActorSlain" in ::Wuxia.SectRelations))
-				::Wuxia.SectRelations.onCombatActorSlain(this, profile != null && profile.IsBoss);
+				::Wuxia.SectRelations.onCombatActorSlain(party, profile != null && profile.IsBoss);
 		};
 	});
 };

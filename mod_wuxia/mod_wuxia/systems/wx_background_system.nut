@@ -300,7 +300,7 @@ if (!("BackgroundBios" in ::Wuxia.Config))
 	}
 	local chosen = (fresh.len() > 0) ? fresh[::Math.rand(0, fresh.len() - 1)] : pool[::Math.rand(0, pool.len() - 1)];
 	used[chosen] <- true;
-	if ("m" in _actor) _actor.m.WX_HeroineNameChecked <- true;
+	if (::Wuxia.hasMember(_actor, "m")) _actor.m.WX_HeroineNameChecked <- true;
 	if (::Wuxia.hasMember(_actor, "setName")) _actor.setName(chosen);
 	return chosen;
 };
@@ -448,7 +448,7 @@ if (!("BackgroundBios" in ::Wuxia.Config))
 		c.ensureSlotsRegisteredInLearned();
 		c.syncGrantedSkills();
 		_actor.getSkills().update();
-		if ("WX_RefreshStarterNote" in bg) bg.WX_RefreshStarterNote(granted);
+		if (bg != null && ::Wuxia.hasMember(bg, "WX_RefreshStarterNote")) bg.WX_RefreshStarterNote(granted);
 	}
 	return granted;
 };
@@ -602,7 +602,7 @@ if ("ApplyGlobalChineseNames" in ::Wuxia)
 		if (::Wuxia.hasMember(this, "getBackground"))
 		{
 			local bg = this.getBackground();
-			if (bg != null && ("WX_RefreshNameInBio" in bg))
+			if (bg != null && ::Wuxia.hasMember(bg, "WX_RefreshNameInBio"))
 				bg.WX_RefreshNameInBio();
 		}
 	};

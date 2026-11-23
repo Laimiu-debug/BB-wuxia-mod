@@ -4,6 +4,7 @@
 	BaseAP                 = 9,
 	MaxPermanentAP         = 11,  // Hard cap: max +2 permanent AP from unique manuals
 	MaxPermanentAPBonus    = 2,
+	MaxTemporaryAP         = 13,
 	MaxStarAttributes      = 3,   // Same as vanilla: max 3 attributes can have stars
 	MaxStarsPerAttribute   = 3,
 	MaxManualTier          = 3,

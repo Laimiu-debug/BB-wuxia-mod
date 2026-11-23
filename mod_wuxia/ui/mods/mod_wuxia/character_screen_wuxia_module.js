@@ -128,15 +128,17 @@
 
 	// Shared Wood-Plank Popup Modal Manager on `.character-screen-container`
 	var wxActiveModalDS = null;
-	function wxOpenScreenModal(_box, _dataSource) {
+	function wxOpenScreenModal(_box, _dataSource, _owner) {
 		wxCloseScreenModal();
-		var host = $('.character-screen-container:first');
+		var wash = _box.hasClass('wx-wash-dialog');
+		var host = _owner ? _owner.closest(wash ? '.character-screen' : '.character-screen-container') : $('.character-screen-container:visible').last();
 		if (!host.length) host = $(document.body);
 		wxActiveModalDS = _dataSource || null;
 		if (wxActiveModalDS && wxActiveModalDS.notifyBackendPopupDialogIsVisible) {
 			wxActiveModalDS.notifyBackendPopupDialogIsVisible(true);
 		}
 		var backdrop = $('<div class="wx-modal-backdrop"></div>');
+		if (wash) backdrop.addClass('wx-wash-backdrop');
 		backdrop.append(_box);
 		host.append(backdrop);
 
@@ -267,21 +269,25 @@
 		}
 	};
 
-	CharacterScreenDatasource.prototype.notifyBackendWXEquipLearned = function (_entityId, _slotIndex, _manualID, _confirmed, _callback) {
+	CharacterScreenDatasource.prototype.notifyBackendWXEquipLearned = function (_entityId, _slotIndex, _manualID, _confirmed, _callback, _expectedManualID) {
 		if (this.mSQHandle !== null) {
-			SQ.call(this.mSQHandle, 'onWXEquipLearned', [_entityId, _slotIndex, _manualID, _confirmed ? true : false], _callback);
+			var args = [_entityId, _slotIndex, _manualID, _confirmed ? true : false];
+			if (typeof _expectedManualID !== 'undefined') args.push(_expectedManualID);
+			SQ.call(this.mSQHandle, 'onWXEquipLearned', args, _callback);
 		}
 	};
 
-	CharacterScreenDatasource.prototype.notifyBackendWXLearnAndEquip = function (_entityId, _slotIndex, _manualID, _isFragment, _confirmed, _callback) {
+	CharacterScreenDatasource.prototype.notifyBackendWXLearnAndEquip = function (_entityId, _slotIndex, _manualID, _isFragment, _confirmed, _callback, _expectedManualID) {
 		if (this.mSQHandle !== null) {
-			SQ.call(this.mSQHandle, 'onWXLearnAndEquip', [_entityId, _slotIndex, _manualID, _isFragment ? true : false, _confirmed ? true : false], _callback);
+			var args = [_entityId, _slotIndex, _manualID, _isFragment ? true : false, _confirmed ? true : false];
+			if (typeof _expectedManualID !== 'undefined') args.push(_expectedManualID);
+			SQ.call(this.mSQHandle, 'onWXLearnAndEquip', args, _callback);
 		}
 	};
 
-	CharacterScreenDatasource.prototype.notifyBackendWXUnequipSlot = function (_entityId, _slotIndex, _confirmed, _callback) {
+	CharacterScreenDatasource.prototype.notifyBackendWXUnequipSlot = function (_entityId, _slotIndex, _confirmed, _expectedManualID, _callback) {
 		if (this.mSQHandle !== null) {
-			SQ.call(this.mSQHandle, 'onWXUnequipSlot', [_entityId, _slotIndex, _confirmed ? true : false], _callback);
+			SQ.call(this.mSQHandle, 'onWXUnequipSlot', [_entityId, _slotIndex, _confirmed ? true : false, _expectedManualID || null], _callback);
 		}
 	};
 
@@ -626,7 +632,8 @@
 				'<input type="text" class="wx-vinput" data-lib="search" placeholder="搜秘籍" />' +
 				'<span class="wx-r">' +
 					'<span class="wx-vb wx-vb2 is-dis" data-lib="craft-all" style="width:9.0rem;margin-right:0.25rem;" title="一键拼合已凑齐残页">拼合</span>' +
-					'<span class="wx-vb wx-vb3" data-lib="open-sects" title="江湖四十四宗门名刺录"><img src="coui://gfx/ui/wx_icons/wx_glyph_sect_token.png" alt=""/></span>' +
+					'<span class="wx-vb wx-vb3" data-lib="open-alc" style="margin-right:0.25rem;" title="丹经与药柜录（只读查阅；开炉炼丹、神兵重锻与存取奇材请赴城镇百工丹坊）"><img src="coui://gfx/ui/wx_icons/wx_glyph_herb_cabinet.png" alt=""/></span>' +
+					'<span class="wx-vb wx-vb3" data-lib="open-sects" title="江湖宗门名刺录（只读查阅；结交请教请赴迎客酒肆茶座或独立山门）"><img src="coui://gfx/ui/wx_icons/wx_glyph_sect_token.png" alt=""/></span>' +
 				'</span>' +
 			'</div>'
 		);
@@ -727,6 +734,12 @@
 			self.mDataSource.notifyBackendWXLibraryCraftAll(self.getEntityId(), function (_res) {
 				self.handleBackendResponse(_res);
 			});
+		});
+
+		this.mFilterBar.find('[data-lib="open-alc"]').on('click', function () {
+			if (window.WX_OpenAlchemyCauldron && self.mDataSource && self.mDataSource.mSQHandle) {
+				window.WX_OpenAlchemyCauldron(self.mDataSource.mSQHandle, self.mDataSource, null, self.getEntityId(), 'cauldron');
+			}
 		});
 
 		this.mFilterBar.find('[data-lib="open-sects"]').on('click', function () {
@@ -1285,6 +1298,36 @@
 	var origShow = CharacterScreenPerksModule.prototype.show;
 	var origHide = CharacterScreenPerksModule.prototype.hide;
 
+	function wxInspectorItemKey(_kind, _item) {
+		if (_kind === 'move') return _item.id;
+		if (_kind === 'vault') return _item.itemKind + ':' + _item.manualID;
+		if (_kind === 'pill') return _item.stashIndex + ':' + _item.pillID;
+		return _item.manualID;
+	}
+
+	function wxBindInspectorClick(_panel, _element, _kind, _item) {
+		var key = wxInspectorItemKey(_kind, _item);
+		var selected = _panel.mWXInspected;
+		if (selected && selected.kind === _kind && selected.key === key) {
+			_element.addClass('is-inspected');
+		}
+		_element.on('click', function () {
+			_panel.mWXInspected = { kind: _kind, key: key };
+			_panel.mWXRoot.find('.is-inspected').removeClass('is-inspected');
+			_element.addClass('is-inspected');
+			_panel.wxRefreshInspector();
+		});
+	}
+
+	function wxCanLearnVaultItem(_it) {
+		return !_it.alreadyLearned && (_it.itemKind === 'manual' ||
+			(_it.itemKind === 'page' && _it.allowFragmentLearn && !_it.learnedIsFragment));
+	}
+
+	function wxCanInfuseSlot(_slot) {
+		return !!(_slot && _slot.unlocked && _slot.manualID && !_slot.isFragment && _slot.tier < 3 && !_slot.isSealed && !_slot.blockedByReq);
+	}
+
 	CharacterScreenPerksModule.prototype.createDIV = function (_parentDiv) {
 		origCreateDIV.call(this, _parentDiv);
 
@@ -1366,6 +1409,7 @@
 
 	CharacterScreenPerksModule.prototype.wxSyncCachedState = function (_data) {
 		if (_data && _data.ok) {
+			if (this.mWXCurrentEntityId !== null && _data.brother && _data.brother.entityId !== this.mWXCurrentEntityId) return;
 			this.mWXState = _data;
 			if (this.mWXPanelShowing || this.isVisible()) {
 				this.wxRenderAll();
@@ -1406,13 +1450,25 @@
 	};
 
 	CharacterScreenPerksModule.prototype.wxSetShelfMode = function (_mode) {
+		var selected = this.mWXInspected;
+		if (_mode === 'pill' && selected && selected.kind === 'learned') {
+			var slots = this.mWXState.brother.slots;
+			for (var i = 0; i < slots.length; i++) {
+				if (slots[i].manualID === selected.key) {
+					this.mWXSelectedSlotIdx = slots[i].slotIndex;
+					this.wxRenderSlots();
+					this.wxRenderStrip();
+					break;
+				}
+			}
+		}
 		this.mWXShelfMode = _mode;
 		this.wxRenderShelfFilter();
 		this.wxRenderLearnedList();
 	};
 
 	CharacterScreenPerksModule.prototype.wxOpenModal = function (_box) {
-		wxOpenScreenModal(_box, this.mDataSource);
+		wxOpenScreenModal(_box, this.mDataSource, this.mWXRoot);
 	};
 
 	CharacterScreenPerksModule.prototype.wxCloseModal = function () {
@@ -1471,7 +1527,7 @@
 			return this.wxCanCategoryFitSlot(_payload.category, _payload.equippedSlotIndex, _slot);
 		}
 		if (_payload.kind === 'pill_infuse') {
-			return !!(_slot.manualID && !_slot.isFragment && _slot.tier < 3 && !_slot.isSealed);
+			return wxCanInfuseSlot(_slot);
 		}
 		return false;
 	};
@@ -1562,7 +1618,7 @@
 		if (entityId === null) return;
 
 		this.mDataSource.notifyBackendWXGetState(entityId, function (_data) {
-			if (_data && _data.ok) {
+			if (_data && _data.ok && self.mWXCurrentEntityId === entityId) {
 				self.mWXState = _data;
 				if (self.mParent && self.mParent.mHeaderModule && self.mParent.mHeaderModule.wxUpdateTabLabels) {
 					self.mParent.mHeaderModule.wxUpdateTabLabels(_data.brother, _data.library ? _data.library.summary : null);
@@ -1589,9 +1645,7 @@
 		var items = (_state && _state.library && _state.library.items) ? _state.library.items : [];
 		var cnt = 0;
 		for (var i = 0; i < items.length; i++) {
-			var it = items[i];
-			if (it.itemKind === 'manual' && !it.alreadyLearned) cnt++;
-			else if (it.itemKind === 'page' && it.allowFragmentLearn && !it.alreadyLearned && !it.learnedIsFragment) cnt++;
+			if (wxCanLearnVaultItem(items[i])) cnt++;
 		}
 		return cnt;
 	};
@@ -1600,13 +1654,14 @@
 		if (!_res) return;
 		if (_res.ok) {
 			this.mDataSource.wxApplyVanillaSync(_res);
+			if (_res.brother && _res.brother.entityId !== this.mWXCurrentEntityId) return;
 			this.mWXState = _res;
 			if (this.mParent && this.mParent.mHeaderModule && this.mParent.mHeaderModule.wxUpdateTabLabels) {
 				this.mParent.mHeaderModule.wxUpdateTabLabels(_res.brother, _res.library ? _res.library.summary : null);
 			}
 			this.wxRenderAll();
 			if (_res.actionMessage) {
-				this.wxShowToast(_res.actionMessage, false);
+				this.wxShowToast(_res.actionMessage, !!(_res.washResult && !_res.washResult.Succeeded));
 			}
 		} else if (_res.reason) {
 			this.wxShowToast(_res.reason, true);
@@ -1667,7 +1722,8 @@
 		}
 
 		h += '<span class="wx-r">' +
-				'<span class="wx-vb wx-vb3" data-wx="open-sects" style="margin-right:0.3rem;" title="江湖四十四宗门名刺录"><img src="coui://gfx/ui/wx_icons/wx_glyph_sect_token.png" alt=""/></span>' +
+				'<span class="wx-vb wx-vb3" data-wx="open-alc" style="margin-right:0.25rem;" title="丹经与药柜录（只读查阅；开炉炼丹、神兵重锻与存取奇材请赴城镇百工丹坊）"><img src="coui://gfx/ui/wx_icons/wx_glyph_herb_cabinet.png" alt=""/></span>' +
+				'<span class="wx-vb wx-vb3" data-wx="open-sects" style="margin-right:0.3rem;" title="江湖宗门名刺录（只读查阅；结交请教请赴迎客酒肆茶座或独立山门）"><img src="coui://gfx/ui/wx_icons/wx_glyph_sect_token.png" alt=""/></span>' +
 				'<span class="wx-vb wx-vb1" data-wx="open-wash">洗经伐髓' + (totalWash > 0 ? ('<span class="wx-cnt">' + totalWash + '</span>') : '') + '</span>' +
 			'</span>';
 
@@ -1688,6 +1744,12 @@
 			else {
 				self.wxSetShelfMode('pill');
 				self.wxShowToast('仓库暂无「金疮散」。', true);
+			}
+		});
+
+		this.mWXHeader.find('[data-wx="open-alc"]').on('click', function () {
+			if (window.WX_OpenAlchemyCauldron && self.mDataSource && self.mDataSource.mSQHandle !== null) {
+				window.WX_OpenAlchemyCauldron(self.mDataSource.mSQHandle, self.mDataSource, self, self.mWXCurrentEntityId, 'cauldron');
 			}
 		});
 
@@ -1804,6 +1866,7 @@
 				col.on('click', function () {
 					self.mWXSelectedSlotIdx = _idx;
 					self.mWXInspected = { kind: 'slot', slotIndex: _idx };
+					self.mWXRoot.find('.is-inspected').removeClass('is-inspected');
 					if (self.mWXShelfMode === 'pill') {
 						self.mWXShelfMode = 'learned';
 					}
@@ -1823,12 +1886,6 @@
 					return false;
 				});
 
-				col.on('mouseenter', function () {
-					if (!self.mWXDragPayload) {
-						self.wxRenderSlotInspector(_s);
-					}
-				});
-
 				self.mWXMeridian.append(col);
 			})(i, bro.slots[i]);
 		}
@@ -1845,12 +1902,7 @@
 			for (var i = 0; i < moves.length; i++) {
 				(function (_mv) {
 					var mImg = $('<img class="wx-mv-ico' + (_mv.weaponOk ? '' : ' is-off') + '" src="coui://gfx/' + _mv.icon + '" alt="" title="' + wxEscapeHtml(_mv.name) + '"/>');
-					mImg.on('click mouseenter', function (_e) {
-						if (_e.type === 'click') {
-							self.mWXInspected = { kind: 'move', data: _mv };
-						}
-						self.wxRenderMoveInspector(_mv);
-					});
+					wxBindInspectorClick(self, mImg, 'move', _mv);
 					self.mWXPassives.append(mImg);
 				})(moves[i]);
 			}
@@ -1861,11 +1913,21 @@
 
 		var pTags = bro.aggSummaryTags || [];
 		if (pTags.length > 0) {
-			for (var j = 0; j < pTags.length && j < 6; j++) {
+			for (var j = 0; j < pTags.length && j < 5; j++) {
 				this.mWXPassives.append('<span class="wx-pit">' + wxEscapeHtml(pTags[j]) + '</span>');
 			}
 		} else {
 			this.mWXPassives.append('<span class="wx-c-desc">同系被动只取最高一项</span>');
+		}
+
+		var diags = bro.buildDiagnostics || [];
+		if (diags.length > 0) {
+			for (var d = 0; d < diags.length && d < 3; d++) {
+				var dg = diags[d];
+				var dCls = (dg.level === 'warn') ? 'wx-diag-warn' : 'wx-diag-info';
+				var dPrefix = (dg.level === 'warn') ? '【慎】' : '【注】';
+				this.mWXPassives.append('<span class="' + dCls + '" title="' + wxEscapeHtml(dg.detail || '') + '">' + dPrefix + wxEscapeHtml(dg.short || '') + '</span>');
+			}
 		}
 	};
 
@@ -2014,7 +2076,6 @@
 		var unl = _selSlot ? _selSlot.unlocked : false;
 		var fitsSel = (_selSlot && unl) ? this.wxCanLearnedFitSlot(_lm, _selSlot) : false;
 		var dimCls = (!isEquipped && unl && !fitsSel) ? ' is-dim' : '';
-		var isInsp = (this.mWXInspected && this.mWXInspected.kind === 'learned' && this.mWXInspected.manualID === _lm.manualID);
 
 		var hlHtml = (!isEquipped && unl && fitsSel) ? '<div class="wx-hl" style="opacity:0.58;"></div>' : '';
 		var tagHtml = isEquipped
@@ -2028,18 +2089,10 @@
 				'<img class="wx-it is-round" src="coui://gfx/' + _lm.icon + '" alt=""/>' +
 				tagHtml +
 				'<span class="wx-amt">' + amtText + '</span>' +
-				(isInsp ? '<div class="wx-sring"></div>' : '') +
 			'</div>'
 		);
 
-		slot.on('click mouseenter', function (_e) {
-			if (_e.type === 'click') {
-				self.mWXInspected = { kind: 'learned', manualID: _lm.manualID };
-				self.mWXScrollArea.body.find('.wx-vslot .wx-sring').remove();
-				slot.append('<div class="wx-sring"></div>');
-			}
-			self.wxRenderLearnedInspector(_lm);
-		});
+		wxBindInspectorClick(this, slot, 'learned', _lm);
 
 		slot.on('contextmenu dblclick', function (_e) {
 			_e.preventDefault();
@@ -2076,12 +2129,10 @@
 
 		for (var i = 0; i < items.length; i++) {
 			var it = items[i];
-			var isFullLearnable = (it.itemKind === 'manual' && !it.alreadyLearned);
-			var isFragLearnable = (it.itemKind === 'page' && it.allowFragmentLearn && !it.alreadyLearned && !it.learnedIsFragment);
-			if (!isFullLearnable && !isFragLearnable) continue;
+			if (!wxCanLearnVaultItem(it)) continue;
 			if (this.mWXCatFilter && it.category !== this.mWXCatFilter) continue;
 
-			_body.append(this.wxCreateVaultDirectSlot(it, _selSlot, isFragLearnable));
+			_body.append(this.wxCreateVaultDirectSlot(it, _selSlot, it.itemKind === 'page'));
 			shown++;
 		}
 		_body.append('<div class="wx-clear"></div>');
@@ -2098,7 +2149,6 @@
 		var bestIdx = this.wxFindBestSlotForCategory(_it.category, -1);
 		var chosenIdx = fitsSel ? _selSlot.slotIndex : bestIdx;
 		var dimCls = (unl && !fitsSel) ? ' is-dim' : '';
-		var isInsp = (this.mWXInspected && this.mWXInspected.kind === 'vault' && this.mWXInspected.manualID === _it.manualID && this.mWXInspected.isFrag === _isFrag);
 
 		var hlHtml = (unl && fitsSel) ? '<div class="wx-hl" style="opacity:0.55;"></div>' : '';
 		var tagHtml = _isFrag ? '<span class="wx-tag">残</span>' : '';
@@ -2109,18 +2159,10 @@
 				'<img class="wx-it" src="coui://gfx/' + _it.icon + '" alt=""/>' +
 				tagHtml +
 				'<span class="wx-amt">×' + _it.count + '</span>' +
-				(isInsp ? '<div class="wx-sring"></div>' : '') +
 			'</div>'
 		);
 
-		slot.on('click mouseenter', function (_e) {
-			if (_e.type === 'click') {
-				self.mWXInspected = { kind: 'vault', manualID: _it.manualID, isFrag: _isFrag };
-				self.mWXScrollArea.body.find('.wx-vslot .wx-sring').remove();
-				slot.append('<div class="wx-sring"></div>');
-			}
-			self.wxRenderVaultItemInspector(_it, chosenIdx, _isFrag);
-		});
+		wxBindInspectorClick(this, slot, 'vault', _it);
 
 		slot.on('contextmenu dblclick', function (_e) {
 			_e.preventDefault();
@@ -2160,19 +2202,13 @@
 					'</div>'
 				);
 
-				slot.on('click mouseenter', function (_e) {
-					if (_e.type === 'click') {
-						self.mWXScrollArea.body.find('.wx-vslot .wx-sring').remove();
-						slot.append('<div class="wx-sring"></div>');
-					}
-					self.wxRenderPillInspector(_p);
-				});
+				wxBindInspectorClick(self, slot, 'pill', _p);
 
 				slot.on('contextmenu dblclick', function (_e) {
 					_e.preventDefault();
 					_e.stopPropagation();
-					if (_p.itemKind === 'pill_infuse') self.wxInfusePillToBestOrModal(_p);
-					else if (_p.itemKind === 'pill_wash') self.wxOpenWashModal();
+					if (_p.itemKind === 'pill_infuse') wxInfusePillToSelectedSlot(self, _p);
+					else if (_p.itemKind === 'pill_wash') self.wxOpenWashModal(_p.pillID);
 					else self.wxTriggerUsePill(_p);
 					return false;
 				});
@@ -2191,29 +2227,16 @@
 		_body.append('<div class="wx-clear"></div>');
 	};
 
-	CharacterScreenPerksModule.prototype.wxInfusePillToBestOrModal = function (_pill) {
-		var bro = this.mWXState && this.mWXState.brother;
-		if (!bro) return;
-		var sel = bro.slots[this.mWXSelectedSlotIdx];
-		if (sel && sel.unlocked && sel.manualID && !sel.isFragment && sel.tier < 3 && !sel.isSealed) {
-			var self = this;
-			this.mDataSource.notifyBackendWXInfusePill(this.mWXCurrentEntityId, _pill.stashIndex, sel.slotIndex, function (_res) {
-				self.wxApplyBackendState(_res);
-			});
+	function wxInfusePillToSelectedSlot(_panel, _pill) {
+		var slot = _panel.mWXState.brother.slots[_panel.mWXSelectedSlotIdx];
+		if (!wxCanInfuseSlot(slot)) {
+			_panel.wxShowToast(slot && slot.blockedByReq ? '此功法火候已满，须先满足三重突破条件。' : '请先点击可灌注的功法。', true);
 			return;
 		}
-		for (var i = 0; i < bro.slots.length; i++) {
-			var s = bro.slots[i];
-			if (s.unlocked && s.manualID && !s.isFragment && s.tier < 3 && !s.isSealed) {
-				var self2 = this;
-				this.mDataSource.notifyBackendWXInfusePill(this.mWXCurrentEntityId, _pill.stashIndex, i, function (_res2) {
-					self2.wxApplyBackendState(_res2);
-				});
-				return;
-			}
-		}
-		this.wxShowToast('当前没有可灌注火候的未满重功法穴位。', true);
-	};
+		_panel.mDataSource.notifyBackendWXInfusePill(_panel.mWXCurrentEntityId, _pill.stashIndex, slot.slotIndex, function (_res) {
+			_panel.wxApplyBackendState(_res);
+		});
+	}
 
 	CharacterScreenPerksModule.prototype.wxTriggerUsePill = function (_pillItem) {
 		var self = this;
@@ -2223,56 +2246,60 @@
 		});
 	};
 
-	CharacterScreenPerksModule.prototype.wxSubmitLearnAndEquip = function (_slotIndex, _manualID, _isFragment, _confirmed) {
+	CharacterScreenPerksModule.prototype.wxSubmitLearnAndEquip = function (_slotIndex, _manualID, _isFragment, _confirmed, _expectedManualID) {
 		var self = this;
 		var eid = this.mWXCurrentEntityId;
+		var selected = this.mWXInspected;
 		if (eid === null) return;
 
 		this.mDataSource.notifyBackendWXLearnAndEquip(eid, _slotIndex, _manualID, _isFragment, _confirmed, function (_res) {
-			if (!_res) return;
+			if (!_res || self.mWXCurrentEntityId !== eid) return;
 			if (_res.needsConfirm) {
 				self.wxOpenSlotConfirmModal(_res, _slotIndex, _manualID, function () {
-					self.wxSubmitLearnAndEquip(_slotIndex, _manualID, _isFragment, true);
+					if (self.mWXCurrentEntityId === eid) self.wxSubmitLearnAndEquip(_slotIndex, _manualID, _isFragment, true, _res.oldManualID);
 				});
 				return;
 			}
-			if (_slotIndex >= 0) {
+			if (_res.ok && _slotIndex >= 0 && self.mWXInspected === selected) {
 				self.mWXSelectedSlotIdx = _slotIndex;
 				self.mWXInspected = { kind: 'slot', slotIndex: _slotIndex };
 			}
 			self.wxApplyBackendState(_res);
-		});
+		}, _expectedManualID);
 	};
 
-	CharacterScreenPerksModule.prototype.wxSubmitEquipLearned = function (_slotIndex, _manualID, _confirmed) {
+	CharacterScreenPerksModule.prototype.wxSubmitEquipLearned = function (_slotIndex, _manualID, _confirmed, _expectedManualID) {
 		var self = this;
 		var eid = this.mWXCurrentEntityId;
+		var selected = this.mWXInspected;
 		if (eid === null) return;
 
 		this.mDataSource.notifyBackendWXEquipLearned(eid, _slotIndex, _manualID, _confirmed, function (_res) {
-			if (!_res) return;
+			if (!_res || self.mWXCurrentEntityId !== eid) return;
 			if (_res.needsConfirm) {
 				self.wxOpenSlotConfirmModal(_res, _slotIndex, _manualID, function () {
-					self.wxSubmitEquipLearned(_slotIndex, _manualID, true);
+					if (self.mWXCurrentEntityId === eid) self.wxSubmitEquipLearned(_slotIndex, _manualID, true, _res.oldManualID);
 				});
 				return;
 			}
-			self.mWXSelectedSlotIdx = _slotIndex;
-			self.mWXInspected = { kind: 'slot', slotIndex: _slotIndex };
+			if (_res.ok && self.mWXInspected === selected) {
+				self.mWXSelectedSlotIdx = _slotIndex;
+				self.mWXInspected = { kind: 'slot', slotIndex: _slotIndex };
+			}
 			self.wxApplyBackendState(_res);
-		});
+		}, _expectedManualID);
 	};
 
-	CharacterScreenPerksModule.prototype.wxSubmitUnequipSlot = function (_slotIndex, _confirmed) {
+	CharacterScreenPerksModule.prototype.wxSubmitUnequipSlot = function (_slotIndex, _confirmed, _expectedManualID) {
 		var self = this;
 		var eid = this.mWXCurrentEntityId;
 		if (eid === null) return;
 
-		this.mDataSource.notifyBackendWXUnequipSlot(eid, _slotIndex, _confirmed, function (_res) {
-			if (!_res) return;
+		this.mDataSource.notifyBackendWXUnequipSlot(eid, _slotIndex, _confirmed, _expectedManualID, function (_res) {
+			if (!_res || self.mWXCurrentEntityId !== eid) return;
 			if (_res.needsConfirm) {
 				self.wxOpenSlotConfirmModal(_res, _slotIndex, null, function () {
-					self.wxSubmitUnequipSlot(_slotIndex, true);
+					if (self.mWXCurrentEntityId === eid) self.wxSubmitUnequipSlot(_slotIndex, true, _res.oldManualID);
 				});
 				return;
 			}
@@ -2320,7 +2347,8 @@
 			title = '残本强修';
 			bodyHtml =
 				(newIcon ? ('<div class="wx-swap">' + wxSwapSlotHtml(newIcon, false) + '</div>') : '') +
-				'消耗 1 张《' + wxEscapeHtml(_info.newManualName) + '》残页强记口诀并装入穴位。<br/>' +
+				'消耗 1 张《' + wxEscapeHtml(_info.newManualName) + '》残页强记口诀' + (_slotIndex >= 0 ? '并装入穴位' : '') + '。<br/>' +
+				(_info.isOverwrite ? ('替换《' + wxEscapeHtml(_info.oldManualName) + '》，散功调息 ' + _info.penaltyDays + ' 天。<br/>') : '') +
 				'<span class="wx-c-neg">最高止步一重，实战偶有行气不畅。</span><br/>' +
 				'<span class="wx-c-desc">日后研读完整秘籍可无损补全。</span>';
 		} else {
@@ -2359,20 +2387,32 @@
 		var bro = this.mWXState && this.mWXState.brother;
 		if (!bro) return;
 
-		if (this.mWXInspected && this.mWXInspected.kind === 'learned') {
-			var list = bro.learnedManuals || [];
+		var slot = bro.slots[this.mWXSelectedSlotIdx] || bro.slots[0];
+		var selected = this.mWXInspected;
+		if (selected && selected.kind !== 'slot') {
+			var lists = {
+				learned: bro.learnedManuals,
+				move: bro.activeMoves,
+				vault: this.mWXState.library && this.mWXState.library.items,
+				pill: this.mWXState.stashItems
+			};
+			var list = lists[selected.kind] || [];
 			for (var i = 0; i < list.length; i++) {
-				if (list[i].manualID === this.mWXInspected.manualID) {
-					this.wxRenderLearnedInspector(list[i]);
-					return;
+				var item = list[i];
+				if (wxInspectorItemKey(selected.kind, item) !== selected.key) continue;
+				if (selected.kind === 'learned') this.wxRenderLearnedInspector(item);
+				else if (selected.kind === 'move') this.wxRenderMoveInspector(item);
+				else if (selected.kind === 'pill') this.wxRenderPillInspector(item);
+				else {
+					if (!wxCanLearnVaultItem(item)) continue;
+					var target = this.wxCanCategoryFitSlot(item.category, -1, slot) ? slot.slotIndex : this.wxFindBestSlotForCategory(item.category, -1);
+					this.wxRenderVaultItemInspector(item, target, item.itemKind === 'page');
 				}
+				return;
 			}
-		} else if (this.mWXInspected && this.mWXInspected.kind === 'move' && this.mWXInspected.data) {
-			this.wxRenderMoveInspector(this.mWXInspected.data);
-			return;
+			this.mWXInspected = null;
 		}
 
-		var slot = bro.slots[this.mWXSelectedSlotIdx] || bro.slots[0];
 		if (slot) {
 			this.wxRenderSlotInspector(slot);
 		}
@@ -2408,7 +2448,10 @@
 
 		var foot = '';
 		if (_p.itemKind === 'pill_infuse') {
-			foot = '<span class="wx-vb wx-vb1" data-pa="infuse">灌注穴' + WX_CN_NUM[this.mWXSelectedSlotIdx + 1] + '</span>';
+			var slot = this.mWXState.brother.slots[this.mWXSelectedSlotIdx];
+			foot = wxCanInfuseSlot(slot)
+				? '<span class="wx-vb wx-vb1" data-pa="infuse">灌注穴' + WX_CN_NUM[slot.slotIndex + 1] + '</span>'
+				: '<span class="wx-vb wx-vb1 is-dis">请先选择可灌注的功法</span>';
 		} else if (_p.itemKind === 'pill_wash') {
 			foot = '<span class="wx-vb wx-vb1" data-pa="wash">洗经伐髓</span>';
 		} else {
@@ -2419,8 +2462,8 @@
 		this.mWXInspFoot.html(foot);
 		this.mWXInspFoot.find('[data-pa]').on('click', function () {
 			var pa = $(this).attr('data-pa');
-			if (pa === 'infuse') self.wxInfusePillToBestOrModal(_p);
-			else if (pa === 'wash') self.wxOpenWashModal();
+			if (pa === 'infuse') wxInfusePillToSelectedSlot(self, _p);
+			else if (pa === 'wash') self.wxOpenWashModal(_p.pillID);
 			else self.wxTriggerUsePill(_p);
 		});
 	};
@@ -2525,7 +2568,7 @@
 		var bodyHtml = this.wxBuildManualInspectorBody(_s, _s.tier, _s.isFragment, _s.exp, _s.expNeeded, statusSub, true);
 
 		var footHtml = '';
-		if (!_s.isFragment && _s.tier < 3 && !_s.isSealed) {
+		if (wxCanInfuseSlot(_s)) {
 			footHtml += '<span class="wx-vb wx-vb2" data-sact="open-infuse">灌注</span>';
 		}
 		footHtml += '<span class="wx-vb wx-vb2" data-sact="unequip">卸下</span>';
@@ -2542,14 +2585,18 @@
 
 	CharacterScreenPerksModule.prototype.wxRenderLearnedInspector = function (_lm) {
 		var self = this;
-		var selSlot = (this.mWXState && this.mWXState.brother) ? this.mWXState.brother.slots[this.mWXSelectedSlotIdx] : null;
-		var statusSub = (_lm.equippedSlotIndex >= 0 ? ('装于穴' + WX_CN_NUM[_lm.equippedSlotIndex + 1] + ' · ') : '已习 · ') + wxEscapeHtml(_lm.tierLabel);
+		var slots = this.mWXState.brother.slots;
+		var equipped = slots[_lm.equippedSlotIndex];
+		if (equipped && equipped.manualID === _lm.manualID) {
+			this.wxRenderSlotInspector(equipped);
+			return;
+		}
+		var selSlot = slots[this.mWXSelectedSlotIdx];
+		var statusSub = '已习 · ' + wxEscapeHtml(_lm.tierLabel);
 		var bodyHtml = this.wxBuildManualInspectorBody(_lm, _lm.tier, _lm.isFragment, _lm.exp, _lm.expNeeded, statusSub, true);
 
 		var footHtml = '';
-		if (_lm.equippedSlotIndex >= 0) {
-			footHtml = '<span class="wx-vb wx-vb2" data-liact="unequip">卸下</span>';
-		} else if (selSlot && this.wxCanLearnedFitSlot(_lm, selSlot)) {
+		if (selSlot && this.wxCanLearnedFitSlot(_lm, selSlot)) {
 			footHtml = '<span class="wx-vb wx-vb1" data-liact="equip-sel">装入穴' + WX_CN_NUM[selSlot.slotIndex + 1] + '</span>';
 		} else {
 			var bestIdx = this.wxFindBestSlotForLearned(_lm);
@@ -2565,8 +2612,7 @@
 		this.mWXInspFoot.find('[data-liact]').on('click', function () {
 			if ($(this).hasClass('is-dis')) return;
 			var a = $(this).attr('data-liact');
-			if (a === 'unequip') self.wxSubmitUnequipSlot(_lm.equippedSlotIndex, false);
-			else if (a === 'equip-sel' && selSlot) self.wxSubmitEquipLearned(selSlot.slotIndex, _lm.manualID, false);
+			if (a === 'equip-sel' && selSlot) self.wxSubmitEquipLearned(selSlot.slotIndex, _lm.manualID, false);
 			else if (a === 'equip-best') {
 				var bi = self.wxFindBestSlotForLearned(_lm);
 				if (bi >= 0) self.wxSubmitEquipLearned(bi, _lm.manualID, false);
@@ -2576,6 +2622,7 @@
 
 	CharacterScreenPerksModule.prototype.wxOpenInfusePickerModal = function (_slot) {
 		var self = this;
+		var entityId = this.mWXCurrentEntityId;
 		var pills = (this.mWXState && this.mWXState.stashItems) ? this.mWXState.stashItems : [];
 		var libItems = (this.mWXState && this.mWXState.library && this.mWXState.library.items) ? this.mWXState.library.items : [];
 
@@ -2646,20 +2693,20 @@
 			'</div>'
 		);
 
-		box.find('[data-inf-pill]').on('click', function () {
-			var stIdx = parseInt($(this).attr('data-inf-pill'), 10);
+		box.find('[data-inf-pill], [data-inf-page]').on('click', function () {
 			self.wxCloseModal();
-			self.mDataSource.notifyBackendWXInfusePill(self.mWXCurrentEntityId, stIdx, _slot.slotIndex, function (_res) {
-				self.wxApplyBackendState(_res);
-			});
-		});
-
-		box.find('[data-inf-page]').on('click', function () {
-			var pMid = $(this).attr('data-inf-page');
-			self.wxCloseModal();
-			self.mDataSource.notifyBackendWXInfuseLibraryPage(self.mWXCurrentEntityId, pMid, _slot.slotIndex, function (_res) {
-				self.wxApplyBackendState(_res);
-			});
+			var liveSlot = self.mWXState.brother.slots[_slot.slotIndex];
+			if (entityId !== self.mWXCurrentEntityId || !wxCanInfuseSlot(liveSlot) || liveSlot.manualID !== _slot.manualID) {
+				self.wxShowToast('功法已变动，请重新选择要灌注的功法。', true);
+				return;
+			}
+			var pillIndex = $(this).attr('data-inf-pill');
+			function onInfused(_res) { self.wxApplyBackendState(_res); }
+			if (pillIndex !== undefined) {
+				self.mDataSource.notifyBackendWXInfusePill(entityId, parseInt(pillIndex, 10), _slot.slotIndex, onInfused);
+			} else {
+				self.mDataSource.notifyBackendWXInfuseLibraryPage(entityId, $(this).attr('data-inf-page'), _slot.slotIndex, onInfused);
+			}
 		});
 
 		this.wxOpenModal(box);

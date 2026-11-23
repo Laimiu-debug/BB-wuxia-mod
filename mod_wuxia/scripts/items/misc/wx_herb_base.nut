@@ -118,20 +118,26 @@ this.wx_herb_base <- this.inherit("scripts/items/item", {
 			return { Ok = true, Message = _actor.getName() + " 服下奇草「" + cfg.Name + "」，温润药气抚平了经脉内患！" };
 		}
 
-		if (cfg.Kind == "herb_detox" || cfg.Kind == "herb_swift" || cfg.Kind == "herb_calm")
+		if (cfg.Kind == "herb_detox" || cfg.Kind == "herb_swift" || cfg.Kind == "herb_calm" || cfg.Kind == "herb_qi" || cfg.Kind == "herb_ward_fire" || cfg.Kind == "herb_staunch")
 		{
-			local bKind = (cfg.Kind == "herb_detox") ? "buff_qingxin" : cfg.Kind;
+			local bKind = cfg.Kind;
+			if (cfg.Kind == "herb_detox") bKind = "buff_qingxin";
+			else if (cfg.Kind == "herb_qi") bKind = "buff_hugu";
+			else if (cfg.Kind == "herb_ward_fire") bKind = "buff_bihuo";
+			else if (cfg.Kind == "herb_staunch") bKind = "buff_yuji";
 			local buff = skills.getSkillByID("effects.wx_pill_battle_buff");
-			if (buff != null && buff.hasBuffKind(bKind))
-				return { Ok = false, Reason = _actor.getName() + " 体内已有同类奇草药力流转。" };
+			local check = buff != null ? buff.canAcceptBattlePill(bKind, _actor.getName()) : null;
+			if (check != null && !check.Ok) return check;
 			if (buff == null)
 			{
 				buff = ::new("scripts/skills/effects/wx_pill_battle_buff");
 				skills.add(buff);
 			}
-			buff.addPillBuff(bKind);
+			buff.addPillBuff(bKind, ("CalmBravery" in cfg) ? cfg.CalmBravery : 6);
+			buff.applyPillPotencyAndAux(100);
+			local warning = (check != null && check.WillTriggerToxin) ? buff.applyDanToxinOverload() : "";
 			skills.update();
-			return { Ok = true, Message = _actor.getName() + " 生服奇草「" + cfg.Name + "」，下场战斗药效已生发！" };
+			return { Ok = true, Message = _actor.getName() + " 生服奇草「" + cfg.Name + "」，下场战斗药效已生发！" + warning };
 		}
 
 		return { Ok = false, Reason = "此仙株请拖入武学插槽参悟，或携往百工猎妖炼丹房入炉炼制仙丹。" };

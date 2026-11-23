@@ -18,13 +18,16 @@ UI_GFX_DIR = MOD_DIR / "gfx" / "ui"
 MUSIC_DIR = MOD_DIR / "music"
 
 
-def find_ffmpeg() -> str:
+def find_ffmpeg() -> str | None:
     import shutil
     found = shutil.which("ffmpeg")
     if found:
         return found
-    import imageio_ffmpeg
-    return imageio_ffmpeg.get_ffmpeg_exe()
+    try:
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except ImportError:
+        return None
 
 
 def optimize_ui_jpgs() -> tuple[int, int, int]:
@@ -33,9 +36,11 @@ def optimize_ui_jpgs() -> tuple[int, int, int]:
     jpgs = sorted(UI_GFX_DIR.rglob("*.jpg"))
     for p in jpgs:
         orig = p.stat().st_size
-        im = Image.open(p).convert("RGB")
+        with Image.open(p) as im0:
+            im = im0.convert("RGB")
         buf = io.BytesIO()
-        im.save(buf, "JPEG", quality=82, optimize=True, progressive=True)
+        q = 75 if orig > 500_000 else 80
+        im.save(buf, "JPEG", quality=q, optimize=True, progressive=True)
         data = buf.getvalue()
         if len(data) + 1024 < orig:
             p.write_bytes(data)
@@ -45,44 +50,81 @@ def optimize_ui_jpgs() -> tuple[int, int, int]:
 
 
 def optimize_ui_pngs() -> tuple[int, int, int]:
-    """Quantize pure CoherentUI WebKit PNGs under gfx/ui/ (never touches C++ gfx/wx_*.png atlases!)."""
-    target_subdirs = ("settlements", "campfire", "wx_skin", "events", "items", "banners", "settlement_sprites", "skin")
+    """Quantize pure CoherentUI WebKit PNGs under gfx/ui/ and gfx/skills/ (never touches C++ gfx/wx_*.png 32-bit RGBA mode!)."""
+    # Never quantize `settlements` to 8-bit `P` mode (preserves smooth 32-bit RGBA contact shadows & mist transitions)
+    target_dirs = [
+        UI_GFX_DIR / sub
+        for sub in ("campfire", "wx_skin", "events", "items", "perks", "banners", "settlement_sprites", "skin", "skills", "wx_icons")
+    ] + [MOD_DIR / "gfx" / "skills"]
     saved = 0
     touched = 0
     checked = 0
-    for sub in target_subdirs:
-        folder = UI_GFX_DIR / sub
+    for folder in target_dirs:
         if not folder.exists():
             continue
         for p in sorted(folder.rglob("*.png")):
             checked += 1
             orig = p.stat().st_size
-            if orig < 8192:
+            if orig < 2560:
                 continue
-            im = Image.open(p)
-            if im.mode == "P":
-                continue
-            rgba = im.convert("RGBA")
+            with Image.open(p) as im:
+                if im.mode == "P":
+                    continue
+                rgba = im.convert("RGBA")
             q = rgba.quantize(colors=256, method=Image.Quantize.FASTOCTREE, dither=Image.Dither.FLOYDSTEINBERG)
             buf = io.BytesIO()
             q.save(buf, "PNG", optimize=True, compress_level=9)
             data = buf.getvalue()
-            if len(data) + 1024 < orig:
+            if len(data) + 512 < orig:
                 p.write_bytes(data)
                 saved += orig - len(data)
                 touched += 1
     return checked, touched, saved
 
 
+def optimize_rgba_atlases() -> tuple[int, int, int]:
+    """Keep all C++ .brush atlases strictly 32-bit RGBA while zeroing RGB in alpha=0 pixels & trimming invisible LSB noise on VFX sheets."""
+    saved = 0
+    touched = 0
+    atlases = sorted((MOD_DIR / "gfx").glob("wx_*.png")) + sorted((UI_GFX_DIR / "settlements").glob("*.png"))
+    for p in atlases:
+        orig = p.stat().st_size
+        with Image.open(p) as im0:
+            im = im0.convert("RGBA")
+        r, g, b, a = im.split()
+        if p.name.startswith("wx_effects_"):
+            r = r.point(lambda v: v & 0xF8)
+            g = g.point(lambda v: v & 0xF8)
+            b = b.point(lambda v: v & 0xF8)
+            a = a.point(lambda v: 255 if v == 255 else (v & 0xFC))
+        nz = a.point(lambda v: 255 if v > 0 else 0)
+        zero = Image.new("L", im.size, 0)
+        r = Image.composite(r, zero, nz)
+        g = Image.composite(g, zero, nz)
+        b = Image.composite(b, zero, nz)
+        out_im = Image.merge("RGBA", (r, g, b, a))
+        assert out_im.mode == "RGBA" and out_im.size == im.size
+        buf = io.BytesIO()
+        out_im.save(buf, "PNG", optimize=True, compress_level=9)
+        data = buf.getvalue()
+        if len(data) + 2048 < orig:
+            p.write_bytes(data)
+            saved += orig - len(data)
+            touched += 1
+    return len(atlases), touched, saved
+
+
 def optimize_music_oggs() -> tuple[int, int, int]:
     ffmpeg = find_ffmpeg()
+    if not ffmpeg:
+        return 0, 0, 0
     saved = 0
     touched = 0
     oggs = sorted(MUSIC_DIR.glob("*.ogg"))
     for p in oggs:
         orig = p.stat().st_size
-        # Skip short stings or already-compact tracks (< 2.0 MB)
-        if orig < 2_000_000:
+        # Re-encode tracks > 1.45 MB at q:a 1 (~80 kbps stereo Vorbis)
+        if orig < 1_450_000:
             continue
         with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tf:
             tmp_path = Path(tf.name)
@@ -102,13 +144,13 @@ def optimize_music_oggs() -> tuple[int, int, int]:
                     "-c:a",
                     "libvorbis",
                     "-q:a",
-                    "2",
+                    "1",
                     str(tmp_path),
                 ],
                 check=True,
             )
             new_size = tmp_path.stat().st_size
-            if 0 < new_size < orig:
+            if 0 < new_size + 32768 < orig:
                 p.write_bytes(tmp_path.read_bytes())
                 saved += orig - new_size
                 touched += 1
@@ -121,10 +163,12 @@ def main() -> None:
     jc, jt, js = optimize_ui_jpgs()
     print(f"[JPG] Checked {jc}, optimized {jt}, saved {js / 1048576:.2f} MB")
     pc, pt, ps = optimize_ui_pngs()
-    print(f"[PNG] Checked {pc} (gfx/ui only), optimized {pt}, saved {ps / 1048576:.2f} MB")
+    print(f"[PNG] Checked {pc} (UI icons only), optimized {pt}, saved {ps / 1048576:.2f} MB")
+    ac, at, asv = optimize_rgba_atlases()
+    print(f"[ATLAS-RGBA32] Checked {ac}, optimized {at}, saved {asv / 1048576:.2f} MB")
     mc, mt, ms = optimize_music_oggs()
     print(f"[OGG] Checked {mc}, optimized {mt}, saved {ms / 1048576:.2f} MB")
-    print(f"[TOTAL SAVED] {(js + ps + ms) / 1048576:.2f} MB")
+    print(f"[TOTAL SAVED] {(js + ps + asv + ms) / 1048576:.2f} MB")
 
 
 if __name__ == "__main__":

@@ -301,7 +301,8 @@
 	opacity: 0.33;
 }
 
-.wx-vslot .wx-sring
+.wx-vslot .wx-sring,
+.wx-vslot.is-inspected:after
 {
 	position: absolute;
 	left: 0.25rem;
@@ -313,6 +314,11 @@
 	background-size: 100% 100%;
 	background-repeat: no-repeat;
 	pointer-events: none;
+}
+
+.wx-vslot.is-inspected:after
+{
+	content: "";
 }
 
 /* 原版经验/火候条与属性条 */
@@ -836,6 +842,34 @@
 	color: #dda21f;
 }
 
+.wx-pas .wx-diag-warn
+{
+	display: inline-block;
+	margin-right: 0.5rem;
+	padding: 0 0.45rem;
+	line-height: 2.1rem;
+	font-size: 1.2rem;
+	color: #ffd08a;
+	background: rgba(145, 52, 24, 0.55);
+	border: 0.1rem solid rgba(224, 128, 66, 0.75);
+	border-radius: 0.25rem;
+	cursor: help;
+}
+
+.wx-pas .wx-diag-info
+{
+	display: inline-block;
+	margin-right: 0.5rem;
+	padding: 0 0.45rem;
+	line-height: 2.1rem;
+	font-size: 1.2rem;
+	color: #b7d7ec;
+	background: rgba(34, 72, 104, 0.48);
+	border: 0.1rem solid rgba(118, 174, 214, 0.55);
+	border-radius: 0.25rem;
+	cursor: help;
+}
+
 .wx-pas .wx-mv-ico
 {
 	display: inline-block;
@@ -850,6 +884,11 @@
 {
 	-webkit-filter: grayscale(100%);
 	opacity: 0.48;
+}
+
+.wx-pas .wx-mv-ico.is-inspected
+{
+	outline: 0.15rem solid #d7b174;
 }
 
 /* 左下书架筛选栏与格位网 */

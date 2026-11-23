@@ -46,7 +46,7 @@
 	return summaries;
 };
 
-::Wuxia.UI.buildPassiveSummaryTags <- function( _agg )
+::Wuxia.UI.buildPassiveSummaryTags <- function( _agg, _actor = null )
 {
 	local tags = [];
 	if (_agg == null) return tags;
@@ -71,7 +71,10 @@
 			tags.push(lbl + (v > 0 ? "+" : "") + v);
 		}
 	}
-	local totalPen = ::Math.min(0.25, _agg.DirectDmgBonus + _agg.EmptyOffhandPen);
+	local activeOffhandPen = (_agg.EmptyOffhandPen > 0.0 && (_actor == null || ::Wuxia.CombatRules.hasSingleHandEmptyOffhand(_actor)))
+		? _agg.EmptyOffhandPen
+		: 0.0;
+	local totalPen = ::Math.minf(0.25, _agg.DirectDmgBonus + activeOffhandPen);
 	if (totalPen > 0.001) tags.push("穿甲+" + ::Math.round(totalPen * 100) + "%");
 	if (_agg.ArmorDmgBonus > 0.001) tags.push("破甲+" + ::Math.round(_agg.ArmorDmgBonus * 100) + "%");
 	if (_agg.WeaponQiDiscount > 0.001) tags.push("省气" + ::Math.round(_agg.WeaponQiDiscount * 100) + "%");
@@ -79,6 +82,108 @@
 	if (_agg.InitToDefRatio > 0.001) tags.push("身法转防" + ::Math.round(_agg.InitToDefRatio * 100) + "%");
 	if (_agg.HeavyArmorScale > 0.001) tags.push("披甲减负" + ::Math.round(_agg.HeavyArmorScale * 100) + "%");
 	return tags;
+};
+
+// 7-slot Build Diagnostics: warns on Math.max passive overlap, 50% aux Neigong, hard caps & Tier-3 stat shortfalls
+::Wuxia.UI.buildBuildDiagnostics <- function( _actor, _c, _agg, _slotsData, _subNeigongSlotIdx )
+{
+	local diags = [];
+	if (_actor == null || _c == null || _agg == null || _slotsData == null) return diags;
+
+	local activeWaigongMatched = 0;
+	local activeQinggong = 0;
+	local blockedNames = [];
+
+	for (local i = 0; i < _slotsData.len(); i = ++i)
+	{
+		local sl = _slotsData[i];
+		if (sl.manualID == null || sl.tier <= 0 || sl.isSealed) continue;
+		if (sl.category == "waigong" && sl.matchesWeapon)
+			activeWaigongMatched += 1;
+		else if (sl.category == "qinggong")
+			activeQinggong += 1;
+
+		if (sl.tier == 2 && sl.missingReqs != null && sl.missingReqs.len() > 0)
+		{
+			local missStr = "";
+			for (local mi = 0; mi < sl.missingReqs.len(); mi = ++mi)
+				missStr += (mi > 0 ? "、" : "") + sl.missingReqs[mi];
+			blockedNames.push(sl.rawName + "(" + missStr + ")");
+		}
+	}
+
+	if (activeWaigongMatched >= 2)
+	{
+		diags.push({
+			level = "info",
+			short = "双外功取高",
+			detail = "当前兵器同时激活 " + activeWaigongMatched + " 门外功：主动招式池合并，但常驻攻防/穿甲/破甲等被动按最高单项生效（Math.max，不叠加）。"
+		});
+	}
+
+	if (activeQinggong >= 2)
+	{
+		diags.push({
+			level = "info",
+			short = "双轻功取高",
+			detail = "已装配 " + activeQinggong + " 门轻功：身法转防比例与常驻攻防取最高单项生效（禁止叠加）。"
+		});
+	}
+
+	if (_subNeigongSlotIdx >= 1)
+	{
+		diags.push({
+			level = "info",
+			short = "辅内折半",
+			detail = "辅修第 2 门内功提供的内息上限与每回合回气按 50% 折算，若五行相克还会触发真气滞涩。"
+		});
+	}
+
+	local gufengActive = (_agg.EmptyOffhandPen > 0.001 && ::Wuxia.CombatRules.hasSingleHandEmptyOffhand(_actor));
+	if (_agg.EmptyOffhandPen > 0.001 && !gufengActive)
+	{
+		diags.push({
+			level = "warn",
+			short = "孤锋未生效",
+			detail = "已修习《孤锋诀》，但当前并非「单手兵器 + 空副手」架势（如持盾或持双手兵刃），空副手额外穿甲暂不生效。"
+		});
+	}
+	local rawPen = _agg.DirectDmgBonus + (gufengActive ? _agg.EmptyOffhandPen : 0.0);
+	if (rawPen > 0.251)
+	{
+		diags.push({
+			level = "warn",
+			short = "穿甲触顶25%",
+			detail = "当前外功穿甲与孤锋诀合计 +" + ::Math.round(rawPen * 100) + "%，已达全身额外穿甲 +25% 硬上限，溢出部分不再计入。"
+		});
+	}
+
+	if (_agg.LightArmorMitigation > 0.001 && _agg.QiShieldPct > 0.001)
+	{
+		local combinedKeep = (1.0 - _agg.LightArmorMitigation) * (1.0 - _agg.QiShieldPct);
+		if (combinedKeep < 0.405)
+		{
+			diags.push({
+				level = "warn",
+				short = "卸力护体60%封顶",
+				detail = "轻装卸力与真气护体叠加后的总气血减伤受 60% 全局硬封顶约束，可考虑腾出槽位转修输出或控场。"
+			});
+		}
+	}
+
+	if (blockedNames.len() > 0)
+	{
+		local bStr = "";
+		for (local bi = 0; bi < blockedNames.len() && bi < 2; bi = ++bi)
+			bStr += (bi > 0 ? "；" : "") + blockedNames[bi];
+		diags.push({
+			level = "warn",
+			short = "三重欠属性",
+			detail = "以下二重功法冲击三重大成尚缺门坎属性（可升级加点或服洗髓丹突破）：" + bStr
+		});
+	}
+
+	return diags;
 };
 
 ::Wuxia.UI.buildLearnedManualsData <- function( _actor, _c, _heldWpn )
@@ -352,7 +457,8 @@
 	}
 
 	local aggFlags = ::Wuxia.CombatRules.getAggregateFlags(c);
-	local aggTags  = ::Wuxia.UI.buildPassiveSummaryTags(aggFlags);
+	local aggTags  = ::Wuxia.UI.buildPassiveSummaryTags(aggFlags, _actor);
+	local buildDiags = ::Wuxia.UI.buildBuildDiagnostics(_actor, c, aggFlags, slotsData, subNeigongSlotIdx);
 
 	local talents = [0, 0, 0, 0, 0, 0, 0, 0];
 	if (::Wuxia.Appearance.hasMember(_actor, "m") && ::Wuxia.Appearance.hasMember(_actor.m, "Talents"))
@@ -395,6 +501,7 @@
 		battlePillLabels       = battlePillLabels,
 		activeMoves            = activeMoves,
 		aggSummaryTags         = aggTags,
+		buildDiagnostics       = buildDiags,
 		appearance             = appInfo,
 		talents                = talents,
 		baseStats              = baseStats,
@@ -738,7 +845,7 @@
 		}
 	};
 
-	if ("convertItemToUIData" in q)
+	if (::Wuxia.qHas(q, "convertItemToUIData"))
 	{
 		q.convertItemToUIData = @(__original) function( _item, _forceSmallIcon, _owner = null )
 		{
@@ -786,7 +893,7 @@
 	}
 });
 
-::Wuxia.UI.buildSectRelationsDirectory <- function()
+::Wuxia.UI.buildSectRelationsDirectory <- function( _allowTeaHouse = true, _allowSanctum = true )
 {
 	local regionOrder = ["plains", "mountains", "forest", "swamp", "snow", "desert"];
 	local regions = [];
@@ -824,13 +931,28 @@
 		}
 	}
 
-	local curTown = ("getCurrentTown" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getCurrentTown() : null;
+	local curSanctum = (_allowSanctum && "getCurrentSanctum" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getCurrentSanctum() : null;
+	local sanctumSectID = (curSanctum != null && "getSectID" in curSanctum) ? curSanctum.getSectID() : "";
+	local sanctumName = (curSanctum != null) ? curSanctum.getName() : "";
+	if (sanctumSectID != "" && "discoverSect" in ::Wuxia.SectRelations)
+		::Wuxia.SectRelations.discoverSect(sanctumSectID);
+
+	local curTown = (_allowTeaHouse && curSanctum == null && "getCurrentTown" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getCurrentTown() : null;
 	local townSeats = (curTown != null && ("getTownTeaHouseSeats" in ::Wuxia.SectRelations))
 		? ::Wuxia.SectRelations.getTownTeaHouseSeats(curTown)
 		: {};
+	if (curTown != null && "discoverSect" in ::Wuxia.SectRelations)
+	{
+		foreach (tsid, _b in townSeats)
+			::Wuxia.SectRelations.discoverSect(tsid);
+	}
+	if (sanctumSectID != "")
+		townSeats[sanctumSectID] <- "亲临山门";
+
 	local curMoney = ("World" in getroottable() && ::World != null && ("Assets" in ::World) && ::World.Assets != null)
 		? ::World.Assets.getMoney()
 		: 0;
+	local rumorCd = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("rumor", "global", 2) : 0;
 
 	local sectList = [];
 	local ids = [];
@@ -842,6 +964,31 @@
 		local s = ::Wuxia.Config.Sects[sid];
 		local rel = ::Wuxia.SectRelations.getRelation(sid);
 		local isVendetta = ::Wuxia.SectRelations.isVendettaActive(sid);
+		local isAtThisSanctum = (sanctumSectID == sid);
+		local isSeated = (sid in townSeats);
+
+		// Check if player owns or has learned any manual from this sect (automatically reveals sect in directory)
+		local ownsAnySectManual = false;
+		if ("ShopManuals" in s)
+		{
+			foreach (chkSm in s.ShopManuals)
+			{
+				if (::Wuxia.Library.getManualCount(chkSm.ManualID) > 0
+					|| ::Wuxia.Library.getPageCount(chkSm.ManualID) > 0
+					|| (chkSm.ManualID in rosterLearnedCounts))
+				{
+					ownsAnySectManual = true;
+					break;
+				}
+			}
+		}
+		if (ownsAnySectManual && "discoverSect" in ::Wuxia.SectRelations)
+			::Wuxia.SectRelations.discoverSect(sid);
+
+		local isKnown = ("isSectKnown" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.isSectKnown(sid) : true;
+		if (!isKnown && !isSeated && !isAtThisSanctum)
+			continue;
+
 		local statusLbl = "素昧平生";
 		if (isVendetta) statusLbl = "不死不休 · 寻仇追缉";
 		else if (rel <= -15) statusLbl = "结怨冷眼";
@@ -849,68 +996,114 @@
 		else if (rel >= 25) statusLbl = "礼尚往来 · 登堂请教";
 		else if (rel > 5) statusLbl = "点头之交";
 
+		local anchor = ("getSectAnchorInfo" in ::Wuxia.SectRelations)
+			? ::Wuxia.SectRelations.getSectAnchorInfo(sid)
+			: { townName = "", dir = "", dist = -1, hasSanctum = false, isDiscovered = false };
+
 		local mList = [];
+		local revealedManualCount = 0;
 		if ("ShopManuals" in s)
 		{
 			foreach (sm in s.ShopManuals)
 			{
 				local mdef = ::Wuxia.Slots.getManualDef(sm.ManualID);
 				if (mdef == null) continue;
+				local vBooks = ::Wuxia.Library.getManualCount(mdef.ID);
+				local vPages = ::Wuxia.Library.getPageCount(mdef.ID);
+				local lCnt = (mdef.ID in rosterLearnedCounts) ? rosterLearnedCounts[mdef.ID] : 0;
+				local hasOwned = (vBooks > 0 || vPages > 0 || lCnt > 0);
+				local isRevealed = hasOwned || (rel >= sm.MinRel) || (isAtThisSanctum && sm.MinRel <= 25);
+				if (isRevealed) revealedManualCount += 1;
+
+				local needSanctum = (!isAtThisSanctum && ("hasSanctum" in anchor && anchor.hasSanctum) && sm.MinRel >= 45 && rel < 65);
+				local catLbl = (mdef.Category in ::Wuxia.Text.Categories) ? ::Wuxia.Text.Categories[mdef.Category] : mdef.Category;
+				local qLbl = (mdef.Quality in ::Wuxia.Text.Qualities) ? ::Wuxia.Text.Qualities[mdef.Quality] : mdef.Quality;
+				local qBookKey = (mdef.Quality == "secret") ? "supreme" : mdef.Quality;
+				local bookIco = "ui/items/misc/wx_book_" + mdef.Category + "_" + qBookKey + ".png";
+
 				mList.push({
-					id              = mdef.ID,
-					name            = mdef.Name,
+					id              = isRevealed ? mdef.ID : "",
+					name            = isRevealed ? mdef.Name : "？？？",
+					isRevealed      = isRevealed,
+					requiresSanctum = needSanctum,
+					maskedHint      = needSanctum ? "镇派真传 · 须亲赴本门山门" : ("秘传未显 · 需交情 ≥" + sm.MinRel),
 					quality         = mdef.Quality,
-					qualityLabel    = (mdef.Quality in ::Wuxia.Text.Qualities) ? ::Wuxia.Text.Qualities[mdef.Quality] : mdef.Quality,
-					categoryLabel   = (mdef.Category in ::Wuxia.Text.Categories) ? ::Wuxia.Text.Categories[mdef.Category] : mdef.Category,
+					qualityLabel    = isRevealed ? qLbl : (sm.MinRel >= 45 ? "镇派秘传" : "本门秘传"),
+					category        = mdef.Category,
+					categoryLabel   = catLbl,
+					bookIcon        = bookIco,
+					skillIcon       = isRevealed ? mdef.Icon : "",
 					minRel          = sm.MinRel,
 					price           = sm.Price,
-					unlocked        = (rel >= sm.MinRel),
-					vaultBooks      = ::Wuxia.Library.getManualCount(mdef.ID),
-					vaultPages      = ::Wuxia.Library.getPageCount(mdef.ID),
+					unlocked        = (rel >= sm.MinRel) && !needSanctum,
+					vaultBooks      = vBooks,
+					vaultPages      = vPages,
 					fragmentsNeeded = mdef.FragmentsNeeded,
-					learnedCount    = (mdef.ID in rosterLearnedCounts) ? rosterLearnedCounts[mdef.ID] : 0
+					learnedCount    = lCnt
 				});
 			}
 		}
 
-		local anchor = ("getSectAnchorInfo" in ::Wuxia.SectRelations)
-			? ::Wuxia.SectRelations.getSectAnchorInfo(sid)
-			: { townName = "", dir = "", dist = -1 };
-		local isSeated = (sid in townSeats);
 		local seatBadge = isSeated ? townSeats[sid] : "";
-		local banqCd = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("banq", sid, 3) : 0;
-		local sparCd = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("spar", sid, 5) : 0;
+		local banqCd    = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("banq", sid, 3) : 0;
+		local sparCd    = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("spar", sid, 5) : 0;
+		local alcCd     = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("alc", sid, 6) : 0;
+		local sealDays  = ("getSanctumSealLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getSanctumSealLeft(sid) : 0;
+		local trialCd   = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("trial", sid, 8) : 0;
+		local raidCd    = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("raid", sid, 15) : 0;
+		local recruitCd = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("recruit", sid, 10) : 0;
+		local empowerCd = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("emp", sid, 5) : 0;
+		local healCd    = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("heal", sid, 3) : 0;
+		local herbCd    = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("herb", sid, 4) : 0;
+		local questInfo = (isAtThisSanctum && ("getSanctumQuestInfo" in ::Wuxia.SectRelations))
+			? ::Wuxia.SectRelations.getSanctumQuestInfo(sid)
+			: null;
 
 		local regKey = ("Region" in s) ? s.Region : "plains";
 		local alignKey = ("Alignment" in s) ? s.Alignment : "neutral";
 		sectList.push({
-			id             = s.ID,
-			name           = s.Name,
-			region         = regKey,
-			regionLabel    = ::Wuxia.SectRelations.getRegionLabel(regKey),
-			alignment      = alignKey,
-			alignmentLabel = (alignKey in alignLabels) ? alignLabels[alignKey] : "江湖门派",
-			description    = ("Description" in s) ? s.Description : "",
-			relation       = rel,
-			vendettaRel    = s.VendettaRel,
-			isVendetta     = isVendetta,
-			statusLabel    = statusLbl,
-			anchorTownName = anchor.townName,
-			anchorDir      = anchor.dir,
-			anchorDist     = anchor.dist,
-			isSeatedInTown = isSeated,
-			seatBadge      = seatBadge,
-			banquetCd      = banqCd,
-			sparCd         = sparCd,
-			manuals        = mList
+			id                  = s.ID,
+			name                = s.Name,
+			region              = regKey,
+			regionLabel         = ::Wuxia.SectRelations.getRegionLabel(regKey),
+			alignment           = alignKey,
+			alignmentLabel      = (alignKey in alignLabels) ? alignLabels[alignKey] : "江湖门派",
+			description         = ("Description" in s) ? s.Description : "",
+			relation            = rel,
+			vendettaRel         = s.VendettaRel,
+			isVendetta          = isVendetta,
+			statusLabel         = statusLbl,
+			anchorTownName      = anchor.townName,
+			anchorDir           = anchor.dir,
+			anchorDist          = anchor.dist,
+			hasSanctum          = ("hasSanctum" in anchor) ? anchor.hasSanctum : false,
+			sanctumDiscovered   = ("isDiscovered" in anchor) ? anchor.isDiscovered : false,
+			isAtSanctum         = isAtThisSanctum,
+			isSeatedInTown      = isSeated,
+			seatBadge           = seatBadge,
+			banquetCd           = banqCd,
+			sparCd              = sparCd,
+			alcCd               = alcCd,
+			sealDays            = sealDays,
+			trialCd             = trialCd,
+			raidCd              = raidCd,
+			recruitCd           = recruitCd,
+			recruitCost         = ("getSanctumRecruitCost" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getSanctumRecruitCost(sid) : 1800,
+			empowerCd           = empowerCd,
+			healCd              = healCd,
+			herbCd              = herbCd,
+			questInfo           = questInfo,
+			revealedManualCount = revealedManualCount,
+			manuals             = mList
 		});
 	}
 
 	sectList.sort(function( _a, _b ) {
+		if (_a.isAtSanctum != _b.isAtSanctum) return _a.isAtSanctum ? -1 : 1;
 		if (_a.isSeatedInTown != _b.isSeatedInTown) return _a.isSeatedInTown ? -1 : 1;
 		if (_a.isSeatedInTown)
 		{
-			local rank = { ["本城驻地"] = 1, ["同城堂口"] = 2, ["同道传书"] = 3, ["地界行客"] = 4 };
+			local rank = { ["亲临山门"] = 1, ["酒肆行客"] = 2, ["云游门人"] = 3, ["飞鸽赴约"] = 4 };
 			local ra = (_a.seatBadge in rank) ? rank[_a.seatBadge] : 9;
 			local rb = (_b.seatBadge in rank) ? rank[_b.seatBadge] : 9;
 			if (ra != rb) return ra < rb ? -1 : 1;
@@ -924,9 +1117,15 @@
 
 	return {
 		ok              = true,
+		inSanctum       = (curSanctum != null),
+		sanctumSectID   = sanctumSectID,
+		sanctumName     = sanctumName,
 		inTown          = (curTown != null),
 		townName        = (curTown != null ? curTown.getName() : ""),
 		townSeatedCount = seatedCnt,
+		rumorCd         = rumorCd,
+		knownSectCount  = sectList.len(),
+		totalSectCount  = ids.len(),
 		money           = curMoney,
 		localRegion     = (curTown != null && ("getSettlementRegion" in ::Wuxia.SectRelations))
 			? ::Wuxia.SectRelations.getSettlementRegion(curTown)
@@ -936,43 +1135,148 @@
 	};
 };
 
-::Wuxia.UI.attachSectTeaHouseRPCs <- function( q )
+::Wuxia.UI.attachSectTeaHouseRPCs <- function( q, _allowTeaHouse = false, _allowSanctum = false )
 {
 	q.onWXGetSectRelations <- function( _data = null )
 	{
-		return ::Wuxia.UI.buildSectRelationsDirectory();
+		return ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
 	};
 
 	q.onWXTeaHouseBuyManual <- function( _data )
 	{
+		if (!_allowTeaHouse && !_allowSanctum)
+			return { ok = false, reason = "此卷仅为随身【江湖名刺录】情报册——如需请教秘籍，请亲赴城镇【迎客酒肆 · 二楼茶座】或各派【独立山门】！" };
 		if (_data == null || typeof _data != "array" || _data.len() < 2)
 			return { ok = false, reason = "参数缺失。" };
 		local op = ::Wuxia.SectRelations.teaHouseBuyManual(_data[0], _data[1]);
 		if (!op.ok) return op;
-		local payload = ::Wuxia.UI.buildSectRelationsDirectory();
+		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
 		payload.actionMessage <- op.message;
 		return payload;
 	};
 
 	q.onWXTeaHouseBanquet <- function( _data )
 	{
+		if (!_allowTeaHouse && !_allowSanctum)
+			return { ok = false, reason = "此卷仅为随身【江湖名刺录】情报册——如需设席结交，请亲赴城镇【迎客酒肆 · 二楼茶座】或各派【独立山门】！" };
 		local sid = (typeof _data == "array" && _data.len() > 0) ? _data[0] : ("" + _data);
 		local op = ::Wuxia.SectRelations.teaHouseBanquet(sid);
 		if (!op.ok) return op;
-		local payload = ::Wuxia.UI.buildSectRelationsDirectory();
+		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
 		payload.actionMessage <- op.message;
 		return payload;
 	};
 
 	q.onWXTeaHouseSpar <- function( _data )
 	{
+		if (!_allowTeaHouse && !_allowSanctum)
+			return { ok = false, reason = "此卷仅为随身【江湖名刺录】情报册——如需拆招切磋，请亲赴城镇【迎客酒肆 · 二楼茶座】或各派【独立山门】！" };
 		if (_data == null || typeof _data != "array" || _data.len() < 2)
 			return { ok = false, reason = "参数缺失。" };
 		local op = ::Wuxia.SectRelations.teaHouseSpar(_data[0], _data[1]);
 		if (!op.ok) return op;
-		local payload = ::Wuxia.UI.buildSectRelationsDirectory();
+		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
 		payload.actionMessage <- op.message;
 		return payload;
+	};
+
+	q.onWXTavernInquireRumor <- function( _data = null )
+	{
+		if (!_allowTeaHouse)
+			return { ok = false, reason = "须置身城镇【迎客酒肆】内，方可向掌柜酒保打探山门秘闻与丹方线索！" };
+		local op = ::Wuxia.SectRelations.tavernInquireRumor();
+		if (!op.ok) return op;
+		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
+		payload.actionMessage <- op.message;
+		return payload;
+	};
+
+	q.onWXSanctumAskAlchemy <- function( _data )
+	{
+		if (!_allowSanctum)
+			return { ok = false, reason = "须亲赴该派【独立山门】丹堂，方可请教不传丹诀！" };
+		local sid = (typeof _data == "array" && _data.len() > 0) ? _data[0] : ("" + _data);
+		local op = ::Wuxia.SectRelations.sanctumAskAlchemy(sid);
+		if (!op.ok) return op;
+		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
+		payload.actionMessage <- op.message;
+		return payload;
+	};
+
+	q.onWXSanctumStartBattle <- function( _data )
+	{
+		if (!_allowSanctum)
+			return { ok = false, reason = "须亲率义社登临该派【独立山门】，方能闯阵求道！" };
+		if (_data == null || typeof _data != "array" || _data.len() < 2)
+			return { ok = false, reason = "参数缺失。" };
+		return ::Wuxia.SectRelations.sanctumStartBattle(_data[0], _data[1]);
+	};
+
+	q.onWXSanctumRecruitDisciple <- function( _data )
+	{
+		if (!_allowSanctum)
+			return { ok = false, reason = "须亲赴该派【独立山门】求贤堂，方可延请门人下山助拳！" };
+		local sid = (typeof _data == "array" && _data.len() > 0) ? _data[0] : ("" + _data);
+		local op = ::Wuxia.SectRelations.sanctumRecruitDisciple(sid);
+		if (!op.ok) return op;
+		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
+		payload.actionMessage <- op.message;
+		return payload;
+	};
+
+	q.onWXSanctumElderEmpower <- function( _data )
+	{
+		if (!_allowSanctum)
+			return { ok = false, reason = "须亲赴该派【独立山门】传功殿，方可请求宿老传功灌顶！" };
+		local sid = (typeof _data == "array" && _data.len() > 0) ? _data[0] : ("" + _data);
+		local op = ::Wuxia.SectRelations.sanctumElderEmpower(sid);
+		if (!op.ok) return op;
+		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
+		payload.actionMessage <- op.message;
+		return payload;
+	};
+
+	q.onWXSanctumHealInternal <- function( _data )
+	{
+		if (!_allowSanctum)
+			return { ok = false, reason = "须亲赴该派【独立山门】传功殿，方可请求长老推宫过穴疗伤！" };
+		local sid = (typeof _data == "array" && _data.len() > 0) ? _data[0] : ("" + _data);
+		local op = ::Wuxia.SectRelations.sanctumHealInternal(sid);
+		if (!op.ok) return op;
+		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
+		payload.actionMessage <- op.message;
+		return payload;
+	};
+
+	q.onWXSanctumHandleQuest <- function( _data )
+	{
+		if (!_allowSanctum)
+			return { ok = false, reason = "须亲赴该派【独立山门】知客堂，方可揭领或复命宗门法帖！" };
+		local sid = (typeof _data == "array" && _data.len() > 0) ? _data[0] : ("" + _data);
+		local op = ::Wuxia.SectRelations.sanctumHandleQuest(sid);
+		if (!op.ok) return op;
+		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
+		payload.actionMessage <- op.message;
+		return payload;
+	};
+
+	q.onWXSanctumBuyHerbs <- function( _data )
+	{
+		if (!_allowSanctum)
+			return { ok = false, reason = "须亲赴该派【独立山门】药庐，方可求购本门道地灵草！" };
+		local sid = (typeof _data == "array" && _data.len() > 0) ? _data[0] : ("" + _data);
+		local op = ::Wuxia.SectRelations.sanctumBuyHerbs(sid);
+		if (!op.ok) return op;
+		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
+		payload.actionMessage <- op.message;
+		return payload;
+	};
+
+	q.onWXCloseSanctum <- function( _data = null )
+	{
+		if ("World" in getroottable() && ::World != null && ("Flags" in ::World) && ::World.Flags != null)
+			::World.Flags.set("wx_active_sanctum_sect", "");
+		return { ok = true };
 	};
 };
 
@@ -985,8 +1289,11 @@
 			::Wuxia.Armory.syncActorHandheldAndArmor(_entity);
 		}
 		local data = __original(_entity, _isLastEntity);
-		local c = _entity.getSkills().getSkillByID("special.wx_martial_container");
-		data.wxPermanentAP <- data.actionPointsMax - (c == null ? 0 : c.m.TemporaryAPOverflow);
+		if (_entity != null && data != null && ("actionPointsMax" in data))
+		{
+			local c = _entity.getSkills().getSkillByID("special.wx_martial_container");
+			data.wxPermanentAP <- data.actionPointsMax - (c == null ? 0 : c.m.TemporaryAPOverflow);
+		}
 		return data;
 	};
 
@@ -1022,4 +1329,25 @@
 		}
 		return res;
 	};
+});
+
+// Guard vanilla `tooltip.nut` against null cursor coordinates when window is unfocused / Alt-Tabbed during load
+::Wuxia.HooksMod.hook("scripts/ui/screens/tooltip/modules/tooltip", function( q )
+{
+	if (::Wuxia.qHas(q, "mouseEnterTile"))
+	{
+		q.mouseEnterTile = @(__original) function( _x, _y, _entityId = null )
+		{
+			if (_x == null || _y == null) return;
+			return __original(_x, _y, _entityId);
+		};
+	}
+	if (::Wuxia.qHas(q, "mouseHoverTile"))
+	{
+		q.mouseHoverTile = @(__original) function( _x, _y )
+		{
+			if (_x == null || _y == null) return;
+			return __original(_x, _y);
+		};
+	}
 });

@@ -141,67 +141,72 @@
 		["weapon.goblin_spiked_balls"]     = ["wx_wpn_throw_01",  "ranged", "五毒铁蒺藜暗器囊"]
 	},
 
-	// Vanilla Famed / Named Red Weapons (`weapon.named_*`) -> Wuxia high-tier & relic art + handheld brushes
+	// Vanilla Famed / Named Red Weapons (`weapon.named_*`) -> 100% Dedicated Non-Shared Wuxia Famed Art (`weapons/named/wx_famed_*`)
 	// [WuxiaAssetID, Folder ("melee"|"ranged"|"named")]
 	NamedWeaponMap = {
-		["weapon.named_sword"]                  = ["wx_wpn_sword_04",  "melee"],
-		["weapon.named_noble_sword"]            = ["wx_wpn_sword_05",  "melee"],
-		["weapon.named_fencing_sword"]          = ["wx_wpn_sword_06",  "melee"],
-		["weapon.named_warbrand"]               = ["wx_wpn_saber_06",  "melee"],
-		["weapon.named_longsword"]              = ["wx_wpn_sword_07",  "melee"],
-		["weapon.named_greatsword"]             = ["wx_wpn_sword_08",  "melee"],
-		["weapon.named_shamshir"]               = ["wx_wpn_saber_07",  "melee"],
-		["weapon.named_cleaver"]                = ["wx_wpn_saber_04",  "melee"],
-		["weapon.named_military_cleaver"]       = ["wx_wpn_saber_05",  "melee"],
-		["weapon.named_crypt_cleaver"]          = ["wx_wpn_saber_05",  "melee"],
-		["weapon.named_khopesh"]                = ["wx_wpn_saber_05",  "melee"],
-		["weapon.named_two_handed_scimitar"]    = ["wx_wpn_saber_08",  "melee"],
-		["weapon.named_two_handed_cleaver"]     = ["wx_wpn_saber_08",  "melee"],
-		["weapon.named_barbarian_cleaver"]      = ["wx_wpn_saber_05",  "melee"],
-		["weapon.named_rusty_warblade"]         = ["wx_wpn_pole_04",   "melee"],
-		["weapon.named_goblin_falchion"]        = ["wx_wpn_saber_03",  "melee"],
-		["weapon.named_spear"]                  = ["wx_wpn_spear_04",  "melee"],
-		["weapon.named_fighting_spear"]         = ["wx_wpn_spear_06",  "melee"],
-		["weapon.named_goblin_spear"]           = ["wx_wpn_spear_05",  "melee"],
-		["weapon.named_spetum"]                 = ["wx_wpn_pole_06",   "melee"],
-		["weapon.named_pike"]                   = ["wx_wpn_spear_08",  "melee"],
-		["weapon.named_goblin_pike"]            = ["wx_wpn_pole_02",   "melee"],
-		["weapon.named_billhook"]               = ["wx_wpn_pole_07",   "melee"],
-		["weapon.named_bladed_pike"]            = ["wx_wpn_pole_07",   "melee"],
-		["weapon.named_ancient_bladed_pike"]    = ["wx_wpn_pole_07",   "melee"],
-		["weapon.named_warscythe"]              = ["wx_wpn_pole_05",   "melee"],
-		["weapon.named_swordlance"]             = ["wx_wpn_pole_05",   "melee"],
-		["weapon.named_polemace"]               = ["wx_wpn_pole_08",   "melee"],
-		["weapon.named_longaxe"]                = ["wx_wpn_axe_06",    "melee"],
-		["weapon.named_mace"]                   = ["wx_wpn_hammer_06", "melee"],
-		["weapon.named_nomad_mace"]             = ["wx_wpn_hammer_06", "melee"],
-		["weapon.named_two_handed_mace"]        = ["wx_wpn_staff_08",  "melee"],
-		["weapon.named_two_handed_flanged_mace"]= ["wx_wpn_hammer_07", "melee"],
-		["weapon.named_two_handed_spiked_mace"] = ["wx_wpn_staff_07",  "melee"],
-		["weapon.named_warhammer"]              = ["wx_wpn_hammer_03", "melee"],
-		["weapon.named_two_handed_hammer"]      = ["wx_wpn_hammer_07", "melee"],
-		["weapon.named_skull_hammer"]           = ["wx_wpn_hammer_07", "melee"],
-		["weapon.named_polehammer"]             = ["wx_wpn_hammer_08", "melee"],
-		["weapon.named_axe"]                    = ["wx_wpn_axe_04",    "melee"],
-		["weapon.named_fighting_axe"]           = ["wx_wpn_axe_04",    "melee"],
-		["weapon.named_greataxe"]               = ["wx_wpn_axe_07",    "melee"],
-		["weapon.named_bardiche"]               = ["wx_wpn_axe_07",    "melee"],
-		["weapon.named_heavy_rusty_axe"]        = ["wx_wpn_axe_08",    "melee"],
-		["weapon.named_orc_axe"]                = ["wx_wpn_axe_04",    "melee"],
-		["weapon.named_orc_cleaver"]            = ["wx_wpn_saber_05",  "melee"],
-		["weapon.named_flail"]                  = ["wx_wpn_flail_01",  "melee"],
-		["weapon.named_three_headed_flail"]     = ["wx_wpn_whip_04",   "melee"],
-		["weapon.named_two_handed_flail"]       = ["wx_wpn_flail_02",  "melee"],
-		["weapon.named_dagger"]                 = ["wx_wpn_dagger_04", "melee"],
-		["weapon.named_rondel_dagger"]          = ["wx_wpn_dagger_03", "melee"],
-		["weapon.named_qatal_dagger"]           = ["wx_wpn_dagger_05", "melee"],
-		["weapon.named_bow"]                    = ["wx_wpn_bow_03",    "ranged"],
-		["weapon.named_warbow"]                 = ["wx_wpn_bow_03",    "ranged"],
-		["weapon.named_goblin_heavy_bow"]       = ["wx_wpn_bow_02",    "ranged"],
-		["weapon.named_crossbow"]               = ["wx_wpn_xbow_03",   "ranged"],
-		["weapon.named_handgonne"]              = ["wx_wpn_gun_02",    "ranged"],
-		["weapon.named_javelin"]                = ["wx_wpn_spear_01",  "melee"],
-		["weapon.named_throwing_axe"]           = ["wx_wpn_axe_04",    "melee"]
+		["weapon.named_sword"]                  = ["wx_famed_01", "named"],
+		["weapon.named_noble_sword"]            = ["wx_famed_02", "named"],
+		["weapon.named_fencing_sword"]          = ["wx_famed_03", "named"],
+		["weapon.named_greatsword"]             = ["wx_famed_04", "named"],
+		["weapon.named_longsword"]              = ["wx_famed_05", "named"],
+		["weapon.named_estoc"]                  = ["wx_famed_06", "named"],
+		["weapon.named_warbrand"]               = ["wx_famed_07", "named"],
+		["weapon.named_shamshir"]               = ["wx_famed_08", "named"],
+		["weapon.named_cleaver"]                = ["wx_famed_09", "named"],
+		["weapon.named_military_cleaver"]       = ["wx_famed_10", "named"],
+		["weapon.named_crypt_cleaver"]          = ["wx_famed_11", "named"],
+		["weapon.named_khopesh"]                = ["wx_famed_12", "named"],
+		["weapon.named_two_handed_scimitar"]    = ["wx_famed_13", "named"],
+		["weapon.named_two_handed_cleaver"]     = ["wx_famed_14", "named"],
+		["weapon.named_barbarian_cleaver"]      = ["wx_famed_15", "named"],
+		["weapon.named_orc_cleaver"]            = ["wx_famed_16", "named"],
+		["weapon.named_spear"]                  = ["wx_famed_17", "named"],
+		["weapon.named_fighting_spear"]         = ["wx_famed_18", "named"],
+		["weapon.named_goblin_spear"]           = ["wx_famed_19", "named"],
+		["weapon.named_spetum"]                 = ["wx_famed_20", "named"],
+		["weapon.named_pike"]                   = ["wx_famed_21", "named"],
+		["weapon.named_goblin_pike"]            = ["wx_famed_22", "named"],
+		["weapon.named_billhook"]               = ["wx_famed_23", "named"],
+		["weapon.named_bladed_pike"]            = ["wx_famed_24", "named"],
+		["weapon.named_ancient_bladed_pike"]    = ["wx_famed_25", "named"],
+		["weapon.named_warscythe"]              = ["wx_famed_26", "named"],
+		["weapon.named_swordlance"]             = ["wx_famed_27", "named"],
+		["weapon.named_rusty_warblade"]         = ["wx_famed_28", "named"],
+		["weapon.named_polemace"]               = ["wx_famed_29", "named"],
+		["weapon.named_longaxe"]                = ["wx_famed_30", "named"],
+		["weapon.named_mace"]                   = ["wx_famed_31", "named"],
+		["weapon.named_nomad_mace"]             = ["wx_famed_32", "named"],
+		["weapon.named_two_handed_mace"]        = ["wx_famed_33", "named"],
+		["weapon.named_two_handed_flanged_mace"]= ["wx_famed_34", "named"],
+		["weapon.named_two_handed_spiked_mace"] = ["wx_famed_35", "named"],
+		["weapon.named_warhammer"]              = ["wx_famed_36", "named"],
+		["weapon.named_two_handed_hammer"]      = ["wx_famed_37", "named"],
+		["weapon.named_skullhammer"]            = ["wx_famed_38", "named"],
+		["weapon.named_skull_hammer"]           = ["wx_famed_38", "named"],
+		["weapon.named_polehammer"]             = ["wx_famed_39", "named"],
+		["weapon.named_axe"]                    = ["wx_famed_40", "named"],
+		["weapon.named_fighting_axe"]           = ["wx_famed_41", "named"],
+		["weapon.named_greataxe"]               = ["wx_famed_42", "named"],
+		["weapon.named_bardiche"]               = ["wx_famed_43", "named"],
+		["weapon.named_poleaxe"]                = ["wx_famed_44", "named"],
+		["weapon.named_exesword"]               = ["wx_famed_45", "named"],
+		["weapon.named_heavy_rusty_axe"]        = ["wx_famed_46", "named"],
+		["weapon.named_flail"]                  = ["wx_famed_47", "named"],
+		["weapon.named_three_headed_flail"]     = ["wx_famed_48", "named"],
+		["weapon.named_two_handed_flail"]       = ["wx_famed_49", "named"],
+		["weapon.named_battle_whip"]            = ["wx_famed_50", "named"],
+		["weapon.named_dagger"]                 = ["wx_famed_51", "named"],
+		["weapon.named_rondel_dagger"]          = ["wx_famed_52", "named"],
+		["weapon.named_qatal_dagger"]           = ["wx_famed_53", "named"],
+		["weapon.named_bow"]                    = ["wx_famed_54", "named"],
+		["weapon.named_warbow"]                 = ["wx_famed_55", "named"],
+		["weapon.named_goblin_heavy_bow"]       = ["wx_famed_56", "named"],
+		["weapon.named_crossbow"]               = ["wx_famed_57", "named"],
+		["weapon.named_handgonne"]              = ["wx_famed_58", "named"],
+		["weapon.named_javelin"]                = ["wx_famed_59", "named"],
+		["weapon.named_throwing_axe"]           = ["wx_famed_60", "named"],
+		["weapon.named_goblin_falchion"]        = ["wx_famed_61", "named"],
+		["weapon.named_orc_axe"]                = ["wx_famed_62", "named"]
 	},
 
 	// [ShieldAssetID, ChineseName]
@@ -885,13 +890,15 @@ if ("Appearance" in ::Wuxia.Config)
 		if (bodyItem != null) ::Wuxia.Armory.ensureItemMapped(bodyItem);
 		if (headItem != null) ::Wuxia.Armory.ensureItemMapped(headItem);
 
+		local changed = false;
+
 		// Bespoke hand-painted enemy busts already include their signature weapon/pose!
 		if ("WX_CustomEnemyBust" in _actor.m && _actor.m.WX_CustomEnemyBust != null)
 		{
-			::Wuxia.Appearance.applyCustomEnemyBust(_actor, _actor.m.WX_CustomEnemyBust);
-			if (_actor.hasSprite("arms_icon")) _actor.getSprite("arms_icon").Visible = false;
-			if (_actor.hasSprite("shield_icon")) _actor.getSprite("shield_icon").Visible = false;
-			if (::Wuxia.Appearance.hasMember(_actor, "setDirty")) _actor.setDirty(true);
+			if (::Wuxia.Appearance.applyCustomEnemyBust(_actor, _actor.m.WX_CustomEnemyBust, true)) changed = true;
+			if (::Wuxia.Appearance.hideSpriteIfVisible(_actor, "arms_icon")) changed = true;
+			if (::Wuxia.Appearance.hideSpriteIfVisible(_actor, "shield_icon")) changed = true;
+			if (changed && ::Wuxia.Appearance.hasMember(_actor, "setDirty")) _actor.setDirty(true);
 			_actor.m.WX_SyncingAppearance = false;
 			return;
 		}
@@ -902,11 +909,12 @@ if ("Appearance" in ::Wuxia.Config)
 			return;
 		}
 
-		// Refresh 1000-Faces human layers + boolean hair/hat_back/hat_front/beard/body interlock
-		::Wuxia.Appearance.refreshActorSprites(_actor);
+		// Refresh 1000-Faces human layers + boolean hair/hat_back/hat_front/beard/body interlock (deferred dirty!)
+		if (::Wuxia.Appearance.refreshActorSprites(_actor, true)) changed = true;
 
-		local white = ::createColor("#ffffff");
-		local hasTacFlip = ("Tactical" in getroottable() && ::Tactical != null && ::Tactical.isActive() && ::Wuxia.Appearance.hasMember(_actor, "isAlliedWithPlayer"));
+		local white = ::Wuxia.Appearance.getWhiteColor();
+		local inSpinFlip = (("WX_Motion" in _actor.m) && _actor.m.WX_Motion != null && _actor.m.WX_Motion.flippedTemp);
+		local hasTacFlip = (!inSpinFlip && "Tactical" in getroottable() && ::Tactical != null && ::Tactical.isActive() && ::Wuxia.Appearance.hasMember(_actor, "isAlliedWithPlayer"));
 		local tacFlip = hasTacFlip ? !_actor.isAlliedWithPlayer() : false;
 
 		// Apply or clear paperdoll handheld weapon (`wx_weapons_0.brush` -> `arm_*`)
@@ -917,14 +925,13 @@ if ("Appearance" in ::Wuxia.Config)
 			local showArm = (mainItem != null && armBrush != null && (!::Wuxia.Appearance.hasMember(mainItem.m, "ShowArmamentIcon") || mainItem.m.ShowArmamentIcon));
 			if (showArm && (!("doesBrushExist" in getroottable()) || ::doesBrushExist(armBrush)))
 			{
-				sprArm.setBrush(armBrush);
-				sprArm.Color = white;
-				sprArm.Visible = true;
-				if (hasTacFlip) sprArm.setHorizontalFlipping(tacFlip);
+				if (::Wuxia.Appearance.applySpriteIfChanged(sprArm, armBrush, white)) changed = true;
+				if (hasTacFlip && ::Wuxia.Appearance.setFlipIfChanged(sprArm, tacFlip)) changed = true;
 			}
-			else if (mainItem == null || !::Wuxia.Appearance.hasMember(mainItem.m, "ShowArmamentIcon") || !mainItem.m.ShowArmamentIcon)
+			else if ((mainItem == null || !::Wuxia.Appearance.hasMember(mainItem.m, "ShowArmamentIcon") || !mainItem.m.ShowArmamentIcon) && sprArm.Visible)
 			{
 				sprArm.Visible = false;
+				changed = true;
 			}
 		}
 
@@ -938,19 +945,18 @@ if ("Appearance" in ::Wuxia.Config)
 				: 0;
 			if (shdBrush != null && offCond > 0 && (!("doesBrushExist" in getroottable()) || ::doesBrushExist(shdBrush)))
 			{
-				sprShd.setBrush(shdBrush);
-				sprShd.Color = white;
-				sprShd.Visible = true;
-				if (hasTacFlip) sprShd.setHorizontalFlipping(tacFlip);
+				if (::Wuxia.Appearance.applySpriteIfChanged(sprShd, shdBrush, white)) changed = true;
+				if (hasTacFlip && ::Wuxia.Appearance.setFlipIfChanged(sprShd, tacFlip)) changed = true;
 			}
-			else if (offItem == null || offCond <= 0 || shdBrush == null)
+			else if ((offItem == null || offCond <= 0 || shdBrush == null) && sprShd.Visible)
 			{
 				sprShd.Visible = false;
+				changed = true;
 			}
 		}
 
-		// Finalize dirty state AFTER all body, hat, hair, weapon & shield sprites are updated!
-		if (::Wuxia.Appearance.hasMember(_actor, "setDirty"))
+		// Finalize dirty state ONLY if at least one visual layer actually changed (prevents per-hit/per-cast portrait FBO stalls!)
+		if (changed && ::Wuxia.Appearance.hasMember(_actor, "setDirty"))
 		{
 			_actor.setDirty(true);
 		}
@@ -973,7 +979,7 @@ if ("Appearance" in ::Wuxia.Config)
 		return __original();
 	};
 
-	if ("getDescription" in q)
+	if (::Wuxia.qHas(q, "getDescription"))
 	{
 		q.getDescription = @(__original) function()
 		{

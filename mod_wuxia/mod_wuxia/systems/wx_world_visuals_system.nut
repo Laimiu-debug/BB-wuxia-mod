@@ -5,7 +5,11 @@
 
 ::Wuxia.WorldVisuals <- {
 	RegisteredBanners = 0,
-	MappedTerrainCount = 0
+	MappedTerrainCount = 0,
+	MappedLocationPools = 0,
+	KnownRegionNames = null,
+	KnownWildCampNames = null,
+	RegionLabelCache = {}
 };
 
 ::Wuxia.WorldVisuals.isAsciiName <- function( _s )
@@ -19,30 +23,66 @@
 	return true;
 };
 
+::Wuxia.WorldVisuals.hashString <- function( _s )
+{
+	if (_s == null || typeof _s != "string") return 7;
+	local h = 5381;
+	for (local i = 0; i < _s.len(); i = ++i)
+	{
+		h = ((h * 33) + (_s[i] & 0xFF)) & 0x3FFFFFFF;
+	}
+	return h;
+};
+
+::Wuxia.WorldVisuals.isKnownRegionName <- function( _name )
+{
+	if (_name == null || _name == "") return false;
+	if (::Wuxia.WorldVisuals.KnownRegionNames == null)
+	{
+		::Wuxia.WorldVisuals.KnownRegionNames = {};
+		if ("RegionNames" in ::Wuxia.Config.WorldVisuals)
+		{
+			foreach (_k, arr in ::Wuxia.Config.WorldVisuals.RegionNames)
+			{
+				foreach (nm in arr)
+					::Wuxia.WorldVisuals.KnownRegionNames[nm] <- true;
+			}
+		}
+	}
+	return (_name in ::Wuxia.WorldVisuals.KnownRegionNames);
+};
+
+::Wuxia.WorldVisuals.isKnownWildCampName <- function( _name )
+{
+	if (_name == null || _name == "") return false;
+	if (::Wuxia.WorldVisuals.KnownWildCampNames == null)
+	{
+		::Wuxia.WorldVisuals.KnownWildCampNames = {};
+		if ("WildCampNames" in ::Wuxia.Config.WorldVisuals)
+		{
+			foreach (_k, arr in ::Wuxia.Config.WorldVisuals.WildCampNames)
+			{
+				foreach (nm in arr)
+					::Wuxia.WorldVisuals.KnownWildCampNames[nm] <- true;
+			}
+		}
+	}
+	local names = ::Wuxia.WorldVisuals.KnownWildCampNames;
+	if (_name in names) return true;
+	local suffix = _name.find("·");
+	return suffix != null && (_name.slice(0, suffix) in names);
+};
+
 ::Wuxia.WorldVisuals.initGlobals <- function()
 {
 	local cfg = ::Wuxia.Config.WorldVisuals;
 
-	// 1. Prepend 12 Wuxia vertical war banners (`banner_51..62`) to `::Const.PlayerBanners`
-	//    so New Campaign opens directly on Wuxia standards while preserving `banner_01..34` for old saves.
+	// 1. Set `::Const.PlayerBanners` exclusively to the 12 Wuxia vertical war standards (`banner_51..62`)
+	//    so New Campaign always opens & cycles on pure Wuxia standards; legacy `banner_01..34` on old saves
+	//    are upgraded seamlessly in `asset_manager.onDeserialize` and `player_banner`.
 	if ("PlayerBanners" in ::Const && ::Const.PlayerBanners != null)
 	{
-		local merged = [];
-		local seen = {};
-		foreach (b in cfg.PlayerBanners)
-		{
-			merged.push(b);
-			seen[b] <- true;
-		}
-		foreach (b in ::Const.PlayerBanners)
-		{
-			if (!(b in seen))
-			{
-				merged.push(b);
-				seen[b] <- true;
-			}
-		}
-		::Const.PlayerBanners = merged;
+		::Const.PlayerBanners = clone cfg.PlayerBanners;
 		::Wuxia.WorldVisuals.RegisteredBanners = cfg.PlayerBanners.len();
 	}
 
@@ -67,6 +107,87 @@
 	{
 		::Const.Strings.MercenaryCompanyNames = clone cfg.MercenaryCompanyNames;
 	}
+
+	// 4. Remap `::Const.World.LocationNames` (geographic regions, settlements, wilderness enemy camps & ruins)
+	if ("World" in ::Const && "LocationNames" in ::Const.World && ::Const.World.LocationNames != null && "RegionNames" in cfg && "WildCampNames" in cfg)
+	{
+		local locTbl = ::Const.World.LocationNames;
+		local fortCombined = [];
+		foreach (fk in ["fort_small", "fort_medium", "fort_large"])
+		{
+			foreach (fnm in cfg.SettlementNames[fk])
+				fortCombined.push(fnm);
+		}
+
+		local poolCount = 0;
+		local keys = [];
+		foreach (k, v in locTbl)
+		{
+			if (typeof v == "array")
+				keys.push(k);
+		}
+		foreach (k in keys)
+		{
+			local lk = k.tolower();
+			local repl = null;
+
+			// Settlements
+			if (lk.find("citystate") != null)
+				repl = cfg.SettlementNames.oasis_city;
+			else if (lk.find("village") != null || lk.find("hamlet") != null)
+				repl = cfg.SettlementNames.village;
+			else if (lk.find("fort") != null || lk.find("citadel") != null || lk.find("castle") != null || lk.find("keep") != null || lk.find("watchtower") != null || lk.find("stronghold") != null)
+				repl = fortCombined;
+			else if (lk.find("goblin") != null)
+				repl = cfg.WildCampNames.goblins;
+			else if (lk.find("orc") != null)
+				repl = cfg.WildCampNames.orcs;
+			else if (lk.find("barbarian") != null || lk.find("wildm") != null)
+				repl = cfg.WildCampNames.barbarians;
+			else if (lk.find("nomad") != null)
+				repl = cfg.WildCampNames.nomads;
+			else if (lk.find("bandit") != null || lk.find("brigand") != null || lk.find("pirate") != null)
+				repl = cfg.WildCampNames.bandits;
+			else if (lk.find("undead") != null || lk.find("zombie") != null || lk.find("vampire") != null || lk.find("skeleton") != null || lk.find("graveyard") != null || lk.find("cemetery") != null || lk.find("crypt") != null || lk.find("necromancer") != null || lk.find("tomb") != null || lk.find("barrow") != null)
+				repl = cfg.WildCampNames.undead;
+			else if (lk.find("ruin") != null || lk.find("abandon") != null || lk.find("battle") != null)
+				repl = cfg.WildCampNames.ruins;
+			else if (lk.find("city") != null)
+				repl = cfg.SettlementNames.prefecture;
+			else if (lk.find("town") != null)
+				repl = cfg.SettlementNames.town;
+			// Geographic Regions
+			else if (lk.find("oasis") != null)
+				repl = cfg.RegionNames.oasis;
+			else if (lk.find("desert") != null || lk.find("dune") != null)
+				repl = cfg.RegionNames.desert;
+			else if (lk.find("ocean") != null || lk.find("sea") != null || lk.find("coast") != null || lk.find("shore") != null || lk.find("water") != null)
+				repl = cfg.RegionNames.coast;
+			else if (lk.find("swamp") != null || lk.find("marsh") != null || lk.find("bog") != null || lk.find("wetland") != null)
+				repl = cfg.RegionNames.swamp;
+			else if (lk.find("snow") != null || lk.find("winter") != null || lk.find("frozen") != null)
+				repl = cfg.RegionNames.snow;
+			else if (lk.find("tundra") != null || lk.find("highland") != null)
+				repl = cfg.RegionNames.tundra;
+			else if (lk.find("steppe") != null || lk.find("badland") != null)
+				repl = cfg.RegionNames.steppe;
+			else if (lk.find("mountain") != null || lk.find("peak") != null)
+				repl = cfg.RegionNames.mountains;
+			else if (lk.find("hill") != null)
+				repl = cfg.RegionNames.hills;
+			else if (lk.find("forest") != null || lk.find("wood") != null || lk.find("autumn") != null || lk.find("grove") != null)
+				repl = cfg.RegionNames.forest;
+			else if (lk.find("plain") != null || lk.find("grass") != null || lk.find("farm") != null || lk.find("field") != null || lk.find("land") != null)
+				repl = cfg.RegionNames.plains;
+
+			if (repl != null && repl.len() > 0)
+			{
+				locTbl[k] = clone repl;
+				poolCount += 1;
+			}
+		}
+		::Wuxia.WorldVisuals.MappedLocationPools = poolCount;
+	}
 };
 
 ::Wuxia.WorldVisuals.normalizePlayerBannerID <- function( _variant )
@@ -74,6 +195,292 @@
 	if (_variant >= 51 && _variant <= 62) return _variant;
 	local v = _variant <= 0 ? 1 : _variant;
 	return 51 + ((v - 1) % 12);
+};
+
+::Wuxia.WorldVisuals.mapFactionUIBanner <- function( _bannerBrush )
+{
+	if (_bannerBrush == null || _bannerBrush == "") return null;
+	if (_bannerBrush == "wx_fbanner_noble_01" || _bannerBrush == "wx_fbanner_noble_02" || _bannerBrush == "wx_fbanner_south_01" || _bannerBrush == "wx_fbanner_outlaw_01")
+		return "ui/banners/" + _bannerBrush + "s.png";
+	if (_bannerBrush.find("wx_fbanner_noble_") == 0 || _bannerBrush.find("wx_fbanner_south_") == 0 || _bannerBrush.find("wx_fbanner_civ_") == 0)
+		return "ui/banners/" + _bannerBrush + ".png";
+	if (_bannerBrush.find("banner_") == 0 && _bannerBrush.len() == 9)
+	{
+		local bNum = ::Wuxia.WorldVisuals.parseTrailingDigits(_bannerBrush, 7);
+		if (bNum > 0)
+			return "ui/banners/banner_" + ::Wuxia.WorldVisuals.normalizePlayerBannerID(bNum) + "s.png";
+	}
+	return null;
+};
+
+::Wuxia.WorldVisuals.resolveFactionUIBanner <- function( _faction )
+{
+	if (_faction == null) return null;
+	local wb = null;
+	if (::Wuxia.hasMember(_faction, "getSettlements"))
+	{
+		local fSets = _faction.getSettlements();
+		if (fSets != null && fSets.len() == 1 && fSets[0] != null && ::Wuxia.hasMember(fSets[0], "WX_ResolveSettlementBanner"))
+			wb = fSets[0].WX_ResolveSettlementBanner(null);
+	}
+	if (wb == null && ::Wuxia.hasMember(_faction, "getBannerSmall"))
+		wb = ::Wuxia.WorldVisuals.mapWorldBannerBrush(_faction.getBannerSmall());
+	return ::Wuxia.WorldVisuals.mapFactionUIBanner(wb);
+};
+
+::Wuxia.WorldVisuals.pickRegionNameByTerrain <- function( _terrainType, _seed, _used = null )
+{
+	local rPools = ::Wuxia.Config.WorldVisuals.RegionNames;
+	local pKey = "plains";
+	if (_terrainType == 1 || _terrainType == 16) pKey = "coast";
+	else if (_terrainType == 3) pKey = "swamp";
+	else if (_terrainType == 4) pKey = "hills";
+	else if (_terrainType == 5 || _terrainType == 7) pKey = "forest";
+	else if (_terrainType == 6 || _terrainType == 12) pKey = "snow";
+	else if (_terrainType == 8 || _terrainType == 15) pKey = "steppe";
+	else if (_terrainType == 9) pKey = "mountains";
+	else if (_terrainType == 14) pKey = "tundra";
+	else if (_terrainType == 17) pKey = "desert";
+	else if (_terrainType == 18) pKey = "oasis";
+
+	local pool = (pKey in rPools) ? rPools[pKey] : rPools.plains;
+	local n = pool.len();
+	local s = ::Math.abs(_seed);
+	if (_used != null)
+	{
+		for (local i = 0; i < n; i = ++i)
+		{
+			local cand = pool[(s + i) % n];
+			if (!(cand in _used))
+			{
+				_used[cand] <- true;
+				return cand;
+			}
+		}
+	}
+	return pool[s % n];
+};
+
+::Wuxia.WorldVisuals.getFlagStr <- function( _flags, _key )
+{
+	if (_flags == null || !_flags.has(_key)) return "";
+	local v = _flags.get(_key);
+	return (typeof v == "string") ? v : "";
+};
+
+::Wuxia.WorldVisuals.safeGetFaction <- function( _fid )
+{
+	if (_fid == null || _fid <= 0) return null;
+	if (!("World" in getroottable()) || ::World == null || !("FactionManager" in ::World) || ::World.FactionManager == null)
+		return null;
+	local fm = ::World.FactionManager;
+	if (::Wuxia.hasMember(fm, "getFactions"))
+	{
+		local arr = fm.getFactions();
+		if (arr == null || _fid >= arr.len()) return null;
+		return arr[_fid];
+	}
+	try { return fm.getFaction(_fid); } catch (_e) { return null; }
+};
+
+::Wuxia.WorldVisuals.localizeVanillaPartyName <- function( _party )
+{
+	if (_party == null || _party.m.IsPlayer) return;
+	if (_party.m.Flags != null)
+	{
+		local ps = ::Wuxia.WorldVisuals.getFlagStr(_party.m.Flags, "wx_sect_patrol");
+		local vd = ::Wuxia.WorldVisuals.getFlagStr(_party.m.Flags, "wx_vendetta");
+		local hasSh = _party.m.Flags.has("wx_shanhai_roam") && _party.m.Flags.get("wx_shanhai_roam") != false && _party.m.Flags.get("wx_shanhai_roam") != 0 && _party.m.Flags.get("wx_shanhai_roam") != "";
+		if (ps != "" || vd != "" || hasSh)
+			return;
+	}
+
+	local cur = _party.m.Name;
+	if (cur == null || cur == "") return;
+
+	// Resolve owner settlement / faction Chinese prefix if available
+	local ownerLabel = "";
+	if (::Wuxia.hasMember(_party, "getFaction"))
+	{
+		local fac = ::Wuxia.WorldVisuals.safeGetFaction(_party.getFaction());
+		if (fac != null)
+		{
+			if (::Wuxia.hasMember(fac, "getSettlements"))
+			{
+				local fSets = fac.getSettlements();
+				if (fSets != null && fSets.len() == 1 && fSets[0] != null)
+					ownerLabel = fSets[0].getName();
+			}
+			if (ownerLabel == "" && ::Wuxia.hasMember(fac, "getName"))
+				ownerLabel = fac.getName();
+		}
+	}
+
+	local newName = null;
+	if (::Wuxia.WorldVisuals.isAsciiName(cur))
+	{
+		local lc = cur.tolower();
+		if (lc.find("supply caravan") != null)
+			newName = (ownerLabel != "" && !::Wuxia.WorldVisuals.isAsciiName(ownerLabel)) ? (ownerLabel + "军资辎重队") : "藩镇军资辎重队";
+		else if (lc.find("caravan") != null)
+			newName = "四海行商驼镖队";
+		else if (lc.find("peasant") != null || lc.find("villager") != null)
+			newName = "乡间行脚百姓";
+		else if (lc.find("refugee") != null)
+			newName = "乱世逃难流民";
+		else if (lc.find("slave") != null || lc.find("indebted") != null)
+			newName = "披枷苦役囚徒";
+		else if (lc.find("envoy") != null || lc.find("diplomat") != null)
+			newName = "州府钦差仪仗";
+		else if (lc.find("regiment of ") == 0 || lc.find("conscript") != null)
+			newName = (ownerLabel != "" && !::Wuxia.WorldVisuals.isAsciiName(ownerLabel)) ? (ownerLabel + "都护铁卫") : "西域都护铁卫";
+		else if (lc.find(" company") != null || lc.find("noble") != null || lc.find("footmen") != null)
+			newName = (ownerLabel != "" && !::Wuxia.WorldVisuals.isAsciiName(ownerLabel)) ? (ownerLabel + "巡防营") : "藩镇玄甲巡防营";
+		else if (lc.find("militia") != null)
+			newName = (ownerLabel != "" && !::Wuxia.WorldVisuals.isAsciiName(ownerLabel)) ? (ownerLabel + "乡勇团练") : "州县乡勇团练";
+		else if (lc.find("mercenar") != null || lc.find("bounty hunter") != null)
+		{
+			local mPool = ::Wuxia.Config.WorldVisuals.MercenaryCompanyNames;
+			newName = mPool[::Math.abs(_party.getID()) % mPool.len()];
+		}
+		else if (lc.find("goblin") != null)
+			newName = "南疆五毒游骑";
+		else if (lc.find("orc") != null)
+			newName = "邪派炼体药人";
+		else if (lc.find("nomad") != null || lc.find("cutthroat") != null || lc.find("outlaw") != null)
+			newName = "塞外沙路马贼";
+		else if (lc.find("barbarian") != null || lc.find("thrall") != null || lc.find("reaver") != null || lc.find("chosen") != null || lc.find("wildm") != null)
+			newName = "关外黑水战帮";
+		else if (lc.find("zombie") != null || lc.find("necromancer") != null || lc.find("wiederganger") != null || lc.find("geist") != null)
+			newName = "湘西符水尸群";
+		else if (lc.find("skeleton") != null || lc.find("undead") != null || lc.find("ancient") != null || lc.find("legion") != null || lc.find("necrosavant") != null)
+			newName = "前朝玄宫兵俑";
+		else if (lc.find("bandit") != null || lc.find("brigand") != null || lc.find("raider") != null || lc.find("poacher") != null || lc.find("thug") != null || lc.find("deserter") != null)
+			newName = "绿林拦路响马";
+		else if (lc.find("direwolf") != null || lc.find("wolves") != null)
+			newName = "山海荒兽 · 天狗妖群";
+		else if (lc.find("hyena") != null)
+			newName = "山海凶兽 · 蛊雕群";
+		else if (lc.find("spider") != null || lc.find("webknecht") != null)
+			newName = "山海毒虫 · 赤蛛群";
+		else if (lc.find("unhold") != null)
+			newName = "山海巨兽 · 朱厌山魈";
+		else if (lc.find("lindwurm") != null)
+			newName = "山海大妖 · 肥遗毒蛟";
+		else if (lc.find("serpent") != null)
+			newName = "山海泽妖 · 巴蛇毒虺";
+		else if (lc.find("schrat") != null)
+			newName = "山海古精 · 建木树妖";
+		else if (lc.find("ghoul") != null || lc.find("nachzehrer") != null)
+			newName = "山海饕妖 · 狍鸮群";
+		else if (lc.find("alp") != null || lc.find("hexe") != null)
+			newName = "山海诡祟 · 魇魅妖姬";
+	}
+	else if ("Contracts" in ::Wuxia && "rewriteText" in ::Wuxia.Contracts)
+	{
+		local rw = ::Wuxia.Contracts.rewriteText(cur);
+		if (rw != cur) newName = rw;
+	}
+
+	if (newName != null && newName != "" && newName != cur)
+	{
+		_party.m.Name = newName;
+		if (_party.hasLabel("name") && _party.getLabel("name").Text != "")
+			_party.getLabel("name").Text = newName;
+	}
+};
+
+::Wuxia.WorldVisuals.sanitizeMapEntityLabel <- function( _text )
+{
+	if (_text == null || _text == "") return _text;
+	if (_text.find("Ruins of ") == 0)
+	{
+		local rPool = ::Wuxia.Config.WorldVisuals.WildCampNames.ruins;
+		return rPool[::Wuxia.WorldVisuals.hashString(_text) % rPool.len()];
+	}
+	if ("Contracts" in ::Wuxia && "rewriteText" in ::Wuxia.Contracts && !::Wuxia.WorldVisuals.isAsciiName(_text))
+		return ::Wuxia.Contracts.rewriteText(_text);
+	return _text;
+};
+
+::Wuxia.WorldVisuals.bindMapLabelsBridge <- function()
+{
+	local root = ::getroottable();
+	if (!("BBMODMapLabels" in root) || root.BBMODMapLabels == null) return;
+	local bridge = root.BBMODMapLabels;
+	if ("WX_Wrapped" in bridge) return;
+	if (!("collect" in bridge) || typeof bridge.collect != "function") return;
+
+	bridge.WX_Wrapped <- true;
+	bridge.WX_OrigCollect <- bridge.collect;
+	bridge.LastFrame = null;
+
+	bridge.collect = function( _state )
+	{
+		local batch = this.WX_OrigCollect(_state);
+		if (batch == null || !("frame" in batch) || batch.frame == null || !("labels" in batch.frame))
+			return batch;
+
+		local labels = batch.frame.labels;
+		local needRegionBuild = false;
+		for (local i = 0; i < labels.len(); i = ++i)
+		{
+			local item = labels[i];
+			if (item != null && ("region" in item) && item.region && !::Wuxia.WorldVisuals.isKnownRegionName(item.text) && !(item.text in ::Wuxia.WorldVisuals.RegionLabelCache))
+			{
+				needRegionBuild = true;
+				break;
+			}
+		}
+
+		if (needRegionBuild && _state != null && ::Wuxia.hasMember(_state, "getRegions"))
+		{
+			local regions = _state.getRegions();
+			local usedR = {};
+			foreach (_orig, mappedR in ::Wuxia.WorldVisuals.RegionLabelCache)
+				usedR[mappedR] <- true;
+
+			foreach (idx, reg in regions)
+			{
+				if (reg == null || !("Name" in reg) || reg.Name == "") continue;
+				if (::Wuxia.WorldVisuals.isKnownRegionName(reg.Name))
+				{
+					usedR[reg.Name] <- true;
+					continue;
+				}
+				if (!(reg.Name in ::Wuxia.WorldVisuals.RegionLabelCache))
+				{
+					local tType = ("Type" in reg) ? reg.Type : 2;
+					local cx = ("Center" in reg && reg.Center != null && "SquareCoords" in reg.Center) ? reg.Center.SquareCoords.X : idx;
+					local cy = ("Center" in reg && reg.Center != null && "SquareCoords" in reg.Center) ? reg.Center.SquareCoords.Y : idx;
+					local rSeed = ::Math.abs(cx * 67 + cy * 43 + idx * 13);
+					::Wuxia.WorldVisuals.RegionLabelCache[reg.Name] <- ::Wuxia.WorldVisuals.pickRegionNameByTerrain(tType, rSeed, usedR);
+				}
+			}
+		}
+
+		for (local j = 0; j < labels.len(); j = ++j)
+		{
+			local lbl = labels[j];
+			if (lbl == null || !("text" in lbl) || typeof lbl.text != "string") continue;
+			if (("region" in lbl) && lbl.region)
+			{
+				if (lbl.text in ::Wuxia.WorldVisuals.RegionLabelCache)
+					lbl.text = ::Wuxia.WorldVisuals.RegionLabelCache[lbl.text];
+				else if (!::Wuxia.WorldVisuals.isKnownRegionName(lbl.text))
+				{
+					local fallbackName = ::Wuxia.WorldVisuals.pickRegionNameByTerrain(2, ::Wuxia.WorldVisuals.hashString(lbl.text), null);
+					::Wuxia.WorldVisuals.RegionLabelCache[lbl.text] <- fallbackName;
+					lbl.text = fallbackName;
+				}
+			}
+			else
+			{
+				lbl.text = ::Wuxia.WorldVisuals.sanitizeMapEntityLabel(lbl.text);
+			}
+		}
+		return batch;
+	};
 };
 
 ::Wuxia.WorldVisuals.mapPartyBodyBrush <- function( _brushName, _party = null )
@@ -154,24 +561,33 @@
 	return null;
 };
 
+::Wuxia.WorldVisuals.pickUnusedSiteName <- function( _pool, _seed, _sites, _self = null )
+{
+	local used = {};
+	foreach (site in _sites)
+	{
+		if (site != null && site != _self)
+			used[site.getName()] <- true;
+	}
+	local n = _pool.len();
+	local start = ((_seed % n) + n) % n;
+	for (local i = 0; i < n; ++i)
+	{
+		local cand = _pool[(start + i) % n];
+		if (!(cand in used)) return cand;
+	}
+	local stem = _pool[start];
+	local ordinal = 2;
+	while ((stem + "·" + ordinal) in used) ++ordinal;
+	return stem + "·" + ordinal;
+};
+
 ::Wuxia.WorldVisuals.pickUniqueSettlementName <- function( _poolKey, _seed, _self )
 {
 	local pools = ::Wuxia.Config.WorldVisuals.SettlementNames;
 	local pool = (_poolKey in pools) ? pools[_poolKey] : pools.town;
-	local settlements = ("EntityManager" in ::World && ::World.EntityManager != null) ? ::World.EntityManager.getSettlements() : [];
-	local used = {};
-	foreach (s in settlements)
-	{
-		if (s != null && s != _self && (::Wuxia.hasMember(s, "getName")))
-			used[s.getName()] <- true;
-	}
-	local n = pool.len();
-	for (local i = 0; i < n; i = ++i)
-	{
-		local cand = pool[(_seed + i) % n];
-		if (!(cand in used)) return cand;
-	}
-	return pool[_seed % n];
+	local sites = ::Wuxia.hasWorldField("EntityManager") ? ::World.EntityManager.getSettlements() : [];
+	return ::Wuxia.WorldVisuals.pickUnusedSiteName(pool, _seed, sites, _self);
 };
 
 // Sync the world-map player marching pawn (`player_party`) directly to the player's #1 operated character's actual Wuxia outfit, face, hair, beard & hat!
@@ -306,6 +722,17 @@
 // Initialize global Const tables immediately
 ::Wuxia.WorldVisuals.initGlobals();
 
+::Wuxia.HooksMod.hook("scripts/entity/world/entity_manager", function( q )
+{
+	q.getUniqueLocationName = @(__original) function( _names )
+	{
+		if (_names.len() == 0) return __original(_names);
+		foreach (name in _names)
+			if (!::Wuxia.WorldVisuals.isKnownWildCampName(name)) return __original(_names);
+		return ::Wuxia.WorldVisuals.pickUnusedSiteName(_names, ::Math.rand(0, _names.len() - 1), this.getLocations());
+	};
+});
+
 // =============================================================================
 // 1. Player Banner & Tactical Battlefield Bannerman Hooks
 // =============================================================================
@@ -313,6 +740,27 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 {
 	::Wuxia.HooksMod.hook("scripts/states/world/asset_manager", function( q )
 	{
+		if (::Wuxia.qHas(q, "setBanner"))
+		{
+			q.setBanner = @(__original) function( ... )
+			{
+				vargv.insert(0, this);
+				local ret = __original.acall(vargv);
+				if (this.m.BannerID < 51 || this.m.BannerID > 62)
+				{
+					this.m.BannerID = ::Wuxia.WorldVisuals.normalizePlayerBannerID(this.m.BannerID);
+					this.m.Banner = "banner_" + this.m.BannerID;
+				}
+				if ("State" in ::World && ::World.State != null)
+				{
+					local p = ::World.State.getPlayer();
+					if (p != null && p.hasSprite("banner"))
+						p.getSprite("banner").setBrush(this.m.Banner);
+				}
+				return ret;
+			};
+		}
+
 		q.updateLook = @(__original) function( _updateTo = -1 )
 		{
 			__original(_updateTo);
@@ -322,12 +770,9 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 		q.onDeserialize = @(__original) function( _in )
 		{
 			__original(_in);
-			// Seamlessly upgrade legacy European banner IDs (1..34) on old saves onto Wuxia vertical banners (51..62)
-			if (this.m.BannerID < 51 || this.m.BannerID > 62)
-			{
-				this.m.BannerID = ::Wuxia.WorldVisuals.normalizePlayerBannerID(this.m.BannerID);
-				this.m.Banner = "banner_" + this.m.BannerID;
-			}
+			// Seamlessly upgrade legacy/empty/foreign banner IDs & names on old saves onto Wuxia vertical banners (51..66)
+			this.m.BannerID = ::Wuxia.WorldVisuals.normalizePlayerBannerID(this.m.BannerID);
+			this.m.Banner = "banner_" + this.m.BannerID;
 			local p = ::World.State.getPlayer();
 			if (p != null)
 			{
@@ -335,7 +780,94 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 					p.getSprite("banner").setBrush(this.m.Banner);
 				this.updateLook(-1);
 			}
+			::Wuxia.WorldVisuals.bindMapLabelsBridge();
+			if ("SectRelations" in ::Wuxia && "ensureWorldSectSanctums" in ::Wuxia.SectRelations)
+				::Wuxia.SectRelations.ensureWorldSectSanctums();
 		};
+	});
+
+	::Wuxia.HooksMod.hook("scripts/states/world_state", function( q )
+	{
+		if (::Wuxia.qHas(q, "startNewCampaign"))
+		{
+			q.startNewCampaign = @(__original) function( ... )
+			{
+				::Wuxia.WorldVisuals.initGlobals();
+				::Wuxia.WorldVisuals.RegionLabelCache = {};
+				local callArgs = [this];
+				for (local a = 0; a < vargv.len(); a = ++a)
+					callArgs.push(vargv[a]);
+				__original.acall(callArgs);
+				::Wuxia.WorldVisuals.bindMapLabelsBridge();
+				if ("SectRelations" in ::Wuxia && "ensureWorldSectSanctums" in ::Wuxia.SectRelations)
+					::Wuxia.SectRelations.ensureWorldSectSanctums();
+
+				local cfgSettings = (vargv.len() > 0 && typeof vargv[0] == "table")
+					? vargv[0]
+					: (("CampaignSettings" in this.m && this.m.CampaignSettings != null) ? this.m.CampaignSettings : null);
+				if (cfgSettings != null && ("banner" in cfgSettings) && typeof cfgSettings.banner == "string")
+				{
+					local parsed = ::Wuxia.WorldVisuals.parseTrailingDigits(cfgSettings.banner, 7);
+					local bid = ::Wuxia.WorldVisuals.normalizePlayerBannerID(parsed > 0 ? parsed : 51);
+					if (this.m.Assets != null)
+					{
+						this.m.Assets.m.BannerID = bid;
+						this.m.Assets.m.Banner = "banner_" + bid;
+					}
+					local p = this.getPlayer();
+					if (p != null && p.hasSprite("banner"))
+						p.getSprite("banner").setBrush("banner_" + bid);
+
+					// Sync any starting `player_banner` in stash or equipped on starting bros
+					if (this.m.Assets != null && this.m.Assets.getStash() != null)
+					{
+						foreach (it in this.m.Assets.getStash().getItems())
+						{
+							if (it != null && it.getID() == "weapon.player_banner")
+							{
+								it.m.Variant = bid;
+								it.updateVariant();
+							}
+						}
+					}
+					local roster = ::World.getPlayerRoster();
+					if (roster != null)
+					{
+						foreach (bro in roster.getAll())
+						{
+							local mh = (bro != null && bro.getItems() != null) ? bro.getItems().getItemAtSlot(::Const.ItemSlot.Mainhand) : null;
+							if (mh != null && mh.getID() == "weapon.player_banner")
+							{
+								mh.m.Variant = bid;
+								mh.updateVariant();
+							}
+						}
+					}
+				}
+			};
+		}
+	});
+
+	::Wuxia.HooksMod.hook("scripts/factions/faction", function( q )
+	{
+		if (::Wuxia.qHas(q, "getUIBanner"))
+		{
+			q.getUIBanner = @(__original) function()
+			{
+				local mappedUI = ::Wuxia.WorldVisuals.resolveFactionUIBanner(this);
+				if (mappedUI != null) return mappedUI;
+				return __original();
+			};
+		}
+		if (::Wuxia.qHas(q, "getUIBannerSmall"))
+		{
+			q.getUIBannerSmall = @(__original) function()
+			{
+				local mappedUI = ::Wuxia.WorldVisuals.resolveFactionUIBanner(this);
+				if (mappedUI != null) return mappedUI;
+				return __original();
+			};
+		}
 	});
 
 	::Wuxia.HooksMod.hook("scripts/items/tools/player_banner", function( q )
@@ -343,8 +875,26 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 		q.WX_ApplyBannerText <- function()
 		{
 			this.m.Name = "镇团聚义竖幅大纛";
-			this.m.Description = "龙头横杆、红缨精钢矛尖高挑的丝绸竖幅战团大纛。大纛所至，四格内同袍皆受掌旗者定力感召而军心稳固。";
+			this.m.Description = "龙头横杆、红缨精钢矛尖高挑的丝绸竖幅战团大纛。大纛所至，四格内同袍皆受掌旗者定力感召而军心稳固；长杆矛尖视同枪戟长兵，可完整施展枪矛与长柄系外功招式。";
 		};
+
+		if (::Wuxia.qHas(q, "getTooltip"))
+		{
+			q.getTooltip = @(__original) function()
+			{
+				local ret = __original();
+				if (ret != null && typeof ret == "array")
+				{
+					ret.push({
+						id = 94,
+						type = "text",
+						icon = "ui/icons/melee_skill.png",
+						text = "【武学适配】视同[color=" + ::Const.UI.Color.PositiveValue + "]枪矛 / 长戟大刀[/color]长兵，完整激活枪戟系外功招式、被动与 5 AP 刺击精通"
+					});
+				}
+				return ret;
+			};
+		}
 
 		q.create = @(__original) function()
 		{
@@ -380,7 +930,26 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 		{
 			__original();
 			this.m.Name = "藩镇帅字牙旗";
+			this.m.Description = "藩镇节度大军掌旗官高擎的鎏金矛头帅字牙旗。帅旗所指军心振奋，且长杆矛头视同枪戟长兵，可施展枪矛与长柄系外功招式。";
 		};
+
+		if (::Wuxia.qHas(q, "getTooltip"))
+		{
+			q.getTooltip = @(__original) function()
+			{
+				local ret = __original();
+				if (ret != null && typeof ret == "array")
+				{
+					ret.push({
+						id = 94,
+						type = "text",
+						icon = "ui/icons/melee_skill.png",
+						text = "【武学适配】视同[color=" + ::Const.UI.Color.PositiveValue + "]枪矛 / 长戟大刀[/color]长兵，完整激活枪戟系外功招式与 5 AP 刺击精通"
+					});
+				}
+				return ret;
+			};
+		}
 
 		q.updateAppearance = @(__original) function()
 		{
@@ -531,9 +1100,9 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 
 			this.m.UIBackgroundCenter = prof.UICenter + snowSuf;
 			local hasPortLeft = this.m.IsCoastal && this.m.Buildings.len() > 3 && this.m.Buildings[3] != null && this.m.Buildings[3].getID() == "building.port";
-			this.m.UIBackgroundLeft = hasPortLeft ? "ui/settlements/water_01" : (prof.UIHousesBase + "_left" + snowSuf);
+			this.m.UIBackgroundLeft = hasPortLeft ? ("ui/settlements/wx_ui_water_left" + snowSuf) : (prof.UIHousesBase + "_left" + snowSuf);
 			this.m.UIBackgroundRight = prof.UIHousesBase + "_right" + snowSuf;
-			this.m.UIRamp = this.isSouthern() ? "ui/settlements/ramp_07" : ("ui/settlements/ramp_01" + snowSuf);
+			this.m.UIRamp = this.isSouthern() ? "ui/settlements/wx_ui_ramp_sand" : ("ui/settlements/wx_ui_ramp_stone" + snowSuf);
 			this.m.UIRampPathway = this.isSouthern() ? "ui/settlements/wx_ui_pathway_sand" : ("ui/settlements/wx_ui_pathway_stone" + snowSuf);
 			this.m.UIForeground = null;
 
@@ -587,47 +1156,34 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 		q.WX_RefreshMapSectLabel <- function()
 		{
 			if (!this.hasLabel("name")) return;
-			local labelStr = this.m.Name;
-			if (this.m.IsActive && ("SectRelations" in ::Wuxia) && ("getSettlementSects" in ::Wuxia.SectRelations))
-			{
-				local sects = ::Wuxia.SectRelations.getSettlementSects(this);
-				if (sects.len() > 0 && (sects[0] in ::Wuxia.Config.Sects))
-					labelStr = this.m.Name + " · " + ::Wuxia.Config.Sects[sects[0]].Name;
-			}
-			this.getLabel("name").Text = labelStr;
+			this.getLabel("name").Text = this.m.Name;
 		};
 
 		q.WX_GetUISubTitle <- function( _prof = null )
 		{
 			local prof = (_prof != null) ? _prof : this.WX_ComputeArchProfile();
 			local sz = this.getSize();
-			local base = "桑麻环绕 · 炊烟袅袅之淳朴乡间村镇";
+			local subBase = "桑麻环绕 · 炊烟袅袅之淳朴乡间村镇";
 			if (this.isSouthern())
-				base = "瀚海商道枢纽 · 胡汉奇珍云集之绿洲雄城";
+				subBase = "瀚海商道枢纽 · 胡汉奇珍云集之绿洲雄城";
 			else if (this.isMilitary())
 			{
-				if (sz >= 3) base = "铁甲森严 · 藩镇节度使驻节帅府重城";
-				else if (sz == 2) base = "旌旗猎猎 · 控扼山川要冲之官军卫城";
-				else base = "刁斗森严 · 戍守边关隘口之烽燧军堡";
+				if (sz >= 3) subBase = "铁甲森严 · 藩镇节度使驻节帅府重城";
+				else if (sz == 2) subBase = "旌旗猎猎 · 控扼山川要冲之官军卫城";
+				else subBase = "刁斗森严 · 戍守边关隘口之烽燧军堡";
 			}
 			else if (prof.NamePool == "sect_town")
-				base = (prof.WorldSprite == "wx_set_sect_monastery")
-					? "晨钟暮鼓 · 依傍古刹禅林之山门集镇"
-					: "云深松风 · 依傍名山道观之山门市镇";
+				subBase = (prof.WorldSprite == "wx_set_sect_monastery")
+					? "晨钟暮鼓 · 依傍名山古刹之清幽集镇"
+					: "云深松风 · 依傍名山幽谷之清幽市镇";
 			else if (prof.NamePool == "water_town")
-				base = "舟楫纵横 · 南北漕运吞吐之水陆古渡";
+				subBase = "舟楫纵横 · 南北漕运吞吐之水陆古渡";
 			else if (sz >= 3)
-				base = "车马喧阗 · 百工商贾辐辏之大州重府";
+				subBase = "车马喧阗 · 百工商贾辐辏之大州重府";
 			else if (sz == 2)
-				base = "城垣齐整 · 镖局行客休整之州县城池";
+				subBase = "城垣齐整 · 镖局行客休整之州县城池";
 
-			if ("SectRelations" in ::Wuxia && "getSettlementSects" in ::Wuxia.SectRelations)
-			{
-				local sects = ::Wuxia.SectRelations.getSettlementSects(this);
-				if (sects.len() > 0 && (sects[0] in ::Wuxia.Config.Sects))
-					return base + "（驻地宗门：" + ::Wuxia.Config.Sects[sects[0]].Name + "）";
-			}
-			return base;
+			return subBase;
 		};
 
 		q.WX_ResolveSettlementBanner <- function( _prof = null )
@@ -644,11 +1200,11 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 					local sb = ::Wuxia.WorldVisuals.mapWorldBannerBrush(ownerS.getBannerSmall());
 					if (sb != null && sb.find("wx_fbanner_south_") == 0) return sb;
 				}
-				if ("FactionManager" in ::World && ::World.FactionManager != null && ::Wuxia.hasMember(this, "getFactions"))
+				if (::Wuxia.hasMember(this, "getFactions"))
 				{
 					foreach (fid in this.getFactions())
 					{
-						local fac = ::World.FactionManager.getFaction(fid);
+						local fac = ::Wuxia.WorldVisuals.safeGetFaction(fid);
 						if (fac != null && ::Wuxia.hasMember(fac, "getBannerSmall"))
 						{
 							local fb = ::Wuxia.WorldVisuals.mapWorldBannerBrush(fac.getBannerSmall());
@@ -702,9 +1258,68 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			this.WX_ApplyArchVisuals(false);
 		};
 
+		q.WX_EnsureDisguisePavilion <- function()
+		{
+			if (this.isMilitary() || this.m.Buildings == null)
+				return;
+
+			local maxShopSlot = this.m.IsCoastal ? ::Math.min(3, this.m.Buildings.len()) : ::Math.min(4, this.m.Buildings.len());
+
+			// Size >= 2 civil county/prefecture towns prioritize `百工丹坊` (`taxidermist_building`) if a shop slot is free
+			if (this.getSize() >= 2)
+			{
+				local hasWorkshop = false;
+				foreach (b2 in this.m.Buildings)
+				{
+					if (b2 != null && b2.getID() == "building.taxidermist")
+					{
+						hasWorkshop = true;
+						break;
+					}
+				}
+				if (!hasWorkshop)
+				{
+					for (local j = 0; j < maxShopSlot; j = ++j)
+					{
+						if (this.m.Buildings[j] == null)
+						{
+							this.addBuilding(::new("scripts/entity/world/settlements/buildings/taxidermist_building"), j);
+							break;
+						}
+					}
+				}
+			}
+
+			// Size 3 civil cities also host the Disguise Pavilion (`铜镜江湖易容阁`) if a shop slot remains free
+			if (this.getSize() >= 3)
+			{
+				local hasBarber = false;
+				foreach (b in this.m.Buildings)
+				{
+					if (b != null && b.getID() == "building.barber")
+					{
+						hasBarber = true;
+						break;
+					}
+				}
+				if (!hasBarber)
+				{
+					for (local i = 0; i < maxShopSlot; i = ++i)
+					{
+						if (this.m.Buildings[i] == null)
+						{
+							this.addBuilding(::new("scripts/entity/world/settlements/buildings/barber_building"), i);
+							break;
+						}
+					}
+				}
+			}
+		};
+
 		q.build = @(__original) function()
 		{
 			__original();
+			this.WX_EnsureDisguisePavilion();
 			this.WX_ApplyArchVisuals(true);
 		};
 
@@ -728,6 +1343,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 		q.onDeserialize = @(__original) function( _in )
 		{
 			__original(_in);
+			this.WX_EnsureDisguisePavilion();
 			this.WX_ApplyArchVisuals(true);
 		};
 
@@ -737,25 +1353,11 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			this.WX_ApplyArchVisuals(false);
 			local ret = __original();
 			if (ret != null && typeof ret == "table")
-			{
 				ret.SubTitle <- this.WX_GetUISubTitle(prof);
-				foreach (listKey in ["Slots", "Buildings"])
-				{
-					if ((listKey in ret) && typeof ret[listKey] == "array")
-					{
-						for (local i = 0; i < ret[listKey].len(); i = ++i)
-						{
-							local b = ret[listKey][i];
-							if (b != null && typeof b == "table" && ("Image" in b) && b.Image != null && b.Image.find("barber") != null)
-								ret[listKey][i] = null;
-						}
-					}
-				}
-			}
 			return ret;
 		};
 
-		if ("getTooltip" in q)
+		if (::Wuxia.qHas(q, "getTooltip"))
 		{
 			q.getTooltip = @(__original) function()
 			{
@@ -781,7 +1383,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 							id   = 77,
 							type = "text",
 							icon = "ui/wx_icons/wx_glyph_sect_token.png",
-							text = "驻地宗门：[color=#dda21f]【" + pSect.Name + "】[/color]（交情 " + relStr + "）" + extra + "。入城点击「江湖茶肆」可设席论交或请教本门真传秘籍"
+							text = "驻地宗门：[color=#5e2c00]【" + pSect.Name + "】[/color]（交情 " + relStr + "）" + extra + "。入城点击「江湖茶肆」可设席论交或请教本门真传秘籍"
 						});
 					}
 				}
@@ -809,7 +1411,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 		if (!("World" in getroottable()) || ::World == null || ::World.EntityManager == null) return;
 		foreach (s in ::World.EntityManager.getSettlements())
 		{
-			if (s != null && s.isAlive() && ("WX_RefreshMapSectLabel" in s))
+			if (s != null && s.isAlive() && ::Wuxia.hasMember(s, "WX_RefreshMapSectLabel"))
 				s.WX_RefreshMapSectLabel();
 		}
 	};
@@ -838,15 +1440,6 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			this.WX_ApplyBuildingVisuals();
 			return __original();
 		};
-
-		if ("isHidden" in q)
-		{
-			q.isHidden = @(__original) function()
-			{
-				if (this.m.ID == "building.barber") return true;
-				return __original();
-			};
-		}
 
 		q.onDeserialize = @(__original) function( _in )
 		{
@@ -925,6 +1518,110 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 		};
 	});
 
+	// Ensure Southern Oasis City-States (`city_state` overrides `build`) also preserve Wuxia oasis visuals & Chinese names
+	::Wuxia.HooksMod.hook("scripts/entity/world/settlements/city_state", function( q )
+	{
+		if (::Wuxia.qHas(q, "build", false))
+		{
+			q.build = @(__original) function()
+			{
+				__original();
+				if (::Wuxia.hasMember(this, "WX_ApplyArchVisuals"))
+					this.WX_ApplyArchVisuals(true);
+			};
+		}
+	});
+
+	// Localize Wilderness Enemy Camps, Graveyards & Ruins (`scripts/entity/world/location`) into Low-Magic Wuxia Sites
+	::Wuxia.HooksMod.hook("scripts/entity/world/location", function( q )
+	{
+		q.WX_ApplyWildLocationName <- function()
+		{
+			if (::Wuxia.hasMember(this, "isLocationType") && "LocationType" in ::Const.World && this.isLocationType(::Const.World.LocationType.Settlement))
+				return;
+			if (::Wuxia.hasMember(this, "getSize"))
+				return;
+
+			local tid = (::Wuxia.hasMember(this, "getTypeID") && this.getTypeID() != null) ? this.getTypeID() : "";
+			if (tid.find("location.wx_") == 0 || tid.find("attached_location.") == 0) return;
+			if (::Wuxia.hasMember(this, "isLocationType") && "LocationType" in ::Const.World && "AttachedLocation" in ::Const.World.LocationType && this.isLocationType(::Const.World.LocationType.AttachedLocation))
+				return;
+
+			local cur = this.m.Name;
+			if (cur != null && cur != "" && !::Wuxia.WorldVisuals.isAsciiName(cur) && cur.find("Ruins of ") != 0)
+			{
+				if (::Wuxia.WorldVisuals.isKnownWildCampName(cur))
+				{
+					if (this.hasLabel("name")) this.getLabel("name").Text = cur;
+					return;
+				}
+			}
+
+			local lt = tid.tolower();
+			local cat = "ruins";
+			if (lt.find("goblin") != null)
+				cat = "goblins";
+			else if (lt.find("orc") != null)
+				cat = "orcs";
+			else if (lt.find("barbarian") != null || lt.find("wildm") != null)
+				cat = "barbarians";
+			else if (lt.find("nomad") != null)
+				cat = "nomads";
+			else if (lt.find("bandit") != null || lt.find("brigand") != null)
+				cat = "bandits";
+			else if (lt.find("undead") != null || lt.find("skeleton") != null || lt.find("vampire") != null || lt.find("zombie") != null || lt.find("graveyard") != null || lt.find("crypt") != null || lt.find("necromancer") != null || lt.find("lich") != null || lt.find("monolith") != null || lt.find("pyramid") != null)
+				cat = "undead";
+			else if (::Wuxia.hasMember(this, "getFaction") && this.getFaction() != 0)
+			{
+				local lFac = ::Wuxia.WorldVisuals.safeGetFaction(this.getFaction());
+				if (lFac != null && ::Wuxia.hasMember(lFac, "getType") && "FactionType" in ::Const)
+				{
+					local ft = lFac.getType();
+					if (ft == ::Const.FactionType.Goblins) cat = "goblins";
+					else if (ft == ::Const.FactionType.Orcs) cat = "orcs";
+					else if (ft == ::Const.FactionType.Barbarians) cat = "barbarians";
+					else if ("OrientalBandits" in ::Const.FactionType && ft == ::Const.FactionType.OrientalBandits) cat = "nomads";
+					else if (ft == ::Const.FactionType.Bandits) cat = "bandits";
+					else if (ft == ::Const.FactionType.Undead || ft == ::Const.FactionType.Zombies) cat = "undead";
+				}
+			}
+
+			local pools = ::Wuxia.Config.WorldVisuals.WildCampNames;
+			local pool = (cat in pools) ? pools[cat] : pools.ruins;
+			local tile = (::Wuxia.hasMember(this, "getTile")) ? this.getTile() : null;
+			local seed = (tile != null) ? ::Math.abs(tile.SquareCoords.X * 59 + tile.SquareCoords.Y * 89) : ::Wuxia.WorldVisuals.hashString(cur != null ? cur : tid);
+			local sites = ::Wuxia.hasWorldField("EntityManager") ? ::World.EntityManager.getLocations() : [];
+			this.m.Name = ::Wuxia.WorldVisuals.pickUnusedSiteName(pool, seed, sites, this);
+			if (this.hasLabel("name"))
+				this.getLabel("name").Text = this.m.Name;
+		};
+
+		if (::Wuxia.qHas(q, "onInit"))
+		{
+			q.onInit = @(__original) function()
+			{
+				__original();
+				this.WX_ApplyWildLocationName();
+			};
+		}
+		if (::Wuxia.qHas(q, "onSpawned"))
+		{
+			q.onSpawned = @(__original) function()
+			{
+				__original();
+				this.WX_ApplyWildLocationName();
+			};
+		}
+		if (::Wuxia.qHas(q, "onDeserialize"))
+		{
+			q.onDeserialize = @(__original) function( _in )
+			{
+				__original(_in);
+				this.WX_ApplyWildLocationName();
+			};
+		}
+	});
+
 	// =========================================================================
 	// 4. World Map Marching Chess Pieces, Caravans, Ships & Party Flags Hooks
 	// =========================================================================
@@ -932,6 +1629,9 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 	{
 		q.WX_RefreshPartyVisuals <- function()
 		{
+			if (!this.m.IsPlayer)
+				::Wuxia.WorldVisuals.localizeVanillaPartyName(this);
+
 			if (this.m.IsPlayer)
 			{
 				::Wuxia.WorldVisuals.syncPlayerLeadAppearance(this);
@@ -942,15 +1642,15 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 				if (spr.HasBrush)
 				{
 					local curName = spr.getBrush().Name;
-					local patrolSect = (this.m.Flags != null) ? this.m.Flags.get("wx_sect_patrol") : null;
-					local patrolFig  = (this.m.Flags != null) ? this.m.Flags.get("wx_sect_patrol_fig") : null;
-					local patrolBan  = (this.m.Flags != null) ? this.m.Flags.get("wx_sect_patrol_banner") : null;
-					if (patrolSect != null && patrolSect != "" && patrolFig != null && patrolFig != "" && ::Wuxia.Appearance.brushExists(patrolFig))
+					local patrolSect = ::Wuxia.WorldVisuals.getFlagStr(this.m.Flags, "wx_sect_patrol");
+					local patrolFig  = ::Wuxia.WorldVisuals.getFlagStr(this.m.Flags, "wx_sect_patrol_fig");
+					local patrolBan  = ::Wuxia.WorldVisuals.getFlagStr(this.m.Flags, "wx_sect_patrol_banner");
+					if (patrolSect != "" && patrolFig != "" && ::Wuxia.Appearance.brushExists(patrolFig))
 					{
 						if (curName != patrolFig)
 							spr.setBrush(patrolFig);
 						this.m.WX_LastBodyBrush <- patrolFig;
-						if (this.hasSprite("banner") && patrolBan != null && patrolBan != "" && ::Wuxia.Appearance.brushExists(patrolBan))
+						if (this.hasSprite("banner") && patrolBan != "" && ::Wuxia.Appearance.brushExists(patrolBan))
 						{
 							this.getSprite("banner").setBrush(patrolBan);
 							this.getSprite("banner").Visible = true;
@@ -960,8 +1660,8 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 					else if (curName.find("wx_") != 0 && curName.find("wm_") != 0)
 					{
 						local targetBrush = null;
-						local sectID = (this.m.Flags != null) ? this.m.Flags.get("wx_vendetta") : null;
-						if (sectID != null && sectID != "" && (sectID in ::Wuxia.Config.Sects))
+						local sectID = ::Wuxia.WorldVisuals.getFlagStr(this.m.Flags, "wx_vendetta");
+						if (sectID != "" && (sectID in ::Wuxia.Config.Sects))
 						{
 							local vParty = ::Wuxia.Config.Sects[sectID].VendettaParty;
 							if (vParty in ::Wuxia.Config.WorldVisuals.VendettaVisualMap)
@@ -989,8 +1689,8 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			if (this.hasSprite("banner"))
 			{
 				local bSpr = this.getSprite("banner");
-				local pBanCheck = (this.m.Flags != null) ? this.m.Flags.get("wx_sect_patrol_banner") : null;
-				if (pBanCheck != null && pBanCheck != "" && ::Wuxia.Appearance.brushExists(pBanCheck))
+				local pBanCheck = ::Wuxia.WorldVisuals.getFlagStr(this.m.Flags, "wx_sect_patrol_banner");
+				if (pBanCheck != "" && ::Wuxia.Appearance.brushExists(pBanCheck))
 				{
 					bSpr.setBrush(pBanCheck);
 					this.m.WX_LastBannerBrush <- pBanCheck;
@@ -1001,16 +1701,16 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 					if (!("WX_LastBannerBrush" in this.m) || this.m.WX_LastBannerBrush != curB)
 					{
 						local mappedB = null;
-						local vFlag = (this.m.Flags != null) ? this.m.Flags.get("wx_vendetta") : null;
-						if (!this.m.IsPlayer && (vFlag == null || vFlag == "") && ("FactionManager" in ::World) && ::World.FactionManager != null && ::Wuxia.hasMember(this, "getFaction"))
+						local vFlag = ::Wuxia.WorldVisuals.getFlagStr(this.m.Flags, "wx_vendetta");
+						if (!this.m.IsPlayer && vFlag == "" && ::Wuxia.hasMember(this, "getFaction"))
 						{
-							local fac = ::World.FactionManager.getFaction(this.getFaction());
+							local fac = ::Wuxia.WorldVisuals.safeGetFaction(this.getFaction());
 							if (fac != null)
 							{
 								if (::Wuxia.hasMember(fac, "getSettlements"))
 								{
 									local fSets = fac.getSettlements();
-									if (fSets != null && fSets.len() == 1 && fSets[0] != null && ("WX_ResolveSettlementBanner" in fSets[0]))
+									if (fSets != null && fSets.len() == 1 && fSets[0] != null && ::Wuxia.hasMember(fSets[0], "WX_ResolveSettlementBanner"))
 										mappedB = fSets[0].WX_ResolveSettlementBanner(null);
 								}
 								if (mappedB == null && ::Wuxia.hasMember(fac, "getBannerSmall"))
@@ -1030,17 +1730,19 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			}
 		};
 
-		if ("getTooltip" in q)
+		if (::Wuxia.qHas(q, "getTooltip"))
 		{
 			q.getTooltip = @(__original) function()
 			{
 				local ret = __original();
 				if (ret != null && typeof ret == "array" && this.m.Flags != null && ("SectRelations" in ::Wuxia))
 				{
-					local psid = this.m.Flags.get("wx_sect_patrol");
-					if (psid == null || psid == "") psid = this.m.Flags.get("wx_vendetta");
-					if (psid != null && psid != "" && (psid in ::Wuxia.Config.Sects))
+					local psid = ::Wuxia.WorldVisuals.getFlagStr(this.m.Flags, "wx_sect_patrol");
+					if (psid == "") psid = ::Wuxia.WorldVisuals.getFlagStr(this.m.Flags, "wx_vendetta");
+					if (psid != "" && (psid in ::Wuxia.Config.Sects))
 					{
+						if ("discoverSect" in ::Wuxia.SectRelations)
+							::Wuxia.SectRelations.discoverSect(psid);
 						local pSect = ::Wuxia.Config.Sects[psid];
 						local rel = ::Wuxia.SectRelations.getRelation(psid);
 						local relStr = (rel > 0 ? ("+" + rel) : ("" + rel));
@@ -1050,7 +1752,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 							id   = 78,
 							type = "text",
 							icon = "ui/wx_icons/wx_glyph_sect_token.png",
-							text = "所属宗门：[color=#dda21f]【" + pSect.Name + "】[/color]（当前交情 " + relStr + homeNote + "）"
+							text = "所属宗门：[color=#5e2c00]【" + pSect.Name + "】[/color]（当前交情 " + relStr + homeNote + "）"
 						});
 					}
 				}

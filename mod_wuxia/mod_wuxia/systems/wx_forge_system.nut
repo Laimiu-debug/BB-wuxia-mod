@@ -11,10 +11,10 @@
 	LastCraftBanner  = "",
 	RelicCleanCache  = {},
 	Grades = [
-		{ Grade = 0, Title = "凡锻", Color = "#a8a296", MinPct = 0,  MaxPct = 34,  ValueMult = 0.92, Span = 36, BaseSeed = 100 },
-		{ Grade = 1, Title = "良工", Color = "#5ec47a", MinPct = 35, MaxPct = 69,  ValueMult = 1.00, Span = 40, BaseSeed = 136 },
-		{ Grade = 2, Title = "百炼", Color = "#b58ae6", MinPct = 70, MaxPct = 91,  ValueMult = 1.18, Span = 40, BaseSeed = 176 },
-		{ Grade = 3, Title = "神工", Color = "#f0bc42", MinPct = 92, MaxPct = 100, ValueMult = 1.42, Span = 40, BaseSeed = 216 }
+		{ Grade = 0, Title = "凡锻", Color = "#a8a296", TooltipColor = "#3f362a", MinPct = 0,  MaxPct = 34,  ValueMult = 0.92, Span = 36, BaseSeed = 100 },
+		{ Grade = 1, Title = "良工", Color = "#5ec47a", TooltipColor = "#0a4213", MinPct = 35, MaxPct = 69,  ValueMult = 1.00, Span = 40, BaseSeed = 136 },
+		{ Grade = 2, Title = "百炼", Color = "#b58ae6", TooltipColor = "#4b1c76", MinPct = 70, MaxPct = 91,  ValueMult = 1.18, Span = 40, BaseSeed = 176 },
+		{ Grade = 3, Title = "神工", Color = "#f0bc42", TooltipColor = "#5e2c00", MinPct = 92, MaxPct = 100, ValueMult = 1.42, Span = 40, BaseSeed = 216 }
 	]
 };
 
@@ -381,7 +381,7 @@
 ::Wuxia.Forge.buildAccessoryTooltipRows <- function( _bonuses )
 {
 	local rows = [];
-	local pos = "#1e883c";
+	local pos = "#0a4213";
 	if (("MeleeDefense" in _bonuses) || ("RangedDefense" in _bonuses))
 	{
 		local parts = [];
@@ -452,8 +452,8 @@
 		local maxDHi = ::Math.round(cfg.RegularDamageMax * 1.16).tointeger();
 		_item.m.RegularDamage     = ::Wuxia.Forge.lerpInt(minDLo, minDHi, _dec.F1);
 		_item.m.RegularDamageMax  = ::Math.max(_item.m.RegularDamage + 4, ::Wuxia.Forge.lerpInt(maxDLo, maxDHi, _dec.F1));
-		_item.m.ArmorDamageMult   = ::Wuxia.Forge.lerpStep(::Math.max(0.50, cfg.ArmorDamageMult - 0.10), cfg.ArmorDamageMult + 0.20, _dec.F2, 0.01);
-		_item.m.DirectDamageMult  = ::Wuxia.Forge.lerpStep(::Math.max(0.15, cfg.DirectDamageMult - 0.03), ::Math.min(0.56, cfg.DirectDamageMult + 0.06), _dec.F3, 0.01);
+		_item.m.ArmorDamageMult   = ::Wuxia.Forge.lerpStep(::Math.maxf(0.50, cfg.ArmorDamageMult - 0.10), cfg.ArmorDamageMult + 0.20, _dec.F2, 0.01);
+		_item.m.DirectDamageMult  = ::Wuxia.Forge.lerpStep(::Math.maxf(0.15, cfg.DirectDamageMult - 0.03), ::Math.minf(0.56, cfg.DirectDamageMult + 0.06), _dec.F3, 0.01);
 		_item.m.StaminaModifier   = ::Math.min(-3, ::Wuxia.Forge.lerpInt(cfg.StaminaModifier - 1, cfg.StaminaModifier + 3, _dec.F3));
 		_item.m.FatigueOnSkillUse = (_dec.Grade >= 3) ? -2 : ((_dec.Grade == 2 && _dec.F2 >= 0.80) ? -1 : 0);
 		_item.m.Value             = ::Math.round(cfg.Value * _dec.ValueMult).tointeger();
@@ -470,11 +470,11 @@
 			_item.m.RegularDamage     = ::Wuxia.Forge.lerpInt(rMinLo, rMinHi, _dec.F1);
 			_item.m.RegularDamageMax  = ::Math.max(_item.m.RegularDamage + 5, ::Wuxia.Forge.lerpInt(rMaxLo, rMaxHi, _dec.F1));
 			_item.m.ArmorDamageMult   = ::Wuxia.Forge.lerpStep(clean.ArmorDamageMult + 0.04, clean.ArmorDamageMult + 0.28, _dec.F2, 0.01);
-			_item.m.DirectDamageMult  = ::Wuxia.Forge.lerpStep(clean.DirectDamageMult, ::Math.min(0.62, clean.DirectDamageMult + 0.14), _dec.F3, 0.01);
+			_item.m.DirectDamageMult  = ::Wuxia.Forge.lerpStep(clean.DirectDamageMult, ::Math.minf(0.62, clean.DirectDamageMult + 0.14), _dec.F3, 0.01);
 			_item.m.StaminaModifier   = ::Math.min(0, ::Wuxia.Forge.lerpInt(clean.StaminaModifier, clean.StaminaModifier + 4, _dec.F2));
 			_item.m.FatigueOnSkillUse = clean.FatigueOnSkillUse + ((_dec.Grade >= 3) ? -2 : ((_dec.Grade == 2) ? -1 : 0));
 			_item.m.ConditionMax      = ::Wuxia.Forge.lerpInt(clean.ConditionMax.tointeger(), ::Math.round(clean.ConditionMax * 1.22).tointeger(), _dec.F3).tofloat();
-			_item.m.Condition         = _preserveConditionPct ? ::Math.max(1.0, ::Math.round(_item.m.ConditionMax * condRatio)) : _item.m.ConditionMax;
+			_item.m.Condition         = _preserveConditionPct ? ::Math.maxf(1.0, ::Math.round(_item.m.ConditionMax * condRatio).tofloat()) : _item.m.ConditionMax;
 		}
 		_item.m.Value = ::Math.round(cfg.MinValue * _dec.ValueMult).tointeger();
 	}
@@ -529,11 +529,11 @@
 		_item.m.RolledRangedMult   <- rngM;
 		_item.m.RolledArmorDmgMult <- armM;
 
-		local bParts = ["护甲耐久 [color=#1e883c]+" + _item.m.ConditionModifier + "[/color]" + (stamU < 0 ? ("（负重 " + stamU + "）") : "（零负重）")];
-		if (initB > 0) bParts.push("提纵身法 [color=#1e883c]+" + initB + "[/color]");
-		if (bravB > 0) bParts.push("定力 [color=#1e883c]+" + bravB + "[/color]");
-		if (rngM < 1.0) bParts.push("承受远程伤害 [color=#1e883c]-" + ::Math.round((1.0 - rngM) * 100) + "%[/color]");
-		if (armM < 1.0) bParts.push("承受破甲损耗 [color=#1e883c]-" + ::Math.round((1.0 - armM) * 100) + "%[/color]");
+		local bParts = ["护甲耐久 [color=#0a4213]+" + _item.m.ConditionModifier + "[/color]" + (stamU < 0 ? ("（负重 " + stamU + "）") : "（零负重）")];
+		if (initB > 0) bParts.push("提纵身法 [color=#0a4213]+" + initB + "[/color]");
+		if (bravB > 0) bParts.push("定力 [color=#0a4213]+" + bravB + "[/color]");
+		if (rngM < 1.0) bParts.push("承受远程伤害 [color=#0a4213]-" + ::Math.round((1.0 - rngM) * 100) + "%[/color]");
+		if (armM < 1.0) bParts.push("承受破甲损耗 [color=#0a4213]-" + ::Math.round((1.0 - armM) * 100) + "%[/color]");
 		if (cfg.PoisonImmune) bParts.push("百毒不侵");
 
 		local joined = "";
@@ -647,10 +647,10 @@
 		local minDHi = ::Math.round(cfg.RegularDamage * 1.16).tointeger();
 		local maxDLo = ::Math.round(cfg.RegularDamageMax * 0.92).tointeger();
 		local maxDHi = ::Math.round(cfg.RegularDamageMax * 1.16).tointeger();
-		local armLo  = ::Math.round(::Math.max(0.50, cfg.ArmorDamageMult - 0.10) * 100).tointeger();
+		local armLo  = ::Math.round(::Math.maxf(0.50, cfg.ArmorDamageMult - 0.10) * 100).tointeger();
 		local armHi  = ::Math.round((cfg.ArmorDamageMult + 0.20) * 100).tointeger();
-		local penLo  = ::Math.round(::Math.max(0.15, cfg.DirectDamageMult - 0.03) * 100).tointeger();
-		local penHi  = ::Math.round(::Math.min(0.56, cfg.DirectDamageMult + 0.06) * 100).tointeger();
+		local penLo  = ::Math.round(::Math.maxf(0.15, cfg.DirectDamageMult - 0.03) * 100).tointeger();
+		local penHi  = ::Math.round(::Math.minf(0.56, cfg.DirectDamageMult + 0.06) * 100).tointeger();
 		local stLo   = cfg.StaminaModifier - 1;
 		local stHi   = ::Math.min(-3, cfg.StaminaModifier + 3);
 
@@ -677,7 +677,7 @@
 			local rArmLo = ::Math.round((clean.ArmorDamageMult + 0.04) * 100).tointeger();
 			local rArmHi = ::Math.round((clean.ArmorDamageMult + 0.28) * 100).tointeger();
 			local rPenLo = ::Math.round(clean.DirectDamageMult * 100).tointeger();
-			local rPenHi = ::Math.round(::Math.min(0.62, clean.DirectDamageMult + 0.14) * 100).tointeger();
+			local rPenHi = ::Math.round(::Math.minf(0.62, clean.DirectDamageMult + 0.14) * 100).tointeger();
 			local rStLo  = clean.StaminaModifier;
 			local rStHi  = ::Math.min(0, clean.StaminaModifier + 4);
 
@@ -829,7 +829,7 @@
 			id = 969,
 			type = "text",
 			icon = "ui/icons/asset_supplies.png",
-			text = "[color=#dda21f]【百工铸造品相】[/color]凡锻 " + ch[0] + "% · [color=#5ec47a]良工 " + ch[1] + "%[/color] · [color=#b58ae6]百炼 " + ch[2] + "%[/color] · [color=#f0bc42]神工 " + ch[3] + "%[/color]（" + mst.SmithLabel + "）"
+			text = "[color=#533200]【百工铸造品相】[/color]凡锻 " + ch[0] + "% · [color=#0a4213]良工 " + ch[1] + "%[/color] · [color=#4b1c76]百炼 " + ch[2] + "%[/color] · [color=#5e2c00]神工 " + ch[3] + "%[/color]（" + mst.SmithLabel + "）"
 		});
 		if (rng.SummaryStr != "")
 		{
@@ -837,7 +837,7 @@
 				id = 970,
 				type = "text",
 				icon = "ui/icons/special.png",
-				text = "[color=#7ee29a]【锻造属性范围】[/color]" + rng.SummaryStr + "（出炉后支持「神兵重锻」免内丹重淬！）"
+				text = "[color=#0a4213]【锻造属性范围】[/color]" + rng.SummaryStr + "（出炉后支持「神兵重锻」免内丹重淬！）"
 			});
 		}
 		return _ret;
@@ -845,7 +845,10 @@
 
 	if (("WX_ForgeGrade" in _item.m) && _item.m.WX_ForgeGrade != null)
 	{
-		local col = ("WX_ForgeColor" in _item.m) ? _item.m.WX_ForgeColor : "#5ec47a";
+		local gIdx = _item.m.WX_ForgeGrade;
+		local col = (gIdx >= 0 && gIdx < ::Wuxia.Forge.Grades.len() && ("TooltipColor" in ::Wuxia.Forge.Grades[gIdx]))
+			? ::Wuxia.Forge.Grades[gIdx].TooltipColor
+			: "#0a4213";
 		local gTitle = ("WX_ForgeGradeTitle" in _item.m) ? _item.m.WX_ForgeGradeTitle : "良工";
 		local perf = ("WX_PerfectionPct" in _item.m) ? _item.m.WX_PerfectionPct : 50;
 		local tail = (_item.m.WX_ForgeGrade >= 3)
@@ -863,7 +866,7 @@
 				id = 970,
 				type = "text",
 				icon = "ui/icons/special.png",
-				text = "[color=#bd9d71]【满值参考区间】" + rng.SummaryStr + "[/color]"
+				text = "[color=#43392c]【满值参考区间】" + rng.SummaryStr + "[/color]"
 			});
 		}
 	}
@@ -892,7 +895,7 @@
 	}
 	// Priority 2: `misc.wx_mat_*` in Stash
 	local stashRef = _stash;
-	if (stashRef == null && ("World" in getroottable()) && ::World != null && ::World.Assets != null)
+	if (stashRef == null && ::Wuxia.hasWorldField("Assets"))
 		stashRef = ::World.Assets.getStash();
 	if (stashRef != null)
 	{
@@ -916,7 +919,7 @@
 			total += ::Wuxia.Alchemy.Cabinet.getCount("trophy:" + mk);
 	}
 	local stashRef = _stash;
-	if (stashRef == null && ("World" in getroottable()) && ::World != null && ::World.Assets != null)
+	if (stashRef == null && ::Wuxia.hasWorldField("Assets"))
 		stashRef = ::World.Assets.getStash();
 	if (stashRef != null)
 	{
@@ -1008,7 +1011,7 @@
 	}
 
 	local stashRef = _stash;
-	if (stashRef == null && ("World" in getroottable()) && ::World != null && ::World.Assets != null)
+	if (stashRef == null && ::Wuxia.hasWorldField("Assets"))
 		stashRef = ::World.Assets.getStash();
 	if (stashRef != null)
 	{
@@ -1057,7 +1060,7 @@
 
 ::Wuxia.Forge.executeReforge <- function( _uid )
 {
-	if (!("World" in getroottable()) || ::World == null || ::World.Assets == null)
+	if (!::Wuxia.hasWorldField("Assets"))
 		return { Ok = false, Reason = "当前无法启用百工重锻炉。" };
 
 	local stash = ::World.Assets.getStash();
@@ -1113,99 +1116,84 @@
 };
 
 // -----------------------------------------------------------------------------
-// 6. Non-Destructive Engine Hooks: Blueprint Previews & Craft Roll Pipeline
+// 6. Blueprint previews, product quality and town crafting
 // -----------------------------------------------------------------------------
+::Wuxia.Forge.rollTownProducts <- function( _products )
+{
+	local craftedMsgs = [];
+	foreach (afterIt in _products)
+	{
+		if (afterIt.getID() == "misc.wx_pill_item")
+		{
+			if ("Alchemy" in ::Wuxia && "rollTownCraftedPill" in ::Wuxia.Alchemy)
+			{
+				local pRoll = ::Wuxia.Alchemy.rollTownCraftedPill(afterIt);
+				if (pRoll != null)
+					craftedMsgs.push("「" + afterIt.getName() + "」（药效 " + pRoll.PotencyPct + "%）");
+			}
+		}
+		else
+		{
+			local gRoll = ::Wuxia.Forge.rollCraftedGear(afterIt);
+			if (gRoll != null)
+				craftedMsgs.push("「" + afterIt.getName() + "」（完美度 " + gRoll.PerfectionPct + "%）");
+		}
+	}
+
+	if (craftedMsgs.len() > 0)
+	{
+		local joined = "";
+		for (local m = 0; m < craftedMsgs.len(); m = ++m)
+		{
+			if (m > 0) joined += "、";
+			joined += craftedMsgs[m];
+		}
+		::Wuxia.Forge.LastCraftBanner = "开炉功成！出炉：" + joined + "！";
+	}
+};
+
 if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 {
-	// Mark `PreviewCraftable` on all Wuxia blueprints & roll newly crafted Gear AND Pills on `blueprint.craft`!
 	::Wuxia.HooksMod.hook("scripts/crafting/blueprint", function( q )
 	{
-		if ("init" in q)
+		q.init = @(__original) function( _comps )
 		{
-			q.init = @(__original) function( _comps )
-			{
-				__original(_comps);
-				local bpID = this.getID();
-				if (bpID != null && bpID.find("blueprint.wx_") == 0 && this.m.PreviewCraftable != null)
-				{
-					this.m.PreviewCraftable.m.WX_IsBlueprintPreview <- true;
-				}
-			};
-		}
-
-		if ("craft" in q)
-		{
-			q.craft = @(__original) function()
-			{
-				local bpID = this.getID();
-				if (bpID == null || bpID.find("blueprint.wx_") != 0)
-				{
-					__original();
-					return;
-				}
-
-				local stash = (("World" in getroottable()) && ::World != null && ::World.Assets != null)
-					? ::World.Assets.getStash()
-					: null;
-				local beforeRefs = {};
-				if (stash != null && stash.getItems() != null)
-				{
-					foreach (existing in stash.getItems())
-					{
-						if (existing != null) beforeRefs[existing] <- true;
-					}
-				}
-
-				__original();
-
-				if (stash == null || stash.getItems() == null) return;
-				local craftedMsgs = [];
-				foreach (afterIt in stash.getItems())
-				{
-					if (afterIt == null || (afterIt in beforeRefs)) continue;
-					if (afterIt.getID() == "misc.wx_pill_item")
-					{
-						if ("Alchemy" in ::Wuxia && "rollTownCraftedPill" in ::Wuxia.Alchemy)
-						{
-							local pRoll = ::Wuxia.Alchemy.rollTownCraftedPill(afterIt);
-							if (pRoll != null)
-								craftedMsgs.push("「" + afterIt.getName() + "」（药效 " + pRoll.PotencyPct + "%）");
-						}
-					}
-					else
-					{
-						local gRoll = ::Wuxia.Forge.rollCraftedGear(afterIt);
-						if (gRoll != null)
-							craftedMsgs.push("「" + afterIt.getName() + "」（完美度 " + gRoll.PerfectionPct + "%）");
-					}
-				}
-
-				if (craftedMsgs.len() > 0)
-				{
-					local joined = "";
-					for (local m = 0; m < craftedMsgs.len(); m = ++m)
-					{
-						if (m > 0) joined += "、";
-						joined += craftedMsgs[m];
-					}
-					::Wuxia.Forge.LastCraftBanner = "开炉功成！出炉：" + joined + "！";
-				}
-			};
-		}
+			__original(_comps);
+			if (this.getID().find("blueprint.wx_") == 0 && this.m.PreviewCraftable != null)
+				this.m.PreviewCraftable.m.WX_IsBlueprintPreview <- true;
+		};
 	});
 
 	::Wuxia.HooksMod.hook("scripts/ui/screens/world/modules/world_town_screen/town_taxidermist_dialog_module", function( q )
 	{
-		if ("onCraft" in q)
+		q.onCraft = @(__original) function( _blueprintID )
 		{
-			q.onCraft = @(__original) function( _blueprintID )
+			local bp = typeof _blueprintID == "string" ? ::World.Crafting.getBlueprint(_blueprintID) : null;
+			local reason = null, plan = null;
+			if (bp == null) reason = "找不到所选配方。";
+			else if (::World.Assets.getMoney() < bp.getCost()) reason = "纹银不足。";
+			else if (!bp.isCraftable()) reason = "制作材料不足，请重新选择丹方。";
+			else if (bp.getID().find("blueprint.wx_") == 0)
 			{
-				local ret = __original(_blueprintID);
-				local banner = ::Wuxia.Forge.consumeLastCraftBanner();
-				if (banner != "" && ret != null && typeof ret == "table")
-					ret.wxCraftBanner <- banner;
-				return ret;
-			};
-		}
+				plan = ::Wuxia.BeastCraft.prepareCraft(bp, ::World.Assets.getStash());
+				reason = plan.Reason;
+			}
+			if (reason != null)
+			{
+				local data = this.queryBlueprints();
+				data.wxCraftBanner <- reason;
+				return data;
+			}
+
+			if (plan == null) return __original(_blueprintID);
+			bp.m.WX_CraftPlan <- plan;
+			local data;
+			try { data = __original(_blueprintID); }
+			catch (err) { delete bp.m.WX_CraftPlan; throw err; }
+			delete bp.m.WX_CraftPlan;
+			local banner = ::Wuxia.Forge.consumeLastCraftBanner();
+			if (banner != "" && data != null) data.wxCraftBanner <- banner;
+			return data;
+		};
 	});
 }

@@ -643,7 +643,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			}
 		};
 
-		if ("getName" in q)
+		if (::Wuxia.qHas(q, "getName"))
 		{
 			q.getName = @(__original) function()
 			{
@@ -652,7 +652,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			};
 		}
 
-		if ("getTitle" in q)
+		if (::Wuxia.qHas(q, "getTitle"))
 		{
 			q.getTitle = @(__original) function()
 			{
@@ -661,7 +661,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			};
 		}
 
-		if ("getUICharacterImage" in q)
+		if (::Wuxia.qHas(q, "getUICharacterImage"))
 		{
 			q.getUICharacterImage = @(__original) function( _index = 0 )
 			{
@@ -689,12 +689,12 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			};
 		}
 
-		if ("getUIBulletpoints" in q)
+		if (::Wuxia.qHas(q, "getUIBulletpoints"))
 		{
-			q.getUIBulletpoints = @(__original) function( _all = true )
+			q.getUIBulletpoints = @(__original) function( _objectives = true, _payment = true )
 			{
 				this.WX_ApplyContractMeta();
-				local ret = __original(_all);
+				local ret = __original(_objectives, _payment);
 				if (ret != null && typeof ret == "array")
 				{
 					for (local i = 0; i < ret.len(); i = ++i)
@@ -721,7 +721,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			};
 		}
 
-		if ("setScreen" in q)
+		if (::Wuxia.qHas(q, "setScreen"))
 		{
 			q.setScreen = @(__original) function( _screen, _restartIfAlreadyActive = true )
 			{
@@ -754,7 +754,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			};
 		}
 
-		if ("buildText" in q)
+		if (::Wuxia.qHas(q, "buildText"))
 		{
 			q.buildText = @(__original) function( _text )
 			{
@@ -762,7 +762,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			};
 		}
 
-		if ("onDeserialize" in q)
+		if (::Wuxia.qHas(q, "onDeserialize"))
 		{
 			q.onDeserialize = @(__original) function( _in )
 			{
@@ -774,7 +774,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 
 	::Wuxia.HooksMod.hookTree("scripts/contracts/contract", function( q )
 	{
-		if ("create" in q)
+		if (::Wuxia.qHas(q, "create", false))
 		{
 			q.create = @(__original) function()
 			{
@@ -794,7 +794,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 
 		foreach (fn in ["getButtonText", "getButtonTooltip", "getUIText", "getSuccessText", "getSuccessButtonText"])
 		{
-			if (fn in q)
+			if (::Wuxia.qHas(q, fn))
 			{
 				local methodName = fn;
 				q[methodName] = @(__original) function()
@@ -805,7 +805,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			}
 		}
 
-		if ("update" in q)
+		if (::Wuxia.qHas(q, "update"))
 		{
 			q.update = @(__original) function()
 			{
@@ -814,7 +814,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			};
 		}
 
-		if ("onDeserialize" in q)
+		if (::Wuxia.qHas(q, "onDeserialize"))
 		{
 			q.onDeserialize = @(__original) function( _in )
 			{
@@ -826,7 +826,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 
 	::Wuxia.HooksMod.hookTree("scripts/ambitions/ambition", function( q )
 	{
-		if ("create" in q)
+		if (::Wuxia.qHas(q, "create", false))
 		{
 			q.create = @(__original) function()
 			{
@@ -839,7 +839,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 	// Perkless 7-Slot Adaptation for `sergeant_ambition` (`《聚义令》` instead of `perk.rally_the_troops`)
 	::Wuxia.HooksMod.hook("scripts/ambitions/ambitions/sergeant_ambition", function( q )
 	{
-		if ("onUpdateScore" in q)
+		if (::Wuxia.qHas(q, "onUpdateScore"))
 		{
 			q.onUpdateScore = @(__original) function()
 			{
@@ -849,7 +849,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 					this.m.Score = 1 + ::Math.rand(0, 5);
 			};
 		}
-		if ("onCheckSuccess" in q)
+		if (::Wuxia.qHas(q, "onCheckSuccess"))
 		{
 			q.onCheckSuccess = @(__original) function()
 			{
@@ -858,7 +858,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 				return ::Wuxia.Ambitions.findSergeantBro() != null;
 			};
 		}
-		if ("onReward" in q)
+		if (::Wuxia.qHas(q, "onReward"))
 		{
 			q.onReward = @(__original) function()
 			{
@@ -876,7 +876,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 				}
 			};
 		}
-		if ("onPrepareVariables" in q)
+		if (::Wuxia.qHas(q, "onPrepareVariables"))
 		{
 			q.onPrepareVariables = @(__original) function( _vars )
 			{
@@ -891,7 +891,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 	// Perkless 7-Slot Adaptation for `hammer_mastery_ambition`
 	::Wuxia.HooksMod.hook("scripts/ambitions/ambitions/hammer_mastery_ambition", function( q )
 	{
-		if ("onUpdateScore" in q)
+		if (::Wuxia.qHas(q, "onUpdateScore"))
 		{
 			q.onUpdateScore = @(__original) function()
 			{
@@ -901,14 +901,14 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 					this.m.Score = 1 + ::Math.rand(0, 4);
 			};
 		}
-		if ("onCheckSuccess" in q)
+		if (::Wuxia.qHas(q, "onCheckSuccess"))
 		{
 			q.onCheckSuccess = @(__original) function()
 			{
 				return __original() || (::Wuxia.Ambitions.findHammerMasterBro() != null);
 			};
 		}
-		if ("onPrepareVariables" in q)
+		if (::Wuxia.qHas(q, "onPrepareVariables"))
 		{
 			q.onPrepareVariables = @(__original) function( _vars )
 			{
@@ -923,7 +923,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 	// Perkless 7-Slot Adaptation for `ranged_mastery_ambition`
 	::Wuxia.HooksMod.hook("scripts/ambitions/ambitions/ranged_mastery_ambition", function( q )
 	{
-		if ("onUpdateScore" in q)
+		if (::Wuxia.qHas(q, "onUpdateScore"))
 		{
 			q.onUpdateScore = @(__original) function()
 			{
@@ -933,14 +933,14 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 					this.m.Score = 1 + ::Math.rand(0, 4);
 			};
 		}
-		if ("onCheckSuccess" in q)
+		if (::Wuxia.qHas(q, "onCheckSuccess"))
 		{
 			q.onCheckSuccess = @(__original) function()
 			{
 				return __original() || (::Wuxia.Ambitions.findRangedMasterBro() != null);
 			};
 		}
-		if ("onPrepareVariables" in q)
+		if (::Wuxia.qHas(q, "onPrepareVariables"))
 		{
 			q.onPrepareVariables = @(__original) function( _vars )
 			{
@@ -955,7 +955,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 	// Perkless 7-Slot Adaptation for `weapon_mastery_ambition` (3+ brothers with Tier 2+ Waigong)
 	::Wuxia.HooksMod.hook("scripts/ambitions/ambitions/weapon_mastery_ambition", function( q )
 	{
-		if ("onUpdateScore" in q)
+		if (::Wuxia.qHas(q, "onUpdateScore"))
 		{
 			q.onUpdateScore = @(__original) function()
 			{
@@ -965,7 +965,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 					this.m.Score = 1 + ::Math.rand(0, 5);
 			};
 		}
-		if ("onCheckSuccess" in q)
+		if (::Wuxia.qHas(q, "onCheckSuccess"))
 		{
 			q.onCheckSuccess = @(__original) function()
 			{
@@ -1053,17 +1053,17 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			}
 		};
 
-		if ("setScreen" in q)
+		if (::Wuxia.qHas(q, "setScreen"))
 		{
-			q.setScreen = @(__original) function( _screen, _restartIfAlreadyActive = true )
+			q.setScreen = @(__original) function( _screen )
 			{
-				__original(_screen, _restartIfAlreadyActive);
+				__original(_screen);
 				if (this.m.ActiveScreen != null)
 					this.WX_PolishSystemOrCrisisEvent(this.m.ActiveScreen);
 			};
 		}
 
-		if ("buildText" in q)
+		if (::Wuxia.qHas(q, "buildText"))
 		{
 			q.buildText = @(__original) function( _text )
 			{

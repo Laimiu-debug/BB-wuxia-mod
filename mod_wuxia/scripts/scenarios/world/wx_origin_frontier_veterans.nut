@@ -8,9 +8,19 @@ this.wx_origin_frontier_veterans <- this.inherit("scripts/scenarios/world/starti
 	{
 		this.m.ID = "scenario.wx_origin_frontier_veterans";
 		this.m.Name = "边关残部 · 铁血老卒";
-		this.m.Description = "[p=c][img]gfx/ui/events/wx_ev_05.png[/img][/p][p]一场边关惨败后，四名从死人堆里爬出来的九边老卒聚拢残旗。你们不通花哨剑舞，唯凭军中硬功《铁布衫》、长戟大刀结阵与神机火铳轰鸣，在乱世硬生生杀出一条血路。[/p][p][color=#bcad8c]• 开局阵容：4 名九边百战老卒（刀盾前排、长戟中坚与神机火铳手齐备）\n• 军阵传承：随队备有《铁布衫》《聚义令》与《神机火器谱》\n• 起始资财：2,200 两纹银，修械铁料与火药羽箭充足[/color][/p]";
+		this.m.Description = "[p=c][img]gfx/ui/events/wx_ev_05.png[/img][/p][p]一场边关惨败后，四名从死人堆里爬出来的九边老卒聚拢残旗。你们不通花哨剑舞，唯凭军中硬功《铁布衫》、长戟大刀结阵与神机火铳轰鸣，在乱世硬生生杀出一条血路。[/p][p][color=#bcad8c]• 开局阵容：4 名九边老卒（刀盾/长戟/重锤/神机火铳齐备），备有《铁布衫》《聚义令》《神机火器谱》\n• 九边军纪：全队同袍每日饷银 -15%，随军修械速度 +25%，起始铁料火药充裕\n• 悍卒本色：不擅商贾周旋，市集售卖战利品回银 -8%[/color][/p]";
 		this.m.Difficulty = 2;
 		this.m.Order = 5;
+	}
+
+	function onInit()
+	{
+		if ("DailyWageMult" in this.World.Assets.m)
+			this.World.Assets.m.DailyWageMult *= 0.85;
+		if ("RepairSpeedMult" in this.World.Assets.m)
+			this.World.Assets.m.RepairSpeedMult *= 1.25;
+		if ("SellPriceMult" in this.World.Assets.m)
+			this.World.Assets.m.SellPriceMult *= 0.92;
 	}
 
 	function onSpawnAssets()
@@ -60,7 +70,7 @@ this.wx_origin_frontier_veterans <- this.inherit("scripts/scenarios/world/starti
 				::Wuxia.Slots.equipManual(bro, 1, waiID, false);
 				if (vt.Learn != null)
 					::Wuxia.Slots.learnManual(bro, vt.Learn, false);
-				if (bro.getBackground() != null && ("WX_RefreshStarterNote" in bro.getBackground()))
+				if (bro.getBackground() != null && ::Wuxia.hasMember(bro.getBackground(), "WX_RefreshStarterNote"))
 					bro.getBackground().WX_RefreshStarterNote([::Wuxia.Slots.getManualDef(neiID).Name, ::Wuxia.Slots.getManualDef(waiID).Name]);
 				bro.getSkills().update();
 			}

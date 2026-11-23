@@ -46,7 +46,7 @@ this.wx_gear_spirit_trait <- this.inherit("scripts/skills/skill", {
 	function isMasterworkGear()
 	{
 		local it = this.getItem();
-		return (it != null && ("m" in it) && ("WX_ForgeGrade" in it.m) && it.m.WX_ForgeGrade >= 3);
+		return (it != null && ::Wuxia.hasMember(it, "m") && ("WX_ForgeGrade" in it.m) && it.m.WX_ForgeGrade >= 3);
 	}
 
 	function wxGetCurrentRound()
@@ -64,7 +64,7 @@ this.wx_gear_spirit_trait <- this.inherit("scripts/skills/skill", {
 		if (_tsk == null) return;
 		local ex = _tsk.getSkillByID(_effectID);
 		if (ex == null) _tsk.add(::new(_scriptPath));
-		else if ("resetDuration" in ex) ex.resetDuration();
+		else if (::Wuxia.hasMember(ex, "resetDuration")) ex.resetDuration();
 	}
 
 	function onTurnStart()
@@ -188,7 +188,7 @@ this.wx_gear_spirit_trait <- this.inherit("scripts/skills/skill", {
 		local cont = this.getContainer();
 		local actor = cont == null ? null : cont.getActor();
 
-		local intercepting = this.m.IsIntercepting || (actor != null && ("m" in actor) && ("WX_IsIntercepting" in actor.m) && actor.m.WX_IsIntercepting);
+		local intercepting = this.m.IsIntercepting || (actor != null && ::Wuxia.hasMember(actor, "m") && actor.m != null && ("WX_IsIntercepting" in actor.m) && actor.m.WX_IsIntercepting);
 		if (!_skill.isRanged() && ("ZoCBonusHit" in cfg) && cfg.ZoCBonusHit > 0 && intercepting)
 		{
 			_properties.MeleeSkill += cfg.ZoCBonusHit;
@@ -277,7 +277,7 @@ this.wx_gear_spirit_trait <- this.inherit("scripts/skills/skill", {
 		if (!_skill.isRanged() && ("ShieldBreakBonus" in cfg) && cfg.ShieldBreakBonus > 0 && (::Wuxia.hasMember(_targetEntity, "isArmedWithShield")) && _targetEntity.isArmedWithShield())
 		{
 			local sh = _targetEntity.getItems().getItemAtSlot(::Const.ItemSlot.Offhand);
-			if (sh != null && ("applyShieldDamage" in sh))
+			if (sh != null && ::Wuxia.hasMember(sh, "applyShieldDamage"))
 				sh.applyShieldDamage(cfg.ShieldBreakBonus + mwFlat);
 		}
 
@@ -350,7 +350,7 @@ this.wx_gear_spirit_trait <- this.inherit("scripts/skills/skill", {
 		if (("OnKillRefundAmmo" in cfg) && cfg.OnKillRefundAmmo > 0)
 		{
 			local item = this.getItem();
-			if (item != null && ("m" in item) && (::Wuxia.hasMember(item.m, "Ammo")) && (::Wuxia.hasMember(item.m, "AmmoMax")) && item.m.Ammo < item.m.AmmoMax)
+			if (item != null && ::Wuxia.hasMember(item, "m") && (::Wuxia.hasMember(item.m, "Ammo")) && (::Wuxia.hasMember(item.m, "AmmoMax")) && item.m.Ammo < item.m.AmmoMax)
 			{
 				item.m.Ammo = ::Math.min(item.m.AmmoMax, item.m.Ammo + cfg.OnKillRefundAmmo);
 			}

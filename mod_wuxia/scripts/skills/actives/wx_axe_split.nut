@@ -37,6 +37,11 @@ this.wx_axe_split <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.DirectDamageMult = 0.30;
 	}
 
+	function isAxeMasteryApplied()
+	{
+		return true;
+	}
+
 	function onAnySkillUsed( _skill, _targetEntity, _properties )
 	{
 		if (_skill == this && _targetEntity != null && ::Wuxia.hasMember(_targetEntity, "isArmedWithShield") && !_targetEntity.isArmedWithShield())

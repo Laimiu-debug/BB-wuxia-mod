@@ -57,6 +57,26 @@
 	};
 
 	// 2. Clean AP Micro-Label on Tactical Skill Slots (Qi cost & lineage shown in tooltip)
+	var skillsPerPage = 9;
+	function showSkillPage(bar, page) {
+		var slots = bar.mSkillsContainer.children('.l-skill');
+		var pages = Math.ceil(slots.length / skillsPerPage);
+		var pager = bar.mSkillsContainer.children('.wx-skill-page');
+		bar.mWXSkillPage = Math.max(0, Math.min(page, pages - 1));
+		slots.each(function (i) {
+			$(this).toggle(Math.floor(i / skillsPerPage) === bar.mWXSkillPage);
+		});
+		if (pages <= 1) {
+			pager.remove();
+			return;
+		}
+		if (!pager.length) {
+			pager = $('<button type="button" class="wx-skill-page" title="切换招式页"></button>').appendTo(bar.mSkillsContainer);
+			pager.on('click', function () { showSkillPage(bar, (bar.mWXSkillPage + 1) % pages); });
+		}
+		pager.text('换页 ' + (bar.mWXSkillPage + 1) + '/' + pages);
+	}
+
 	if (TacticalScreenTurnSequenceBarModule.prototype.addSkillToList) {
 		var origAddSkill = TacticalScreenTurnSequenceBarModule.prototype.addSkillToList;
 		TacticalScreenTurnSequenceBarModule.prototype.addSkillToList = function (_entity, _skill, _label) {
@@ -65,6 +85,14 @@
 
 			var skillLayout = this.mSkillsContainer.children('.l-skill:last');
 			if (!skillLayout.length) return;
+			if (this.mWXSkillEntity !== _entity.id) {
+				this.mWXSkillEntity = _entity.id;
+				this.mWXSkillPage = 0;
+			}
+			if (_label > skillsPerPage) {
+				var pos = this.mSkillsContainer.children('.l-skill').eq((_label - 1) % skillsPerPage)[0].style;
+				skillLayout.css({ left: pos.left, bottom: pos.bottom });
+			}
 
 			if (typeof _skill.wxAp === 'number' && _skill.wxAp > 0) {
 				var skillBox = skillLayout.children('.skill:first');
@@ -74,4 +102,20 @@
 			}
 		};
 	}
+
+	var origShowSkills = TacticalScreenTurnSequenceBarModule.prototype.showEntitySkillbar;
+	TacticalScreenTurnSequenceBarModule.prototype.showEntitySkillbar = function (show) {
+		if (show && this.mSkillsContainer) showSkillPage(this, this.mWXSkillPage || 0);
+		return origShowSkills.call(this, show);
+	};
+
+	var origSelectSkill = TacticalScreenTurnSequenceBarModule.prototype.selectSkill;
+	TacticalScreenTurnSequenceBarModule.prototype.selectSkill = function (skill) {
+		var result = origSelectSkill.call(this, skill);
+		if (skill && skill.select && this.mSkillsContainer) {
+			var selected = this.searchSkillDIV(skill);
+			if (selected) showSkillPage(this, Math.floor(selected.index / skillsPerPage));
+		}
+		return result;
+	};
 })();

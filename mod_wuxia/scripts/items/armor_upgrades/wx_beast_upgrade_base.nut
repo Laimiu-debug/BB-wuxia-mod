@@ -57,7 +57,7 @@ this.wx_beast_upgrade_base <- this.inherit("scripts/items/armor_upgrades/armor_u
 				id = 69,
 				type = "text",
 				icon = "ui/icons/special.png",
-				text = "[color=#2f6e62]【百工镶缀】[/color]" + this.getEffectiveBonusText()
+				text = "[color=#094039]【百工镶缀】[/color]" + this.getEffectiveBonusText()
 			});
 		}
 		if ("Forge" in ::Wuxia && "injectForgeTooltip" in ::Wuxia.Forge)
@@ -77,7 +77,7 @@ this.wx_beast_upgrade_base <- this.inherit("scripts/items/armor_upgrades/armor_u
 				id = 69,
 				type = "text",
 				icon = "ui/icons/special.png",
-				text = "[color=#2f6e62]【" + gradeTag + cfg.Name + "】[/color]" + this.getEffectiveBonusText()
+				text = "[color=#094039]【" + gradeTag + cfg.Name + "】[/color]" + this.getEffectiveBonusText()
 			});
 		}
 	}

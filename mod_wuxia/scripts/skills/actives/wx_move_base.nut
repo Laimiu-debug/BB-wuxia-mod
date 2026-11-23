@@ -51,12 +51,20 @@ this.wx_move_base <- this.inherit("scripts/skills/skill", {
 			local item = this.getContainer().getActor().getItems().getItemAtSlot(::Const.ItemSlot.Mainhand);
 			return item != null && (item.getAmmoMax() == 0 || item.getAmmo() > 0);
 		}
-		if (this.m.RequiredWeaponTypes.len() == 1 && this.m.RequiredWeaponTypes[0] == "Bow")
+		if (this.m.RequiredWeaponTypes.find("Firearm") != null || this.m.RequiredWeaponTypes.find("Crossbow") != null || this.m.RequiredWeaponTypes.find("Bow") != null)
 		{
 			local actor = this.getContainer().getActor();
-			if (actor != null && !actor.isPlayerControlled()) return true;
-			local ammo = actor == null ? null : actor.getItems().getItemAtSlot(::Const.ItemSlot.Ammo);
-			return ammo != null && (ammo.getAmmoMax() == 0 || ammo.getAmmo() > 0);
+			local items = actor.getItems();
+			local weapon = items.getItemAtSlot(::Const.ItemSlot.Mainhand);
+			if (::Wuxia.CombatRules.matchesWeapon(weapon, ["Firearm", "Crossbow"]))
+				return !::Wuxia.hasMember(weapon, "isLoaded") || weapon.isLoaded();
+			if (::Wuxia.CombatRules.matchesWeapon(weapon, ["Bow"]))
+			{
+				if (!actor.isPlayerControlled()) return true;
+				local ammo = items.getItemAtSlot(::Const.ItemSlot.Ammo);
+				return ammo != null && ammo.getAmmoType() == ::Const.Items.AmmoType.Arrows
+					&& (ammo.getAmmoMax() == 0 || ammo.getAmmo() > 0);
+			}
 		}
 		return true;
 	}
@@ -71,13 +79,54 @@ this.wx_move_base <- this.inherit("scripts/skills/skill", {
 
 	function wxShootBowAt( _user, _target )
 	{
+		local items = _user.getItems();
+		local weapon = items.getItemAtSlot(::Const.ItemSlot.Mainhand);
 		local hit = this.attackEntity(_user, _target);
-		if (_user.isPlayerControlled())
+		if (::Wuxia.CombatRules.matchesWeapon(weapon, ["Firearm"]))
 		{
-			local ammo = _user.getItems().getItemAtSlot(::Const.ItemSlot.Ammo);
+			if (::Wuxia.hasMember(weapon, "setLoaded")) weapon.setLoaded(false);
+			if (!this.getContainer().hasSkill("actives.reload_handgonne"))
+			{
+				try
+				{
+					local rg = ::new("scripts/skills/actives/reload_handgonne");
+					rg.setItem(weapon);
+					rg.setFatigueCost(::Math.max(0, rg.getFatigueCostRaw() + weapon.m.FatigueOnSkillUse));
+					this.getContainer().add(rg);
+				}
+				catch (_e) {}
+			}
+		}
+		else if (::Wuxia.CombatRules.matchesWeapon(weapon, ["Crossbow"]))
+		{
+			weapon.setLoaded(false);
+			if (!this.getContainer().hasSkill("actives.reload_bolt"))
+			{
+				local reload = ::new("scripts/skills/actives/reload_bolt");
+				reload.setItem(weapon);
+				reload.setFatigueCost(::Math.max(0, reload.getFatigueCostRaw() + weapon.m.FatigueOnSkillUse));
+				this.getContainer().add(reload);
+			}
+		}
+		else if (_user.isPlayerControlled())
+		{
+			local ammo = items.getItemAtSlot(::Const.ItemSlot.Ammo);
 			if (ammo != null && ammo.getAmmoMax() > 0) ammo.consumeAmmo();
 		}
 		return hit;
+	}
+
+	function findTileToKnockBackTo( _userTile, _targetTile )
+	{
+		if (_userTile == null || _targetTile == null) return null;
+		local dir = _userTile.getDirectionTo(_targetTile);
+		if (_targetTile.hasNextTile(dir))
+		{
+			local knockToTile = _targetTile.getNextTile(dir);
+			if (knockToTile.IsEmpty && !knockToTile.IsOccupiedByActor && ::Math.abs(knockToTile.Level - _userTile.Level) <= 1 && ::Math.abs(knockToTile.Level - _targetTile.Level) <= 1)
+				return knockToTile;
+		}
+		return null;
 	}
 
 	function wxTryKnockback( _user, _target )
@@ -132,6 +181,8 @@ this.wx_move_base <- this.inherit("scripts/skills/skill", {
 		if (_target == null || !_target.isAlive() || _effectID == null || _effectScript == null)
 			return;
 		if ((_effectID == "effects.wx_status_acupoint" || _effectID == "effects.wx_status_poison_dart") && ::Wuxia.CombatRules.isImmuneToMeridianAndPoison(_target))
+			return;
+		if (_effectID == "effects.wx_internal_injury" && ::Wuxia.CombatRules.isUndeadOrConstruct(_target))
 			return;
 		if (_chanceFlag != null)
 		{
@@ -266,7 +317,7 @@ this.wx_move_base <- this.inherit("scripts/skills/skill", {
 				id = 18,
 				type = "text",
 				icon = "ui/icons/special.png",
-				text = "演武意境：[color=#f2d488]" + choreoLbl + "[/color]"
+				text = "演武意境：[color=#5e2c00]" + choreoLbl + "[/color]"
 			});
 		}
 

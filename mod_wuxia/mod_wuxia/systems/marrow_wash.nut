@@ -159,6 +159,8 @@
 		}
 		_actor.m.Talents[_targetAttrIdx] = preview.NextStar;
 		::Wuxia.MarrowWash.refreshFutureRolls(_actor, _targetAttrIdx);
+		if ("World" in getroottable() && ::World != null && ("Flags" in ::World) && ::World.Flags != null)
+			::World.Flags.set("wx_marrow_wash_success", true);
 
 		return {
 			Ok = true,

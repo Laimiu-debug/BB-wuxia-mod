@@ -21,9 +21,10 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		KillHealsThisTurn  = 0,
 		KillAPUsedThisTurn = false,
 		IsIntercepting     = false,
-		SupportShotUsed    = false,
-		FastAdaptStacks    = 0,
-		CachedAggFlags     = null
+		SupportShotUsed     = false,
+		FastAdaptStacks     = 0,
+		CachedAggFlags      = null,
+		WX_ElevationApplied = false
 	},
 
 	function create()
@@ -183,8 +184,9 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 	function grantTemporaryAP( _amount )
 	{
 		local actor = this.getContainer().getActor();
-		local permanentMax = actor.getActionPointsMax() - this.m.TemporaryAPOverflow;
-		local next = actor.getActionPoints() + _amount;
+		local next = ::Math.min(::Wuxia.Config.Constants.MaxTemporaryAP, actor.getActionPoints() + _amount);
+		this.m.TemporaryAPOverflow = 0;
+		local permanentMax = actor.getActionPointsMax();
 		this.m.TemporaryAPOverflow = ::Math.max(0, next - permanentMax);
 		actor.setActionPoints(next);
 	}
@@ -232,7 +234,10 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 				actor.setHitpoints(::Math.min(actor.getHitpointsMax(), actor.getHitpoints() + 3));
 			}
 		}
-		if (::Wuxia.Slots.hasNeigongConflict(actor))
+		local pBuffTurn = this.getContainer().getSkillByID("effects.wx_pill_battle_buff");
+		local zhenmoCalm = (pBuffTurn != null && ("HasZhenmo" in pBuffTurn.m) && pBuffTurn.m.HasZhenmo);
+
+		if (!zhenmoCalm && ::Wuxia.Slots.hasNeigongConflict(actor))
 		{
 			local resolve = actor.getCurrentProperties().Bravery;
 			local risk = ::Math.max(5, 25 - ::Math.floor(resolve / 4));
@@ -243,7 +248,7 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 				this.Tactical.EventLog.log(::Const.UI.getColorizedEntityName(actor) + " 体内阴阳/正邪内息逆冲，损耗 10 点内息！");
 			}
 		}
-		else if (agg.HasFragmentManual && ::Math.rand(1, 100) <= (agg.AntiInternalInjury ? 5 : 10))
+		else if (!zhenmoCalm && agg.HasFragmentManual && ::Math.rand(1, 100) <= (agg.AntiInternalInjury ? 5 : 10))
 		{
 			::Wuxia.CombatRules.spendQi(actor, 6);
 			this.Tactical.EventLog.log(::Const.UI.getColorizedEntityName(actor) + " 强运残本功法行气不畅，散逸 6 点内息。");
@@ -267,6 +272,8 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 			_properties.IsAffectedByNight = false;
 		if (agg.FirstRoundInit > 0 && this.wxIsFirstCombatRound())
 			_properties.Initiative += agg.FirstRoundInit;
+		if (agg.PolearmMastery && ("IsSpecializedInPolearms" in _properties))
+			_properties.IsSpecializedInPolearms = true;
 		if (actor != null && (::Wuxia.hasMember(actor, "isArmedWithShield")) && actor.isArmedWithShield())
 		{
 			if (agg.ShieldDefBonus > 0)
@@ -292,10 +299,25 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 			_properties.ThresholdToReceiveInjuryMult *= agg.InjuryThresholdMult;
 		}
 
-		// Elevation AP discount (when Pathfinder is not active)
-		if (!agg.TerrainCostHalved && agg.ElevationDiscount && actor != null)
+		// Elevation AP discount (when Pathfinder is not active; restore original cost cleanly on unequip!)
+		if (actor != null && ::Wuxia.hasMember(actor, "m") && actor.m != null && ::Wuxia.hasMember(actor.m, "LevelActionPointCost"))
 		{
-			actor.m.LevelActionPointCost = 0;
+			if (!::Wuxia.hasMember(actor.m, "WX_OrigLevelAPCost"))
+				actor.m.WX_OrigLevelAPCost <- actor.m.LevelActionPointCost;
+			if (!agg.TerrainCostHalved && agg.ElevationDiscount)
+			{
+				actor.m.LevelActionPointCost = 0;
+				this.m.WX_ElevationApplied = true;
+			}
+			else if (this.m.WX_ElevationApplied && !agg.TerrainCostHalved && (container == null || !container.hasSkill("perk.pathfinder")))
+			{
+				actor.m.LevelActionPointCost = actor.m.WX_OrigLevelAPCost;
+				this.m.WX_ElevationApplied = false;
+			}
+			else if (agg.TerrainCostHalved)
+			{
+				this.m.WX_ElevationApplied = false;
+			}
 		}
 
 		// Direct / Armor damage bonuses (EmptyOffhandPen + DirectDmgBonus hard-capped at +25% per AGENTS.md)
@@ -477,14 +499,17 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		// True Qi Shield (阴柔内功护体: 1 Qi mitigates 2 HP damage, capped by QiShieldPct)
 		if (agg.QiShieldPct > 0.0 && _hitInfo.DamageRegular > 0)
 		{
+			local light = agg.LightArmorMitigation > 0 ? ::Wuxia.CombatRules.getLightArmorDamageMult(actor, agg.LightArmorMitigation) : 1.0;
+			if (light < 1.0)
+				_properties.DamageReceivedRegularMult = ::Math.maxf(0.40, _properties.DamageReceivedRegularMult);
 			local availQi = ::Math.max(0, actor.getFatigueMax() - actor.getFatigue());
 			if (availQi > 0)
 			{
 				local shieldPct = agg.QiShieldPct;
-				if (agg.LightArmorMitigation > 0)
+				if (light < 1.0)
 				{
-					local light = ::Wuxia.CombatRules.getLightArmorDamageMult(actor, agg.LightArmorMitigation);
-					shieldPct = ::Math.minf(shieldPct, ::Math.maxf(0.0, 1.0 - 0.40 / light));
+					local current = ::Math.minf(_properties.DamageReceivedRegularMult, light);
+					shieldPct = current <= 0.40 ? 0.0 : ::Math.minf(shieldPct, 1.0 - 0.40 / current);
 				}
 				local maxMitigate = ::Math.floor(_hitInfo.DamageRegular * shieldPct);
 				local qiNeeded = ::Math.ceil(maxMitigate / 2.0);
@@ -562,6 +587,41 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 				{
 					_targetEntity.setFatigue(::Math.min(_targetEntity.getFatigueMax(), _targetEntity.getFatigue() + agg.OnHitDrainQi));
 					if ("VFX" in ::Wuxia) ::Wuxia.VFX.playTriggerVfx(_targetEntity, "wx_vfx_19", null, 0, 150, 0.96);
+				}
+
+				// Bidirectional Martial Internal Injury: heavy direct-HP melee strikes from Tier 2+ martial artists / Fist / Hammer
+				// can shock living human meridians (making 护心丹 & Ancient Temple Clinics genuinely relevant after tough fights!)
+				if (_damageInflictedHitpoints >= 14 && !::Wuxia.CombatRules.isImmuneToMeridianAndPoison(_targetEntity))
+				{
+					local tMaxHP = ::Math.max(1, _targetEntity.getHitpointsMax());
+					if ((_damageInflictedHitpoints.tofloat() / tMaxHP.tofloat()) >= 0.22)
+					{
+						local atkTier = (this.m.Slots.len() > 0 && this.m.Slots[0].ManualID != null) ? this.m.Slots[0].Tier : 0;
+						local mainW = (::Wuxia.hasMember(actor, "getItems") && actor.getItems() != null) ? actor.getItems().getItemAtSlot(::Const.ItemSlot.Mainhand) : null;
+						local isConcussive = (mainW != null && ::Wuxia.CombatRules.matchesWeapon(mainW, ["Fist", "Hammer", "Staff"]));
+						if (atkTier >= 2 || isConcussive || _skill.getID().find("actives.wx_") == 0)
+						{
+							local injChance = isConcussive ? 28 : 18;
+							local tCont = tsk0.getSkillByID("special.wx_martial_container");
+							if (tCont != null && tCont.m.CachedAggFlags != null)
+							{
+								if (tCont.m.CachedAggFlags.AntiInternalInjury) injChance = ::Math.floor(injChance * 0.5);
+								if (tCont.m.CachedAggFlags.HeavyArmorScale > 0.0 && !isConcussive) injChance -= 5;
+							}
+							if (injChance > 0 && ::Math.rand(1, 100) <= injChance)
+							{
+								local inj = tsk0.getSkillByID("effects.wx_internal_injury");
+								if (inj == null)
+								{
+									inj = ::new("scripts/skills/effects/wx_internal_injury");
+									tsk0.add(inj);
+								}
+								inj.applySeverity(1, 2);
+								if ("Tactical" in getroottable() && ::Tactical != null && ::Tactical.isActive() && "EventLog" in ::Tactical)
+									::Tactical.EventLog.log(::Const.UI.getColorizedEntityName(_targetEntity) + " 遭刚猛内劲透体震伤经脉，染上「内伤」！");
+							}
+						}
+					}
 				}
 			}
 		}

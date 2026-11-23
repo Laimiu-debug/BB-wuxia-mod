@@ -1,4 +1,33 @@
-// Lightweight Sect Relations & Regional Jianghu Discovery stored in World.Flags (Zero Faction ID cost)
+// Independent Wuxia Sect Mountain Gates / Manors (`location.wx_sect_sanctum`), Fog-of-War Discovery & Tavern Tea-House System
+// Zero Faction ID cost (strictly preserves < 64 Faction ID engine guardrail!).
+
+::Wuxia.SectRelations.SanctumSpecs <- {
+	shaolin  = { Prefix = "少室山门", Brush = "wx_set_sect_monastery", Banner = "banner_53" },
+	taihe    = { Prefix = "太和云顶", Brush = "wx_set_sect_mountain",  Banner = "banner_54" },
+	qingfeng = { Prefix = "翠屏试剑峰", Brush = "wx_set_sect_mountain", Banner = "banner_52" },
+	tangmen  = { Prefix = "巴蜀幽篁堡", Brush = "wx_att_sect_dojo",    Banner = "banner_59" },
+	wudu     = { Prefix = "南疆万蛊坛", Brush = "wx_set_outpost_01",   Banner = "wx_fbanner_outlaw_01" },
+	gaibang  = { Prefix = "君山聚义总舵", Brush = "wx_set_water_market", Banner = "banner_60" },
+	weiyuan  = { Prefix = "顺天总镖号", Brush = "wx_att_sect_dojo",    Banner = "banner_51" },
+	heifeng  = { Prefix = "黑风绝岭总寨", Brush = "wx_set_outpost_01", Banner = "wx_fbanner_outlaw_01" },
+	shenji   = { Prefix = "西塞神机堡", Brush = "wx_set_garrison_02",  Banner = "wx_fbanner_south_01" },
+	pishan   = { Prefix = "长白聚义山庄", Brush = "wx_att_sect_dojo",  Banner = "banner_58" },
+	zhenyue  = { Prefix = "太行铸锤崖", Brush = "wx_set_sect_mountain", Banner = "banner_55" },
+	jiujie   = { Prefix = "云梦烟波坞", Brush = "wx_set_water_market", Banner = "banner_57" },
+	yinsha   = { Prefix = "流沙暗影分坛", Brush = "wx_set_outpost_01", Banner = "banner_61" },
+	xuanbing = { Prefix = "昆仑琼瑶宫", Brush = "wx_set_sect_mountain", Banner = "banner_56" }
+};
+
+::Wuxia.SectRelations.MajorSectPriority <- [
+	"shaolin", "taihe", "qingfeng", "tangmen", "gaibang", "weiyuan", "xuanbing",
+	"pishan", "zhenyue", "jiujie", "shenji", "wudu", "heifeng", "yinsha"
+];
+
+::Wuxia.SectRelations.AnchorCache <- {
+	MapKey          = "",
+	TownToSects     = {},
+	SectToSanctumID = {}
+};
 
 ::Wuxia.SectRelations.getExchangeSects <- function()
 {
@@ -16,7 +45,74 @@
 	return "四方江湖";
 };
 
-// Detect the geographic Jianghu region around the player's current position / nearest settlement
+::Wuxia.SectRelations.getSanctumVisualSpec <- function( _sectID )
+{
+	local sDef = (_sectID in ::Wuxia.Config.Sects) ? ::Wuxia.Config.Sects[_sectID] : null;
+	local sName = (sDef != null) ? sDef.Name : "隐世山门";
+	local desc = (sDef != null && "Description" in sDef) ? sDef.Description : "名动一方的江湖宗门山门所在。";
+	local reg = (sDef != null && "Region" in sDef) ? sDef.Region : "mountains";
+	local align = (sDef != null && "Alignment" in sDef) ? sDef.Alignment : "neutral";
+
+	if (_sectID in ::Wuxia.SectRelations.SanctumSpecs)
+	{
+		local sp = ::Wuxia.SectRelations.SanctumSpecs[_sectID];
+		return {
+			FullName    = sp.Prefix + " · " + sName,
+			WorldBrush  = sp.Brush,
+			BannerBrush = sp.Banner,
+			Description = desc
+		};
+	}
+
+	local brush = "wx_att_sect_dojo";
+	local prefix = "隐世山庄";
+	local banner = "banner_52";
+
+	if (align == "outlaw")
+	{
+		brush = "wx_set_outpost_01";
+		prefix = "险谷总寨";
+		banner = "wx_fbanner_outlaw_01";
+	}
+	else if (reg == "mountains" || reg == "snow")
+	{
+		brush = (_sectID.find("si") != null || _sectID.find("chan") != null) ? "wx_set_sect_monastery" : "wx_set_sect_mountain";
+		prefix = (reg == "snow") ? "寒山剑庐" : "幽岳山门";
+		banner = (reg == "snow") ? "banner_56" : "banner_54";
+	}
+	else if (reg == "swamp")
+	{
+		brush = "wx_set_water_market";
+		prefix = "烟波水寨";
+		banner = "wx_fbanner_civ_04";
+	}
+	else if (reg == "desert")
+	{
+		brush = "wx_att_sect_dojo";
+		prefix = "瀚海别院";
+		banner = "wx_fbanner_south_02";
+	}
+	else if (reg == "forest")
+	{
+		brush = "wx_att_sect_dojo";
+		prefix = "幽林山庄";
+		banner = "banner_59";
+	}
+	else
+	{
+		brush = "wx_att_sect_dojo";
+		prefix = "名门山庄";
+		banner = "banner_51";
+	}
+
+	return {
+		FullName    = prefix + " · " + sName,
+		WorldBrush  = brush,
+		BannerBrush = banner,
+		Description = desc
+	};
+};
+
 ::Wuxia.SectRelations.getLocalRegion <- function()
 {
 	if (!("World" in getroottable()) || ::World == null || !("State" in ::World) || ::World.State == null || ::World.State.getPlayer() == null)
@@ -40,7 +136,6 @@
 	return "plains";
 };
 
-// Return up to 3 distinct sect IDs for a town tea-house: 2 local-region sects + 1 roaming/global sect
 ::Wuxia.SectRelations.pickRegionalTrio <- function( _region )
 {
 	local localPool = [];
@@ -66,17 +161,11 @@
 	};
 
 	while (chosen.len() < 2 && localPool.len() > 0)
-	{
 		chosen.push(pickUniqueFrom(localPool));
-	}
 	while (chosen.len() < 3 && otherPool.len() > 0)
-	{
 		chosen.push(pickUniqueFrom(otherPool));
-	}
 	while (chosen.len() < 3 && localPool.len() > 0)
-	{
 		chosen.push(pickUniqueFrom(localPool));
-	}
 	return chosen;
 };
 
@@ -94,20 +183,87 @@
 
 	local key = ::Wuxia.SectRelations.getFlagKey(_sectID);
 	if (!::World.Flags.has(key))
-	{
 		::World.Flags.set(key, def.DefaultRel);
-	}
 	return ::World.Flags.getAsInt(key);
 };
 
-::Wuxia.SectRelations.addRelation <- function( _sectID, _delta )
+::Wuxia.SectRelations.discoverSect <- function( _sectID )
+{
+	if (_sectID == null || _sectID == "" || !(_sectID in ::Wuxia.Config.Sects)) return;
+	if ("World" in getroottable() && ::World != null && ("Flags" in ::World) && ::World.Flags != null)
+		::World.Flags.set("wx_sect_known_" + _sectID, true);
+};
+
+::Wuxia.SectRelations.isSectKnown <- function( _sectID )
+{
+	if (_sectID == null || _sectID == "" || !(_sectID in ::Wuxia.Config.Sects)) return false;
+	if (!("World" in getroottable()) || ::World == null || !("Flags" in ::World) || ::World.Flags == null)
+		return true;
+
+	if (::World.Flags.get("wx_sect_known_" + _sectID))
+		return true;
+
+	local def = ::Wuxia.Config.Sects[_sectID];
+	local curRel = ::Wuxia.SectRelations.getRelation(_sectID);
+	if (curRel != def.DefaultRel || ::Wuxia.SectRelations.isVendettaActive(_sectID))
+	{
+		::World.Flags.set("wx_sect_known_" + _sectID, true);
+		return true;
+	}
+
+	// Famous household Three-Pillars (`少室禅院`, `太和玄门`, `天下丐帮`) are known by reputation even before finding their mountain gate
+	if (_sectID == "shaolin" || _sectID == "taihe" || _sectID == "gaibang")
+		return true;
+
+	return false;
+};
+
+::Wuxia.SectRelations.isDiscovered <- function( _sectID )
+{
+	return ::Wuxia.SectRelations.isSectKnown(_sectID);
+};
+
+::Wuxia.SectRelations.addRelation <- function( _sectID, _delta, _fromRipple = false )
 {
 	if (!(_sectID in ::Wuxia.Config.Sects)) return 0;
-	local cur = ::Wuxia.SectRelations.getRelation(_sectID);
-	local next = ::Math.max(-100, ::Math.min(100, cur + _delta));
-	if ("World" in getroottable() && ::World != null && ("Flags" in ::World) && ::World.Flags != null)
+	::Wuxia.SectRelations.discoverSect(_sectID);
+	local adjDelta = _delta;
+	// Retinue Negotiator (`茶楼折冲客`) grants +20% positive sect standing gain!
+	if (!_fromRipple && adjDelta > 0 && "World" in getroottable() && ::World != null && ("Retinue" in ::World) && ::World.Retinue != null && ::World.Retinue.hasFollower("follower.negotiator"))
 	{
+		adjDelta = ::Math.max(adjDelta + 1, ::Math.round(adjDelta * 1.20).tointeger());
+	}
+	// Origin rule: `初走江湖` (`scenario.wx_jianghu_start`) grants +10% positive sect standing gain!
+	if (!_fromRipple && adjDelta > 0 && "World" in getroottable() && ::World != null && ("Assets" in ::World) && ::World.Assets != null && ::World.Assets.getOrigin() != null && ::World.Assets.getOrigin().getID() == "scenario.wx_jianghu_start")
+	{
+		adjDelta = ::Math.max(adjDelta + 1, ::Math.round(adjDelta * 1.10).tointeger());
+	}
+	local cur = ::Wuxia.SectRelations.getRelation(_sectID);
+	local next = ::Math.max(-100, ::Math.min(100, cur + adjDelta));
+	if ("World" in getroottable() && ::World != null && ("Flags" in ::World) && ::World.Flags != null)
 		::World.Flags.set(::Wuxia.SectRelations.getFlagKey(_sectID), next);
+
+	// Righteous vs Outlaw Jianghu alignment coupling: currying heavy favor with one camp cools rival camp sects slightly
+	if (!_fromRipple && adjDelta >= 8 && "World" in getroottable() && ::World != null && ("Flags" in ::World) && ::World.Flags != null)
+	{
+		local myAlign = ("Alignment" in ::Wuxia.Config.Sects[_sectID]) ? ::Wuxia.Config.Sects[_sectID].Alignment : "neutral";
+		local oppAlign = (myAlign == "righteous") ? "outlaw" : (myAlign == "outlaw" ? "righteous" : null);
+		if (oppAlign != null)
+		{
+			local nudged = 0;
+			foreach (otherID, otherDef in ::Wuxia.Config.Sects)
+			{
+				if (otherID == _sectID || otherDef.Alignment != oppAlign) continue;
+				if (!::Wuxia.SectRelations.isSectKnown(otherID)) continue;
+				local oRel = ::Wuxia.SectRelations.getRelation(otherID);
+				if (oRel > -25)
+				{
+					::Wuxia.SectRelations.addRelation(otherID, -2, true);
+					nudged += 1;
+					if (nudged >= 2) break;
+				}
+			}
+		}
 	}
 	return next;
 };
@@ -116,17 +272,6 @@
 {
 	if (!(_sectID in ::Wuxia.Config.Sects)) return false;
 	return ::Wuxia.SectRelations.getRelation(_sectID) <= ::Wuxia.Config.Sects[_sectID].VendettaRel;
-};
-
-::Wuxia.SectRelations.MajorSectPriority <- [
-	"shaolin", "taihe", "qingfeng", "tangmen", "gaibang", "weiyuan", "xuanbing",
-	"pishan", "zhenyue", "jiujie", "shenji", "wudu", "heifeng", "yinsha"
-];
-
-::Wuxia.SectRelations.AnchorCache <- {
-	MapKey        = "",
-	TownToSects   = {},
-	SectToTownID  = {}
 };
 
 ::Wuxia.SectRelations.getSettlementRegion <- function( _s )
@@ -148,7 +293,7 @@
 		if (tile.Type == tt.Mountains || tile.Type == tt.Hills) hasMtn = true;
 		if (tile.Type == tt.Forest || tile.Type == tt.LeaveForest || ("AutumnForest" in tt && tile.Type == tt.AutumnForest)) hasForest = true;
 
-		for (local d = 0; d < 6; d = ++d)
+		for (local d = 0; d < 6; ++d)
 		{
 			if (!tile.hasNextTile(d)) continue;
 			local nt = tile.getNextTile(d).Type;
@@ -166,170 +311,326 @@
 	return "plains";
 };
 
-// Deterministically bind all 44 Jianghu Sects onto actual World-Map Settlements so every town hosts a Sect & every Sect has a map home!
-::Wuxia.SectRelations.ensureWorldSectAnchors <- function()
+::Wuxia.SectRelations.findSanctumSpawnTile <- function( _region, _seed )
 {
-	if (!("World" in getroottable()) || ::World == null || !("EntityManager" in ::World) || ::World.EntityManager == null)
+	if (!("World" in getroottable()) || ::World == null || ::World.EntityManager == null) return null;
+	local size = ::World.getMapSize();
+	local tt = ::Const.World.TerrainType;
+	local towns = ::World.EntityManager.getSettlements();
+	local locs = ::World.EntityManager.getLocations();
+
+	local totalTiles = (size.X - 6) * (size.Y - 6);
+	if (totalTiles <= 0) return null;
+	local w = size.X - 6;
+	local isExpandedMap = (size.X >= 145);
+	local minTownSep = isExpandedMap ? 7 : 5;
+	local maxTownSep = isExpandedMap ? 28 : 20;
+	local minSiteSep = isExpandedMap ? 7 : 5;
+
+	local bestTile = null;
+	local bestScore = -999999;
+	local samples = ::Math.min(1200, totalTiles);
+	local stepOffset = ::Math.abs(_seed * 193 + 37) % totalTiles;
+
+	for (local i = 0; i < samples; i = ++i)
+	{
+		local idx = (stepOffset + (i * totalTiles) / samples) % totalTiles;
+		local tx = 3 + (idx % w);
+		local ty = 3 + (idx / w);
+		local tile = ::World.getTileSquare(tx, ty);
+		if (tile == null || tile.IsOccupied || tile.HasRoad) continue;
+		if (tile.Type == tt.Ocean || tile.Type == tt.Shore || tile.Type == tt.Mountains || tile.Type == tt.Impassable || tile.Type == tt.Urban)
+			continue;
+
+		// Keep independent Mountain Gates / Manors spaciously separated from Towns & other Sites!
+		local minTownD = 9999;
+		local tooClose = false;
+		foreach (tw in towns)
+		{
+			if (tw == null || !tw.isAlive() || tw.getTile() == null) continue;
+			local d = tile.getDistanceTo(tw.getTile());
+			if (d < minTownSep) { tooClose = true; break; }
+			if (d < minTownD) minTownD = d;
+		}
+		if (tooClose || minTownD > maxTownSep) continue;
+
+		foreach (lc in locs)
+		{
+			if (lc != null && lc.isAlive() && lc.getTile() != null && tile.getDistanceTo(lc.getTile()) < minSiteSep)
+			{
+				tooClose = true;
+				break;
+			}
+		}
+		if (tooClose) continue;
+
+		local adjMtn = false;
+		local adjWater = false;
+		local adjRoad = false;
+		for (local d = 0; d < 6; ++d)
+		{
+			if (!tile.hasNextTile(d)) continue;
+			local nt = tile.getNextTile(d);
+			if (nt.Type == tt.Mountains || nt.Type == tt.Hills) adjMtn = true;
+			if (nt.Type == tt.Ocean || nt.Type == tt.Shore || nt.Type == tt.Swamp) adjWater = true;
+			if (nt.HasRoad) adjRoad = true;
+		}
+
+		local score = 0;
+		if (_region == "mountains")
+		{
+			if (tile.Type == tt.Hills) score += 260;
+			if (adjMtn) score += 220;
+			if (tile.Type == tt.Forest || tile.Type == tt.LeaveForest) score += 80;
+		}
+		else if (_region == "snow")
+		{
+			if (tile.Type == tt.Snow || ("SnowyForest" in tt && tile.Type == tt.SnowyForest)) score += 320;
+			else if ("Tundra" in tt && tile.Type == tt.Tundra) score += 220;
+			if (adjMtn) score += 80;
+		}
+		else if (_region == "desert")
+		{
+			if ("Oasis" in tt && tile.Type == tt.Oasis) score += 320;
+			else if ("Desert" in tt && tile.Type == tt.Desert) score += 260;
+			else if ("Steppe" in tt && tile.Type == tt.Steppe) score += 150;
+		}
+		else if (_region == "forest")
+		{
+			if (tile.Type == tt.Forest || tile.Type == tt.LeaveForest || ("AutumnForest" in tt && tile.Type == tt.AutumnForest)) score += 300;
+			if (adjMtn) score += 60;
+		}
+		else if (_region == "swamp")
+		{
+			if (tile.Type == tt.Swamp) score += 300;
+			if (adjWater) score += 180;
+		}
+		else // plains
+		{
+			if (tile.Type == tt.Plains || ("Steppe" in tt && tile.Type == tt.Steppe)) score += 240;
+			if (adjRoad) score += 110;
+		}
+
+		// Prefer convenient 6..13 tile ring around settlements so reachable without road clutter
+		if (minTownD >= 6 && minTownD <= 13) score += 75;
+
+		if (score > bestScore)
+		{
+			bestScore = score;
+			bestTile = tile;
+		}
+	}
+	return bestTile;
+};
+
+// Spawn & index 18 Independent Sect Mountain Gates / Manors / Strongholds (`location.wx_sect_sanctum`) on the World Map!
+// Zero Settlements polluted (`TownToSects` stays empty), Zero Faction IDs consumed!
+::Wuxia.SectRelations.ensureWorldSectSanctums <- function()
+{
+	if (!("World" in getroottable()) || ::World == null || !("EntityManager" in ::World) || ::World.EntityManager == null || !("Flags" in ::World) || ::World.Flags == null)
 		return;
 
 	local rawTowns = ::World.EntityManager.getSettlements();
 	if (rawTowns == null || rawTowns.len() == 0) return;
 
-	local activeTowns = [];
-	foreach (t in rawTowns)
+	local firstT = rawTowns[0].getTile();
+	local mapSeed = (firstT != null) ? ::Math.abs(firstT.SquareCoords.X * 131 + firstT.SquareCoords.Y * 71 + rawTowns.len() * 19) : 97;
+	local key = rawTowns.len() + ":" + rawTowns[0].getID() + ":" + mapSeed;
+
+	local sectToSanctum = {};
+	foreach (loc in ::World.EntityManager.getLocations())
 	{
-		if (t != null && (!::Wuxia.hasMember(t, "isAlive") || t.isAlive()))
-			activeTowns.push(t);
-	}
-	if (activeTowns.len() == 0) return;
-
-	local firstT = activeTowns[0].getTile();
-	local key = activeTowns.len() + ":" + activeTowns[0].getID() + ":" + (firstT != null ? (firstT.SquareCoords.X + "_" + firstT.SquareCoords.Y) : "0");
-	if (::Wuxia.SectRelations.AnchorCache.MapKey == key) return;
-
-	activeTowns.sort(function( _a, _b ) {
-		if (_a.getID() < _b.getID()) return -1;
-		if (_a.getID() > _b.getID()) return 1;
-		return 0;
-	});
-
-	local townToSects = {};
-	local sectToTownID = {};
-	local townMeta = [];
-
-	foreach (tw in activeTowns)
-	{
-		local tid = tw.getID();
-		townToSects[tid] <- [];
-		local prof = ("WX_ComputeArchProfile" in tw) ? tw.WX_ComputeArchProfile() : null;
-		townMeta.push({
-			Town      = tw,
-			ID        = tid,
-			Region    = ::Wuxia.SectRelations.getSettlementRegion(tw),
-			IsSectGate= (prof != null && prof.NamePool == "sect_town"),
-			IsMonastery = (prof != null && prof.WorldSprite == "wx_set_sect_monastery"),
-			IsMilitary= (::Wuxia.hasMember(tw, "isMilitary") && tw.isMilitary()),
-			Size      = (::Wuxia.hasMember(tw, "getSize")) ? tw.getSize() : 1
-		});
-	}
-
-	// Build ordered Sect list: 14 Major Sects first, then remaining alphabetical
-	local orderedSects = [];
-	local seenS = {};
-	foreach (ms in ::Wuxia.SectRelations.MajorSectPriority)
-	{
-		if (ms in ::Wuxia.Config.Sects)
+		if (loc != null && loc.isAlive() && loc.getTypeID() == "location.wx_sect_sanctum")
 		{
-			orderedSects.push(ms);
-			seenS[ms] <- true;
+			local lsid = ("getSectID" in loc) ? loc.getSectID() : loc.getFlags().get("wx_sect_id");
+			if (lsid != null && lsid != "")
+				sectToSanctum[lsid] <- loc.getID();
 		}
 	}
-	local rest = [];
-	foreach (sid, _ in ::Wuxia.Config.Sects)
-	{
-		if (!(sid in seenS)) rest.push(sid);
-	}
-	rest.sort();
-	foreach (rs in rest) orderedSects.push(rs);
 
-	// Assign each Sect to the least-crowded matching Settlement (prioritizing Sect Mountain Gates for Monastery/Taoist/Sword sects!)
-	foreach (sid in orderedSects)
+	if (!::World.Flags.get("wx_sanctums_spawned_v1"))
 	{
-		local sDef = ::Wuxia.Config.Sects[sid];
-		local sReg = ("Region" in sDef) ? sDef.Region : "plains";
-		local bestMeta = null;
-		local bestScore = -999999;
-
-		foreach (tm in townMeta)
+		// Select 18 Sects for independent World-Map Sanctums: 14 Major Sects + 4 deterministic Regional Manors
+		local chosen = [];
+		local seen = {};
+		foreach (ms in ::Wuxia.SectRelations.MajorSectPriority)
 		{
-			local curLoad = townToSects[tm.ID].len();
-			local score = -curLoad * 100;
-			if (tm.Region == sReg) score += 260;
-			if (tm.IsSectGate && sReg == "mountains") score += 90;
-			if (tm.IsMonastery && (sid == "shaolin" || sid.find("si") != null || sid.find("chan") != null)) score += 140;
-			if (!tm.IsMonastery && tm.IsSectGate && (sid == "taihe" || sid == "qingfeng" || sid.find("jian") != null)) score += 95;
-			if (!tm.IsMilitary && sDef.Alignment != "outlaw") score += 20;
-			if (tm.Size >= 2 && (sid in seenS)) score += 25;
-
-			if (score > bestScore)
+			if (ms in ::Wuxia.Config.Sects)
 			{
-				bestScore = score;
-				bestMeta = tm;
+				chosen.push(ms);
+				seen[ms] <- true;
 			}
 		}
 
-		if (bestMeta != null)
+		local minorPool = [];
+		foreach (sid, sDef in ::Wuxia.Config.Sects)
 		{
-			townToSects[bestMeta.ID].push(sid);
-			sectToTownID[sid] <- bestMeta.ID;
+			if (!(sid in seen) && sDef.ShopManuals.len() > 0)
+				minorPool.push(sid);
 		}
-	}
+		minorPool.sort();
+		local mSize = ::World.getMapSize();
+		local extraMinorCount = (mSize != null && mSize.X >= 145) ? 8 : 4;
+		for (local k = 0; k < extraMinorCount && minorPool.len() > 0; k = ++k)
+		{
+			local pickIdx = (mapSeed + k * 7) % minorPool.len();
+			local picked = minorPool[pickIdx];
+			minorPool.remove(pickIdx);
+			chosen.push(picked);
+			seen[picked] <- true;
+		}
 
-	// Ensure every single settlement has at least 1 Primary Resident Sect (borrow a regional match if towns > 44)
-	foreach (tm in townMeta)
-	{
-		if (townToSects[tm.ID].len() == 0)
+		local p = ::Wuxia.hasWorldField("State") ? ::World.State.getPlayer() : null;
+		local pTile = (p != null) ? p.getTile() : null;
+
+		for (local idx = 0; idx < chosen.len(); idx = ++idx)
 		{
-			local fallbackPool = [];
-			foreach (sid, sDef in ::Wuxia.Config.Sects)
+			local sid = chosen[idx];
+			if (sid in sectToSanctum) continue;
+
+			local sDef = ::Wuxia.Config.Sects[sid];
+			local reg = ("Region" in sDef) ? sDef.Region : "mountains";
+			local sTile = ::Wuxia.SectRelations.findSanctumSpawnTile(reg, mapSeed + idx * 41);
+			if (sTile == null) continue;
+
+			local site = ::World.spawnLocation("scripts/entity/world/locations/wx_sect_sanctum", sTile.Coords);
+			if (site == null) continue;
+			site.setSectID(sid);
+			site.onSpawned();
+
+			// Reveal only if player has high starting standing (e.g. Origin Sect >= 20) or it's a nearby Escort/Righteous hall within 16 tiles!
+			local startRel = ::Wuxia.SectRelations.getRelation(sid);
+			local nearStart = (pTile != null && sDef.Alignment == "righteous" && pTile.getDistanceTo(sTile) <= 16);
+			if (startRel >= 20 || nearStart)
 			{
-				if ((("Region" in sDef) ? sDef.Region : "plains") == tm.Region)
-					fallbackPool.push(sid);
+				site.setDiscovered(true);
+				::Wuxia.SectRelations.discoverSect(sid);
 			}
-			if (fallbackPool.len() == 0) fallbackPool = orderedSects;
-			fallbackPool.sort();
-			townToSects[tm.ID].push(fallbackPool[tm.ID % fallbackPool.len()]);
+			else
+			{
+				site.setDiscovered(false);
+			}
+
+			sectToSanctum[sid] <- site.getID();
+			::World.Flags.set("wx_sanctum_id_" + sid, site.getID());
 		}
+
+		::World.Flags.set("wx_sanctums_spawned_v1", true);
 	}
 
 	::Wuxia.SectRelations.AnchorCache.MapKey = key;
-	::Wuxia.SectRelations.AnchorCache.TownToSects = townToSects;
-	::Wuxia.SectRelations.AnchorCache.SectToTownID = sectToTownID;
+	::Wuxia.SectRelations.AnchorCache.TownToSects = {};
+	::Wuxia.SectRelations.AnchorCache.SectToSanctumID = sectToSanctum;
 };
 
+// Keep backwards-compatible alias
+::Wuxia.SectRelations.ensureWorldSectAnchors <- function()
+{
+	::Wuxia.SectRelations.ensureWorldSectSanctums();
+};
+
+// Sects are NEVER bound onto towns anymore — returns empty array!
 ::Wuxia.SectRelations.getSettlementSects <- function( _settlement )
 {
-	if (_settlement == null) return [];
-	::Wuxia.SectRelations.ensureWorldSectAnchors();
-	local tid = _settlement.getID();
-	if (tid in ::Wuxia.SectRelations.AnchorCache.TownToSects)
-		return ::Wuxia.SectRelations.AnchorCache.TownToSects[tid];
 	return [];
+};
+
+::Wuxia.SectRelations.getSectSanctumEntity <- function( _sectID )
+{
+	if (_sectID == null || _sectID == "" || !::Wuxia.hasWorldField("EntityManager"))
+		return null;
+	::Wuxia.SectRelations.ensureWorldSectSanctums();
+	if (_sectID in ::Wuxia.SectRelations.AnchorCache.SectToSanctumID)
+	{
+		local eid = ::Wuxia.SectRelations.AnchorCache.SectToSanctumID[_sectID];
+		local ent = ::World.getEntityByID(eid);
+		if (ent != null && ent.isAlive()) return ent;
+	}
+	return null;
 };
 
 ::Wuxia.SectRelations.getSectAnchorInfo <- function( _sectID )
 {
-	local empty = { townName = "", dir = "", dist = -1, townObj = null };
-	if (!(_sectID in ::Wuxia.Config.Sects) || !("World" in getroottable()) || ::World == null || ::World.EntityManager == null)
+	local empty = { townName = "", dir = "", dist = -1, townObj = null, sanctumObj = null, hasSanctum = false, isDiscovered = false };
+	if (!(_sectID in ::Wuxia.Config.Sects) || !::Wuxia.hasWorldField("EntityManager"))
 		return empty;
 
-	::Wuxia.SectRelations.ensureWorldSectAnchors();
-	if (!(_sectID in ::Wuxia.SectRelations.AnchorCache.SectToTownID))
-		return empty;
+	local sanctum = ::Wuxia.SectRelations.getSectSanctumEntity(_sectID);
+	local sDef = ::Wuxia.Config.Sects[_sectID];
+	local regLbl = ::Wuxia.SectRelations.getRegionLabel(("Region" in sDef) ? sDef.Region : "plains");
 
-	local tid = ::Wuxia.SectRelations.AnchorCache.SectToTownID[_sectID];
-	local town = ::World.getEntityByID(tid);
-	if (town == null || (::Wuxia.hasMember(town, "isAlive") && !town.isAlive()))
-		return empty;
+	if (sanctum == null)
+	{
+		return {
+			townName     = "四方游历 · " + regLbl + "酒肆茶座可遇传人",
+			dir          = "",
+			dist         = -1,
+			townObj      = null,
+			sanctumObj   = null,
+			hasSanctum   = false,
+			isDiscovered = false
+		};
+	}
 
-	local p = (::World.State != null) ? ::World.State.getPlayer() : null;
+	local disc = sanctum.isDiscovered();
+	if (!disc)
+	{
+		return {
+			townName     = "山门隐于【" + regLbl + "】迷雾（可探图或赴酒肆打探方位）",
+			dir          = "",
+			dist         = -1,
+			townObj      = sanctum,
+			sanctumObj   = sanctum,
+			hasSanctum   = true,
+			isDiscovered = false
+		};
+	}
+
+	local p = ::Wuxia.hasWorldField("State") ? ::World.State.getPlayer() : null;
 	local pTile = (p != null) ? p.getTile() : null;
-	local tTile = town.getTile();
+	local tTile = sanctum.getTile();
 	local dir = (pTile != null && tTile != null && ("ShanHai" in ::Wuxia)) ? ::Wuxia.ShanHai.getCompassDirection(pTile, tTile) : "";
 	local dist = (pTile != null && tTile != null) ? pTile.getDistanceTo(tTile) : -1;
 
 	return {
-		townName = town.getName(),
-		dir      = dir,
-		dist     = dist,
-		townObj  = town
+		townName     = sanctum.getName(),
+		dir          = dir,
+		dist         = dist,
+		townObj      = sanctum,
+		sanctumObj   = sanctum,
+		hasSanctum   = true,
+		isDiscovered = true
 	};
 };
 
-// Detect the town the player is currently inside (or standing directly on)
+// Detect if the player is currently visiting a Sect Mountain Gate (`location.wx_sect_sanctum`)
+::Wuxia.SectRelations.getCurrentSanctum <- function()
+{
+	if (!::Wuxia.hasWorldField("State") || !::Wuxia.hasWorldField("Flags") || !::Wuxia.hasWorldField("EntityManager"))
+		return null;
+	local p = ::World.State.getPlayer();
+	if (p == null || p.getTile() == null) return null;
+	local pTile = p.getTile();
+
+	local activeSid = ::World.Flags.get("wx_active_sanctum_sect");
+	if (activeSid != null && typeof activeSid == "string" && activeSid != "")
+	{
+		local ent = ::Wuxia.SectRelations.getSectSanctumEntity(activeSid);
+		if (ent != null && ent.getTile() != null && pTile.getDistanceTo(ent.getTile()) <= 1)
+			return ent;
+	}
+
+	foreach (loc in ::World.EntityManager.getLocations())
+	{
+		if (loc != null && loc.isAlive() && loc.getTypeID() == "location.wx_sect_sanctum" && loc.getTile() != null && pTile.getDistanceTo(loc.getTile()) == 0)
+			return loc;
+	}
+	return null;
+};
+
 ::Wuxia.SectRelations.getCurrentTown <- function()
 {
-	if (!("World" in getroottable()) || ::World == null || ::World.State == null)
+	if (!::Wuxia.hasWorldField("State"))
 		return null;
 	local ws = ::World.State;
 	if (::Wuxia.hasMember(ws, "getCurrentTown"))
@@ -342,7 +643,7 @@
 		return ws.m.CurrentTown;
 
 	local p = ws.getPlayer();
-	if (p == null || p.getTile() == null || ::World.EntityManager == null)
+	if (p == null || p.getTile() == null || !::Wuxia.hasWorldField("EntityManager"))
 		return null;
 	local pTile = p.getTile();
 	foreach (s in ::World.EntityManager.getSettlements())
@@ -353,43 +654,54 @@
 	return null;
 };
 
-// Resolve all Sects seated in `_town`'s Tea House (`江湖茶肆`):
-//   1. `_town`'s Resident Sects (`本城驻地`)
-//   2. 1 Weekly-rotating Regional Visiting Sect (`地界行客`)
-//   3. All Friendly/Origin Sects with Relation >= 25 (`同道传书` — e.g. Shaolin Monk Origin +35!)
+// Resolve Roaming Disciples seated in `_town`'s Tavern Tea-House (`迎客酒肆 · 二楼茶座`):
+//   1. 2 Weekly-rotating Regional Visiting Sects (`酒肆行客`)
+//   2. 1 Cross-region Wandering Sect (`云游散客`)
+//   3. Friendly Sects with Relation >= 30 (`飞鸽赴约`)
 ::Wuxia.SectRelations.getTownTeaHouseSeats <- function( _town )
 {
-	local result = {}; // sectID -> badgeLabel
+	local result = {};
 	if (_town == null) return result;
-
-	local residents = ::Wuxia.SectRelations.getSettlementSects(_town);
-	for (local i = 0; i < residents.len(); i = ++i)
-	{
-		local rsid = residents[i];
-		result[rsid] <- (i == 0) ? "本城驻地" : "同城堂口";
-	}
 
 	local reg = ::Wuxia.SectRelations.getSettlementRegion(_town);
 	local regPool = [];
+	local roamPool = [];
 	foreach (sid, sDef in ::Wuxia.Config.Sects)
 	{
 		if (sDef.ShopManuals.len() == 0) continue;
-		if (!(sid in result) && (("Region" in sDef) ? sDef.Region : "plains") == reg)
+		if ((("Region" in sDef) ? sDef.Region : "plains") == reg)
 			regPool.push(sid);
+		else
+			roamPool.push(sid);
 	}
 	regPool.sort();
+	roamPool.sort();
+
+	local week = ("getTime" in ::World && ::World.getTime() != null) ? (::World.getTime().Days / 4) : 0;
+	local seed = ::Math.abs(_town.getID() * 19 + week * 13);
+
 	if (regPool.len() > 0)
 	{
-		local week = ("getTime" in ::World && ::World.getTime() != null) ? (::World.getTime().Days / 5) : 0;
-		local vIdx = ::Math.abs(_town.getID() * 17 + week * 11) % regPool.len();
-		result[regPool[vIdx]] <- "地界行客";
+		local idx1 = seed % regPool.len();
+		result[regPool[idx1]] <- "酒肆行客";
+		if (regPool.len() > 1)
+		{
+			local idx2 = (idx1 + 1 + (seed / 7) % (regPool.len() - 1)) % regPool.len();
+			result[regPool[idx2]] <- "酒肆行客";
+		}
+	}
+	if (roamPool.len() > 0)
+	{
+		local rIdx = (seed * 3 + 5) % roamPool.len();
+		if (!(roamPool[rIdx] in result))
+			result[roamPool[rIdx]] <- "云游门人";
 	}
 
 	foreach (sid, sDef in ::Wuxia.Config.Sects)
 	{
 		if (sDef.ShopManuals.len() == 0 || (sid in result)) continue;
-		if (::Wuxia.SectRelations.getRelation(sid) >= 25)
-			result[sid] <- "同道传书";
+		if (::Wuxia.SectRelations.getRelation(sid) >= 30)
+			result[sid] <- "飞鸽赴约";
 	}
 
 	return result;
@@ -397,27 +709,73 @@
 
 ::Wuxia.SectRelations.getTeaCooldownLeft <- function( _kind, _sectID, _cooldownDays )
 {
-	if (!("World" in getroottable()) || ::World == null || ::World.Flags == null || ::World.getTime() == null)
+	if (!::Wuxia.hasWorldField("Flags") || ::World.getTime() == null)
 		return 0;
 	local flag = "wx_tea_" + _kind + "_" + _sectID;
 	if (!::World.Flags.has(flag)) return 0;
+	local effCd = _cooldownDays;
+	if (effCd > 1 && (_kind == "banq" || _kind == "spar" || _kind == "rumor" || _kind == "recruit"))
+	{
+		if (("Retinue" in ::World) && ::World.Retinue != null && ::World.Retinue.hasFollower("follower.negotiator"))
+			effCd -= 1;
+	}
 	local lastDay = ::World.Flags.getAsInt(flag);
 	local curDay = ::World.getTime().Days;
-	local rem = _cooldownDays - (curDay - lastDay);
+	local rem = effCd - (curDay - lastDay);
 	return rem > 0 ? rem : 0;
+};
+
+::Wuxia.SectRelations.getSanctumSealLeft <- function( _sectID )
+{
+	if (!::Wuxia.hasWorldField("Flags") || ::World.getTime() == null)
+		return 0;
+	local flag = "wx_sanctum_sealed_" + _sectID;
+	if (!::World.Flags.has(flag)) return 0;
+	local lastDay = ::World.Flags.getAsInt(flag);
+	local curDay = ::World.getTime().Days;
+	local rem = 15 - (curDay - lastDay);
+	return rem > 0 ? rem : 0;
+};
+
+// Resolve whether the player can currently interact face-to-face with `_sectID` (either at its Mountain Gate OR in a Town Tavern!)
+::Wuxia.SectRelations.resolveActiveMeeting <- function( _sectID )
+{
+	local sanctum = ::Wuxia.SectRelations.getCurrentSanctum();
+	if (sanctum != null)
+	{
+		local ssid = ("getSectID" in sanctum) ? sanctum.getSectID() : sanctum.getFlags().get("wx_sect_id");
+		if (ssid == _sectID)
+		{
+			local sealDays = ::Wuxia.SectRelations.getSanctumSealLeft(_sectID);
+			if (sealDays > 0)
+			{
+				local sNm = (_sectID in ::Wuxia.Config.Sects) ? ::Wuxia.Config.Sects[_sectID].Name : "本门";
+				return { Ok = false, AtSanctum = true, Sealed = true, Reason = "【" + sNm + "】山门前番遭强敌踢馆重创，全山戒严闭关疗伤（尚余 " + sealDays + " 日方重开知客堂）！" };
+			}
+			return { Ok = true, AtSanctum = true, PlaceName = sanctum.getName() };
+		}
+	}
+
+	local town = ::Wuxia.SectRelations.getCurrentTown();
+	if (town != null)
+	{
+		local seats = ::Wuxia.SectRelations.getTownTeaHouseSeats(town);
+		if (_sectID in seats)
+			return { Ok = true, AtSanctum = false, PlaceName = town.getName() + "酒肆茶座" };
+		return { Ok = false, Reason = "该宗门传人今日未在【" + town.getName() + "】酒肆歇脚，可亲赴其独立山门拜访或改日再遇。" };
+	}
+
+	return { Ok = false, Reason = "须亲临该派大地图【独立山门/山庄】，或在城池【迎客酒肆 · 二楼茶座】偶遇传人方能当面请教。" };
 };
 
 ::Wuxia.SectRelations.teaHouseBuyManual <- function( _sectID, _manualID )
 {
-	local town = ::Wuxia.SectRelations.getCurrentTown();
-	if (town == null)
-		return { ok = false, reason = "须先进入城池内的【江湖茶肆】方能当面请教秘籍。" };
 	if (!(_sectID in ::Wuxia.Config.Sects))
 		return { ok = false, reason = "未找到该江湖宗门。" };
 
-	local seats = ::Wuxia.SectRelations.getTownTeaHouseSeats(town);
-	if (!(_sectID in seats))
-		return { ok = false, reason = "该宗门传人当前未在【" + town.getName() + "】茶肆落座，请前往其驻地城池寻访。" };
+	local meet = ::Wuxia.SectRelations.resolveActiveMeeting(_sectID);
+	if (!meet.Ok)
+		return { ok = false, reason = meet.Reason };
 
 	local sect = ::Wuxia.Config.Sects[_sectID];
 	local offer = null;
@@ -429,8 +787,31 @@
 		return { ok = false, reason = "该宗门未传授此部秘籍。" };
 
 	local rel = ::Wuxia.SectRelations.getRelation(_sectID);
-	if (rel < offer.MinRel)
-		return { ok = false, reason = "与【" + sect.Name + "】交情不足（需 ≥" + offer.MinRel + "，当前 " + rel + "），可先设席论交或切磋印证。" };
+	local reqRel = offer.MinRel;
+	local moralNote = "";
+	if (offer.MinRel >= 45 && "World" in getroottable() && ::World != null && ::World.Assets != null)
+	{
+		local moral = ::World.Assets.getMoralReputation();
+		if (sect.Alignment == "righteous" && moral < 25)
+		{
+			reqRel += 12;
+			moralNote = "（因义社凶名在外，名门正派心存戒备，镇派秘籍门槛提高 +12）";
+		}
+		else if (sect.Alignment == "outlaw" && moral > 75)
+		{
+			reqRel += 8;
+			moralNote = "（因义社侠名过盛，绿林邪派疑心重重，秘籍门槛提高 +8）";
+		}
+	}
+	if (rel < reqRel)
+		return { ok = false, reason = "与【" + sect.Name + "】交情不足（需 ≥" + reqRel + "，当前 " + rel + "）" + moralNote + "，可先奉茗论交或演武拆招。" };
+
+	// Supreme manuals (`MinRel >= 45`) of sects that own an independent Mountain Gate require visiting the Mountain Gate (unless莫逆之交 rel >= 65)!
+	local hasSanctum = (::Wuxia.SectRelations.getSectSanctumEntity(_sectID) != null);
+	if (!meet.AtSanctum && hasSanctum && offer.MinRel >= 45 && rel < 65)
+	{
+		return { ok = false, reason = "镇派真传秘籍不在酒肆外传！请亲自前往【" + sect.Name + "】山门藏经阁拜求（或交情臻至 65 莫逆之交）。" };
+	}
 
 	if (::World.Assets.getMoney() < offer.Price)
 		return { ok = false, reason = "行囊纹银不足（需 " + offer.Price + " 两）。" };
@@ -449,68 +830,68 @@
 
 	local newRel = ::Wuxia.SectRelations.addRelation(_sectID, 2);
 	local destNote = ::Wuxia.Library.isAutoStoreEnabled() ? "已直接收录入【藏经阁】" : "已放入战团行囊";
+	local venueStr = meet.AtSanctum ? ("于【" + meet.PlaceName + "】奉上香火束脩 ") : ("于【" + meet.PlaceName + "】奉上束脩 ");
 	return {
 		ok      = true,
-		message = "奉上束脩 " + offer.Price + " 两，自【" + sect.Name + "】传人处请得《" + mdef.Name + "》（" + destNote + "，交情 +2 → " + newRel + "）！"
+		message = venueStr + offer.Price + " 两，请得【" + sect.Name + "】秘传《" + mdef.Name + "》（" + destNote + "，交情 +2 → " + newRel + "）！"
 	};
 };
 
 ::Wuxia.SectRelations.teaHouseBanquet <- function( _sectID )
 {
-	local town = ::Wuxia.SectRelations.getCurrentTown();
-	if (town == null)
-		return { ok = false, reason = "须在城池【江湖茶肆】中方能设席款待各派传人。" };
 	if (!(_sectID in ::Wuxia.Config.Sects))
 		return { ok = false, reason = "未找到该江湖宗门。" };
 
-	local seats = ::Wuxia.SectRelations.getTownTeaHouseSeats(town);
-	if (!(_sectID in seats))
-		return { ok = false, reason = "该宗门传人未在此城茶肆落座。" };
+	local meet = ::Wuxia.SectRelations.resolveActiveMeeting(_sectID);
+	if (!meet.Ok)
+		return { ok = false, reason = meet.Reason };
 
 	local cd = ::Wuxia.SectRelations.getTeaCooldownLeft("banq", _sectID, 3);
 	if (cd > 0)
-		return { ok = false, reason = "近日已宴请过该派传人，尚需相隔 " + cd + " 日再行设席。" };
+		return { ok = false, reason = "近日已拜会款待过该派，尚需相隔 " + cd + " 日再行登门。" };
 
 	local cost = 350;
 	if (::World.Assets.getMoney() < cost)
-		return { ok = false, reason = "设茗酒雅席需纹银 " + cost + " 两，当前盘缠不足。" };
+		return { ok = false, reason = "备办礼敬茗酒需纹银 " + cost + " 两，当前盘缠不足。" };
 
 	::World.Assets.addMoney(-cost);
 	::World.Flags.set("wx_tea_banq_" + _sectID, ::World.getTime().Days);
 	local sect = ::Wuxia.Config.Sects[_sectID];
-	local newRel = ::Wuxia.SectRelations.addRelation(_sectID, 15);
+	local gain = meet.AtSanctum ? 18 : 14;
+	local newRel = ::Wuxia.SectRelations.addRelation(_sectID, gain);
+	local msg = meet.AtSanctum
+		? ("亲登【" + meet.PlaceName + "】递帖奉礼、与执事长老品茗论道，【" + sect.Name + "】交情 +" + gain + "（当前：" + newRel + "）！")
+		: ("于【" + meet.PlaceName + "】设上等酒席款待【" + sect.Name + "】游历门人，宗门交情 +" + gain + "（当前：" + newRel + "）！");
 	return {
 		ok      = true,
-		message = "于【" + town.getName() + "】茶肆设上等茗酒款待【" + sect.Name + "】传人，把盏畅叙武林掌故，宗门交情 +15（当前：" + newRel + "）！"
+		message = msg
 	};
 };
 
 ::Wuxia.SectRelations.teaHouseSpar <- function( _sectID, _mode )
 {
-	local town = ::Wuxia.SectRelations.getCurrentTown();
-	if (town == null)
-		return { ok = false, reason = "须在城池【江湖茶肆】中方能当面切磋或递帖。" };
 	if (!(_sectID in ::Wuxia.Config.Sects))
 		return { ok = false, reason = "未找到该江湖宗门。" };
 
-	local seats = ::Wuxia.SectRelations.getTownTeaHouseSeats(town);
-	if (!(_sectID in seats))
-		return { ok = false, reason = "该宗门传人未在此城茶肆落座。" };
+	local meet = ::Wuxia.SectRelations.resolveActiveMeeting(_sectID);
+	if (!meet.Ok)
+		return { ok = false, reason = meet.Reason };
 
 	local sect = ::Wuxia.Config.Sects[_sectID];
 	if (_mode == "offend")
 	{
 		local nextRel = ::Wuxia.SectRelations.addRelation(_sectID, -35);
-		local vWarn = ::Wuxia.SectRelations.isVendettaActive(_sectID) ? "该派已传下江湖追杀令，小心道上寻仇高手！" : "双方梁子已结！";
+		local vWarn = ::Wuxia.SectRelations.isVendettaActive(_sectID) ? "该派已传下江湖追杀令，小心道上寻仇高手（可赴城镇易容阁敛息消解）！" : "双方梁子已结！";
+		local actTxt = meet.AtSanctum ? ("于【" + meet.PlaceName + "】当众剑劈知客牌匾") : ("于【" + meet.PlaceName + "】当众拂袖撕碎门帖");
 		return {
 			ok      = true,
-			message = "当众拂袖撕碎【" + sect.Name + "】门帖，宗门交情 -35（当前：" + nextRel + "）！" + vWarn
+			message = actTxt + "，【" + sect.Name + "】交情 -35（当前：" + nextRel + "）！" + vWarn
 		};
 	}
 
 	local cd = ::Wuxia.SectRelations.getTeaCooldownLeft("spar", _sectID, 5);
 	if (cd > 0)
-		return { ok = false, reason = "近日已与该派传人切磋印证，需潜心体悟 " + cd + " 日后再行拆招。" };
+		return { ok = false, reason = "近日已与该派切磋印证，需潜心体悟 " + cd + " 日后再行拆招。" };
 
 	local bros = (::World.getPlayerRoster() != null) ? ::World.getPlayerRoster().getAll() : [];
 	local bestBro = null;
@@ -526,9 +907,9 @@
 		return { ok = false, reason = "麾下暂无可登台拆招之侠客。" };
 
 	::World.Flags.set("wx_tea_spar_" + _sectID, ::World.getTime().Days);
-	local strongWin = (bestScore + ::Math.rand(1, 20) >= 92);
-	local relGain = strongWin ? 12 : 7;
-	local expGain = strongWin ? 65 : 40;
+	local strongWin = (bestScore + ::Math.rand(1, 20) >= 90);
+	local relGain = (strongWin ? 12 : 7) + (meet.AtSanctum ? 3 : 0);
+	local expGain = (strongWin ? 65 : 40) + (meet.AtSanctum ? 20 : 0);
 	local newRel = ::Wuxia.SectRelations.addRelation(_sectID, relGain);
 
 	if ("Mastery" in ::Wuxia && "grantFlatExpToEquipped" in ::Wuxia.Mastery)
@@ -543,68 +924,178 @@
 			for (local si = 0; si < cont.m.Slots.len(); si = ++si)
 			{
 				if (cont.m.Slots[si].ManualID != null && cont.m.Slots[si].Tier > 0)
-					::Wuxia.Mastery.addSlotExp(bestBro, si, expGain);
+					::Wuxia.Mastery.addExpToSlot(bestBro, si, expGain);
 			}
 		}
 	}
 
 	return {
 		ok      = true,
-		message = bestBro.getName() + " 登茶楼演武坪与【" + sect.Name + "】传人拆招印证，" + (strongWin ? "招式精妙引满堂喝彩" : "点到为止互有启发") + "！【" + sect.Name + "】交情 +" + relGain + "（当前：" + newRel + "），全身已装功法历练 +" + expGain + "！"
+		message = bestBro.getName() + " 于【" + meet.PlaceName + "】演武坪与【" + sect.Name + "】高手拆招印证，" + (strongWin ? "招式精妙引满堂喝彩" : "点到为止互有启发") + "！交情 +" + relGain + "（→ " + newRel + "），全身已装功法历练 +" + expGain + "！"
 	};
 };
 
-// Award or deduct local Sect Relations organically when slaying Outlaw Bosses or attacking Sect Patrols
-::Wuxia.SectRelations.onCombatActorSlain <- function( _victim, _isBoss )
+// Tavern Rumor Inquiry (`打探山门与丹道秘闻`): reveals 1 undiscovered Sect Sanctum on the map (or 1 undiscovered Alchemy Formula if all sanctums found!)
+::Wuxia.SectRelations.tavernInquireRumor <- function()
 {
-	if (_victim == null || !("World" in getroottable()) || ::World == null || ::World.State == null) return;
+	local town = ::Wuxia.SectRelations.getCurrentTown();
+	if (town == null)
+		return { ok = false, reason = "须在城池【迎客酒肆】中方能向酒保与四方茶客打探秘闻。" };
 
-	// If this victim belonged to a friendly/righteous Sect Patrol (`WX_PatrolSectID`), penalize relation!
-	if ("WX_PatrolSectID" in _victim.m && _victim.m.WX_PatrolSectID != null)
+	local cd = ::Wuxia.SectRelations.getTeaCooldownLeft("rumor", "global", 2);
+	if (cd > 0)
+		return { ok = false, reason = "近日刚在此间打探过风声，尚需隔 " + cd + " 日再有新消息传来。" };
+
+	local cost = 160;
+	if (::World.Assets.getMoney() < cost)
+		return { ok = false, reason = "请酒保与行脚客饮酒打探需纹银 " + cost + " 两。" };
+
+	::Wuxia.SectRelations.ensureWorldSectSanctums();
+	local hiddenSanctums = [];
+	foreach (sid, eid in ::Wuxia.SectRelations.AnchorCache.SectToSanctumID)
 	{
-		local psid = _victim.m.WX_PatrolSectID;
-		if (psid in ::Wuxia.Config.Sects)
+		local ent = ::World.getEntityByID(eid);
+		if (ent != null && ent.isAlive() && !ent.isDiscovered())
+			hiddenSanctums.push({ sid = sid, ent = ent });
+	}
+
+	if (hiddenSanctums.len() > 0)
+	{
+		::World.Assets.addMoney(-cost);
+		::World.Flags.set("wx_tea_rumor_global", ::World.getTime().Days);
+		local picked = hiddenSanctums[::Math.rand(0, hiddenSanctums.len() - 1)];
+		picked.ent.setDiscovered(true);
+		::Wuxia.SectRelations.discoverSect(picked.sid);
+		local info = ::Wuxia.SectRelations.getSectAnchorInfo(picked.sid);
+		local dirNote = (info.dir != "" && info.dist >= 0) ? ("（位于此处" + info.dir + "约 " + info.dist + " 格）") : "";
+		return {
+			ok      = true,
+			message = "奉上酒资 " + cost + " 两，老镖客低声指点迷津：已在世界舆图上标明独立山门【" + picked.ent.getName() + "】" + dirNote + "，并录入《江湖名刺》！"
+		};
+	}
+
+	// All Mountain Gates already discovered -> impart an undiscovered Alchemy Formula rumor!
+	if ("Alchemy" in ::Wuxia && "unlockRandomUndiscoveredFormula" in ::Wuxia.Alchemy)
+	{
+		local unlockedPill = ::Wuxia.Alchemy.unlockRandomUndiscoveredFormula(3);
+		if (unlockedPill != "")
 		{
-			local pSect = ::Wuxia.Config.Sects[psid];
-			if (pSect.Alignment != "outlaw")
-			{
-				::Wuxia.SectRelations.addRelation(psid, -12);
-				return;
-			}
-			else
-			{
-				::Wuxia.SectRelations.addRelation(psid, -6);
-			}
+			::World.Assets.addMoney(-cost);
+			::World.Flags.set("wx_tea_rumor_global", ::World.getTime().Days);
+			return {
+				ok      = true,
+				message = "奉上酒资 " + cost + " 两，偶遇游方老药师酒后吐露古方秘要：已将《" + unlockedPill + "》配伍法度载入《丹经手札》！"
+			};
 		}
+	}
+
+	return { ok = false, reason = "九州各派山门方位与市井丹方传闻皆已尽入掌中，暂无未明风声。" };
+};
+
+// Sanctum Pill-Elder Guidance (`求教宗门丹经`): at a Sect Mountain Gate with Relation >= 35, learn 1 undiscovered Alchemy Formula!
+::Wuxia.SectRelations.sanctumAskAlchemy <- function( _sectID )
+{
+	if (!(_sectID in ::Wuxia.Config.Sects))
+		return { ok = false, reason = "未找到该江湖宗门。" };
+
+	local meet = ::Wuxia.SectRelations.resolveActiveMeeting(_sectID);
+	if (!meet.Ok || !meet.AtSanctum)
+		return { ok = false, reason = "唯有亲自登临宗门山门，方能入丹房求教秘传丹经。" };
+
+	local rel = ::Wuxia.SectRelations.getRelation(_sectID);
+	if (rel < 35)
+		return { ok = false, reason = "需与本门交情达 35 以上，丹房长老方肯指点不传丹方（当前：" + rel + "）。" };
+
+	local cd = ::Wuxia.SectRelations.getTeaCooldownLeft("alc", _sectID, 6);
+	if (cd > 0)
+		return { ok = false, reason = "丹房长老近日已指点过一卷丹诀，请隔 " + cd + " 日再来请益。" };
+
+	local cost = 480;
+	if (::World.Assets.getMoney() < cost)
+		return { ok = false, reason = "奉上丹房香火资需纹银 " + cost + " 两。" };
+
+	if (!("Alchemy" in ::Wuxia) || !("unlockRandomUndiscoveredFormula" in ::Wuxia.Alchemy))
+		return { ok = false, reason = "丹经系统尚未就绪。" };
+
+	local pillName = ::Wuxia.Alchemy.unlockRandomUndiscoveredFormula(5);
+	if (pillName == "")
+		return { ok = false, reason = "《丹经手札》全部 " + ::Wuxia.Config.Alchemy.Formulas.len() + " 道古方已尽数参透，再无未录之方！" };
+
+	::World.Assets.addMoney(-cost);
+	::World.Flags.set("wx_tea_alc_" + _sectID, ::World.getTime().Days);
+	local sect = ::Wuxia.Config.Sects[_sectID];
+	return {
+		ok      = true,
+		message = "于【" + sect.Name + "】丹房奉上香火 " + cost + " 两，长老展卷亲授君臣火候——《" + pillName + "》古方已永久载入《丹经手札》！"
+	};
+};
+
+// Award or deduct Sect Relations organically when slaying Outlaw Bosses or fighting Sect Patrols
+::Wuxia.SectRelations.onCombatActorSlain <- function( _party, _isBoss )
+{
+	if (_party == null || ("isNull" in _party && _party.isNull()) || !::Wuxia.hasWorldField("State")) return;
+
+	local flags = _party.getFlags();
+	local patrol = (flags != null && flags.has("wx_sect_patrol")) ? flags.get("wx_sect_patrol") : "";
+	if (typeof patrol != "string") patrol = "";
+	local sid = patrol;
+	if (sid == "" && flags != null && flags.has("wx_vendetta"))
+	{
+		local vd = flags.get("wx_vendetta");
+		if (typeof vd == "string") sid = vd;
+	}
+	if (::Wuxia.hasMember(_party, "WX_GetBattleMode"))
+	{
+		if (_party.WX_GetBattleMode() == "trial") return;
+		sid = _party.getSectID();
+	}
+
+	local isOutlaw = false;
+	if (sid != null && typeof sid == "string" && sid != "" && (sid in ::Wuxia.Config.Sects))
+	{
+		isOutlaw = ::Wuxia.Config.Sects[sid].Alignment == "outlaw";
+		if (patrol == sid)
+		{
+			this.discoverSect(sid);
+			this.addRelation(sid, isOutlaw ? -6 : -12);
+		}
+		if (!isOutlaw) return;
+	}
+	else if (::Wuxia.hasWorldField("FactionManager"))
+	{
+		local faction = ::World.FactionManager.getFaction(_party.getFaction());
+		isOutlaw = faction != null && (faction.getType() == ::Const.FactionType.Bandits || faction.getType() == ::Const.FactionType.OrientalBandits);
+	}
+	if (isOutlaw && ::Wuxia.hasWorldField("Flags"))
+	{
+		local prevSlain = ::World.Flags.getAsInt("wx_sq_enemies_slain");
+		::World.Flags.set("wx_sq_enemies_slain", prevSlain + 1);
 	}
 
 	if (!_isBoss) return;
 
-	// Slaying any Bandit/Nomad/Barbarian/Goblin/Orc/Undead Boss boosts standing (+4) with the nearest town's Resident Righteous/Neutral Sect!
+	// Slaying a Boss boosts standing (+4) with the nearest Righteous/Neutral Sect Sanctum!
 	local p = ::World.State.getPlayer();
 	if (p == null || p.getTile() == null || ::World.EntityManager == null) return;
 	local pTile = p.getTile();
-	local nearestTown = null;
-	local minD = 9999;
-	foreach (tw in ::World.EntityManager.getSettlements())
-	{
-		if (tw == null || !tw.isAlive() || tw.getTile() == null) continue;
-		local d = pTile.getDistanceTo(tw.getTile());
-		if (d < minD) { minD = d; nearestTown = tw; }
-	}
-	if (nearestTown == null) return;
+	::Wuxia.SectRelations.ensureWorldSectSanctums();
 
-	local townSects = ::Wuxia.SectRelations.getSettlementSects(nearestTown);
-	foreach (tsid in townSects)
+	local bestSid = "";
+	local minD = 9999;
+	foreach (sid, eid in ::Wuxia.SectRelations.AnchorCache.SectToSanctumID)
 	{
-		if (tsid in ::Wuxia.Config.Sects && ::Wuxia.Config.Sects[tsid].Alignment != "outlaw")
+		if (!(sid in ::Wuxia.Config.Sects) || ::Wuxia.Config.Sects[sid].Alignment == "outlaw") continue;
+		local ent = ::World.getEntityByID(eid);
+		if (ent == null || !ent.isAlive() || ent.getTile() == null) continue;
+		local d = pTile.getDistanceTo(ent.getTile());
+		if (d < minD) { minD = d; bestSid = sid; }
+	}
+	if (bestSid != "")
+	{
+		local afterR = ::Wuxia.SectRelations.addRelation(bestSid, 4);
+		if ("Tactical" in getroottable() && ::Tactical != null && ("EventLog" in ::Tactical) && ::Tactical.EventLog != null)
 		{
-			local afterR = ::Wuxia.SectRelations.addRelation(tsid, 4);
-			if ("Tactical" in getroottable() && ::Tactical != null && ("EventLog" in ::Tactical) && ::Tactical.EventLog != null)
-			{
-				::Tactical.EventLog.logEx("斩除一方凶顽，【" + ::Wuxia.Config.Sects[tsid].Name + "】闻讯嘉许（宗门交情 +4 → " + afterR + "）");
-			}
-			break;
+			::Tactical.EventLog.logEx("斩除一方凶顽，【" + ::Wuxia.Config.Sects[bestSid].Name + "】闻讯嘉许（宗门交情 +4 → " + afterR + "）");
 		}
 	}
 };

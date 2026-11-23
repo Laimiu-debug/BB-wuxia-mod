@@ -4,12 +4,20 @@ this.wx_manual_pathfinder <- this.inherit("scripts/skills/perks/perk_pathfinder"
 
 	function onAdded()
 	{
-		this.perk_pathfinder.onAdded();
 		local actor = this.getContainer().getActor();
+		local hasActorM = (actor != null && ::Wuxia.hasMember(actor, "m") && actor.m != null && ::Wuxia.hasMember(actor.m, "LevelActionPointCost"));
+		local origLevelCost = (hasActorM && ::Wuxia.hasMember(actor.m, "WX_OrigLevelAPCost"))
+			? actor.m.WX_OrigLevelAPCost
+			: (hasActorM ? actor.m.LevelActionPointCost : this.Const.Movement.LevelDifferenceActionPointCost);
+		if (hasActorM && !::Wuxia.hasMember(actor.m, "WX_OrigLevelAPCost"))
+			actor.m.WX_OrigLevelAPCost <- origLevelCost;
+		local origAPCosts = hasActorM ? actor.m.ActionPointCosts : null;
+		local origFatCosts = hasActorM ? actor.m.FatigueCosts : null;
+		this.perk_pathfinder.onAdded();
 		this.m.PreviousMovement = {
-			ActionPointCosts = actor.m.ActionPointCosts,
-			FatigueCosts = actor.m.FatigueCosts,
-			LevelActionPointCost = actor.m.LevelActionPointCost
+			ActionPointCosts = origAPCosts,
+			FatigueCosts = origFatCosts,
+			LevelActionPointCost = origLevelCost
 		};
 	}
 

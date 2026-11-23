@@ -2,6 +2,35 @@
 
 ::Wuxia.HooksMod.hook("scripts/factions/faction_manager", function( q )
 {
+	if (::Wuxia.qHas(q, "getFaction"))
+	{
+		q.getFaction = @(__original) function( _i )
+		{
+			if (_i == null || _i < 0 || _i >= this.m.Factions.len())
+				return null;
+			return __original(_i);
+		};
+	}
+
+	if (::Wuxia.qHas(q, "onDeserialize"))
+	{
+		q.onDeserialize = @(__original) function( _in )
+		{
+			local res = __original(_in);
+			if (::Wuxia.hasWorldField("EntityManager") && ::Wuxia.hasMember(::World.EntityManager, "getSettlements"))
+			{
+				foreach (s in ::World.EntityManager.getSettlements())
+				{
+					if (s != null && s.isAlive() && ::Wuxia.hasMember(s, "WX_ApplyArchVisuals"))
+					{
+						try { s.WX_ApplyArchVisuals(false); } catch (_eS) {}
+					}
+				}
+			}
+			return res;
+		};
+	}
+
 	q.createFactions = @(__original) function()
 	{
 		__original();

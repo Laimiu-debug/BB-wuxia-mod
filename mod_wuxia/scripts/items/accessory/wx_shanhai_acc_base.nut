@@ -84,6 +84,10 @@ this.wx_shanhai_acc_base <- this.inherit("scripts/items/accessory/accessory", {
 		{
 			ret = ::Wuxia.Forge.injectForgeTooltip(this, ret);
 		}
+		if ("ShanHaiSets" in ::Wuxia && "injectSetTooltip" in ::Wuxia.ShanHaiSets)
+		{
+			ret = ::Wuxia.ShanHaiSets.injectSetTooltip(this, ret);
+		}
 		return ret;
 	}
 

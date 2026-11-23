@@ -186,6 +186,8 @@
 	if (weak == null)
 	{
 		weak = ::new("scripts/skills/effects/wx_scatter_weakness");
+		// The two-day default is for direct combat infliction. A switch supplies its own duration.
+		weak.m.DaysRemaining = 0;
 		skills.add(weak);
 	}
 	weak.setDaysRemaining(_days);
@@ -286,25 +288,26 @@
 	if (!(_manualID in c.m.LearnedManuals))
 		return { Ok = false, Reason = _actor.getName() + " 尚未研习《" + def.Name + "》，请先使用秘籍或前往藏经阁研读。" };
 
-	local entry = c.m.LearnedManuals[_manualID];
-	local check = ::Wuxia.Slots.canEquipManual(_actor, _slotIndex, _manualID, entry.IsFragment);
+	local check = ::Wuxia.Slots.previewManualSwitch(_actor, _slotIndex, _manualID, c.m.LearnedManuals[_manualID].IsFragment);
 	if (!check.Ok) return check;
-
-	local slot = c.m.Slots[_slotIndex];
-	if (slot.ManualID == _manualID)
+	if (check.OldManualID == _manualID)
 		return { Ok = false, Reason = "《" + def.Name + "》已装配于当前插槽。" };
+	return check;
+};
 
-	local oldDef = (slot.ManualID != null) ? ::Wuxia.Slots.getManualDef(slot.ManualID) : null;
-	local switchDays = (oldDef != null) ? ::Wuxia.Slots.getSwitchWeaknessDays(oldDef.Quality) : 0;
-
-	return {
-		Ok            = true,
-		IsOverwrite   = (slot.ManualID != null),
-		OldManualName = (oldDef != null) ? oldDef.Name : "",
-		NewManualName = def.Name,
-		PenaltyDays   = switchDays,
-		IsFragment    = entry.IsFragment
-	};
+// Also used before consuming a book or a page from the company library.
+::Wuxia.Slots.previewManualSwitch <- function( _actor, _slotIndex, _manualID, _isFragment )
+{
+	local check = ::Wuxia.Slots.canEquipManual(_actor, _slotIndex, _manualID, _isFragment);
+	if (!check.Ok) return check;
+	local oldID = ::Wuxia.Slots.getContainer(_actor).m.Slots[_slotIndex].ManualID;
+	local oldDef = ::Wuxia.Slots.getManualDef(oldID);
+	check.OldManualID <- oldID;
+	check.IsOverwrite = oldID != null && oldID != _manualID;
+	check.PenaltyDays = check.IsOverwrite && oldDef != null ? ::Wuxia.Slots.getSwitchWeaknessDays(oldDef.Quality) : 0;
+	check.NewManualName <- ::Wuxia.Slots.getManualDef(_manualID).Name;
+	check.IsFragment <- _isFragment;
+	return check;
 };
 
 // Equip a learned manual into a slot on the Perk page (outgoing manual returns to LearnedManuals with full Tier & Exp!)
@@ -362,6 +365,7 @@
 	local days = (oldDef != null) ? ::Wuxia.Slots.getSwitchWeaknessDays(oldDef.Quality) : 1;
 	return {
 		Ok            = true,
+		OldManualID   = slot.ManualID,
 		OldManualName = (oldDef != null) ? oldDef.Name : slot.ManualID,
 		PenaltyDays   = days
 	};

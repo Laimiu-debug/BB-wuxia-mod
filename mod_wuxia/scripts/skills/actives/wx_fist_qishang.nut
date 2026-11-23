@@ -7,7 +7,7 @@ this.wx_fist_qishang <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_fist_qishang";
 		this.m.Name = "七伤总诀拳";
-		this.m.Description = "一拳既出七股刚柔暗劲齐发：消耗 5 AP 与 22 内息，自震 4 点气血催发霸拳（总伤 +30%，附内伤与破绽）。";
+		this.m.Description = "一拳既出七股刚柔暗劲齐发：消耗 5 AP、22 内息和 4 点气血（气血须大于 4），总伤 +30%，命中附内伤与破绽。";
 		this.m.Icon = "skills/wx_fist_qishang.png";
 		this.m.IconDisabled = "skills/wx_fist_qishang_sw.png";
 		this.m.Overlay = "wx_ov_wx_fist_qishang";
@@ -33,14 +33,24 @@ this.wx_fist_qishang <- this.inherit("scripts/skills/actives/wx_move_base", {
 		}
 	}
 
+	function isUsable()
+	{
+		return this.wx_move_base.isUsable() && this.getContainer().getActor().getHitpoints() > 4;
+	}
+
 	function onUse( _user, _targetTile )
 	{
 		local target = _targetTile.getEntity();
+		local hp = _user.getHitpoints();
+		if (target == null || hp <= 4) return false;
+		_user.setHitpoints(hp - 4);
+
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, this.m.WX_VfxBrush);
 		local hit = this.attackEntity(_user, target);
-		if (hit && target != null && target.isAlive())
+		if (hit && target.isAlive())
 		{
-			if (_user.getHitpoints() > 6) _user.setHitpoints(_user.getHitpoints() - 4); this.wxApplyStatusToTarget(target, "effects.wx_internal_injury", "scripts/skills/effects/wx_internal_injury"); this.wxApplyStatusToTarget(target, "effects.wx_status_opening", "scripts/skills/effects/wx_status_opening");
+			this.wxApplyStatusToTarget(target, "effects.wx_internal_injury", "scripts/skills/effects/wx_internal_injury");
+			this.wxApplyStatusToTarget(target, "effects.wx_status_opening", "scripts/skills/effects/wx_status_opening");
 		}
 		return hit;
 	}

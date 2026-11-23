@@ -283,9 +283,9 @@
 
 ::Wuxia.Events.getActiveCrisis <- function()
 {
-	if (!::Wuxia.Events.isWorldReady() || ::World.Flags == null) return "";
+	if (!::Wuxia.Events.isWorldReady() || ::World.Flags == null || !::World.Flags.has("wx_active_crisis")) return "";
 	local c = ::World.Flags.get("wx_active_crisis");
-	return c != null ? c : "";
+	return (typeof c == "string") ? c : "";
 };
 
 ::Wuxia.Events.pickLocalSect <- function( _alignment = null )

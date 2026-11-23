@@ -8,9 +8,17 @@ this.wx_origin_wudu_healer <- this.inherit("scripts/scenarios/world/starting_sce
 	{
 		this.m.ID = "scenario.wx_origin_wudu_healer";
 		this.m.Name = "百草毒医 · 南疆采药行";
-		this.m.Description = "[p=c][img]gfx/ui/events/wx_ev_21.png[/img][/p][p]你们是常年深入十万大山与云梦瘴泽寻觅灵药异兽的药师行帮。既通悬壶济世之丹术，亦擅见血封喉的吹箭奇毒与漫天暗器，专克世间凶兽皮甲。[/p][p][color=#bcad8c]• 开局阵容：4 名南疆采药人与奇门暗器手（自带《五毒吹影功》《暴雨暗器谱》《分水透骨刺》）\n• 丹囊充盈：开局随带金疮散、护心丹、凝神丸与护脉丹共 8 枚灵药\n• 宗门渊源：五毒奇门初始交情 +30，擅猎山海异兽炼丹铸宝[/color][/p]";
+		this.m.Description = "[p=c][img]gfx/ui/events/wx_ev_21.png[/img][/p][p]你们是常年深入十万大山与云梦瘴泽寻觅灵药异兽的药师行帮。既通悬壶济世之丹术，亦擅见血封喉的吹箭奇毒与漫天暗器，专克世间凶兽皮甲。[/p][p][color=#bcad8c]• 开局阵容：4 名南疆采药人与暗器手，随带 8 枚灵药，五毒奇门初始交情 +30\n• 南疆丹脉：八卦丹炉双丹/上品率 +15%、炭火耗银 -15%，随军伤员回血提速 25%\n• 苗疆异客：初入中原正道市集略受猜忌，州府采买物价上浮 6%[/color][/p]";
 		this.m.Difficulty = 2;
 		this.m.Order = 4;
+	}
+
+	function onInit()
+	{
+		if ("HitpointsPerHourMult" in this.World.Assets.m)
+			this.World.Assets.m.HitpointsPerHourMult *= 1.25;
+		if ("BuyPriceMult" in this.World.Assets.m)
+			this.World.Assets.m.BuyPriceMult *= 1.06;
 	}
 
 	function onSpawnAssets()
@@ -55,7 +63,7 @@ this.wx_origin_wudu_healer <- this.inherit("scripts/scenarios/world/starting_sce
 				::Wuxia.Slots.equipManual(bro, 1, waiID, false);
 				if (st.Learn != null)
 					::Wuxia.Slots.learnManual(bro, st.Learn, false);
-				if (bro.getBackground() != null && ("WX_RefreshStarterNote" in bro.getBackground()))
+				if (bro.getBackground() != null && ::Wuxia.hasMember(bro.getBackground(), "WX_RefreshStarterNote"))
 					bro.getBackground().WX_RefreshStarterNote([::Wuxia.Slots.getManualDef(neiID).Name, ::Wuxia.Slots.getManualDef(waiID).Name]);
 				bro.getSkills().update();
 			}

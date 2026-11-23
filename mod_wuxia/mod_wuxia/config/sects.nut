@@ -114,6 +114,7 @@
 			{ ManualID = "wx_manual_songtao", MinRel = 25, Price = 1800 },
 			{ ManualID = "wx_manual_tiebushan", MinRel = 25, Price = 2500 },
 			{ ManualID = "wx_manual_weiyuan", MinRel = 25, Price = 2000 },
+			{ ManualID = "wx_manual_yaqi_zhenzhen", MinRel = 25, Price = 2200 },
 			{ ManualID = "wx_manual_weiyuan_zhenbiao", MinRel = 55, Price = 4540 },
 			{ ManualID = "wx_manual_wuwei_shuaiqi", MinRel = 55, Price = 4660 }
 		]
@@ -252,7 +253,8 @@
 			{ ManualID = "wx_manual_hebei_cuijia", MinRel = 25, Price = 2260 },
 			{ ManualID = "wx_manual_juyiling", MinRel = 25, Price = 2300 },
 			{ ManualID = "wx_manual_weiyuan", MinRel = 25, Price = 2000 },
-			{ ManualID = "wx_manual_cuijia_liuhua", MinRel = 55, Price = 4570 }
+			{ ManualID = "wx_manual_cuijia_liuhua", MinRel = 55, Price = 4570 },
+			{ ManualID = "wx_manual_babao_liangyinqiang", MinRel = 55, Price = 4680 }
 		]
 	},
 	xinglin_yi = {
@@ -348,7 +350,8 @@
 			{ ManualID = "wx_manual_hengshan_polu_chui", MinRel = 25, Price = 2200 },
 			{ ManualID = "wx_manual_hengshan_shouguan", MinRel = 25, Price = 2230 },
 			{ ManualID = "wx_manual_hengshan_tiebi", MinRel = 25, Price = 2140 },
-			{ ManualID = "wx_manual_weiyuan", MinRel = 25, Price = 2000 }
+			{ ManualID = "wx_manual_weiyuan", MinRel = 25, Price = 2000 },
+			{ ManualID = "wx_manual_taiyuan_huoyandao", MinRel = 55, Price = 4680 }
 		]
 	},
 	zhongnan_yin = {
@@ -547,6 +550,7 @@
 			{ ManualID = "wx_manual_pojia_changbing", MinRel = 0, Price = 340 },
 			{ ManualID = "wx_manual_yanyun_zhandao", MinRel = 0, Price = 310 },
 			{ ManualID = "wx_manual_yanmen_fangtian", MinRel = 25, Price = 2170 },
+			{ ManualID = "wx_manual_yaqi_zhenzhen", MinRel = 25, Price = 2200 },
 			{ ManualID = "wx_manual_yanmen_poche_fu", MinRel = 25, Price = 2200 },
 			{ ManualID = "wx_manual_yanmen_podao", MinRel = 55, Price = 4600 },
 			{ ManualID = "wx_manual_yanmen_zhenjun", MinRel = 55, Price = 4540 }
@@ -635,7 +639,8 @@
 			{ ManualID = "wx_manual_yexing_shu", MinRel = 0, Price = 370 },
 			{ ManualID = "wx_manual_loulan_faqiu_chui", MinRel = 25, Price = 2140 },
 			{ ManualID = "wx_manual_loulan_fenjin_ci", MinRel = 25, Price = 2230 },
-			{ ManualID = "wx_manual_loulan_youmu", MinRel = 25, Price = 2140 }
+			{ ManualID = "wx_manual_loulan_youmu", MinRel = 25, Price = 2140 },
+			{ ManualID = "wx_manual_hamagong", MinRel = 55, Price = 4750 }
 		]
 	}
 };

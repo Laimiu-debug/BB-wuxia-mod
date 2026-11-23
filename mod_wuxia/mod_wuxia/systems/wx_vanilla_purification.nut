@@ -128,7 +128,27 @@
 		["accessory.armored_wardog"]      = ["披甲塞外猛獒", "披挂熟皮铁叶护胸甲的凶猛藏獒，悍不畏死。"],
 		["accessory.warhound"]            = ["黑水裂喉巨獒", "北境战帮驯养的巨型猛犬，扑咬之力惊人。"],
 		["accessory.armored_warhound"]    = ["重甲铁刺巨獒", "披乌铁护甲的塞北巨獒。"],
-		["accessory.falcon"]              = ["塞上苍羽海东青", "神骏敏锐的猎鹰，临阵放飞可盘旋高空探破林间伏兵视野。"]
+		["accessory.falcon"]              = ["塞上苍羽海东青", "神骏敏锐的猎鹰，临阵放飞可盘旋高空探破林间伏兵视野。"],
+
+		// Vanilla Taxidermist Armor Upgrades, Potions & Dyes (防止百工丹坊出现原版英文配方名)
+		["armor_upgrade.direwolf_pelt"]             = ["阴山天狗苍狼披肩", "硝制凶狼厚裘披挂于肩甲之上，威慑四周敌胆。"],
+		["armor_upgrade.lindwurm_scales"]           = ["太华毒蛟重鳞披风", "缀连大泽肥遗毒蛟坚鳞而成的护背披挂，刀箭难伤且不惧毒液蚀甲。"],
+		["armor_upgrade.unhold_fur_upgrade"]        = ["雪山朱厌白毛大氅", "取巨猿厚实白革缝制的护身大氅，大幅消减远矢穿刺冲击。"],
+		["armor_upgrade.bone_platings"]             = ["千钧异兽护心骨板", "以凶兽铁骨打磨捆扎的外挂护板，可硬生生替身甲抵挡首次重击。"],
+		["armor_upgrade.horn_plate"]                = ["荒原巨犀角质胸甲片", "坚韧无比的异兽角质护胸甲片，减轻近身劈砍受损。"],
+		["armor_upgrade.light_padding_replacement"] = ["天蚕软丝减重内衬", "以江南天蚕丝絮替换沉重麻布内衬，显著减轻披甲内息负担。"],
+		["armor_upgrade.additional_padding"]        = ["双层绵甲卸力内衬", "加厚丝绵内衬以缓冲钝器与穿甲内劲震荡。"],
+		["armor_upgrade.protective_runes"]          = ["玄门镇魂护身符箓", "道门朱砂绘就的护甲符布，稳固穿戴者心神定力。"],
+		["armor_upgrade.hyena_fur"]                 = ["西山蛊雕斑革肩披", "轻捷凶悍的荒漠异兽皮披挂，助长抢攻先机身法。"],
+		["armor_upgrade.serpent_skin"]              = ["苍梧巴蛇避火鳞衬", "滑腻冰凉的巨蟒青鳞内衬，减轻烈火与硝烟灼伤。"],
+		["accessory.berserker_mushrooms"]           = ["黑水疯魔赤伞菌", "塞北战帮秘传毒菌，嚼服后痛觉尽失、劈杀凶威暴涨而疏于守御。"],
+		["accessory.happy_powder"]                  = ["极乐忘忧迷仙散", "奇门秘制欢喜丹粉，强提心气却暗损体魄。"],
+		["misc.paint_set"]                          = ["百工矿物绘甲丹青匣", "调配齐备的天然矿物油彩，可为冠胄盾甲重染门派色泽。"],
+		["misc.paint_black"]                        = ["徽州松烟玄墨漆", "深沉凝重的乌黑甲胄桐油漆料。"],
+		["misc.paint_red"]                          = ["辰州朱砂赤丹漆", "鲜亮肃杀的丹红甲胄漆料。"],
+		["misc.paint_orange_red"]                   = ["西域雄黄赤金漆", "灿若烈火的橙红甲胄矿物漆料。"],
+		["misc.paint_white_blue"]                   = ["景德青花瓷白漆", "素雅清冷的白底青蓝甲胄漆料。"],
+		["misc.paint_white_green_yellow"]           = ["蜀锦翠黄三彩漆", "明快鲜明的白绿藤黄甲胄漆料。"]
 	}
 };
 
@@ -295,6 +315,14 @@
 	s = ::Wuxia.Purify.strReplace(s, "医疗物资", "金疮药材");
 	s = ::Wuxia.Purify.strReplace(s, "医药补给", "金疮药材");
 	s = ::Wuxia.Purify.strReplace(s, "佣兵团", "江湖义社");
+	s = ::Wuxia.Purify.strReplace(s, "军团声望", "江湖威名");
+	s = ::Wuxia.Purify.strReplace(s, "战团声望", "江湖威名");
+	s = ::Wuxia.Purify.strReplace(s, "公司声望", "江湖威名");
+	s = ::Wuxia.Purify.strReplace(s, "雇用随从", "延揽江湖幕僚");
+	s = ::Wuxia.Purify.strReplace(s, "非战斗随从", "江湖幕僚");
+	s = ::Wuxia.Purify.strReplace(s, "随从栏位", "幕僚席位");
+	s = ::Wuxia.Purify.strReplace(s, "随从席位", "幕僚席位");
+	s = ::Wuxia.Purify.strReplace(s, "名随从", "名江湖幕僚");
 	s = ::Wuxia.Purify.strReplace(s, "每回合疲劳恢复", "每回合内息恢复");
 	s = ::Wuxia.Purify.strReplace(s, "疲劳值恢复率", "内息调息恢复");
 	s = ::Wuxia.Purify.strReplace(s, "疲劳恢复率", "内息调息恢复");
@@ -325,7 +353,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 	// 1. Hook `scripts/items/item` so every vanilla supply/tool/trade/loot item displays Wuxia Name & Description
 	::Wuxia.HooksMod.hook("scripts/items/item", function( q )
 	{
-		if ("getName" in q)
+		if (::Wuxia.qHas(q, "getName"))
 		{
 			q.getName = @(__original) function()
 			{
@@ -334,7 +362,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			};
 		}
 
-		if ("getDescription" in q)
+		if (::Wuxia.qHas(q, "getDescription"))
 		{
 			q.getDescription = @(__original) function()
 			{
@@ -343,7 +371,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			};
 		}
 
-		if ("getTooltip" in q)
+		if (::Wuxia.qHas(q, "getTooltip"))
 		{
 			q.getTooltip = @(__original) function()
 			{
@@ -366,7 +394,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 	// 1b. Hook `scripts/items/supplies/money_item` directly because subclass overrides `getName()` & `getTooltip()`
 	::Wuxia.HooksMod.hook("scripts/items/supplies/money_item", function( q )
 	{
-		if ("getName" in q)
+		if (::Wuxia.qHas(q, "getName", false))
 		{
 			q.getName = @(__original) function()
 			{
@@ -377,7 +405,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			};
 		}
 
-		if ("getDescription" in q)
+		if (::Wuxia.qHas(q, "getDescription", false))
 		{
 			q.getDescription = @(__original) function()
 			{
@@ -386,7 +414,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			};
 		}
 
-		if ("getTooltip" in q)
+		if (::Wuxia.qHas(q, "getTooltip", false))
 		{
 			q.getTooltip = @(__original) function()
 			{
@@ -409,7 +437,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 	// 1c. Hook `scripts/items/supplies/food_item` directly so localized food overrides (e.g. `mod_bbmod_zhcn`) also purify cleanly
 	::Wuxia.HooksMod.hook("scripts/items/supplies/food_item", function( q )
 	{
-		if ("getName" in q)
+		if (::Wuxia.qHas(q, "getName", false))
 		{
 			q.getName = @(__original) function()
 			{
@@ -420,7 +448,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			};
 		}
 
-		if ("getDescription" in q)
+		if (::Wuxia.qHas(q, "getDescription", false))
 		{
 			q.getDescription = @(__original) function()
 			{
@@ -431,7 +459,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			};
 		}
 
-		if ("getTooltip" in q)
+		if (::Wuxia.qHas(q, "getTooltip", false))
 		{
 			q.getTooltip = @(__original) function()
 			{
@@ -455,7 +483,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 	//    while preserving all scenarios in `m.Scenarios` so existing saves load cleanly!
 	::Wuxia.HooksMod.hook("scripts/scenarios/scenario_manager", function( q )
 	{
-		if ("getScenariosForUI" in q)
+		if (::Wuxia.qHas(q, "getScenariosForUI"))
 		{
 			q.getScenariosForUI = @(__original) function()
 			{
@@ -478,7 +506,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 	// 3. Suppress Out-of-Place Vanilla Medieval Random Events (`m.Score = 0`), Keep Wuxia Events, Ambition/Retinue System Events & Crisis Progression!
 	::Wuxia.HooksMod.hook("scripts/events/event", function( q )
 	{
-		if ("update" in q)
+		if (::Wuxia.qHas(q, "update"))
 		{
 			q.update = @(__original) function()
 			{
@@ -520,7 +548,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			if (::Wuxia.hasMember(this.m, "Description")) this.m.Description = entry[2];
 		};
 
-		if ("getMotto" in q)
+		if (::Wuxia.qHas(q, "getMotto"))
 		{
 			q.getMotto = @(__original) function()
 			{
@@ -529,7 +557,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			};
 		}
 
-		if ("getDescription" in q)
+		if (::Wuxia.qHas(q, "getDescription"))
 		{
 			q.getDescription = @(__original) function()
 			{
@@ -549,7 +577,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			if (::Wuxia.hasMember(this.m, "Description")) this.m.Description = entry[1];
 		};
 
-		if ("getName" in q)
+		if (::Wuxia.qHas(q, "getName"))
 		{
 			q.getName = @(__original) function()
 			{
@@ -558,7 +586,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			};
 		}
 
-		if ("getDescription" in q)
+		if (::Wuxia.qHas(q, "getDescription"))
 		{
 			q.getDescription = @(__original) function()
 			{
@@ -567,7 +595,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			};
 		}
 
-		if ("onDeserialize" in q)
+		if (::Wuxia.qHas(q, "onDeserialize"))
 		{
 			q.onDeserialize = @(__original) function( _in )
 			{
@@ -587,7 +615,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 	{
 		::Wuxia.HooksMod.hook(namedBase, function( q )
 		{
-			if ("createRandomName" in q)
+			if (::Wuxia.qHas(q, "createRandomName"))
 			{
 				q.createRandomName = @(__original) function()
 				{
@@ -604,7 +632,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 	{
 		foreach (fnName in ["general_queryUIElementTooltipData", "strategic_queryUIElementTooltipData", "tactical_queryUIElementTooltipData"])
 		{
-			if (fnName in q)
+			if (::Wuxia.qHas(q, fnName))
 			{
 				q[fnName] = @(__original) function( _entityId, _elementId, _elementOwner )
 				{

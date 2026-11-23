@@ -8,7 +8,7 @@ this.wx_origin_lone_sword <- this.inherit("scripts/scenarios/world/starting_scen
 	{
 		this.m.ID = "scenario.wx_origin_lone_sword";
 		this.m.Name = "孤剑独行 · 天涯浪客";
-		this.m.Description = "[p=c][img]gfx/ui/events/wx_ev_01.png[/img][/p][p]你曾是名山剑宗门下最惊才绝艳的弃徒。一袭竹笠青衫、三尺松纹寒铁，独自仗剑踏入乱世江湖。你无需供养庞大冗兵，只择真正入眼的生死知己结伴同行。[/p][p][color=#bcad8c]• 开局阵容：1 名 4 级成名剑客（自带上乘《松涛心法》《清风连环剑》《踏雪无痕》）\n• 随身披挂：百炼松纹宝剑与青竹剑客劲装，起始 1,800 两纹银\n• 精兵铁律：花名册上限精简为 12 人，唯求个个皆为独当一面之高手[/color][/p]";
+		this.m.Description = "[p=c][img]gfx/ui/events/wx_ev_01.png[/img][/p][p]你曾是名山剑宗门下最惊才绝艳的弃徒。一袭竹笠青衫、三尺松纹寒铁，独自仗剑踏入乱世江湖。你无需供养庞大冗兵，只择真正入眼的生死知己结伴同行。[/p][p][color=#bcad8c]• 开局阵容：1 名 4 级成名剑客（自带上乘《松涛心法》《清风连环剑》《踏雪无痕》）\n• 精兵悟道：全队战后武学熟稔度获取 +25%，城池购置秘籍军械享 92 折优惠\n• 孤锋铁律：花名册上限硬锁 12 人，唯求个个皆为独当一面之高手[/color][/p]";
 		this.m.Difficulty = 3;
 		this.m.Order = 2;
 	}
@@ -17,6 +17,8 @@ this.wx_origin_lone_sword <- this.inherit("scripts/scenarios/world/starting_scen
 	{
 		if (this.World.Assets.m.BrothersMax > 12)
 			this.World.Assets.m.BrothersMax = 12;
+		if ("BuyPriceMult" in this.World.Assets.m)
+			this.World.Assets.m.BuyPriceMult *= 0.92;
 	}
 
 	function onSpawnAssets()
@@ -59,7 +61,7 @@ this.wx_origin_lone_sword <- this.inherit("scripts/scenarios/world/starting_scen
 			::Wuxia.Slots.equipManual(bro, 1, waiID, false);
 			::Wuxia.Slots.equipManual(bro, 2, qingID, false);
 			::Wuxia.Slots.learnManual(bro, "wx_manual_gufeng", false);
-			if (bro.getBackground() != null && ("WX_RefreshStarterNote" in bro.getBackground()))
+			if (bro.getBackground() != null && ::Wuxia.hasMember(bro.getBackground(), "WX_RefreshStarterNote"))
 			{
 				bro.getBackground().WX_RefreshStarterNote([
 					::Wuxia.Slots.getManualDef(neiID).Name,

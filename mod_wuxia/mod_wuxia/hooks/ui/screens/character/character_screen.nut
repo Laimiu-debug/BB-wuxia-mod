@@ -28,7 +28,7 @@
 		__original();
 	};
 
-	if ("hide" in q)
+	if (::Wuxia.qHas(q, "hide"))
 	{
 		q.hide = @(__original) function()
 		{
@@ -172,6 +172,7 @@
 		local entityId = (typeof _data == "array" && _data.len() > 0) ? _data[0] : _data;
 		local bro = this.WX_findBrotherById(entityId);
 		local pillData = ::Wuxia.UI.buildStashPillsData();
+		local wash = ::Wuxia.Alchemy.getWashPillCounts();
 		local libData  = ::Wuxia.UI.buildLibraryUIData(bro);
 		local notice   = this.m.WX_PendingAutoStoreNotice;
 		this.m.WX_PendingAutoStoreNotice = "";
@@ -181,9 +182,13 @@
 			brother          = ::Wuxia.UI.buildBrotherMartialData(bro),
 			library          = libData,
 			stashItems       = pillData.pills,
-			washPillCount    = pillData.washPillCount,
-			protectPillCount = pillData.protectPillCount
+			washPills        = wash,
+			washPillCount    = wash.totalMainWash,
+			protectPillCount = wash.totalProtect,
+			alchemySummary   = ::Wuxia.Alchemy.getCabinetSummaryCounts()
 		};
+		if (res.brother != null)
+			res.brother.hasWangchenGrace <- bro.getSkills().hasSkill("effects.wx_wangchen_grace");
 		if (notice != "")
 			res.autoStoreNotice <- notice;
 		return res;
@@ -207,6 +212,8 @@
 		local check = ::Wuxia.Slots.canEquipLearnedManual(bro, slotIndex, manualID);
 		if (!check.Ok)
 			return { ok = false, reason = check.Reason };
+		if (confirmed && _data.len() >= 5 && _data[4] != check.OldManualID)
+			return { ok = false, reason = "该穴位功法已变更，请重新确认。" };
 
 		if (check.IsOverwrite && !confirmed)
 		{
@@ -215,6 +222,7 @@
 				needsConfirm  = true,
 				confirmKind   = "switch_slot",
 				isOverwrite   = true,
+				oldManualID   = check.OldManualID,
 				oldManualName = check.OldManualName,
 				newManualName = check.NewManualName,
 				penaltyDays   = check.PenaltyDays,
@@ -235,12 +243,13 @@
 	};
 
 	// Unequip an occupied slot back into LearnedManuals (preserves Tier & Exp)
-	// _data = [entityId, slotIndex, confirmed]
+	// _data = [entityId, slotIndex, confirmed, expectedManualID]
 	q.onWXUnequipSlot <- function( _data )
 	{
 		local entityId  = _data[0];
 		local slotIndex = _data[1];
 		local confirmed = _data.len() >= 3 ? _data[2] : false;
+		local expectedManualID = _data.len() >= 4 ? _data[3] : null;
 
 		local bro = this.WX_findBrotherById(entityId);
 		if (bro == null)
@@ -256,10 +265,14 @@
 				ok            = false,
 				needsConfirm  = true,
 				confirmKind   = "unequip_slot",
+				oldManualID   = check.OldManualID,
 				oldManualName = check.OldManualName,
 				penaltyDays   = check.PenaltyDays
 			};
 		}
+
+		if (expectedManualID != check.OldManualID)
+			return { ok = false, reason = "该穴位功法已变更，请重新确认。" };
 
 		local res = ::Wuxia.Slots.unequipSlot(bro, slotIndex);
 		if (!res.Ok)
@@ -313,99 +326,18 @@
 		return state;
 	};
 
-	// One-stop Learn from 藏经阁 AND immediately Equip into target slot (from 武学修为 tab!)
-	// _data = [entityId, slotIndex, manualID, isFragment, confirmed]
+	// _data = [entityId, slotIndex, manualID, isFragment, confirmed, previousManualID]
 	q.onWXLearnAndEquip <- function( _data )
 	{
-		local entityId   = _data[0];
-		local slotIndex  = _data[1];
-		local manualID   = _data[2];
-		local isFragment = _data.len() >= 4 ? _data[3] : false;
-		local confirmed  = _data.len() >= 5 ? _data[4] : false;
-
-		local bro = this.WX_findBrotherById(entityId);
-		if (bro == null)
-			return { ok = false, reason = "未找到该名侠客。" };
-
-		local def = ::Wuxia.Slots.getManualDef(manualID);
-		if (def == null)
-			return { ok = false, reason = "未知武学秘籍。" };
-
-		local container = ::Wuxia.Slots.getContainer(bro);
-		container.ensureSlotsRegisteredInLearned();
-		local existing = container.getLearnedEntry(manualID);
-		local needsLearn = (existing == null || (!isFragment && existing.IsFragment));
-
-		if (needsLearn && isFragment && !confirmed)
-		{
-			return {
-				ok            = false,
-				needsConfirm  = true,
-				confirmKind   = "fragment_learn",
-				newManualName = def.Name
-			};
-		}
-
-		// Pre-validate slot compatibility BEFORE consuming library manual!
-		if (slotIndex >= 0 && slotIndex < container.m.Slots.len())
-		{
-			local slot = container.m.Slots[slotIndex];
-			if (bro.getLevel() < slot.UnlockLevel)
-				return { ok = false, reason = "该武学插槽需 " + slot.UnlockLevel + " 级解锁。" };
-
-			local slotSpec = ::Wuxia.Config.Slots[slotIndex];
-			local catOk = false;
-			foreach (ac in slotSpec.AllowedCategories)
-			{
-				if (ac == def.Category) { catOk = true; break; }
-			}
-			if (!catOk)
-				return { ok = false, reason = "《" + def.Name + "》类别与所选插槽不匹配。" };
-
-			if (slot.ManualID != null && slot.ManualID != manualID && !confirmed)
-			{
-				local oldDef = ::Wuxia.Slots.getManualDef(slot.ManualID);
-				local pDays = ::Wuxia.Config.ScatterWeaknessDays[oldDef != null ? oldDef.Quality : "common"];
-				return {
-					ok            = false,
-					needsConfirm  = true,
-					confirmKind   = "switch_slot",
-					isOverwrite   = true,
-					oldManualName = oldDef != null ? oldDef.Name : slot.ManualID,
-					newManualName = def.Name,
-					penaltyDays   = pDays,
-					isFragment    = isFragment
-				};
-			}
-		}
-
-		if (needsLearn)
-		{
-			local learnRes = ::Wuxia.Library.learnFromLibrary(bro, manualID, isFragment);
-			if (!learnRes.Ok)
-				return { ok = false, reason = learnRes.Reason };
-		}
-
-		if (slotIndex >= 0)
-		{
-			local eqRes = ::Wuxia.Slots.equipLearnedManual(bro, slotIndex, manualID);
-			if (!eqRes.Ok)
-			{
-				local stPartial = this.onWXGetState(entityId);
-				this.WX_attachVanillaSync(stPartial, bro, true, false);
-				stPartial.actionMessage <- bro.getName() + " 已研习《" + def.Name + "》，但未能装入该槽：" + eqRes.Reason;
-				return stPartial;
-			}
-			local state = this.onWXGetState(entityId);
-			this.WX_attachVanillaSync(state, bro, true, false);
-			state.actionMessage <- bro.getName() + " 已领悟《" + def.Name + "》并装入槽 " + (slotIndex + 1) + " 生效！";
-			return state;
-		}
-
-		local stateOnly = this.onWXGetState(entityId);
-		this.WX_attachVanillaSync(stateOnly, bro, true, false);
-		stateOnly.actionMessage <- bro.getName() + " 已成功领悟《" + def.Name + "》！";
-		return stateOnly;
+		if (typeof _data != "array" || _data.len() < 3) return { ok = false, reason = "缺少研习或装配信息。" };
+		local bro = this.WX_findBrotherById(_data[0]);
+		local result = ::Wuxia.Library.learnAndEquip(bro, _data[1], _data[2], _data.len() > 3 && _data[3],
+			_data.len() > 4 && _data[4], _data.len() > 5, _data.len() > 5 ? _data[5] : null);
+		if (!result.ok) return result;
+		local state = this.onWXGetState(_data[0]);
+		this.WX_attachVanillaSync(state, bro, true, false);
+		state.actionMessage <- result.actionMessage;
+		return state;
 	};
 
 	// Sweep all manuals & pages from Stash into 藏经阁
@@ -628,7 +560,7 @@
 
 		stash.removeByIndex(stashIndex);
 
-		local msg = "向《" + res.ManualName + "》灌注 " + expAmt + " 点火候！" + resonanceNote;
+		local msg = "向《" + res.ManualName + "》灌注 " + res.ExpAmount + " 点火候！" + resonanceNote;
 		if (clearedScatter)
 			msg += " 九转药力同时化解了散功虚弱！";
 		if (res.Advanced)

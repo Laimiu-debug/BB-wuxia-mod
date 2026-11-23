@@ -58,7 +58,17 @@ this.wx_event_shanhai_rumor <- this.inherit("scripts/events/event", {
 					if (::Wuxia.hasMember(site, "setDiscovered")) site.setDiscovered(true);
 					site.getFlags().set("wx_charted", true);
 					if ("uncoverFogOfWar" in ::World) ::World.uncoverFogOfWar(sTile.Pos, 500.0);
-					this.Text = "[img]gfx/ui/events/wx_ev_21.png[/img]老猎妖师蘸着烈酒在羊皮舆图上重重一点：\n\n『自此地往 [color=#ffd88a]" + dir + "[/color] 行约 [color=#ffd88a]" + dist + " 格[/color]路程，便是 [color=#ff8e80]" + site.getName() + "[/color]！大妖凶威非同小可，但若能取其山海内丹带回城中百工剥制师处，便可锻出刀枪难入的山海传世宝甲与异宝！』\n\n（该处【山海秘境】已在世界地图迷雾中点亮！）";
+					local intelNote = "";
+					local siteKey = ("WX_Site" in site.m) ? site.m.WX_Site : null;
+					local bossID = (siteKey != null && "getBossIDForSite" in ::Wuxia.ShanHai) ? ::Wuxia.ShanHai.getBossIDForSite(siteKey) : null;
+					if (bossID != null && (bossID in ::Wuxia.Config.ShanHaiBosses))
+					{
+						local bCfg = ::Wuxia.Config.ShanHaiBosses[bossID];
+						local tInfo = ::Wuxia.ShanHai.getBossTierInfo(::Wuxia.ShanHai.getBossTier(bossID));
+						local hint = ::Wuxia.ShanHai.getBossCounterHint(bossID);
+						intelNote = "\n\n[color=" + tInfo.Color + "]【" + tInfo.Label + "】[/color] " + bCfg.TraitName + "：" + bCfg.TraitDesc + "\n[color=#8be9b5]老猎妖师叮嘱：" + hint + "。[/color]";
+					}
+					this.Text = "[img]gfx/ui/events/wx_ev_21.png[/img]老猎妖师蘸着烈酒在羊皮舆图上重重一点：\n\n『自此地往 [color=#ffd88a]" + dir + "[/color] 行约 [color=#ffd88a]" + dist + " 格[/color]路程，便是 [color=#ff8e80]" + site.getName() + "[/color]！大妖凶威非同小可，若能取其山海内丹带回城中百工丹坊，便可锻出刀枪难入的山海传世宝甲与神兵！』" + intelNote + "\n\n（该处【山海秘境】已在世界地图迷雾中点亮！）";
 				}
 				else
 				{

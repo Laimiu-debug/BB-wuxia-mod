@@ -38,7 +38,7 @@ local _appCfg = ::Wuxia.Config.Appearance;
 
 ::Wuxia.Appearance.brushExists <- function( _brushName )
 {
-	if (_brushName == null || _brushName == "") return false;
+	if (_brushName == null || typeof _brushName != "string" || _brushName == "") return false;
 	if ("doesBrushExist" in getroottable())
 		return ::doesBrushExist(_brushName);
 	return true;
@@ -403,7 +403,7 @@ local _appCfg = ::Wuxia.Config.Appearance;
 			if (sb.HasBrush)
 			{
 				local bn = sb.getBrush().Name;
-				if (bn.find("wx_enemy_") == 0 || bn.find("wx_char_enemy_") == 0 || bn.find("wx_beast_") == 0 || bn.find("wx_boss_") == 0)
+				if (bn.find("wx_enemy_") == 0 || bn.find("wx_char_enemy_") == 0 || bn.find("wx_beast_") == 0 || bn.find("wx_boss_") == 0 || bn.find("wx_tail_") == 0)
 					snap.isSingleBust = true;
 			}
 		}
@@ -414,7 +414,7 @@ local _appCfg = ::Wuxia.Config.Appearance;
 
 	if (!snap.isSingleBust)
 	{
-		snap.backDead     = null;
+		snap.backDead     = getDeadBrush("surcoat");
 		snap.hatBackDead  = getDeadBrush("armor_upgrade_back");
 		snap.headDead     = getDeadBrush("head");
 		snap.scarDead     = getDeadBrush("tattoo_head");
@@ -490,6 +490,34 @@ local _appCfg = ::Wuxia.Config.Appearance;
 	spawnDead(headTile, _snap.hatFrontDead);
 };
 
+// Ensure dying miniboss / custom-bust actors retain at least 1 valid visible body sprite so `stats_collector`
+// (`_actor.getImagePath()`) never generates an empty `procedural/tacticalentity(...,socket,miniboss,arrow)` UI warning.
+::Wuxia.Appearance.ensurePostDeathPortraitSprite <- function( _actor )
+{
+	if (_actor == null || !::Wuxia.Appearance.hasMember(_actor, "hasSprite") || !_actor.hasSprite("body")) return;
+	local sb = _actor.getSprite("body");
+	if (sb == null) return;
+	local customBust = (::Wuxia.hasMember(_actor.m, "WX_CustomEnemyBust") && _actor.m.WX_CustomEnemyBust != null)
+		? _actor.m.WX_CustomEnemyBust
+		: ((::Wuxia.hasMember(_actor, "getFlags") && _actor.getFlags() != null && _actor.getFlags().has("WX_CustomEnemyBust")) ? _actor.getFlags().get("WX_CustomEnemyBust") : null);
+	if (customBust != null && customBust != "" && ::Wuxia.Appearance.brushExists(customBust))
+	{
+		sb.setBrush(customBust);
+		sb.Visible = true;
+		return;
+	}
+	local hasVisHead = _actor.hasSprite("head") && _actor.getSprite("head").Visible && _actor.getSprite("head").HasBrush;
+	if ((!sb.Visible || !sb.HasBrush) && !hasVisHead)
+	{
+		local bName = sb.HasBrush ? sb.getBrush().Name : ((::Wuxia.hasMember(_actor.m, "WX_OrigBodyBrush") && _actor.m.WX_OrigBodyBrush != null) ? _actor.m.WX_OrigBodyBrush : "bust_naked_body_01");
+		if (bName != null && ::Wuxia.Appearance.brushExists(bName))
+		{
+			sb.setBrush(bName);
+			sb.Visible = true;
+		}
+	}
+};
+
 // Safely swap any `wx_*` brushes back to valid vanilla `*_dead`-compatible brushes right before `onDeath`!
 ::Wuxia.Appearance.restoreVanillaBrushesForDeath <- function( _actor )
 {
@@ -557,16 +585,108 @@ local _appCfg = ::Wuxia.Config.Appearance;
 	return true;
 };
 
-::Wuxia.Appearance.refreshActorSprites <- function( _actor )
+::Wuxia.Appearance.WhiteColor <- null;
+
+::Wuxia.Appearance.getWhiteColor <- function()
 {
-	if (!::Wuxia.Appearance.isEligibleHumanActor(_actor)) return;
+	if (::Wuxia.Appearance.WhiteColor == null)
+		::Wuxia.Appearance.WhiteColor = ::createColor("#ffffff");
+	return ::Wuxia.Appearance.WhiteColor;
+};
+
+::Wuxia.Appearance.applySpriteIfChanged <- function( _spr, _brushName, _white )
+{
+	if (_spr == null || _brushName == null || _brushName == "") return false;
+	local curBrush = (_spr.HasBrush) ? _spr.getBrush().Name : "";
+	if (curBrush == _brushName && _spr.Visible)
+		return false;
+	if (curBrush != _brushName)
+		_spr.setBrush(_brushName);
+	_spr.Color = _white;
+	_spr.Visible = true;
+	return true;
+};
+
+::Wuxia.Appearance.hideSpriteIfVisible <- function( _actor, _name )
+{
+	if (!_actor.hasSprite(_name)) return false;
+	local sp = _actor.getSprite(_name);
+	if (sp != null && sp.Visible)
+	{
+		sp.Visible = false;
+		return true;
+	}
+	return false;
+};
+
+::Wuxia.Appearance.setFlipIfChanged <- function( _spr, _flip )
+{
+	if (_spr == null) return false;
+	if (::Wuxia.Appearance.hasMember(_spr, "isFlippedHorizontally") && _spr.isFlippedHorizontally() == _flip)
+		return false;
+	_spr.setHorizontalFlipping(_flip);
+	return true;
+};
+
+// Enforce canonical Battle Brothers facing (`!isAlliedWithPlayer()`) for ALL Wuxia modular & custom enemy/beast/boss busts,
+// overriding vanilla non-human base classes (`ghoul`, `skeleton`, `zombie`, `goblin`, `direwolf`, `unhold`, `orc_*`, etc.)
+// whose native sprites face left (`flip = isAlliedWithPlayer()`).
+::Wuxia.Appearance.enforceWuxiaFacing <- function( _actor )
+{
+	if (_actor == null || !::Wuxia.Appearance.hasMember(_actor, "hasSprite") || !::Wuxia.Appearance.hasMember(_actor, "isAlliedWithPlayer"))
+		return false;
+	if (::Wuxia.Appearance.hasMember(_actor, "m") && ("WX_Motion" in _actor.m) && _actor.m.WX_Motion != null && _actor.m.WX_Motion.flippedTemp)
+		return false;
+
+	local flip = !_actor.isAlliedWithPlayer();
+	local hasCustom = (::Wuxia.Appearance.hasMember(_actor, "m") && ("WX_CustomEnemyBust" in _actor.m) && _actor.m.WX_CustomEnemyBust != null);
+	local bn = "";
+	if (_actor.hasSprite("body"))
+	{
+		local sb = _actor.getSprite("body");
+		if (sb != null && sb.HasBrush) bn = sb.getBrush().Name;
+	}
+
+	if (hasCustom || bn.find("wx_boss_") == 0 || bn.find("wx_beast_") == 0 || bn.find("wx_tail_") == 0 || bn.find("wx_enemy_") == 0 || bn.find("wx_char_enemy_") == 0)
+	{
+		if (_actor.hasSprite("body"))
+			return ::Wuxia.Appearance.setFlipIfChanged(_actor.getSprite("body"), flip);
+		return false;
+	}
+
+	local hasModularWx = (bn.find("wx_") == 0);
+	if (!hasModularWx && _actor.hasSprite("head"))
+	{
+		local sh = _actor.getSprite("head");
+		if (sh != null && sh.HasBrush && sh.getBrush().Name.find("wx_") == 0)
+			hasModularWx = true;
+	}
+	if (!hasModularWx)
+		return false;
+
+	local changed = false;
+	foreach (lyr in ["body", "surcoat", "tattoo_body", "armor_upgrade_back", "head", "tattoo_head", "beard", "hair", "helmet", "arms_icon", "shield_icon"])
+	{
+		if (_actor.hasSprite(lyr))
+		{
+			if (::Wuxia.Appearance.setFlipIfChanged(_actor.getSprite(lyr), flip))
+				changed = true;
+		}
+	}
+	return changed;
+};
+
+::Wuxia.Appearance.refreshActorSprites <- function( _actor, _deferDirty = false )
+{
+	if (!::Wuxia.Appearance.isEligibleHumanActor(_actor)) return false;
 
 	local st = ::Wuxia.Appearance.getOrInitState(_actor);
-	if (st == null) return;
+	if (st == null) return false;
 
 	::Wuxia.Appearance.saveOriginalVanillaBrushes(_actor);
 
-	local white = ::createColor("#ffffff");
+	local white = ::Wuxia.Appearance.getWhiteColor();
+	local changed = false;
 	local items = ::Wuxia.Appearance.hasMember(_actor, "getItems") ? _actor.getItems() : null;
 	local bodyItem = (items != null) ? items.getItemAtSlot(::Const.ItemSlot.Body) : null;
 	local headItem = (items != null) ? items.getItemAtSlot(::Const.ItemSlot.Head) : null;
@@ -589,21 +709,29 @@ local _appCfg = ::Wuxia.Config.Appearance;
 	local sprBody = _actor.getSprite("body");
 	if (bodyItem == null || bodyCond <= 0 || hasWuxiaBody)
 	{
-		sprBody.setBrush(bodyBrush);
-		sprBody.Color = white;
-		sprBody.Visible = true;
-		if (_actor.hasSprite("armor")) _actor.getSprite("armor").Visible = false;
-		if (_actor.hasSprite("armor_upgrade_front")) _actor.getSprite("armor_upgrade_front").Visible = false;
+		if (::Wuxia.Appearance.applySpriteIfChanged(sprBody, bodyBrush, white)) changed = true;
+		if (::Wuxia.Appearance.hideSpriteIfVisible(_actor, "armor")) changed = true;
+		if (::Wuxia.Appearance.hideSpriteIfVisible(_actor, "armor_upgrade_front")) changed = true;
 	}
-	if (_actor.hasSprite("injury_body")) _actor.getSprite("injury_body").Visible = false;
-	if (_actor.hasSprite("dirt")) _actor.getSprite("dirt").Visible = false;
+	if (::Wuxia.Appearance.hideSpriteIfVisible(_actor, "injury_body")) changed = true;
+	if (::Wuxia.Appearance.hideSpriteIfVisible(_actor, "dirt")) changed = true;
 
-	// 2. Jianghu back ornaments (`wx_back_01..16`) suppressed on character busts so floating gourds/boxes/banners do not obscure sprites
+	// 2. Render bespoke Baigong armor upgrades (`wx_up_*`) on `surcoat` (`z > body, z < head`) while suppressing generic `wx_back_*` props
 	local upgBack = ::Wuxia.Appearance.resolveEquippedUpgradeBack(_actor);
 	if (_actor.hasSprite("surcoat"))
-		_actor.getSprite("surcoat").Visible = false;
-	if (_actor.hasSprite("tattoo_body"))
-		_actor.getSprite("tattoo_body").Visible = false;
+	{
+		local sprSur = _actor.getSprite("surcoat");
+		if (upgBack != null && upgBack.Brush != null && upgBack.Brush.find("wx_up_") == 0 && ::Wuxia.Appearance.brushExists(upgBack.Brush))
+		{
+			if (::Wuxia.Appearance.applySpriteIfChanged(sprSur, upgBack.Brush, white)) changed = true;
+		}
+		else if (sprSur.Visible)
+		{
+			sprSur.Visible = false;
+			changed = true;
+		}
+	}
+	if (::Wuxia.Appearance.hideSpriteIfVisible(_actor, "tattoo_body")) changed = true;
 
 	// 3. Boolean-Split Rear Hat Brim / Hood / Neck-Guard (`wx_hat_*_back` on `armor_upgrade_back`, `z > surcoat` & strictly `z < head`!)
 	if (_actor.hasSprite("armor_upgrade_back"))
@@ -611,25 +739,22 @@ local _appCfg = ::Wuxia.Config.Appearance;
 		local sprHatBack = _actor.getSprite("armor_upgrade_back");
 		if (hatBackBrush != null && ::Wuxia.Appearance.brushExists(hatBackBrush))
 		{
-			sprHatBack.setBrush(hatBackBrush);
-			sprHatBack.Color = white;
-			sprHatBack.Visible = true;
+			if (::Wuxia.Appearance.applySpriteIfChanged(sprHatBack, hatBackBrush, white)) changed = true;
 		}
-		else if (bodyItem == null || bodyCond <= 0 || hasWuxiaBody || upgBack != null)
+		else if ((bodyItem == null || bodyCond <= 0 || hasWuxiaBody || upgBack != null) && sprHatBack.Visible)
 		{
 			sprHatBack.Visible = false;
+			changed = true;
 		}
 	}
 
 	// 4. Registered Wuxia Head (`wx_head_01..48`) & suppress misaligned vanilla European facial injury overlays
 	local fi = ::Math.max(1, ::Math.min(48, st.FaceIdx));
 	local sprHead = _actor.getSprite("head");
-	sprHead.setBrush("wx_head_" + ::Wuxia.Appearance.pad2(fi));
-	sprHead.Color = white;
-	sprHead.Visible = true;
+	if (::Wuxia.Appearance.applySpriteIfChanged(sprHead, "wx_head_" + ::Wuxia.Appearance.pad2(fi), white)) changed = true;
 	foreach (vInj in ["injury", "permanent_injury_1", "permanent_injury_2", "permanent_injury_3", "permanent_injury_4"])
 	{
-		if (_actor.hasSprite(vInj)) _actor.getSprite(vInj).Visible = false;
+		if (::Wuxia.Appearance.hideSpriteIfVisible(_actor, vInj)) changed = true;
 	}
 
 	// 5. Scar / Facial Mark / Permanent Injury Eyepatch (`wx_scar_01..12` on `tattoo_head`)
@@ -639,18 +764,17 @@ local _appCfg = ::Wuxia.Config.Appearance;
 		local sprScar = _actor.getSprite("tattoo_head");
 		if (effScar > 0 && effScar <= 12)
 		{
-			sprScar.setBrush("wx_scar_" + ::Wuxia.Appearance.pad2(effScar));
-			sprScar.Color = white;
-			sprScar.Visible = true;
+			if (::Wuxia.Appearance.applySpriteIfChanged(sprScar, "wx_scar_" + ::Wuxia.Appearance.pad2(effScar), white)) changed = true;
 		}
-		else
+		else if (sprScar.Visible)
 		{
 			sprScar.Visible = false;
+			changed = true;
 		}
 	}
 
 	// 6. Landmark-Fitted Beard + Multi-Tone (`wx_beard_01..24` on `beard`, hiding vanilla `beard_top`)
-	if (_actor.hasSprite("beard_top")) _actor.getSprite("beard_top").Visible = false;
+	if (::Wuxia.Appearance.hideSpriteIfVisible(_actor, "beard_top")) changed = true;
 	if (_actor.hasSprite("beard"))
 	{
 		local sprBeard = _actor.getSprite("beard");
@@ -660,13 +784,12 @@ local _appCfg = ::Wuxia.Config.Appearance;
 			local bBrush = "wx_beard_" + ::Wuxia.Appearance.pad2(st.BeardIdx) + toneSuffix;
 			if (!::Wuxia.Appearance.brushExists(bBrush))
 				bBrush = "wx_beard_" + ::Wuxia.Appearance.pad2(st.BeardIdx);
-			sprBeard.setBrush(bBrush);
-			sprBeard.Color = white;
-			sprBeard.Visible = true;
+			if (::Wuxia.Appearance.applySpriteIfChanged(sprBeard, bBrush, white)) changed = true;
 		}
-		else
+		else if (sprBeard.Visible)
 		{
 			sprBeard.Visible = false;
+			changed = true;
 		}
 	}
 
@@ -682,13 +805,12 @@ local _appCfg = ::Wuxia.Config.Appearance;
 			local hBrush = baseHair + toneSuffix;
 			if (!::Wuxia.Appearance.brushExists(hBrush))
 				hBrush = baseHair;
-			sprHair.setBrush(hBrush);
-			sprHair.Color = white;
-			sprHair.Visible = true;
+			if (::Wuxia.Appearance.applySpriteIfChanged(sprHair, hBrush, white)) changed = true;
 		}
-		else
+		else if (sprHair.Visible)
 		{
 			sprHair.Visible = false;
+			changed = true;
 		}
 	}
 
@@ -698,68 +820,137 @@ local _appCfg = ::Wuxia.Config.Appearance;
 		if (hasWuxiaHat)
 		{
 			local sprHelm = _actor.getSprite("helmet");
-			sprHelm.setBrush(headItem.m.WX_HatFrontBrush);
-			sprHelm.Color = white;
-			sprHelm.Visible = true;
-			if (_actor.hasSprite("helmet_damage")) _actor.getSprite("helmet_damage").Visible = false;
+			if (::Wuxia.Appearance.applySpriteIfChanged(sprHelm, headItem.m.WX_HatFrontBrush, white)) changed = true;
+			if (::Wuxia.Appearance.hideSpriteIfVisible(_actor, "helmet_damage")) changed = true;
 		}
 		else if (headItem == null || headCond <= 0)
 		{
-			_actor.getSprite("helmet").Visible = false;
-			if (_actor.hasSprite("helmet_damage")) _actor.getSprite("helmet_damage").Visible = false;
+			if (::Wuxia.Appearance.hideSpriteIfVisible(_actor, "helmet")) changed = true;
+			if (::Wuxia.Appearance.hideSpriteIfVisible(_actor, "helmet_damage")) changed = true;
 		}
 	}
 
-	// Sync tactical faction facing (`flip = !_actor.isAlliedWithPlayer()`) across all 8 paperdoll layers!
-	if ("Tactical" in getroottable() && ::Tactical != null && ::Tactical.isActive() && ::Wuxia.Appearance.hasMember(_actor, "isAlliedWithPlayer"))
+	// Sync tactical faction facing (`flip = !_actor.isAlliedWithPlayer()`), respecting active spin choreography!
+	local inSpinFlip = (::Wuxia.Appearance.hasMember(_actor, "m") && ("WX_Motion" in _actor.m) && _actor.m.WX_Motion != null && _actor.m.WX_Motion.flippedTemp);
+	if (!inSpinFlip && "Tactical" in getroottable() && ::Tactical != null && ::Tactical.isActive() && ::Wuxia.Appearance.hasMember(_actor, "isAlliedWithPlayer"))
 	{
 		local flip = !_actor.isAlliedWithPlayer();
 		foreach (lyr in ["body", "surcoat", "tattoo_body", "armor_upgrade_back", "head", "tattoo_head", "beard", "hair", "helmet"])
 		{
 			if (_actor.hasSprite(lyr))
-				_actor.getSprite(lyr).setHorizontalFlipping(flip);
+			{
+				if (::Wuxia.Appearance.setFlipIfChanged(_actor.getSprite(lyr), flip)) changed = true;
+			}
 		}
 	}
 
-	if (::Wuxia.Appearance.hasMember(_actor, "setDirty")) _actor.setDirty(true);
+	if (changed && !_deferDirty && ::Wuxia.Appearance.hasMember(_actor, "setDirty")) _actor.setDirty(true);
+	return changed;
 };
 
-::Wuxia.Appearance.applyCustomEnemyBust <- function( _actor, _enemyBrush )
+::Wuxia.Appearance.applyCustomEnemyBust <- function( _actor, _enemyBrush, _deferDirty = false )
 {
-	if (_actor == null || _enemyBrush == null || _enemyBrush == "" || !::Wuxia.Appearance.hasMember(_actor, "hasSprite")) return;
-	if (!_actor.hasSprite("body") || !::Wuxia.Appearance.brushExists(_enemyBrush)) return;
+	if (_actor == null || _enemyBrush == null || _enemyBrush == "" || !::Wuxia.Appearance.hasMember(_actor, "hasSprite")) return false;
+	if (!_actor.hasSprite("body") || !::Wuxia.Appearance.brushExists(_enemyBrush)) return false;
 
 	::Wuxia.Appearance.saveOriginalVanillaBrushes(_actor);
-	_actor.m.WX_CustomEnemyBust <- _enemyBrush;
+	local changed = false;
+	if (!("WX_CustomEnemyBust" in _actor.m) || _actor.m.WX_CustomEnemyBust != _enemyBrush)
+	{
+		_actor.m.WX_CustomEnemyBust <- _enemyBrush;
+		changed = true;
+	}
+	if (::Wuxia.hasMember(_actor, "getFlags") && _actor.getFlags() != null)
+	{
+		if (!_actor.getFlags().has("WX_CustomEnemyBust") || _actor.getFlags().get("WX_CustomEnemyBust") != _enemyBrush)
+			_actor.getFlags().set("WX_CustomEnemyBust", _enemyBrush);
+	}
 
 	local sprBody = _actor.getSprite("body");
-	sprBody.setBrush(_enemyBrush);
-	sprBody.Color = ::createColor("#ffffff");
-	sprBody.Visible = true;
+	if (::Wuxia.Appearance.applySpriteIfChanged(sprBody, _enemyBrush, ::Wuxia.Appearance.getWhiteColor())) changed = true;
 
-	if ("Tactical" in getroottable() && ::Tactical != null && ::Tactical.isActive() && ::Wuxia.Appearance.hasMember(_actor, "isAlliedWithPlayer"))
-	{
-		sprBody.setHorizontalFlipping(!_actor.isAlliedWithPlayer());
-	}
+	if (::Wuxia.Appearance.enforceWuxiaFacing(_actor)) changed = true;
 
 	if (_enemyBrush.find("wx_beast_") == 0 && !("WX_BossID" in _actor.m) && ("Appearance" in ::Wuxia.Config) && ("BeastBustNames" in ::Wuxia.Config.Appearance) && (_enemyBrush in ::Wuxia.Config.Appearance.BeastBustNames))
 	{
 		if (::Wuxia.Appearance.hasMember(_actor, "setName"))
-			_actor.setName(::Wuxia.Config.Appearance.BeastBustNames[_enemyBrush]);
+		{
+			local wantName = ::Wuxia.Config.Appearance.BeastBustNames[_enemyBrush];
+			if (!::Wuxia.Appearance.hasMember(_actor, "getNameOnly") || _actor.getNameOnly() != wantName)
+				_actor.setName(wantName);
+		}
 	}
 
 	// Hide all vanilla composite sub-layers so our bespoke hand-painted enemy/beast bust displays cleanly
 	foreach (sub in [
-		"quiver", "tattoo_body", "injury_body", "armor", "surcoat", "armor_upgrade_back", "armor_upgrade_front",
-		"head", "head_frenzy", "closed_eyes", "eye_rings", "tattoo_head", "injury",
+		"quiver", "tattoo_body", "injury_body", "body_hurt", "armor", "surcoat", "armor_upgrade_back", "armor_upgrade_front",
+		"head", "head_frenzy", "head_hurt", "closed_eyes", "eye_rings", "tattoo_head", "injury",
 		"permanent_injury_1", "permanent_injury_2", "permanent_injury_3", "permanent_injury_4",
 		"beard", "beard_top", "hair", "helmet", "helmet_damage", "body_blood", "dirt",
-		"arms_icon", "shield_icon", "legs_back", "legs_front", "tail", "wings", "charm_body"
+		"arms_icon", "shield_icon", "legs_back", "legs_front", "tail", "wings", "charm_body", "tentacle"
 	])
 	{
-		if (_actor.hasSprite(sub)) _actor.getSprite(sub).Visible = false;
+		if (::Wuxia.Appearance.hideSpriteIfVisible(_actor, sub)) changed = true;
 	}
-	if (::Wuxia.Appearance.hasMember(_actor, "setDirty")) _actor.setDirty(true);
+	if (changed && !_deferDirty && ::Wuxia.Appearance.hasMember(_actor, "setDirty")) _actor.setDirty(true);
+	if (changed) ::Wuxia.Appearance.syncLindwurmTail(_actor);
+	return changed;
+};
+
+// Synchronize multi-tile `lindwurm_tail` sprite & Chinese name to match its parent Shan Hai Boss or wild Feiyi body!
+::Wuxia.Appearance.syncLindwurmTail <- function( _actor )
+{
+	if (_actor == null || !::Wuxia.Appearance.hasMember(_actor, "m")) return;
+
+	// Allow calling with EITHER the parent `lindwurm` body OR the `lindwurm_tail` itself
+	// Note: human.m.Body is an integer (0..3), so strictly verify table/instance before treating as an actor reference!
+	local tail = null;
+	local body = null;
+	if (::Wuxia.hasMember(_actor.m, "Tail") && _actor.m.Tail != null && (typeof _actor.m.Tail == "table" || typeof _actor.m.Tail == "instance"))
+	{
+		body = _actor;
+		tail = _actor.m.Tail;
+	}
+	else if (::Wuxia.hasMember(_actor.m, "Body") && _actor.m.Body != null && (typeof _actor.m.Body == "table" || typeof _actor.m.Body == "instance"))
+	{
+		tail = _actor;
+		body = _actor.m.Body;
+	}
+	if (tail == null || body == null || !::Wuxia.hasMember(body, "m") || !::Wuxia.Appearance.hasMember(tail, "hasSprite")) return;
+
+	local tailBrush = "wx_tail_feiyi_wild";
+	local tailName = "太华肥遗·盘尾";
+	if ("WX_BossID" in body.m && body.m.WX_BossID != null)
+	{
+		local bid = body.m.WX_BossID;
+		local bkey = (bid.find("boss_") == 0) ? bid.slice(5) : bid;
+		local cand = "wx_tail_" + bkey;
+		if (::Wuxia.Appearance.brushExists(cand))
+			tailBrush = cand;
+		if ("ShanHaiBosses" in ::Wuxia.Config && (bid in ::Wuxia.Config.ShanHaiBosses))
+			tailName = ::Wuxia.Config.ShanHaiBosses[bid].Name + "·盘尾";
+	}
+	if (!::Wuxia.Appearance.brushExists(tailBrush)) return;
+
+	::Wuxia.Appearance.saveOriginalVanillaBrushes(tail);
+	tail.m.WX_CustomEnemyBust <- tailBrush;
+	if (::Wuxia.Appearance.hasMember(tail, "setName"))
+		tail.setName(tailName);
+
+	if (tail.hasSprite("body"))
+	{
+		local sb = tail.getSprite("body");
+		sb.setBrush(tailBrush);
+		sb.Color = ::createColor("#ffffff");
+		sb.Visible = true;
+		if ("Tactical" in getroottable() && ::Tactical != null && ::Tactical.isActive() && ::Wuxia.Appearance.hasMember(tail, "isAlliedWithPlayer"))
+			sb.setHorizontalFlipping(!tail.isAlliedWithPlayer());
+	}
+	foreach (sub in ["head", "head_hurt", "body_hurt", "body_blood", "injury", "injury_body", "armor", "helmet", "dirt"])
+	{
+		if (tail.hasSprite(sub)) tail.getSprite(sub).Visible = false;
+	}
+	if (::Wuxia.Appearance.hasMember(tail, "setDirty")) tail.setDirty(true);
 };
 
 ::Wuxia.Appearance.applyShanHaiEntityStrings <- function()
@@ -791,7 +982,7 @@ local _appCfg = ::Wuxia.Config.Appearance;
 	if ("WX_CustomEnemyBust" in _actor.m && _actor.m.WX_CustomEnemyBust != null) return _actor.m.WX_CustomEnemyBust;
 
 	// Never override civilian/gentry contract employers (`councilman`, `noble`, `envoy`, `vizier`) with combat general busts!
-	local cls = ("ClassName" in _actor && typeof _actor.ClassName == "string") ? _actor.ClassName : "";
+	local cls = (::Wuxia.hasMember(_actor, "ClassName") && typeof _actor.ClassName == "string") ? _actor.ClassName : "";
 	if (cls == "councilman" || cls == "noble" || cls == "envoy" || cls == "vizier" || cls == "first_born" || (::Wuxia.hasMember(_actor.m, "IsGuest") && _actor.m.IsGuest))
 		return null;
 

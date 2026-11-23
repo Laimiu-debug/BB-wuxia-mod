@@ -62,11 +62,14 @@ this.wx_blood_burst <- this.inherit("scripts/skills/skill", {
 		local hpCost = ::Math.max(6, ::Math.floor(_user.getHitpointsMax() * 0.12));
 		_user.setHitpoints(::Math.max(1, _user.getHitpoints() - hpCost));
 		local c = ::Wuxia.Slots.getContainer(_user);
-		local amount = c.m.CachedAggFlags.BloodBurstAP;
-		c.grantTemporaryAP(amount);
+		local amount = (c != null && c.m.CachedAggFlags != null && c.m.CachedAggFlags.BloodBurstAP > 0) ? c.m.CachedAggFlags.BloodBurstAP : 2;
+		local before = _user.getActionPoints();
+		if (c != null) c.grantTemporaryAP(amount);
+		else _user.setActionPoints(::Math.min(::Wuxia.Config.Constants.MaxTemporaryAP, before + amount));
+		local gained = _user.getActionPoints() - before;
 		this.m.Cooldown = 3;
 		this.getContainer().update();
-		this.Tactical.EventLog.log(::Const.UI.getColorizedEntityName(_user) + " 损耗 " + hpCost + " 气血，本回合临时 +" + amount + " AP！");
+		this.Tactical.EventLog.log(::Const.UI.getColorizedEntityName(_user) + " 损耗 " + hpCost + " 气血，本回合临时 +" + gained + " AP！");
 		return true;
 	}
 });

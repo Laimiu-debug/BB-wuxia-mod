@@ -39,22 +39,29 @@
 	{
 		_actor.m.WX_BossID <- _bossID;
 		_actor.m.WX_CustomEnemyBust <- cfg.CustomBodySprite;
+		if (::Wuxia.hasMember(_actor, "getFlags") && _actor.getFlags() != null)
+			_actor.getFlags().set("WX_CustomEnemyBust", cfg.CustomBodySprite);
 		local sprBody = _actor.getSprite("body");
 		sprBody.setBrush(cfg.CustomBodySprite);
-		if ("Tactical" in getroottable() && ::Tactical != null && ::Tactical.isActive() && ::Wuxia.hasMember(_actor, "isAlliedWithPlayer"))
+		sprBody.Visible = true;
+		if ("Appearance" in ::Wuxia && "enforceWuxiaFacing" in ::Wuxia.Appearance)
+			::Wuxia.Appearance.enforceWuxiaFacing(_actor);
+		else if ("Tactical" in getroottable() && ::Tactical != null && ::Tactical.isActive() && ::Wuxia.hasMember(_actor, "isAlliedWithPlayer"))
 			sprBody.setHorizontalFlipping(!_actor.isAlliedWithPlayer());
 		if (cfg.CustomHeadSprite == null)
 		{
 			foreach (sub in [
-				"head", "head_frenzy", "helmet", "helmet_damage", "armor", "surcoat",
-				"hair", "beard", "beard_top", "wings", "tattoo_body", "tattoo_head",
-				"legs_back", "legs_front", "tail", "charm_body", "arms_icon", "shield_icon", "injury", "injury_body"
+				"head", "head_frenzy", "head_hurt", "helmet", "helmet_damage", "armor", "surcoat",
+				"hair", "beard", "beard_top", "wings", "tattoo_body", "tattoo_head", "body_hurt", "body_blood",
+				"legs_back", "legs_front", "tail", "charm_body", "arms_icon", "shield_icon", "injury", "injury_body", "tentacle"
 			])
 				if (_actor.hasSprite(sub)) _actor.getSprite(sub).Visible = false;
 		}
 	}
 	if (cfg.CustomHeadSprite != null && _actor.hasSprite("head"))
 		_actor.getSprite("head").setBrush(cfg.CustomHeadSprite);
+	if ("Appearance" in ::Wuxia && "syncLindwurmTail" in ::Wuxia.Appearance)
+		::Wuxia.Appearance.syncLindwurmTail(_actor);
 };
 
 ::Wuxia.ShanHai.dropBossCore <- function( _bossID, _tile )
@@ -63,6 +70,13 @@
 	local cfg = ::Wuxia.Config.ShanHaiBosses[_bossID];
 	local core = ::new("scripts/items/misc/" + cfg.CoreID);
 	core.drop(_tile);
+
+	if ("World" in getroottable() && ::World != null && ("Flags" in ::World) && ::World.Flags != null)
+	{
+		local slain = ::World.Flags.has("wx_slain_shanhai_count") ? ::World.Flags.getAsInt("wx_slain_shanhai_count") : 0;
+		::World.Flags.set("wx_slain_shanhai_count", slain + 1);
+		::World.Flags.set("wx_last_battle_shanhai_boss", true);
+	}
 
 	// 45% bonus chance for Lair Apex Bosses to also drop a《山海本草》Rare Spirit Herb!
 	if (::Math.rand(1, 100) <= 45)
@@ -181,7 +195,16 @@
 	else if (("ZombieBoss" in ET) && t == ET.ZombieBoss)     { coreID = "wx_core_shiwang";    coreChance = 28;  herbChance = 14; }
 	else if (("SkeletonBoss" in ET) && t == ET.SkeletonBoss) { coreID = "wx_core_jiguanyong"; coreChance = 28;  herbChance = 14; }
 	else if (("OrcWarlord" in ET) && t == ET.OrcWarlord)     { coreID = "wx_core_yaoren";     coreChance = 26;  herbChance = 14; }
-	// Common & mid wild beasts (Spider, Direwolf, Hyena, Ghoul, Serpent, Ghost, Alp, Vampire) NEVER drop Neidan Cores or Spirit Herbs!
+	else if (("Vampire" in ET) && t == ET.Vampire)           { coreID = "wx_core_jianmo";     coreChance = 14;  herbChance = 6; }
+	else if (("Alp" in ET) && t == ET.Alp)                   { coreID = "wx_core_esha";       coreChance = 10;  herbChance = 5; }
+	else if (("Ghost" in ET) && t == ET.Ghost)               { coreID = "wx_core_yuanling";   coreChance = 10;  herbChance = 0; }
+	else if (("Ghoul" in ET) && t == ET.Ghoul && ::Wuxia.hasMember(_actor, "getSize") && _actor.getSize() >= 3)
+	                                                         { coreID = "wx_core_paoxiao";    coreChance = 16;  herbChance = 6; }
+	else if (("Hyena" in ET) && t == ET.Hyena && ((sk != null && sk.hasSkill("racial.champion")) || (::Wuxia.hasMember(_actor, "getXPValue") && _actor.getXPValue() >= 175)))
+	                                                         { coreID = "wx_core_gudiao";     coreChance = 15;  herbChance = 0; }
+	else if (("Spider" in ET) && t == ET.Spider && sk != null && sk.hasSkill("racial.champion"))
+	                                                         { coreID = "wx_core_chizhu";     coreChance = 35;  herbChance = 0; }
+	// Small/common pack beasts do not spam Neidan Cores; rare wild cores drop only from apex/mature/champion specimens.
 
 	if (coreID != null && (coreID in ::Wuxia.Config.ShanHaiCores) && ::Math.rand(1, 100) <= coreChance)
 	{
@@ -264,11 +287,10 @@
 {
 	local dx = _toTile.SquareCoords.X - _fromTile.SquareCoords.X;
 	local dy = _toTile.SquareCoords.Y - _fromTile.SquareCoords.Y;
-	local ew = dx > 4 ? "偏东" : (dx < -4 ? "偏西" : "");
-	local ns = dy > 4 ? "正北" : (dy < -4 ? "正南" : "");
-	if (ns != "" && ew != "") return ns.slice(1) + ew.slice(1) + "方";
-	if (ns != "") return ns + "方";
-	if (ew != "") return "正" + ew.slice(1) + "方";
+	local ew = dx > 4 ? "东" : (dx < -4 ? "西" : "");
+	local ns = dy > 4 ? "北" : (dy < -4 ? "南" : "");
+	if (ns != "" && ew != "") return ew + ns + "方";
+	if (ns != "" || ew != "") return "正" + ns + ew + "方";
 	return "近郊四野";
 };
 
@@ -290,4 +312,111 @@
 		return uncharted[::Math.rand(0, uncharted.len() - 1)];
 	if (allAlive.len() == 0) return null;
 	return allAlive[::Math.rand(0, allAlive.len() - 1)];
+};
+
+// Resolve `boss_*` config ID from a stronghold site key (`shanhai_zhuyan` -> `boss_zhuyan`)
+::Wuxia.ShanHai.getBossIDForSite <- function( _siteKey )
+{
+	if (_siteKey == null || _siteKey == "") return null;
+	if (_siteKey in ::Wuxia.Config.ShanHaiBosses) return _siteKey;
+	if (_siteKey.find("shanhai_") == 0)
+	{
+		local bid = "boss_" + _siteKey.slice(8);
+		if (bid in ::Wuxia.Config.ShanHaiBosses) return bid;
+	}
+	if (_siteKey in ::Wuxia.Config.Strongholds)
+	{
+		local def = ::Wuxia.Config.Strongholds[_siteKey];
+		if ("Troops" in def && typeof def.Troops == "array")
+		{
+			foreach (tr in def.Troops)
+			{
+				if (tr in ::Wuxia.Config.ShanHaiBosses) return tr;
+			}
+		}
+	}
+	return null;
+};
+
+// Classify all 64 ShanHai Bosses cleanly into Tier 1 (玄级), Tier 2 (地级), Tier 3 (天级太古)
+::Wuxia.ShanHai.getBossTier <- function( _bossID )
+{
+	if (_bossID == null || !(_bossID in ::Wuxia.Config.ShanHaiBosses)) return 1;
+	local cfg = ::Wuxia.Config.ShanHaiBosses[_bossID];
+	local str = ("Strength" in cfg) ? cfg.Strength : 50;
+	local coreCfg = (("CoreID" in cfg) && (cfg.CoreID in ::Wuxia.Config.ShanHaiCores)) ? ::Wuxia.Config.ShanHaiCores[cfg.CoreID] : null;
+	local isSov = (coreCfg != null && ("TierGroup" in coreCfg) && coreCfg.TierGroup == "sovereign");
+	if (isSov || str >= 62)
+		return 3;
+	if (str >= 56)
+		return 2;
+	return 1;
+};
+
+::Wuxia.ShanHai.getBossTierInfo <- function( _tier )
+{
+	if (_tier >= 3) return { Tier = 3, Label = "天级太古凶兽", Short = "天级", MinDay = 70, MinRenown = 2000, Color = "#ff6b6b", TooltipColor = "#721010", Advice = "宜 9~11 级大成全队携克制灵丹与神兵讨伐" };
+	if (_tier == 2) return { Tier = 2, Label = "地级山海大妖", Short = "地级", MinDay = 32, MinRenown = 950,  Color = "#f0b95b", TooltipColor = "#5e2c00", Advice = "宜 6~8 级成型队伍配克制丹散与破甲兵刃" };
+	return { Tier = 1, Label = "玄级荒野凶兽", Short = "玄级", MinDay = 1,  MinRenown = 0,    Color = "#7fe3a8", TooltipColor = "#0a4213", Advice = "宜 4~6 级成军队伍备足丹药试锋" };
+};
+
+::Wuxia.ShanHai.isBossUnlockedForCampaign <- function( _bossID, _day, _renown )
+{
+	local tier = ::Wuxia.ShanHai.getBossTier(_bossID);
+	if (tier <= 1) return true;
+	// Late-game crisis stirs up all mythic beasts early!
+	if ("World" in getroottable() && ::World != null && ("Flags" in ::World) && ::World.Flags != null)
+	{
+		local cr = ::World.Flags.has("wx_active_crisis") ? ::World.Flags.get("wx_active_crisis") : "";
+		if (typeof cr == "string" && cr != "")
+		{
+			if (tier == 2) return true;
+			if (tier == 3 && _day >= 55) return true;
+		}
+	}
+	local info = ::Wuxia.ShanHai.getBossTierInfo(tier);
+	return (_day >= info.MinDay) || (_renown >= info.MinRenown);
+};
+
+// Pre-combat tactical counterplay hints driven directly by the Boss's live Mechanics flags!
+::Wuxia.ShanHai.getBossCounterHint <- function( _bossID )
+{
+	if (_bossID == null || !(_bossID in ::Wuxia.Config.ShanHaiBosses)) return "";
+	local cfg = ::Wuxia.Config.ShanHaiBosses[_bossID];
+	local mech = ("Mechanics" in cfg && cfg.Mechanics != null) ? cfg.Mechanics : {};
+	local hints = [];
+
+	if (("OnHitPoison" in mech && mech.OnHitPoison) || ("AuraPoison" in mech && mech.AuraPoison))
+		hints.push("备【清心丹/解毒散】防剧毒瘴气");
+	if (("RegenHP" in mech && mech.RegenHP > 0) && ("PoisonCutsRegen" in mech && mech.PoisonCutsRegen > 0))
+		hints.push("以毒/流血断其回血");
+	else if ("RegenHP" in mech && mech.RegenHP > 0)
+		hints.push("集火速斩防其持续自愈");
+	if ("ThornsNonAxe" in mech && mech.ThornsNonAxe)
+		hints.push("遣【巨斧/破盾手】免受铁棘反震");
+	if (("AuraResolveOffbalance" in mech && mech.AuraResolveOffbalance) || ("VsHighResolve" in mech && mech.VsHighResolve))
+		hints.push("备【定神丹/聚义令】稳固军心防魅惑失衡");
+	if (("AuraArmorDmg" in mech && mech.AuraArmorDmg > 0) || ("AuraFatigue" in mech && mech.AuraFatigue > 0))
+		hints.push("用【两格长兵/强弓劲弩】避开近身灼甲瘴环");
+	if ("RangedMult" in mech && mech.RangedMult < 0.85)
+		hints.push("其鳞甲抗箭，宜派近战穿甲主力贴身强杀");
+	if (("SteelBrow" in mech && mech.SteelBrow) || ("ImmuneStun" in mech && mech.ImmuneStun))
+		hints.push("免爆头/控场，勿过度依赖眩晕与爆头流");
+	if ("OnHitDrainHP" in mech && mech.OnHitDrainHP > 0)
+		hints.push("高闪避盾卫卡位，防其噬血续航");
+	if ("OnHitAcupoint" in mech && mech.OnHitAcupoint)
+		hints.push("备【回气/聚灵丹】抵御封穴断气");
+	if ("EnrageBelowPct" in mech && mech.EnrageBelowPct > 0)
+		hints.push("半血狂暴前预留大招与内息一轮斩杀");
+	if (hints.len() == 0)
+		hints.push("备足【护心丹/金疮散】与破甲重兵稳扎稳打");
+
+	local out = "";
+	local maxH = ::Math.min(3, hints.len());
+	for (local i = 0; i < maxH; i = ++i)
+	{
+		if (i > 0) out += "；";
+		out += hints[i];
+	}
+	return out;
 };

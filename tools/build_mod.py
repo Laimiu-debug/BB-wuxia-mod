@@ -8,6 +8,7 @@ BB Wuxia Mod - Static Validator & Packager
 
 import os
 import re
+import shutil
 import sys
 import zipfile
 from pathlib import Path
@@ -80,6 +81,24 @@ def check_balanced(path: Path, src: str) -> list[str]:
     return errors
 
 
+def check_squirrel_hygiene(path: Path, src: str) -> list[str]:
+    clean = strip_comments_and_strings(src)
+    errors = check_balanced(path, src)
+    sq_keywords = "base|class|clone|constructor|delete|enum|extends|resume|static|yield|rawcall|const|typeof|instanceof"
+    patterns = [
+        (rf"\blocal\s+(?:[A-Za-z_]\w*\s*,\s*)*\b({sq_keywords})\b", "Squirrel reserved keyword used as local variable"),
+        (r"\b(base|class|extends|enum|static|const|rawcall)\s*(?:=(?!=)|<-|\+=|-=|\*=|/=)", "Squirrel reserved keyword used as assignment target"),
+        (rf"(?<!\bbase)\.\s*\b(base|class|clone|delete|enum|extends|resume|static|yield|rawcall|const|typeof|instanceof)\b", "Squirrel reserved keyword used as dot-property identifier"),
+        (rf"\bfunction\s*(?:[A-Za-z_]\w*)?\s*\([^)]*\b({sq_keywords})\b", "Squirrel reserved keyword used as function parameter"),
+    ]
+    for lineno, line in enumerate(clean.splitlines(), start=1):
+        for pat, desc in patterns:
+            m = re.search(pat, line)
+            if m:
+                errors.append(f"{path.relative_to(ROOT)}:{lineno}: {desc} ('{m.group(1)}')")
+    return errors
+
+
 def check_es3(path: Path, src: str) -> list[str]:
     clean = strip_comments_and_strings(src)
     errors = check_balanced(path, src)
@@ -107,7 +126,7 @@ def validate_all() -> tuple[int, int, list[str]]:
             continue
         if p.suffix == ".nut":
             nut_count += 1
-            errors.extend(check_balanced(p, p.read_text(encoding="utf-8")))
+            errors.extend(check_squirrel_hygiene(p, p.read_text(encoding="utf-8")))
         elif p.suffix == ".js":
             js_count += 1
             errors.extend(check_es3(p, p.read_text(encoding="utf-8")))
@@ -172,8 +191,17 @@ def main() -> int:
     is_release = "--release" in sys.argv
     count = build_zip(release=is_release)
     mode_tag = "RELEASE (Debug=false)" if is_release else "DEV (Debug=true)"
+    size_bytes = OUT_ZIP.stat().st_size
     print(f"VALIDATION OK: {nut_count} .nut files, {js_count} ES3 .js files checked.")
-    print(f"PACKAGED OK [{mode_tag}]: {OUT_ZIP} ({count} files)")
+    print(f"PACKAGED OK [{mode_tag}]: {OUT_ZIP} ({count} files, {size_bytes:,} bytes / {size_bytes / 1048576:.2f} MiB)")
+
+    if is_release:
+        preload_src = (MOD_DIR / "scripts" / "!mods_preload" / "mod_wuxia.nut").read_text(encoding="utf-8")
+        m_ver = re.search(r'\bVersion\s*=\s*"([^"]+)"', preload_src)
+        if m_ver:
+            ver_zip = DIST_DIR / f"mod_wuxia-{m_ver.group(1)}.zip"
+            shutil.copy2(OUT_ZIP, ver_zip)
+            print(f"VERSIONED RELEASE OK: {ver_zip} ({ver_zip.stat().st_size:,} bytes)")
 
     if "--bundle" in sys.argv:
         included = build_bundle()
