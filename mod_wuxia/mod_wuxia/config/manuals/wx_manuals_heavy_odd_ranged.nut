@@ -295,7 +295,7 @@
 	Description = "云梦软鞭门镇派绝学：软如灵蛇锁喉封穴，硬如铁锏绕盾碎颅，令刀盾手形同虚设！",
 	BasePrice = 4630, FragmentsNeeded = 5, AllowFragmentLearn = true, Requirements = { MeleeSkill = 78, Initiative = 104 },
 	Levels = [
-		{ ExpNeeded = 0, Stats = { MeleeSkill = 3, MeleeDefense = 2 }, GrantSkills = ["actives.wx_flail_panlong"], Flags = { CritHeadBonus = 8, DirectDmgBonus = 0.08 }, Summary = "武艺 +3，招架 +2「锁喉缠丝劲」；穿甲 +8%，击头 +8%；习得「九节金龙抽」。" },
+		{ ExpNeeded = 0, Stats = { MeleeSkill = 3, MeleeDefense = 2 }, GrantSkills = ["actives.wx_flail_panlong"], Flags = { CritHeadBonus = 8, DirectDmgBonus = 0.08 }, Summary = "武艺 +3，招架 +2；穿甲 +8%，击头 +8%；习得「九节金龙抽」。" },
 		{ ExpNeeded = 250, Stats = { MeleeSkill = 5, MeleeDefense = 4 }, GrantSkills = ["actives.wx_flail_panlong", "actives.wx_flail_entangle"], Flags = { CritHeadBonus = 12, DirectDmgBonus = 0.12, AcupointOnCritPct = 35 }, Summary = "武艺 +5，招架 +4；穿甲 +12%，击头 +12%，乘隙/击头封穴 35%；习得「锁喉缠丝劲」。" },
 		{ ExpNeeded = 600, Stats = { MeleeSkill = 7, MeleeDefense = 5 }, GrantSkills = ["actives.wx_flail_panlong", "actives.wx_flail_entangle"], Flags = { CritHeadBonus = 15, DirectDmgBonus = 0.15, AcupointOnCritPct = 50, HitChanceBonus = 8 }, Summary = "武艺 +7，招架 +5；穿甲 +15%，近战命中 +8，击头 +15%，乘隙/击头封穴 50%。" }
 	]

@@ -15,11 +15,15 @@ this.wx_flail_panlong <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.WX_AnimID <- "wx_anim_134";
 		this.m.WX_AnimMode <- "whip_panlong";
 		this.m.WX_ChoreoID <- "wx_flail_panlong";
-		this.m.SoundOnUse = ["sounds/combat/slash_01.wav", "sounds/combat/slash_02.wav"];
+		this.m.SoundOnUse = ["sounds/combat/flail_01.wav", "sounds/combat/flail_02.wav"];
+		this.m.SoundOnHit = ["sounds/combat/flail_hit_01.wav", "sounds/combat/flail_hit_02.wav"];
+		this.m.IsShieldRelevant = false;
 		this.m.ActionPointCost = 5;
 		this.m.FatigueCost = 20;
 		this.m.MinRange = 1;
 		this.m.MaxRange = 1;
+		this.m.InjuriesOnBody = this.Const.Injury.BluntBody;
+		this.m.InjuriesOnHead = this.Const.Injury.BluntHead;
 		this.m.RequiredWeaponTypes = ["Flail"];
 		this.m.DirectDamageMult = 0.32;
 	}
@@ -27,7 +31,9 @@ this.wx_flail_panlong <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		if (_skill == this)
 		{
-			_properties.MeleeSkill += 8; _properties.HitChance[::Const.BodyPart.Head] += 22; _properties.DamageArmorMult *= 1.24; _properties.IsIgnoringShieldBonus = true;
+			_properties.MeleeSkill += 8;
+			_properties.HitChance[::Const.BodyPart.Head] += 22;
+			_properties.DamageArmorMult *= 1.24;
 		}
 	}
 
@@ -35,11 +41,6 @@ this.wx_flail_panlong <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		local target = _targetTile.getEntity();
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, this.m.WX_VfxBrush);
-		local hit = this.attackEntity(_user, target);
-		if (hit && target != null && target.isAlive())
-		{
-			
-		}
-		return hit;
+		return this.attackEntity(_user, target);
 	}
 });

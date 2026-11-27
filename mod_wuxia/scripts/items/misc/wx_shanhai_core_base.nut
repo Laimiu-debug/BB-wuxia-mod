@@ -49,24 +49,24 @@ this.wx_shanhai_core_base <- this.inherit("scripts/items/item", {
 			local baseExp = cfg.ExpAmount;
 			local resExp  = baseExp + 100;
 			local shExp   = baseExp + 180;
-			local pos = ::Const.UI.Color.PositiveValue;
+			local cCol = (baseExp >= 340) ? "#7c1414" : ((baseExp >= 240) ? "#50187d" : "#0b4a1e");
 			ret.push({
 				id = 15,
 				type = "text",
 				icon = "ui/icons/special.png",
-				text = "内丹气脉：【《" + cfg.Chapter + "》· 契合" + affLabel + "】"
+				text = "[color=#3a3052][b]内丹气脉：[/b][/color][color=" + cCol + "][b]【《" + cfg.Chapter + "》· 契合" + affLabel + "】[/b][/color]"
 			});
 			ret.push({
 				id = 16,
 				type = "text",
 				icon = "ui/icons/xp_received.png",
-				text = "炼化灌顶：常规 [color=" + pos + "]+" + baseExp + "[/color] 火候｜" + affLabel + "共鸣 [color=" + pos + "]+" + resExp + "[/color]｜山海孤本共鸣 [color=" + pos + "]+" + shExp + "[/color]"
+				text = "[color=#5e2c00][b]炼化灌顶：[/b][/color]常规 [color=#0b4a1e][b]+" + baseExp + "[/b][/color] 火候｜" + affLabel + "共鸣 [color=#50187d][b]+" + resExp + "[/b][/color]｜山海孤本共鸣 [color=#7c1414][b]+" + shExp + "[/b][/color]"
 			});
 			ret.push({
 				id = 17,
 				type = "text",
 				icon = "ui/icons/asset_supplies.png",
-				text = "百工入炉：可携往城镇「百工猎妖炼丹房」锻造山海神兵宝甲或合炼仙品金丹"
+				text = "[color=#094a44][b]百工入炉：[/b][/color]可携往城镇「百工丹坊」锻造山海神兵宝甲或合炼仙品金丹"
 			});
 		}
 		return ret;

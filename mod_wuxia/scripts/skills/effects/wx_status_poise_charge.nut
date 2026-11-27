@@ -19,6 +19,8 @@ this.wx_status_poise_charge <- this.inherit("scripts/skills/skill", {
 	function isActiveAttack( _skill )
 	{
 		if (_skill == null || !_skill.isAttack()) return false;
+		if (!("Tactical" in getroottable()) || ::Tactical == null || !::Tactical.isActive() || ::Tactical.TurnSequenceBar == null)
+			return true;
 		local active = this.Tactical.TurnSequenceBar.getActiveEntity();
 		return active != null && active.getID() == this.getContainer().getActor().getID();
 	}
@@ -47,7 +49,10 @@ this.wx_status_poise_charge <- this.inherit("scripts/skills/skill", {
 	{
 		if (_damageHitpoints >= 15)
 		{
-			this.Tactical.EventLog.log(::Const.UI.getColorizedEntityName(this.getContainer().getActor()) + " 遭重创，蓄势被打断！");
+			if ("Tactical" in getroottable() && ::Tactical != null && ::Tactical.isActive() && ::Tactical.EventLog != null)
+				this.Tactical.EventLog.log(::Const.UI.getColorizedEntityName(this.getContainer().getActor()) + " 遭重创，蓄势被打断！");
+			local cont = this.getContainer();
+			if (cont != null && ::Wuxia.hasMember(cont, "removeByID")) cont.removeByID(this.m.ID);
 			this.removeSelf();
 		}
 	}

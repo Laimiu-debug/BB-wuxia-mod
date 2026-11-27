@@ -59,6 +59,16 @@
 
 ::Wuxia.HooksMod.hook("scripts/ui/screens/world/modules/world_town_screen/town_main_dialog_module", function( q )
 {
+	if (!::Wuxia.qHas(q, "onWXShowcaseSound"))
+	{
+		q.onWXShowcaseSound <- function( _cue )
+		{
+			local key = (typeof _cue == "array" && _cue.len() > 0) ? _cue[0] : _cue;
+			::Wuxia.UI.playShowcaseSound(key);
+			return { ok = true };
+		};
+	}
+
 	q.onWXTournamentAction <- function( _data )
 	{
 		return ::Wuxia.Tournament.handleTournamentAction(this.m.Parent, _data);

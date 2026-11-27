@@ -18,8 +18,9 @@ this.wx_bow_snipe <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.IconDisabled = "skills/wx_bow_snipe_sw.png";
 		this.m.Overlay = "wx_ov_wx_bow_snipe";
 		this.m.SoundOnUse = [
-			"sounds/combat/aimed_shot_01.wav",
-			"sounds/combat/aimed_shot_02.wav"
+			"sounds/combat/quick_shot_01.wav",
+			"sounds/combat/quick_shot_02.wav",
+			"sounds/combat/quick_shot_03.wav"
 		];
 		this.m.SoundOnHit = [
 			"sounds/combat/arrow_hit_01.wav",

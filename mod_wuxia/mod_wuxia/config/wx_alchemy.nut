@@ -304,6 +304,157 @@ local wxDeepPills = {
 		Kind        = "buff_tihu",
 		Icon        = "consumables/wx_pill_tihu.png",
 		Value       = 1580
+	},
+	// ==================== Track I: 阴阳逆命隐藏奇丹 & 山海大妖本命秘传古丹 ====================
+	wx_pill_liangyi = {
+		ID          = "wx_pill_liangyi",
+		Name        = "两仪逆命混元丹",
+		SubLabel    = "阴阳逆炼",
+		Quality     = "unique",
+		Description = "【阴阳逆命奇丹】以山海大妖内丹镇压鼎心、引武火强行逆炼赤阳与玄阴相克而成的旷世混元宝丹！令下场战斗彻底化消「双内功阴阳逆冲」并转为【混元共振】：攻击破甲 +12%、每轮回气 +3，且催化主修内功（阳刚近战额外灼甲 +6 / 阴柔受近战反凝寒霜散敌 5 内息）！",
+		Kind        = "buff_liangyi",
+		Icon        = "consumables/wx_pill_xiantian.png",
+		Value       = 2400
+	},
+	wx_pill_zhuyin = {
+		ID          = "wx_pill_zhuyin",
+		Name        = "烛阴昼夜轮转丹",
+		SubLabel    = "古神本命",
+		Quality     = "unique",
+		Description = "【钟山烛阴本命古丹】唯以《钟山烛阴昼夜龙珠》为君药方能合炼：令下场战斗随单双回合催化内外武学——奇数轮【瞑夜寒冬】近远双防 +5、每轮回气 +4；偶数轮【开目赤昼】攻击总伤 +10%、近战命中灼毁目标 10 点护甲（战后消散）！",
+		Kind        = "buff_zhuyin",
+		Icon        = "consumables/wx_pill_zijin.png",
+		Value       = 2650
+	},
+	wx_pill_kurong = {
+		ID          = "wx_pill_kurong",
+		Name        = "枯荣生死涅槃丸",
+		SubLabel    = "阴阳逆炼",
+		Quality     = "unique",
+		Description = "【阴阳逆命奇丹】以山海内丹镇鼎、武火逆炼生机与奇毒两极冲克而成：令下场战斗自身身负流血或中毒时反激潜能（近远双防 +4、每轮回气 +4），且气血首次跌破 35% 时触发【枯荣涅槃】涤尽流血奇毒并急回 22 点气血（战后消散）！",
+		Kind        = "buff_kurong",
+		Icon        = "consumables/wx_pill_shengsheng.png",
+		Value       = 2450
+	},
+	wx_pill_shenmo = {
+		ID          = "wx_pill_shenmo",
+		Name        = "神魔一念辟邪丹",
+		SubLabel    = "阴阳逆炼",
+		Quality     = "unique",
+		Description = "【阴阳逆命奇丹】以山海内丹镇鼎、武火逆炼镇魂与奇毒相激而成：令下场战斗镇压邪派内功与残本散气反噬，攻击动摇/崩溃/魅惑目标命中 +8，斩敌额外回气 +6（每轮限 2 次，战后消散）！",
+		Kind        = "buff_shenmo",
+		Icon        = "consumables/wx_pill_zhenmo.png",
+		Value       = 2420
+	},
+	wx_pill_baize = {
+		ID          = "wx_pill_baize",
+		Name        = "白泽通玄勘破丹",
+		SubLabel    = "古神本命",
+		Quality     = "unique",
+		Description = "【东望白泽本命古丹】唯以《东望白泽通玄宝丹》为君药合炼：催化奇门与剑宗武学——下场战斗每轮首次借机拦击或反击命中 +12 且必破开【破绽】，战后全身武学参战火候额外 +25%（战后消散）！",
+		Kind        = "buff_baize",
+		Icon        = "consumables/wx_pill_tihu.png",
+		Value       = 2580
+	},
+	wx_pill_jianmu = {
+		ID          = "wx_pill_jianmu",
+		Name        = "建木枯木逢春丹",
+		SubLabel    = "古神本命",
+		Quality     = "unique",
+		Description = "【都广建木本命古丹】唯以《都广建木神心》为君药合炼：催化横练硬功脉——下场战斗每回合初自愈 +6 气血并修复 +6 点身甲（若装配横练功法则额外多修 +4 身甲，战后消散）！",
+		Kind        = "buff_jianmu",
+		Icon        = "consumables/wx_pill_zaohua.png",
+		Value       = 2600
+	},
+	wx_pill_taotie = {
+		ID          = "wx_pill_taotie",
+		Name        = "饕餮吞元化气丸",
+		SubLabel    = "古神本命",
+		Quality     = "unique",
+		Description = "【饕餮凶神本命古丹】唯以《饕餮噬元凶丹》为君药合炼：催化刚猛外功与邪功脉——下场战斗近战重创活物（伤血≥12）时鲸吞敌方 5 点内息化归己用（每轮限 2 次，战后消散）！",
+		Kind        = "buff_taotie",
+		Icon        = "consumables/wx_pill_shixue.png",
+		Value       = 2550
+	},
+	wx_pill_yinglong = {
+		ID          = "wx_pill_yinglong",
+		Name        = "应龙行云御雷丹",
+		SubLabel    = "古神本命",
+		Quality     = "unique",
+		Description = "【凶犁应龙本命古丹】唯以《凶犁应龙真灵逆鳞珠》为君药合炼：催化轻功与枪剑长兵脉——下场战斗移动行气消耗降低 35%，且施展【穿步】或【贯线刺】招式命中时返还 +3 内息（每轮限 2 次，战后消散）！",
+		Kind        = "buff_yinglong",
+		Icon        = "consumables/wx_pill_lingfeng.png",
+		Value       = 2620
+	},
+	wx_pill_chiyou = {
+		ID          = "wx_pill_chiyou",
+		Name        = "蚩尤兵主百战丹",
+		SubLabel    = "古神本命",
+		Quality     = "unique",
+		Description = "【万古兵主本命古丹】唯以《冀州蚩尤五兵煞主丹》为君药合炼：催化刚猛外功与重兵脉——下场战斗破甲效能 +15%、碎盾 +10，斩敌立回 +5 内息并震慑相邻敌军检定 -8 定力（战后消散）！",
+		Kind        = "buff_chiyou",
+		Icon        = "consumables/wx_pill_fengmo.png",
+		Value       = 2650
+	},
+	wx_pill_jinwu = {
+		ID          = "wx_pill_jinwu",
+		Name        = "金乌十日纯阳丹",
+		SubLabel    = "古神本命",
+		Quality     = "unique",
+		Description = "【汤谷金乌本命古丹】唯以《汤谷三足金乌大日真丹》为君药合炼：催化阳刚内功脉——下场战斗每轮自涤寒霜迟缓，近战命中真火灼毁目标 10 点身甲，迎战尸傀机关总伤 +16%（战后消散）！",
+		Kind        = "buff_jinwu",
+		Icon        = "consumables/wx_pill_chunyang.png",
+		Value       = 2640
+	},
+	wx_pill_xiangliu = {
+		ID          = "wx_pill_xiangliu",
+		Name        = "相柳九首万蛊丹",
+		SubLabel    = "古神本命",
+		Quality     = "unique",
+		Description = "【共工相柳本命古丹】唯以《共工相柳九首苦毒丹》为君药合炼：催化五毒邪功脉——下场战斗百毒不侵，攻击 55% 注入奇毒，击中已中毒目标时毒雾传染相邻 1 名敌军（战后消散）！",
+		Kind        = "buff_xiangliu",
+		Icon        = "consumables/wx_pill_kongque.png",
+		Value       = 2620
+	},
+	wx_pill_xuangui = {
+		ID          = "wx_pill_xuangui",
+		Name        = "玄龟镇海不坏丹",
+		SubLabel    = "古神本命",
+		Quality     = "unique",
+		Description = "【杻阳玄龟本命古丹】唯以《杻阳玄龟镇海神丹》为君药合炼：催化横练守阵脉——下场战斗远伤 -18%、免疫击退震晕，每轮首次受重击额外减免 12% 气血实伤（严守 60% 上限，战后消散）！",
+		Kind        = "buff_xuangui",
+		Icon        = "consumables/wx_pill_jinzun.png",
+		Value       = 2600
+	},
+	wx_pill_dijiang = {
+		ID          = "wx_pill_dijiang",
+		Name        = "帝江幻空缩地丹",
+		SubLabel    = "古神本命",
+		Quality     = "unique",
+		Description = "【天山帝江本命古丹】唯以《天山帝江空间混沌丹》为君药合炼：催化轻功游剑脉——下场战斗身法 +16，每轮首次受远程或重击触发幻空折跃偏折 22% 气血实伤（严守 60% 上限，战后消散）！",
+		Kind        = "buff_dijiang",
+		Icon        = "consumables/wx_pill_duheng.png",
+		Value       = 2620
+	},
+	wx_pill_jiuwei = {
+		ID          = "wx_pill_jiuwei",
+		Name        = "九尾青丘摄魂丹",
+		SubLabel    = "古神本命",
+		Quality     = "unique",
+		Description = "【青丘九尾本命古丹】唯以《青丘九尾天狐幻丹》为君药合炼：催化奇门精神脉——下场战斗定力 +14、免疫魅惑梦魇，攻击伤血时迫使敌手执行 -10 定力动摇检定（战后消散）！",
+		Kind        = "buff_jiuwei",
+		Icon        = "consumables/wx_pill_dingshen.png",
+		Value       = 2580
+	},
+	wx_pill_xingtian = {
+		ID          = "wx_pill_xingtian",
+		Name        = "刑天常羊战魂丹",
+		SubLabel    = "古神本命",
+		Quality     = "unique",
+		Description = "【常羊刑天本命古丹】唯以《常羊刑天不灭战魂丹》为君药合炼：催化狂战斧盾脉——下场战斗免疫击晕，气血低于 60% 时激发无首战魂令总伤 +14%、每轮回气 +4（战后消散）！",
+		Kind        = "buff_xingtian",
+		Icon        = "consumables/wx_pill_baoming.png",
+		Value       = 2640
 	}
 };
 
@@ -340,44 +491,161 @@ foreach (pid, pdef in wxDeepPills)
 		[3] = { Grade = 3, Title = "丹霞", Prefix = "丹霞·", Color = "#f0bc42", TooltipColor = "#5e2c00", MinPct = 136, MaxPct = 155, ValueMult = 1.68, WashBonus = 8, ProtectBonus = 5 }
 	},
 
-	// Six Auxiliary Herb/Core Nature Side-Effects (`【药引丹韵】` imbued by Cauldron臣佐辅药!)
+	// Six Auxiliary Herb/Core Nature Side-Effects (`【药引丹韵 · 四脉武学催化】` imbued by Cauldron臣佐辅药!)
 	AuxInfusions = {
 		vital = {
 			ID = "vital", Title = "生机丹韵", Color = "#5ec47a", TooltipColor = "#0a4213", Bit = 1,
-			PrepDesc   = "服药立回 15 气血，且下战每回合初温养自愈 +3 气血",
+			PrepDesc   = "服药立回 15 气血，下战每轮初自愈 +3 气血（装配横练功法额外修甲 +4）",
 			InfuseDesc = "灌注【横练硬功】插槽触发木元共鸣，额外 +15% 火候",
 			HealDesc   = "草木生机加持，服敷时额外多恢复 +20 受损气血"
 		},
 		yang = {
 			ID = "yang", Title = "赤阳丹韵", Color = "#e87a42", TooltipColor = "#6c1f04", Bit = 2,
-			PrepDesc   = "纯阳催劲，下场战斗攻击破甲效能额外 +8%",
+			PrepDesc   = "纯阳催劲，下战破甲效能 +8%（主修阳刚内功近战额外灼损目标 5 点身甲）",
 			InfuseDesc = "灌注【阳刚内功 / 外功套路】触发火元共鸣，额外 +15% 火候",
 			HealDesc   = "纯阳活血通络，服敷时额外恢复 +15 气血"
 		},
 		yin = {
 			ID = "yin", Title = "玄阴丹韵", Color = "#6db4e8", TooltipColor = "#0e3969", Bit = 4,
-			PrepDesc   = "寒髓润脉，下场战斗每回合额外回气 +2 内息",
+			PrepDesc   = "寒髓润脉，下战每轮回气 +2（主修阴柔内功受近战反凝寒气震散来敌 4 内息）",
 			InfuseDesc = "灌注【阴柔内功 / 轻功身法】触发水元共鸣，额外 +15% 火候",
 			HealDesc   = "清寒涤脉，额外消减 1 日内伤或散功调息天数"
 		},
 		spirit = {
 			ID = "spirit", Title = "镇魂丹韵", Color = "#b58ae6", TooltipColor = "#4b1c76", Bit = 8,
-			PrepDesc   = "灵台澄明，下场战斗定力 +6、抗惊骇检定额外 +8",
+			PrepDesc   = "灵台澄明，下战定力 +6、抗惊骇 +8，且攻击落空自动凝神补下次命中 +5",
 			InfuseDesc = "灌注【中正内功 / 奇门杂学】触发识海共鸣，额外 +15% 火候",
 			HealDesc   = "宁心定魄，服敷时额外恢复 +15 气血"
 		},
 		venom = {
 			ID = "venom", Title = "奇毒丹韵", Color = "#95c44b", TooltipColor = "#2d3f06", Bit = 16,
-			PrepDesc   = "以毒淬劲，下场战斗伤血 ≥5 时 25% 概率附着【暗器奇毒】",
+			PrepDesc   = "以毒淬劲，下战伤血 ≥5 时 25% 附【暗器奇毒】，攻击已中毒猎物破甲 +10%",
 			InfuseDesc = "灌注【邪派内功 / 奇门杂学】触发蛊元共鸣，额外 +15% 火候",
 			HealDesc   = "以毒攻毒催发淤血，外伤膏散可额外多解 1 处外伤"
 		},
 		origin = {
 			ID = "origin", Title = "造化丹韵", Color = "#f0bc42", TooltipColor = "#5e2c00", Bit = 32,
-			PrepDesc   = "混元护体，下场战斗临时气血上限 +8、内息上限 +6",
+			PrepDesc   = "混元护体，下战临时气血 +8、内息 +6，且战后武学参战火候额外 +15%",
 			InfuseDesc = "灌注任意【绝学 / 江湖孤本】触发造化共鸣，额外 +15% 火候",
 			HealDesc   = "夺天地造化，服敷时额外恢复 +30 受损气血"
 		}
+	},
+
+	// 12 Archetypes + Full 64-Boss (96-Core) Bespoke Inner-Core Imprints (`【本命妖丹丹韵】`: every Boss Neidan used as 君药 imprints unique soul power!)
+	CoreImprintModes = {
+		feral_might  = { Color = "#e87a42", TooltipColor = "#6c1f04", PrepDesc = "近战重击额外崩损目标 6 点身甲，并对蓄力凶兽注入 +1 破招值" },
+		solar_scorch = { Color = "#ff9642", TooltipColor = "#6c1f04", PrepDesc = "催动纯阳真火：近战灼损 6 点身甲，迎战尸傀机关总伤 +8%" },
+		abyssal_frost= { Color = "#6db4e8", TooltipColor = "#0e3969", PrepDesc = "寒渊凝髓：每轮额外回气 +2，受近战反凝寒霜削减来敌先攻" },
+		bitter_venom = { Color = "#95c44b", TooltipColor = "#2d3f06", PrepDesc = "源毒蚀脉：伤血 ≥4 时 30% 附【暗器奇毒】，对中毒目标近远命中 +4" },
+		thunder_shock= { Color = "#c896ff", TooltipColor = "#4b1c76", PrepDesc = "雷音贯腑：近战重击额外震散敌手 5 点内息" },
+		gale_stride  = { Color = "#7ee29a", TooltipColor = "#0a4213", PrepDesc = "裂空御风：常驻身法 +8，开场首轮额外再 +6 身法" },
+		bastion_shell= { Color = "#d7b174", TooltipColor = "#533200", PrepDesc = "古甲镇脉：承受破甲损耗 -10%，定力 +6" },
+		sacred_wood  = { Color = "#5ec47a", TooltipColor = "#0a4213", PrepDesc = "神木生机：每回合初温养自愈 +3 气血并修复 +4 身甲" },
+		oracle_sight = { Color = "#b58ae6", TooltipColor = "#4b1c76", PrepDesc = "通玄破妄：夜雾烟幕命中 +5，战后全身武学参战火候额外 +15%" },
+		war_spirit   = { Color = "#ff7864", TooltipColor = "#721010", PrepDesc = "不灭战魂：气血低于 60% 时总伤 +8%、定力 +8" },
+		devour_qi    = { Color = "#e06666", TooltipColor = "#721010", PrepDesc = "噬元化气：近战重创或斩杀活物时汲回 +3 内息（每轮限 2 次）" },
+		sonic_rattle = { Color = "#f0bc42", TooltipColor = "#5e2c00", PrepDesc = "古磬摄魄：攻击伤血 ≥8 时迫使敌手执行 -6 定力检定并散气 3 点" }
+	},
+
+	CoreImprints = {
+		// === 全 64 尊山海秘境大妖内丹一对一本命丹韵（拒绝沦为普通药力白板！） ===
+		wx_core_zhuyan      = { Title = "朱厌狂猿本命韵", Mode = "feral_might" },
+		wx_core_feiyi       = { Title = "肥遗六足毒火韵", Mode = "bitter_venom" },
+		wx_core_qiongqi     = { Title = "穷奇裂风助恶韵", Mode = "gale_stride" },
+		wx_core_taotie      = { Title = "饕餮吞天噬元韵", Mode = "devour_qi" },
+		wx_core_jiuwei      = { Title = "青丘九尾摄魂韵", Mode = "oracle_sight" },
+		wx_core_bashe       = { Title = "苍梧巴蛇吞象韵", Mode = "abyssal_frost" },
+		wx_core_jumang      = { Title = "句芒建木长春韵", Mode = "sacred_wood" },
+		wx_core_wuzhiqi     = { Title = "淮涡无支祁定水韵", Mode = "abyssal_frost" },
+		wx_core_xingtian    = { Title = "常羊刑天干戚韵", Mode = "war_spirit" },
+		wx_core_bifang      = { Title = "章莪毕方讹火韵", Mode = "solar_scorch" },
+		wx_core_gudiaowang  = { Title = "鹿吴蛊雕裂创韵", Mode = "feral_might" },
+		wx_core_xingxing    = { Title = "招摇狌狌知往韵", Mode = "oracle_sight" },
+		wx_core_zhujian     = { Title = "北岳诸犍狂飙韵", Mode = "gale_stride" },
+		wx_core_xuangui     = { Title = "杻阳玄龟镇海韵", Mode = "bastion_shell" },
+		wx_core_yuanchu     = { Title = "南海鹓鶵丹凤韵", Mode = "solar_scorch" },
+		wx_core_yingzhao    = { Title = "昆仑英招巡天韵", Mode = "oracle_sight" },
+		wx_core_luwu        = { Title = "昆仑陆吾司天韵", Mode = "thunder_shock" },
+		wx_core_qinyuan     = { Title = "昆仑钦原蜇石韵", Mode = "bitter_venom" },
+		wx_core_tiangouwang = { Title = "阴山天狗坠星韵", Mode = "gale_stride" },
+		wx_core_zheng       = { Title = "章峨赤狰五尾韵", Mode = "feral_might" },
+		wx_core_hundun      = { Title = "天山浑沌无窍韵", Mode = "bastion_shell" },
+		wx_core_yayu        = { Title = "少咸猰貐逆命韵", Mode = "feral_might" },
+		wx_core_zhuyin      = { Title = "钟山烛阴昼夜韵", Mode = "solar_scorch" },
+		wx_core_dijiang     = { Title = "天山帝江幻空韵", Mode = "gale_stride" },
+		wx_core_paoxiaowang = { Title = "钩吾狍鸮贪食韵", Mode = "devour_qi" },
+		wx_core_changyou    = { Title = "尧光长右洪水韵", Mode = "sacred_wood" },
+		wx_core_mengji      = { Title = "石者孟极隐猎韵", Mode = "gale_stride" },
+		wx_core_kui         = { Title = "流波夔牛紫电韵", Mode = "thunder_shock" },
+		wx_core_fei         = { Title = "太山灾兽枯疫韵", Mode = "bitter_venom" },
+		wx_core_yinglong    = { Title = "凶犁应龙沧海韵", Mode = "thunder_shock" },
+		wx_core_taowu       = { Title = "荒西梼杌傲狠韵", Mode = "feral_might" },
+		wx_core_hujiao      = { Title = "祷过虎蛟鸳音韵", Mode = "sonic_rattle" },
+		wx_core_zhuhuai     = { Title = "北岳诸怀四角韵", Mode = "war_spirit" },
+		wx_core_shebishi    = { Title = "大国奢比尸毒耳韵", Mode = "bitter_venom" },
+		wx_core_jingwei     = { Title = "发鸠精卫衔石韵", Mode = "oracle_sight" },
+		wx_core_jiuying     = { Title = "凶水九婴水火韵", Mode = "bitter_venom" },
+		wx_core_feilian     = { Title = "鹿台飞廉御风韵", Mode = "gale_stride" },
+		wx_core_baize       = { Title = "东望白泽通玄韵", Mode = "oracle_sight" },
+		wx_core_shanhui     = { Title = "狱法山挥善投韵", Mode = "gale_stride" },
+		wx_core_bo          = { Title = "中曲铁驳食虎韵", Mode = "thunder_shock" },
+		wx_core_huodou      = { Title = "厌火祸斗吞炎韵", Mode = "solar_scorch" },
+		wx_core_xiangliuwang= { Title = "共工相柳九首韵", Mode = "bitter_venom" },
+		wx_core_kuafu       = { Title = "成都夸父逐日韵", Mode = "sacred_wood" },
+		wx_core_chiyou      = { Title = "冀州蚩尤兵主韵", Mode = "war_spirit" },
+		wx_core_zaochi      = { Title = "畴华凿齿破军韵", Mode = "bastion_shell" },
+		wx_core_erfu        = { Title = "疏属贰负盘枷韵", Mode = "bastion_shell" },
+		wx_core_nvchou      = { Title = "十日女丑赤旱韵", Mode = "solar_scorch" },
+		wx_core_fangfeng    = { Title = "会稽防风专车韵", Mode = "bastion_shell" },
+		wx_core_kaiming     = { Title = "昆仑开明九首韵", Mode = "thunder_shock" },
+		wx_core_jinwu       = { Title = "汤谷金乌十日韵", Mode = "solar_scorch" },
+		wx_core_zouyu       = { Title = "林氏驺虞仁虎韵", Mode = "gale_stride" },
+		wx_core_gonggong    = { Title = "不周共工黑水韵", Mode = "abyssal_frost" },
+		wx_core_wuluo       = { Title = "青要武罗鸣环韵", Mode = "gale_stride" },
+		wx_core_siwang      = { Title = "苍梧青兕独角韵", Mode = "bastion_shell" },
+		wx_core_jiufeng     = { Title = "北极九凤泣血韵", Mode = "war_spirit" },
+		wx_core_mingshe     = { Title = "鲜山鸣蛇磬音韵", Mode = "sonic_rattle" },
+		wx_core_huashe      = { Title = "阳山化蛇玄水韵", Mode = "abyssal_frost" },
+		wx_core_fuzhu       = { Title = "敖岸夫诸凝霜韵", Mode = "abyssal_frost" },
+		wx_core_chenghuang  = { Title = "白民乘黄寿元韵", Mode = "sacred_wood" },
+		wx_core_dangkang    = { Title = "钦山当康丰穰韵", Mode = "bastion_shell" },
+		wx_core_boshi       = { Title = "基山猼訑背目韵", Mode = "oracle_sight" },
+		wx_core_jiao        = { Title = "玉山神狡破甲韵", Mode = "thunder_shock" },
+		wx_core_bingyi      = { Title = "从极冰夷御龙韵", Mode = "abyssal_frost" },
+		wx_core_qiangliang  = { Title = "北山强良衔蛇韵", Mode = "thunder_shock" },
+		// === 32 枚山泽异兽 / 太古四圣内丹丹韵全覆盖 ===
+		wx_core_esha        = { Title = "幽谷讹兽幻雾韵", Mode = "oracle_sight" },
+		wx_core_chizhu      = { Title = "毒谷赤蛛万丝韵", Mode = "bitter_venom" },
+		wx_core_canglang    = { Title = "阴山苍狼啸月韵", Mode = "gale_stride" },
+		wx_core_shuiyuan    = { Title = "云梦水猿寒瘴韵", Mode = "abyssal_frost" },
+		wx_core_shujing     = { Title = "都广树精盘根韵", Mode = "sacred_wood" },
+		wx_core_yaomei      = { Title = "青丘妖魅惑心韵", Mode = "oracle_sight" },
+		wx_core_paoxiao     = { Title = "北山狍鸮裂骨韵", Mode = "devour_qi" },
+		wx_core_gudiao      = { Title = "西山蛊雕风刃韵", Mode = "feral_might" },
+		wx_core_mangshe     = { Title = "苍梧巨蟒蜕骨韵", Mode = "abyssal_frost" },
+		wx_core_jianmo      = { Title = "古墓剑魔血影韵", Mode = "war_spirit" },
+		wx_core_shiwang     = { Title = "湘西尸王铜骨韵", Mode = "bastion_shell" },
+		wx_core_yuanling    = { Title = "荒冢怨灵凝魄韵", Mode = "sonic_rattle" },
+		wx_core_zelong      = { Title = "大泽毒触九首韵", Mode = "bitter_venom" },
+		wx_core_shenlu      = { Title = "昆仑神鹿幻彩韵", Mode = "sacred_wood" },
+		wx_core_yaoren      = { Title = "魔窟药人血髓韵", Mode = "feral_might" },
+		wx_core_jiguanyong  = { Title = "玄宫墨家枢机韵", Mode = "bastion_shell" },
+		wx_core_qilin       = { Title = "昆仑麒麟祥瑞韵", Mode = "sacred_wood" },
+		wx_core_fenghuang   = { Title = "丹穴凤凰涅槃韵", Mode = "solar_scorch" },
+		wx_core_xuanwu      = { Title = "北冥玄武龟蛇韵", Mode = "bastion_shell" },
+		wx_core_baihu       = { Title = "西极白虎庚金韵", Mode = "feral_might" },
+		wx_core_qinglong    = { Title = "东极苍龙岁星韵", Mode = "thunder_shock" },
+		wx_core_suanyu      = { Title = "景山酸与惊魂韵", Mode = "sonic_rattle" },
+		wx_core_feifei      = { Title = "霍山腓腓忘忧韵", Mode = "oracle_sight" },
+		wx_core_tianma      = { Title = "马成天马飞雪韵", Mode = "gale_stride" },
+		wx_core_shuhu       = { Title = "崦嵫孰湖翼马韵", Mode = "gale_stride" },
+		wx_core_xiezhi      = { Title = "东望獬豸明断韵", Mode = "thunder_shock" },
+		wx_core_bixi        = { Title = "沧海赑屃负岳韵", Mode = "bastion_shell" },
+		wx_core_jiaolong    = { Title = "洞庭走蛟化龙韵", Mode = "thunder_shock" },
+		wx_core_chimi       = { Title = "南荒魑魅古瘴韵", Mode = "bitter_venom" },
+		wx_core_guiche      = { Title = "荆楚鬼车滴血韵", Mode = "devour_qi" },
+		wx_core_yingyu      = { Title = "东海赢鱼洪涛韵", Mode = "abyssal_frost" },
+		wx_core_zhulong     = { Title = "钟山烛龙创世韵", Mode = "solar_scorch" }
 	},
 
 	// Explicit metadata for all 49《山海本草》Spirit Herbs (Potency 2~5 across all 6 Meridian Natures)
@@ -465,7 +733,57 @@ foreach (pid, pdef in wxDeepPills)
 		["misc.wx_mat_xiongjiao"]    = { Kind = "trophy", Nature = "yang",   Potency = 3, Script = "scripts/items/misc/wx_mat_xiongjiao" },
 		["misc.wx_mat_shagu"]        = { Kind = "trophy", Nature = "vital",  Potency = 3, Script = "scripts/items/misc/wx_mat_shagu" },
 		["misc.wx_mat_renjin"]       = { Kind = "trophy", Nature = "vital",  Potency = 3, Script = "scripts/items/misc/wx_mat_renjin" },
-		["misc.wx_mat_gujing"]       = { Kind = "trophy", Nature = "venom",  Potency = 3, Script = "scripts/items/misc/wx_mat_gujing" }
+		["misc.wx_mat_gujing"]       = { Kind = "trophy", Nature = "venom",  Potency = 3, Script = "scripts/items/misc/wx_mat_gujing" },
+		["misc.wx_pmat_longni"]      = { Kind = "trophy", Nature = "yin",    Potency = 4, Script = "scripts/items/misc/wx_pmat_longni" },
+		["misc.wx_pmat_jiushou"]     = { Kind = "trophy", Nature = "venom",  Potency = 4, Script = "scripts/items/misc/wx_pmat_jiushou" },
+		["misc.wx_pmat_xuanjia"]     = { Kind = "trophy", Nature = "vital",  Potency = 4, Script = "scripts/items/misc/wx_pmat_xuanjia" },
+		["misc.wx_pmat_jinwu_yu"]    = { Kind = "trophy", Nature = "yang",   Potency = 4, Script = "scripts/items/misc/wx_pmat_jinwu_yu" },
+		["misc.wx_pmat_fengyi"]      = { Kind = "trophy", Nature = "spirit", Potency = 4, Script = "scripts/items/misc/wx_pmat_fengyi" },
+		["misc.wx_pmat_bingzhu_jiao"]= { Kind = "trophy", Nature = "yang",   Potency = 4, Script = "scripts/items/misc/wx_pmat_bingzhu_jiao" },
+		["misc.wx_pmat_leigu"]       = { Kind = "trophy", Nature = "yang",   Potency = 4, Script = "scripts/items/misc/wx_pmat_leigu" },
+		["misc.wx_pmat_baize_tong"]  = { Kind = "trophy", Nature = "spirit", Potency = 4, Script = "scripts/items/misc/wx_pmat_baize_tong" },
+		["misc.wx_pmat_qinyuan_zhen"]= { Kind = "trophy", Nature = "venom",  Potency = 4, Script = "scripts/items/misc/wx_pmat_qinyuan_zhen" },
+		["misc.wx_pmat_taotie_chi"]  = { Kind = "trophy", Nature = "yang",   Potency = 4, Script = "scripts/items/misc/wx_pmat_taotie_chi" },
+		["misc.wx_pmat_xingtian_sui"]= { Kind = "trophy", Nature = "origin", Potency = 4, Script = "scripts/items/misc/wx_pmat_xingtian_sui" },
+		["misc.wx_pmat_jianmu_zhi"]  = { Kind = "trophy", Nature = "vital",  Potency = 4, Script = "scripts/items/misc/wx_pmat_jianmu_zhi" }
+	},
+
+	// Three Furnace Fire Control Modes (`文火温养 / 中火守正 / 武火催霞`)
+	FireModes = {
+		gentle = {
+			ID = "gentle", Title = "文火温养", Short = "文火", Color = "#7ee29a", CostMult = 0.90,
+			Grade2Bonus = 8, Grade3Bonus = -4, DoubleBonus = -5, MinPotencyFloor = 98, AllowTribulation = false,
+			Desc = "炭火徐温、稳产零丹劫（炉资九折，保底药效≥98%，最宜炼制珍稀洗髓丹与调理圣药）"
+		},
+		balanced = {
+			ID = "balanced", Title = "中火守正", Short = "中火", Color = "#dda21f", CostMult = 1.00,
+			Grade2Bonus = 0, Grade3Bonus = 0, DoubleBonus = 0, MinPotencyFloor = 92, AllowTribulation = false,
+			Desc = "文武适中、阴阳均衡（标准品阶与紫气双丹率，零丹劫走火风险）"
+		},
+		fierce = {
+			ID = "fierce", Title = "武火催霞", Short = "武火", Color = "#ff825c", CostMult = 1.20,
+			Grade2Bonus = 4, Grade3Bonus = 18, DoubleBonus = 15, MinPotencyFloor = 95, AllowTribulation = true,
+			Desc = "风箱猛催！【丹霞极品率 +18% · 双丹率 +15%】，可逆炼【阴阳逆命奇丹】；惟药性失衡时有丹劫异变为《暴烈奇毒散》之险"
+		}
+	},
+
+	// Six-Meridian Generating (`相生`) & Overcoming (`相克`) Matrix
+	MeridianRelations = {
+		Generates = {
+			vital  = ["yang", "origin"],
+			yang   = ["spirit", "origin"],
+			spirit = ["origin", "vital"],
+			origin = ["yin", "vital", "yang", "spirit"],
+			yin    = ["vital", "venom"],
+			venom  = ["yin"]
+		},
+		Overcomes = {
+			yang   = ["yin"],
+			yin    = ["yang"],
+			vital  = ["venom"],
+			venom  = ["vital", "spirit"],
+			spirit = ["venom"]
+		}
 	},
 
 	// 50 Bagua Cauldron Formulas (八卦丹炉君臣五十总谱 —— 1 丹 1 方全覆盖全部 50 种灵丹！)
@@ -724,6 +1042,81 @@ foreach (pid, pdef in wxDeepPills)
 			ID = "f_zijin_xisui", Category = "cultivate", PillID = "wx_pill_zijin_xisui", BaseYield = 1,
 			JunNatures = ["origin"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 12, SilverCost = 2400, BonusByproduct = "wx_pill_humai",
 			FormulaNote = "丹道极境：须以太古顶阶【造化】大妖内丹或九叶紫金灵芝为君，辅以两味重宝，九转炼成天品紫金洗髓丹！"
+		},
+		{
+			ID = "f_zhuyin_lunzhuan", Category = "prep", PillID = "wx_pill_zhuyin", BaseYield = 1, RequiredCoreKey = "core:wx_core_zhuyin",
+			JunNatures = ["origin", "yang", "yin"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 680,
+			FormulaNote = "【大妖本命古方】须以《钟山烛阴昼夜龙珠》坐镇君药鼎位，辅以两味奇珍调和寒暑，炼就昼夜轮转催功圣丹！"
+		},
+		{
+			ID = "f_liangyi_niming", Category = "prep", PillID = "wx_pill_liangyi", BaseYield = 1, IsHiddenMutation = true,
+			JunNatures = ["origin", "yang", "yin"], MinJunPotency = 4, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 640,
+			FormulaNote = "【阴阳逆命奇方】鼎中须含山海大妖内丹，并令【赤阳】与【玄阴】两极药材同炉激撞、以【武火催霞】逆炼混元！"
+		},
+		{
+			ID = "f_kurong_niepan", Category = "prep", PillID = "wx_pill_kurong", BaseYield = 1, IsHiddenMutation = true,
+			JunNatures = ["origin", "vital", "venom"], MinJunPotency = 4, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 11, SilverCost = 660,
+			FormulaNote = "【阴阳逆命奇方】鼎中须含山海大妖内丹，并令【生机】与【奇毒】两极药材同炉激撞、以【武火催霞】逆炼枯荣！"
+		},
+		{
+			ID = "f_shenmo_bixie", Category = "prep", PillID = "wx_pill_shenmo", BaseYield = 1, IsHiddenMutation = true,
+			JunNatures = ["origin", "spirit", "venom"], MinJunPotency = 4, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 11, SilverCost = 660,
+			FormulaNote = "【阴阳逆命奇方】鼎中须含山海大妖内丹，并令【镇魂】与【奇毒】两极药材同炉激撞、以【武火催霞】逆炼辟邪！"
+		},
+		{
+			ID = "f_baize_kanpo", Category = "prep", PillID = "wx_pill_baize", BaseYield = 1, RequiredCoreKey = "core:wx_core_baize",
+			JunNatures = ["origin", "spirit", "vital"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 660,
+			FormulaNote = "【大妖本命古方】须以《东望白泽通玄宝丹》坐镇君药鼎位，辅以两味灵药开悟神目，催化奇门反击与武学参悟！"
+		},
+		{
+			ID = "f_jianmu_fengchun", Category = "prep", PillID = "wx_pill_jianmu", BaseYield = 1, RequiredCoreKey = "core:wx_core_jumang",
+			JunNatures = ["origin", "vital", "yin"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 660,
+			FormulaNote = "【大妖本命古方】须以《都广建木神心》坐镇君药鼎位，辅以两味生机灵引，催化横练硬功生肌修甲！"
+		},
+		{
+			ID = "f_taotie_tunyuan", Category = "prep", PillID = "wx_pill_taotie", BaseYield = 1, RequiredCoreKey = "core:wx_core_taotie",
+			JunNatures = ["origin", "yang", "venom"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 660,
+			FormulaNote = "【大妖本命古方】须以《饕餮噬元凶丹》坐镇君药鼎位，辅以两味凶煞奇材，催化外功重击鲸吞敌气！"
+		},
+		{
+			ID = "f_yinglong_xingyun", Category = "prep", PillID = "wx_pill_yinglong", BaseYield = 1, RequiredCoreKey = "core:wx_core_yinglong",
+			JunNatures = ["origin", "yin", "yang"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 680,
+			FormulaNote = "【大妖本命古方】须以《凶犁应龙真灵逆鳞珠》坐镇君药鼎位，辅以两味水雷灵材，催化轻功与穿刺长兵！"
+		},
+		{
+			ID = "f_chiyou_baizhan", Category = "prep", PillID = "wx_pill_chiyou", BaseYield = 1, RequiredCoreKey = "core:wx_core_chiyou",
+			JunNatures = ["origin", "yang", "vital"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 680,
+			FormulaNote = "【大妖本命古方】须以《冀州蚩尤五兵煞主丹》坐镇君药鼎位，催化外功重兵破甲碎盾与斩敌威慑！"
+		},
+		{
+			ID = "f_jinwu_chunyang", Category = "prep", PillID = "wx_pill_jinwu", BaseYield = 1, RequiredCoreKey = "core:wx_core_jinwu",
+			JunNatures = ["origin", "yang"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 680,
+			FormulaNote = "【大妖本命古方】须以《汤谷三足金乌大日真丹》坐镇君药鼎位，催化纯阳真气焚甲诛邪、自涤寒霜！"
+		},
+		{
+			ID = "f_xiangliu_wangu", Category = "prep", PillID = "wx_pill_xiangliu", BaseYield = 1, RequiredCoreKey = "core:wx_core_xiangliuwang",
+			JunNatures = ["origin", "venom", "yin"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 660,
+			FormulaNote = "【大妖本命古方】须以《共工相柳九首苦毒丹》坐镇君药鼎位，催化五毒邪功免毒传蛊！"
+		},
+		{
+			ID = "f_xuangui_buhuai", Category = "prep", PillID = "wx_pill_xuangui", BaseYield = 1, RequiredCoreKey = "core:wx_core_xuangui",
+			JunNatures = ["origin", "yin", "vital"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 660,
+			FormulaNote = "【大妖本命古方】须以《杻阳玄龟镇海神丹》坐镇君药鼎位，催化横练磐石抗远免晕卸重击！"
+		},
+		{
+			ID = "f_dijiang_suodi", Category = "prep", PillID = "wx_pill_dijiang", BaseYield = 1, RequiredCoreKey = "core:wx_core_dijiang",
+			JunNatures = ["origin", "spirit", "yang"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 670,
+			FormulaNote = "【大妖本命古方】须以《天山帝江空间混沌丹》坐镇君药鼎位，催化轻功幻空折跃偏折重伤！"
+		},
+		{
+			ID = "f_jiuwei_shehun", Category = "prep", PillID = "wx_pill_jiuwei", BaseYield = 1, RequiredCoreKey = "core:wx_core_jiuwei",
+			JunNatures = ["origin", "spirit", "yin"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 650,
+			FormulaNote = "【大妖本命古方】须以《青丘九尾天狐幻丹》坐镇君药鼎位，催化奇门清心免魅惑并动摇敌魄！"
+		},
+		{
+			ID = "f_xingtian_zhanhun", Category = "prep", PillID = "wx_pill_xingtian", BaseYield = 1, RequiredCoreKey = "core:wx_core_xingtian",
+			JunNatures = ["origin", "yang", "vital"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 680,
+			FormulaNote = "【大妖本命古方】须以《常羊刑天不灭战魂丹》坐镇君药鼎位，催化狂战免晕与残血战魂回气增伤！"
 		}
 	]
 };

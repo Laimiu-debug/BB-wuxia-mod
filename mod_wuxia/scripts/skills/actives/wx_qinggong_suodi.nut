@@ -46,7 +46,13 @@ this.wx_qinggong_suodi <- this.inherit("scripts/skills/skill", {
 		this.m.Cooldown = 3;
 		::Wuxia.VFX.playSkillVfx(this, _user, _user.getTile(), this.m.WX_VfxBrush);
 		::Tactical.getNavigator().teleport(_user, _targetTile, null, null, false);
-		
+		if ("Streams" in ::Wuxia)
+		{
+			local st = ::Wuxia.Streams.getOrCreateState(_user);
+			if (st != null) st.addWindSteps(2);
+		}
+		if (_targetTile != null && ("TileField" in ::Wuxia) && ::Wuxia.TileField.hasField(_targetTile, "sword_node"))
+			::Wuxia.CombatRules.restoreQi(_user, 8);
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, this.m.WX_VfxBrush);
 		return true;
 	}

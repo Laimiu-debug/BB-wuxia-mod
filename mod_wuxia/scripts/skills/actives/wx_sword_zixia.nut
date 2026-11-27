@@ -27,7 +27,10 @@ this.wx_sword_zixia <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		if (_skill == this)
 		{
-			_properties.MeleeSkill += 8; _properties.DamageDirectAdd += 0.15; _properties.DamageArmorMult *= 1.20;
+			this.wxApplyTagPreHitProps(_targetEntity, _properties);
+			_properties.MeleeSkill += 8;
+			if ("Streams" in ::Wuxia) ::Wuxia.Streams.addCappedPen(_properties, 0.15);
+			_properties.DamageArmorMult *= 1.20;
 		}
 	}
 
@@ -36,10 +39,18 @@ this.wx_sword_zixia <- this.inherit("scripts/skills/actives/wx_move_base", {
 		local target = _targetTile.getEntity();
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, this.m.WX_VfxBrush);
 		local hit = this.attackEntity(_user, target);
-		if (hit && target != null && target.isAlive())
+		if (hit)
 		{
-			this.wxApplyStatusToTarget(target, "effects.wx_internal_injury", "scripts/skills/effects/wx_internal_injury");
+			if (target != null && target.isAlive())
+			{
+				this.wxApplyStatusToTarget(target, "effects.wx_internal_injury", "scripts/skills/effects/wx_internal_injury");
+				if (!::Wuxia.CombatRules.isUndeadOrConstruct(target))
+					::Wuxia.CombatRules.spendQi(target, 8);
+			}
+			if ("Streams" in ::Wuxia)
+				::Wuxia.Streams.spawnSwordNode(_user, _targetTile);
 		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

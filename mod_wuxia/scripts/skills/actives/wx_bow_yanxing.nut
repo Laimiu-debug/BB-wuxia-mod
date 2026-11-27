@@ -16,15 +16,17 @@ this.wx_bow_yanxing <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.WX_AnimMode <- "pierce_yanxing";
 		this.m.WX_ChoreoID <- "wx_bow_yanxing";
 		this.m.IsRanged = true;
+		this.m.IsIgnoredAsAOO = true;
 		this.m.IsShowingProjectile = true;
 		this.m.ProjectileType = ::Const.ProjectileType.WX_Diaolingjian;
 		this.m.IsProjectileRotated = true;
 		this.m.ProjectileTimeScale = 1.25;
-		this.m.SoundOnUse = ["sounds/combat/aimed_shot_01.wav", "sounds/combat/aimed_shot_02.wav"];
+		this.m.SoundOnUse = ["sounds/combat/quick_shot_01.wav", "sounds/combat/quick_shot_02.wav", "sounds/combat/quick_shot_03.wav"];
 		this.m.ActionPointCost = 4;
 		this.m.FatigueCost = 16;
 		this.m.MinRange = 2;
 		this.m.MaxRange = 7;
+		this.m.MaxLevelDifference = 4;
 		this.m.RequiredWeaponTypes = ["Bow", "Crossbow"];
 		this.m.DirectDamageMult = 0.36;
 	}

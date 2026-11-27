@@ -11,6 +11,8 @@ this.wx_boss_bashe <- this.inherit("scripts/entity/tactical/enemies/serpent", {
 
 	function onDeath( _killer, _skill, _tile, _fatalityType )
 	{
+		if ("ShanHaiMultiBody" in ::Wuxia)
+			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.serpent.onDeath(_killer, _skill, _tile, _fatalityType);
 		::Wuxia.ShanHai.dropBossCore("boss_bashe", _tile);
 	}

@@ -1807,6 +1807,9 @@
 				wxTourney.picks = [];
 			}
 			wxRenderTournamentModal();
+			if (_res.ok && _res.wxShowcase && window.WX_Showcase) {
+				window.WX_Showcase.play(_res.wxShowcase, { sqHandle: wxTourney.sqHandle });
+			}
 		});
 	}
 

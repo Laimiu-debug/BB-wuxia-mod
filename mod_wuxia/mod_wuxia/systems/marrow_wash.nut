@@ -76,7 +76,10 @@
 		bonus += pBonus;
 	}
 
-	return ::Math.min(::Wuxia.Config.MarrowWash.MaxPrepBonus, bonus);
+	local cappedPrep = ::Math.min(::Wuxia.Config.MarrowWash.MaxPrepBonus, bonus);
+	if ("Traits" in ::Wuxia)
+		cappedPrep += ::Wuxia.Traits.getWashPrepBonus(_actor);
+	return cappedPrep;
 };
 
 ::Wuxia.MarrowWash.getPreview <- function( _actor, _targetAttrIdx, _replaceAttrIdx = -1, _useProtectPill = false )
@@ -159,26 +162,48 @@
 		}
 		_actor.m.Talents[_targetAttrIdx] = preview.NextStar;
 		::Wuxia.MarrowWash.refreshFutureRolls(_actor, _targetAttrIdx);
-		if ("World" in getroottable() && ::World != null && ("Flags" in ::World) && ::World.Flags != null)
+		if (::Wuxia.hasWorldField("Flags"))
 			::World.Flags.set("wx_marrow_wash_success", true);
 
 		return {
-			Ok = true,
-			Succeeded = true,
-			Roll = roll,
-			Chance = preview.FinalChance,
-			Message = "洗经伐髓成功！「" + preview.TargetAttrName + "」根骨跃升至 " + preview.NextStar + "★！"
+			Ok                 = true,
+			Succeeded          = true,
+			Roll               = roll,
+			Chance             = preview.FinalChance,
+			WashPillID         = _usePendingChance ? "pending" : "wx_pill_xisui",
+			WashPillName       = _usePendingChance ? "功成契机" : "洗髓丹",
+			TargetAttrIdx      = _targetAttrIdx,
+			TargetAttrName     = preview.TargetAttrName,
+			OldStars           = preview.CurrentStar,
+			NextStar           = preview.NextStar,
+			IsReplaceMode      = preview.IsReplaceMode,
+			ReplaceAttrName    = ("ReplaceAttrName" in preview) ? preview.ReplaceAttrName : "",
+			AvoidAllShock      = false,
+			AvoidHeavyShock    = false,
+			GotPermanentInjury = false,
+			Message            = "洗经伐髓成功！「" + preview.TargetAttrName + "」根骨跃升至 " + preview.NextStar + "★！"
 		};
 	}
 
 	if (("AvoidShock" in preview) && preview.AvoidShock)
 	{
 		return {
-			Ok = true,
-			Succeeded = false,
-			Roll = roll,
-			Chance = preview.FinalChance,
-			Message = "洗髓药力未能冲开「" + preview.TargetAttrName + "」关窍，幸得【山海造化护脉金丹】护持心脉，全身经脉毫发无伤！"
+			Ok                 = true,
+			Succeeded          = false,
+			Roll               = roll,
+			Chance             = preview.FinalChance,
+			WashPillID         = _usePendingChance ? "pending" : "wx_pill_xisui",
+			WashPillName       = _usePendingChance ? "功成契机" : "洗髓丹",
+			TargetAttrIdx      = _targetAttrIdx,
+			TargetAttrName     = preview.TargetAttrName,
+			OldStars           = preview.CurrentStar,
+			NextStar           = preview.NextStar,
+			IsReplaceMode      = preview.IsReplaceMode,
+			ReplaceAttrName    = ("ReplaceAttrName" in preview) ? preview.ReplaceAttrName : "",
+			AvoidAllShock      = true,
+			AvoidHeavyShock    = true,
+			GotPermanentInjury = false,
+			Message            = "洗髓药力未能冲开「" + preview.TargetAttrName + "」关窍，幸得【山海造化护脉金丹】护持心脉，全身经脉毫发无伤！"
 		};
 	}
 
@@ -202,10 +227,21 @@
 
 	local failMsg = "洗髓药力冲关受阻，陷入「经脉震荡」" + (gotPerm ? "，更留下永久「经脉暗疾」！" : "（静养或服护心丹可愈）。");
 	return {
-		Ok = true,
-		Succeeded = false,
-		Roll = roll,
-		Chance = preview.FinalChance,
-		Message = failMsg
+		Ok                 = true,
+		Succeeded          = false,
+		Roll               = roll,
+		Chance             = preview.FinalChance,
+		WashPillID         = _usePendingChance ? "pending" : "wx_pill_xisui",
+		WashPillName       = _usePendingChance ? "功成契机" : "洗髓丹",
+		TargetAttrIdx      = _targetAttrIdx,
+		TargetAttrName     = preview.TargetAttrName,
+		OldStars           = preview.CurrentStar,
+		NextStar           = preview.NextStar,
+		IsReplaceMode      = preview.IsReplaceMode,
+		ReplaceAttrName    = ("ReplaceAttrName" in preview) ? preview.ReplaceAttrName : "",
+		AvoidAllShock      = false,
+		AvoidHeavyShock    = false,
+		GotPermanentInjury = gotPerm,
+		Message            = failMsg
 	};
 };

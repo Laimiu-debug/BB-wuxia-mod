@@ -57,6 +57,8 @@ this.wx_hammer_quake <- this.inherit("scripts/skills/actives/wx_move_base", {
 			if (target != null && target.isAlive())
 			{
 				this.wxApplyStatusToTarget(target, "effects.wx_status_offbalance", "scripts/skills/effects/wx_status_offbalance");
+				if ("CraftBridge" in ::Wuxia)
+					::Wuxia.CraftBridge.applyBossCounterHit(_user, target, { CorrodeShell = 1, BreakPts = 2 });
 			}
 			for (local d = 0; d < this.Const.Direction.COUNT; ++d)
 			{

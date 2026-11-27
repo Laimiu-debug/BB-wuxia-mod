@@ -1,0 +1,6562 @@
+{
+  "wx_acupoint_strike": {
+    "id": "actives.wx_acupoint_strike",
+    "key": "wx_acupoint_strike",
+    "title": "清风点穴",
+    "subtitle": "拂柳认穴·七星封脉",
+    "seal": "点穴",
+    "arch": "lotus_poke",
+    "seq": "wx_kin_lotus_poke",
+    "seq2": "",
+    "motion": "kin_spear_drill",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      180,
+      255,
+      224
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 355,
+    "releaseMs": 490,
+    "totalMs": 860,
+    "hits": [
+      230,
+      355
+    ],
+    "shakePow": 4,
+    "tag": "兰花拂柳认穴 → 10帧七星点穴金莲法印绽放 → 封脉停滞",
+    "beats": [
+      "1. 拂柳认穴",
+      "2. 七星点落",
+      "3. 金莲绽放",
+      "4. 经脉锁闭"
+    ]
+  },
+  "wx_axe_kaishan": {
+    "id": "actives.wx_axe_kaishan",
+    "key": "wx_axe_kaishan",
+    "title": "旋风开山斩",
+    "subtitle": "盘古开天·巨钺分海",
+    "seal": "开天",
+    "arch": "giant_axe",
+    "seq": "wx_kin_giant_axe",
+    "seq2": "wx_kin_earth_shatter",
+    "motion": "kin_flame_leap",
+    "react": "kin_hit_launch",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 400,
+    "releaseMs": 545,
+    "totalMs": 960,
+    "hits": [
+      400
+    ],
+    "shakePow": 9,
+    "tag": "双手高举巨兵 → 10帧盘古开天厚重青铜巨钺劈裂 → 裂隙震屏",
+    "beats": [
+      "1. 举钺开山",
+      "2. 巨弧压落",
+      "3. 裂地断盾",
+      "4. 焦土飞石"
+    ]
+  },
+  "wx_axe_kaitian": {
+    "id": "actives.wx_axe_kaitian",
+    "key": "wx_axe_kaitian",
+    "title": "裂岳开天钺",
+    "subtitle": "劈山裂岳·神钺断峰",
+    "seal": "神钺",
+    "arch": "giant_axe",
+    "seq": "wx_kin_giant_axe",
+    "seq2": "wx_kin_earth_shatter",
+    "motion": "kin_flame_leap",
+    "react": "kin_hit_launch",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      224,
+      185
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 400,
+    "releaseMs": 545,
+    "totalMs": 960,
+    "hits": [
+      400
+    ],
+    "shakePow": 9,
+    "tag": "双手高举巨兵 → 10帧盘古开天厚重青铜巨钺劈裂 → 裂隙震屏",
+    "beats": [
+      "1. 举钺开山",
+      "2. 巨弧压落",
+      "3. 裂地断盾",
+      "4. 焦土飞石"
+    ]
+  },
+  "wx_axe_poche": {
+    "id": "actives.wx_axe_poche",
+    "key": "wx_axe_poche",
+    "title": "宣花碎车劈",
+    "subtitle": "边军宣花·碎盾摧车",
+    "seal": "破车",
+    "arch": "giant_axe",
+    "seq": "wx_kin_giant_axe",
+    "seq2": "wx_kin_sonic_wave",
+    "motion": "kin_heavy_chop",
+    "react": "kin_hit_launch",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      215,
+      135
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 400,
+    "releaseMs": 545,
+    "totalMs": 960,
+    "hits": [
+      400
+    ],
+    "shakePow": 7,
+    "tag": "双手高举巨兵 → 10帧盘古开天厚重青铜巨钺劈裂 → 裂隙震屏",
+    "beats": [
+      "1. 举钺开山",
+      "2. 巨弧压落",
+      "3. 裂地断盾",
+      "4. 焦土飞石"
+    ]
+  },
+  "wx_axe_split": {
+    "id": "actives.wx_axe_split",
+    "key": "wx_axe_split",
+    "title": "力劈华山",
+    "subtitle": "力劈华山·断盾裂颅",
+    "seal": "劈山",
+    "arch": "giant_axe",
+    "seq": "wx_kin_giant_axe",
+    "seq2": "",
+    "motion": "kin_heavy_chop",
+    "react": "kin_hit_launch",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      196,
+      128
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 400,
+    "releaseMs": 545,
+    "totalMs": 960,
+    "hits": [
+      400
+    ],
+    "shakePow": 7,
+    "tag": "双手高举巨兵 → 10帧盘古开天厚重青铜巨钺劈裂 → 裂隙震屏",
+    "beats": [
+      "1. 举钺开山",
+      "2. 巨弧压落",
+      "3. 裂地断盾",
+      "4. 焦土飞石"
+    ]
+  },
+  "wx_axe_whirl": {
+    "id": "actives.wx_axe_whirl",
+    "key": "wx_axe_whirl",
+    "title": "旋风断魂斧",
+    "subtitle": "黑水狂斧·血风轮转",
+    "seal": "狂斧",
+    "arch": "blood_cleave",
+    "seq": "wx_kin_whirl_cyclone",
+    "seq2": "wx_kin_blood_arc",
+    "motion": "kin_whirl_spin",
+    "react": "kin_hit_heavy",
+    "theme": "crimson",
+    "col": "#ff364c",
+    "core": "#ffe2e6",
+    "tint": [
+      255,
+      120,
+      130
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "scorch",
+    "impactMs": 385,
+    "releaseMs": 525,
+    "totalMs": 920,
+    "hits": [
+      385
+    ],
+    "shakePow": 7,
+    "tag": "血煞压步蓄刀 → 10帧修罗泼墨血月大弧 → 猩红血雾飞溅",
+    "beats": [
+      "1. 血煞凝锋",
+      "2. 血月横空",
+      "3. 裂甲溅血",
+      "4. 残血归元"
+    ]
+  },
+  "wx_axe_xueming": {
+    "id": "actives.wx_axe_xueming",
+    "key": "wx_axe_xueming",
+    "title": "荒原饮血斧",
+    "subtitle": "荒原狂魔·血斧噬生",
+    "seal": "血斧",
+    "arch": "giant_axe",
+    "seq": "wx_kin_giant_axe",
+    "seq2": "wx_kin_blood_arc",
+    "motion": "kin_whirl_spin",
+    "react": "kin_hit_launch",
+    "theme": "crimson",
+    "col": "#ff364c",
+    "core": "#ffe2e6",
+    "tint": [
+      255,
+      125,
+      135
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 400,
+    "releaseMs": 545,
+    "totalMs": 960,
+    "hits": [
+      400
+    ],
+    "shakePow": 7,
+    "tag": "双手高举巨兵 → 10帧盘古开天厚重青铜巨钺劈裂 → 裂隙震屏",
+    "beats": [
+      "1. 举钺开山",
+      "2. 巨弧压落",
+      "3. 裂地断盾",
+      "4. 焦土飞石"
+    ]
+  },
+  "wx_blood_burst": {
+    "id": "actives.wx_blood_burst",
+    "key": "wx_blood_burst",
+    "title": "燃血催劲",
+    "subtitle": "天魔燃血·赤焰破限",
+    "seal": "燃血",
+    "arch": "prism_burst",
+    "seq": "wx_kin_prism_burst",
+    "seq2": "wx_kin_soul_vortex",
+    "motion": "kin_roar_pulse",
+    "react": "kin_hit_launch",
+    "theme": "crimson",
+    "col": "#ff364c",
+    "core": "#ffe2e6",
+    "tint": [
+      255,
+      110,
+      125
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 310,
+    "releaseMs": 440,
+    "totalMs": 820,
+    "hits": [
+      395
+    ],
+    "shakePow": 4,
+    "tag": "五行真气逆冲 → 10帧五色奇劲裂体放射爆裂 → 震伤脏腑",
+    "beats": [
+      "1. 五气逆聚",
+      "2. 奇劲初裂",
+      "3. 五行爆散",
+      "4. 乱劲余震"
+    ]
+  },
+  "wx_bow_jiuxing": {
+    "id": "actives.wx_bow_jiuxing",
+    "key": "wx_bow_jiuxing",
+    "title": "九星贯日箭",
+    "subtitle": "九星连珠·破云贯日",
+    "seal": "九星",
+    "arch": "peacock_fan",
+    "seq": "wx_kin_peacock_fan",
+    "seq2": "wx_kin_celestial_beam",
+    "motion": "kin_bow_draw",
+    "react": "kin_hit_heavy",
+    "theme": "celestial",
+    "col": "#ffe88e",
+    "core": "#f6fcff",
+    "tint": [
+      255,
+      255,
+      255
+    ],
+    "kind": "ranged",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 350,
+    "releaseMs": 495,
+    "totalMs": 900,
+    "hits": [
+      220,
+      290,
+      355
+    ],
+    "shakePow": 6,
+    "tag": "机括轻启展开 → 10帧孔雀开屏九道七彩神芒翎眼 → 绚丽绝杀",
+    "beats": [
+      "1. 机括初启",
+      "2. 七彩开屏",
+      "3. 翎眼齐爆",
+      "4. 虹屑纷飞"
+    ]
+  },
+  "wx_bow_liuxing": {
+    "id": "actives.wx_bow_liuxing",
+    "key": "wx_bow_liuxing",
+    "title": "流星连珠箭",
+    "subtitle": "落日连珠·三矢追星",
+    "seal": "连珠",
+    "arch": "arrow_barrage",
+    "seq": "wx_kin_arrow_barrage",
+    "seq2": "",
+    "motion": "kin_bow_draw",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "ranged",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 330,
+    "releaseMs": 470,
+    "totalMs": 860,
+    "hits": [
+      220,
+      290,
+      355
+    ],
+    "shakePow": 5,
+    "tag": "拉弦扣矢瞄准 → 10帧破空流矢连珠齐射 → 穿透星爆",
+    "beats": [
+      "1. 拉弦蓄势",
+      "2. 流星破空",
+      "3. 贯甲星爆",
+      "4. 尾焰消散"
+    ]
+  },
+  "wx_bow_luori": {
+    "id": "actives.wx_bow_luori",
+    "key": "wx_bow_luori",
+    "title": "大荒落日箭",
+    "subtitle": "大荒落日·一矢焚天",
+    "seal": "落日",
+    "arch": "dragon_surge",
+    "seq": "wx_kin_dragon_surge",
+    "seq2": "wx_kin_flame_pillar",
+    "motion": "kin_bow_draw",
+    "react": "kin_hit_launch",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      175,
+      95
+    ],
+    "kind": "ranged",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 420,
+    "releaseMs": 560,
+    "totalMs": 980,
+    "hits": [
+      420
+    ],
+    "shakePow": 8,
+    "tag": "马步聚气内收 → 12帧水墨真龙跨格冲袭 → 冲击波裂地",
+    "beats": [
+      "1. 沉步蓄劲",
+      "2. 真龙出渊",
+      "3. 穿阵击飞",
+      "4. 双波余威"
+    ]
+  },
+  "wx_bow_snipe": {
+    "id": "actives.wx_bow_snipe",
+    "key": "wx_bow_snipe",
+    "title": "流星追月箭",
+    "subtitle": "流星追月·破音贯日",
+    "seal": "贯日",
+    "arch": "arrow_barrage",
+    "seq": "wx_kin_arrow_barrage",
+    "seq2": "wx_kin_celestial_beam",
+    "motion": "kin_bow_draw",
+    "react": "kin_hit_heavy",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      185,
+      245,
+      255
+    ],
+    "kind": "ranged",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 330,
+    "releaseMs": 470,
+    "totalMs": 860,
+    "hits": [
+      260,
+      330
+    ],
+    "shakePow": 6,
+    "tag": "拉弦扣矢瞄准 → 10帧破空流矢连珠齐射 → 穿透星爆",
+    "beats": [
+      "1. 拉弦蓄势",
+      "2. 流星破空",
+      "3. 贯甲星爆",
+      "4. 尾焰消散"
+    ]
+  },
+  "wx_bow_yanxing": {
+    "id": "actives.wx_bow_yanxing",
+    "key": "wx_bow_yanxing",
+    "title": "苍狼追魂箭",
+    "subtitle": "塞外苍狼·追风鸣镝",
+    "seal": "鸣镝",
+    "arch": "arrow_barrage",
+    "seq": "wx_kin_arrow_barrage",
+    "seq2": "",
+    "motion": "kin_bow_draw",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      165,
+      255,
+      215
+    ],
+    "kind": "ranged",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 330,
+    "releaseMs": 470,
+    "totalMs": 860,
+    "hits": [
+      260,
+      330
+    ],
+    "shakePow": 5,
+    "tag": "拉弦扣矢瞄准 → 10帧破空流矢连珠齐射 → 穿透星爆",
+    "beats": [
+      "1. 拉弦蓄势",
+      "2. 流星破空",
+      "3. 贯甲星爆",
+      "4. 尾焰消散"
+    ]
+  },
+  "wx_crossbow_liannu": {
+    "id": "actives.wx_crossbow_liannu",
+    "key": "wx_crossbow_liannu",
+    "title": "唐门连珠矢",
+    "subtitle": "唐门机括·连珠毒矢",
+    "seal": "连弩",
+    "arch": "arrow_barrage",
+    "seq": "wx_kin_arrow_barrage",
+    "seq2": "wx_kin_venom_mire",
+    "motion": "kin_bow_draw",
+    "react": "kin_hit_venom",
+    "theme": "venom",
+    "col": "#58eb44",
+    "core": "#e8ffd8",
+    "tint": [
+      165,
+      255,
+      130
+    ],
+    "kind": "ranged",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "venom",
+    "impactMs": 330,
+    "releaseMs": 470,
+    "totalMs": 860,
+    "hits": [
+      260,
+      330
+    ],
+    "shakePow": 5,
+    "tag": "拉弦扣矢瞄准 → 10帧破空流矢连珠齐射 → 穿透星爆",
+    "beats": [
+      "1. 拉弦蓄势",
+      "2. 流星破空",
+      "3. 贯甲星爆",
+      "4. 尾焰消散"
+    ]
+  },
+  "wx_crossbow_shenji": {
+    "id": "actives.wx_crossbow_shenji",
+    "key": "wx_crossbow_shenji",
+    "title": "神机透甲矢",
+    "subtitle": "神机劲弩·旋钢透甲",
+    "seal": "劲弩",
+    "arch": "arrow_barrage",
+    "seq": "wx_kin_arrow_barrage",
+    "seq2": "wx_kin_spear_drill",
+    "motion": "kin_bow_draw",
+    "react": "kin_hit_heavy",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      200,
+      130
+    ],
+    "kind": "ranged",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 330,
+    "releaseMs": 470,
+    "totalMs": 860,
+    "hits": [
+      260,
+      330
+    ],
+    "shakePow": 7,
+    "tag": "拉弦扣矢瞄准 → 10帧破空流矢连珠齐射 → 穿透星爆",
+    "beats": [
+      "1. 拉弦蓄势",
+      "2. 流星破空",
+      "3. 贯甲星爆",
+      "4. 尾焰消散"
+    ]
+  },
+  "wx_dagger_execute": {
+    "id": "actives.wx_dagger_execute",
+    "key": "wx_dagger_execute",
+    "title": "追魂透骨刺",
+    "subtitle": "幽冥绝杀·暗夜一线",
+    "seal": "绝杀",
+    "arch": "shadow_cross",
+    "seq": "wx_kin_shadow_cross",
+    "seq2": "wx_kin_celestial_beam",
+    "motion": "kin_shadow_blink",
+    "react": "kin_hit_heavy",
+    "theme": "violet",
+    "col": "#b67cff",
+    "core": "#f3e8ff",
+    "tint": [
+      215,
+      155,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 360,
+    "releaseMs": 500,
+    "totalMs": 860,
+    "hits": [
+      210,
+      360
+    ],
+    "shakePow": 7,
+    "tag": "魅影瞬步贴背 → 10帧紫电/寒光十字交剪绝杀 → 十字星爆顿帧",
+    "beats": [
+      "1. 隐身闪步",
+      "2. 一线起斩",
+      "3. 十字交爆",
+      "4. 残影退身"
+    ]
+  },
+  "wx_dagger_fuxue": {
+    "id": "actives.wx_dagger_fuxue",
+    "key": "wx_dagger_fuxue",
+    "title": "透骨分筋刺",
+    "subtitle": "鬼影附骨·瞬步背刺",
+    "seal": "背刺",
+    "arch": "shadow_cross",
+    "seq": "wx_kin_shadow_cross",
+    "seq2": "wx_kin_claw_rend",
+    "motion": "kin_shadow_blink",
+    "react": "kin_hit_heavy",
+    "theme": "ink",
+    "col": "#a6b4e6",
+    "core": "#eef2ff",
+    "tint": [
+      224,
+      230,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 360,
+    "releaseMs": 500,
+    "totalMs": 860,
+    "hits": [
+      210,
+      360
+    ],
+    "shakePow": 5,
+    "tag": "魅影瞬步贴背 → 10帧紫电/寒光十字交剪绝杀 → 十字星爆顿帧",
+    "beats": [
+      "1. 隐身闪步",
+      "2. 一线起斩",
+      "3. 十字交爆",
+      "4. 残影退身"
+    ]
+  },
+  "wx_dagger_jingke": {
+    "id": "actives.wx_dagger_jingke",
+    "key": "wx_dagger_jingke",
+    "title": "图穷匕见刺",
+    "subtitle": "图穷匕见·白虹贯日",
+    "seal": "图穷",
+    "arch": "celestial_beam",
+    "seq": "wx_kin_celestial_beam",
+    "seq2": "wx_kin_shadow_cross",
+    "motion": "kin_shadow_blink",
+    "react": "kin_hit_heavy",
+    "theme": "celestial",
+    "col": "#ffe88e",
+    "core": "#f6fcff",
+    "tint": [
+      255,
+      255,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 425,
+    "releaseMs": 575,
+    "totalMs": 1000,
+    "hits": [
+      425
+    ],
+    "shakePow": 8,
+    "tag": "凌空后飘聚芒 → 飞剑/剑气合流 → 10帧白虹贯日 + 一闪切屏",
+    "beats": [
+      "1. 凌空凝芒",
+      "2. 气虹聚势",
+      "3. 白虹一闪",
+      "4. 星芒流散"
+    ]
+  },
+  "wx_dagger_shenghuo": {
+    "id": "actives.wx_dagger_shenghuo",
+    "key": "wx_dagger_shenghuo",
+    "title": "圣火奇令刺",
+    "subtitle": "西域圣火·奇令诡刃",
+    "seal": "圣火",
+    "arch": "peacock_fan",
+    "seq": "wx_kin_peacock_fan",
+    "seq2": "wx_kin_flame_pillar",
+    "motion": "kin_shadow_blink",
+    "react": "kin_hit_heavy",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      175,
+      105
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 350,
+    "releaseMs": 495,
+    "totalMs": 900,
+    "hits": [
+      220,
+      290,
+      350
+    ],
+    "shakePow": 5,
+    "tag": "机括轻启展开 → 10帧孔雀开屏九道七彩神芒翎眼 → 绚丽绝杀",
+    "beats": [
+      "1. 机括初启",
+      "2. 七彩开屏",
+      "3. 翎眼齐爆",
+      "4. 虹屑纷飞"
+    ]
+  },
+  "wx_dagger_vital": {
+    "id": "actives.wx_dagger_vital",
+    "key": "wx_dagger_vital",
+    "title": "分水断脉刺",
+    "subtitle": "分水断脉·双刺剪血",
+    "seal": "断脉",
+    "arch": "shadow_cross",
+    "seq": "wx_kin_shadow_cross",
+    "seq2": "",
+    "motion": "kin_shadow_blink",
+    "react": "kin_hit_heavy",
+    "theme": "crimson",
+    "col": "#ff364c",
+    "core": "#ffe2e6",
+    "tint": [
+      255,
+      130,
+      150
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 360,
+    "releaseMs": 500,
+    "totalMs": 860,
+    "hits": [
+      210,
+      360
+    ],
+    "shakePow": 4,
+    "tag": "魅影瞬步贴背 → 10帧紫电/寒光十字交剪绝杀 → 十字星爆顿帧",
+    "beats": [
+      "1. 隐身闪步",
+      "2. 一线起斩",
+      "3. 十字交爆",
+      "4. 残影退身"
+    ]
+  },
+  "wx_dagger_yingci": {
+    "id": "actives.wx_dagger_yingci",
+    "key": "wx_dagger_yingci",
+    "title": "无影鬼刺杀",
+    "subtitle": "幽谷墨烟·无影双刺",
+    "seal": "无影",
+    "arch": "claw_rend",
+    "seq": "wx_kin_claw_rend",
+    "seq2": "wx_kin_shadow_cross",
+    "motion": "kin_shadow_blink",
+    "react": "kin_hit_heavy",
+    "theme": "ink",
+    "col": "#a6b4e6",
+    "core": "#eef2ff",
+    "tint": [
+      224,
+      230,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 355,
+    "releaseMs": 495,
+    "totalMs": 860,
+    "hits": [
+      230,
+      355
+    ],
+    "shakePow": 5,
+    "tag": "诡步突袭扑身 → 10帧三道水墨裂空鬼爪/兽爪撕裂 → 暗影残片",
+    "beats": [
+      "1. 伏身突袭",
+      "2. 利爪破风",
+      "3. 三痕撕裂",
+      "4. 煞气弥散"
+    ]
+  },
+  "wx_dagger_zhuanzhu": {
+    "id": "actives.wx_dagger_zhuanzhu",
+    "key": "wx_dagger_zhuanzhu",
+    "title": "鱼肠弑王刺",
+    "subtitle": "炙鱼藏剑·三甲洞穿",
+    "seal": "藏剑",
+    "arch": "spear_drill",
+    "seq": "wx_kin_spear_drill",
+    "seq2": "",
+    "motion": "kin_shadow_blink",
+    "react": "kin_hit_heavy",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      255,
+      255,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 365,
+    "releaseMs": 500,
+    "totalMs": 860,
+    "hits": [
+      365
+    ],
+    "shakePow": 6,
+    "tag": "沉腰后拉蓄枪 → 10帧螺旋破音穿甲长虹 → 音爆环贯穿",
+    "beats": [
+      "1. 沉腰拉锋",
+      "2. 螺旋贯刺",
+      "3. 破音透甲",
+      "4. 枪花收势"
+    ]
+  },
+  "wx_fist_acupoint": {
+    "id": "actives.wx_fist_acupoint",
+    "key": "wx_fist_acupoint",
+    "title": "拈花点穴指",
+    "subtitle": "拈花一笑·金莲锁穴",
+    "seal": "拈花",
+    "arch": "lotus_poke",
+    "seq": "wx_kin_lotus_poke",
+    "seq2": "",
+    "motion": "kin_spear_drill",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      232,
+      155
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 355,
+    "releaseMs": 490,
+    "totalMs": 860,
+    "hits": [
+      230,
+      355
+    ],
+    "shakePow": 4,
+    "tag": "兰花拂柳认穴 → 10帧七星点穴金莲法印绽放 → 封脉停滞",
+    "beats": [
+      "1. 拂柳认穴",
+      "2. 七星点落",
+      "3. 金莲绽放",
+      "4. 经脉锁闭"
+    ]
+  },
+  "wx_fist_canhezhi": {
+    "id": "actives.wx_fist_canhezhi",
+    "key": "wx_fist_canhezhi",
+    "title": "参合截脉指",
+    "subtitle": "姑苏参合·凌空剑指",
+    "seal": "剑指",
+    "arch": "celestial_beam",
+    "seq": "wx_kin_celestial_beam",
+    "seq2": "",
+    "motion": "kin_celestial_beam",
+    "react": "kin_hit_heavy",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      175,
+      245,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 425,
+    "releaseMs": 575,
+    "totalMs": 1000,
+    "hits": [
+      425
+    ],
+    "shakePow": 5,
+    "tag": "凌空后飘聚芒 → 飞剑/剑气合流 → 10帧白虹贯日 + 一闪切屏",
+    "beats": [
+      "1. 凌空凝芒",
+      "2. 气虹聚势",
+      "3. 白虹一闪",
+      "4. 星芒流散"
+    ]
+  },
+  "wx_fist_disarm": {
+    "id": "actives.wx_fist_disarm",
+    "key": "wx_fist_disarm",
+    "title": "空手夺白刃",
+    "subtitle": "空手入刃·盘龙夺兵",
+    "seal": "夺兵",
+    "arch": "taiji_seal",
+    "seq": "wx_kin_taiji_seal",
+    "seq2": "wx_kin_whip_lash",
+    "motion": "kin_whip_snap",
+    "react": "kin_hit_heavy",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      255,
+      255,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 350,
+    "releaseMs": 490,
+    "totalMs": 880,
+    "hits": [
+      350
+    ],
+    "shakePow": 5,
+    "tag": "云手划圆借劲 → 10帧阴阳鱼太极八卦旋转法阵 → 清浊二气环",
+    "beats": [
+      "1. 云手划圆",
+      "2. 阴阳初分",
+      "3. 八卦流转",
+      "4. 化劲归元"
+    ]
+  },
+  "wx_fist_grapple": {
+    "id": "actives.wx_fist_grapple",
+    "key": "wx_fist_grapple",
+    "title": "擒龙探爪",
+    "subtitle": "擒龙探爪·虚空摄敌",
+    "seal": "擒龙",
+    "arch": "whip_lash",
+    "seq": "wx_kin_whip_lash",
+    "seq2": "wx_kin_dragon_surge",
+    "motion": "kin_whip_snap",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      215,
+      110
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 365,
+    "releaseMs": 505,
+    "totalMs": 880,
+    "hits": [
+      365
+    ],
+    "shakePow": 6,
+    "tag": "后扯抖腕聚劲 → 10帧灵蛇S形波浪长鞭抽击 → 鞭梢音爆星闪",
+    "beats": [
+      "1. 抖腕蓄鞭",
+      "2. 灵蛇游走",
+      "3. 鞭梢炸响",
+      "4. 锁敌余波"
+    ]
+  },
+  "wx_fist_heisha": {
+    "id": "actives.wx_fist_heisha",
+    "key": "wx_fist_heisha",
+    "title": "黑砂透骨掌",
+    "subtitle": "铁掌黑砂·透骨灼腑",
+    "seal": "黑砂",
+    "arch": "smoke_cloud",
+    "seq": "wx_kin_smoke_cloud",
+    "seq2": "wx_kin_venom_mire",
+    "motion": "kin_dragon_palm",
+    "react": "kin_hit_venom",
+    "theme": "ink",
+    "col": "#a6b4e6",
+    "core": "#eef2ff",
+    "tint": [
+      180,
+      140,
+      245
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "venom",
+    "impactMs": 320,
+    "releaseMs": 460,
+    "totalMs": 860,
+    "hits": [
+      320
+    ],
+    "shakePow": 5,
+    "tag": "抛洒奇门墨烟 → 10帧浓墨烟云翻卷障目隐形 → 诡影难测",
+    "beats": [
+      "1. 抬手掷烟",
+      "2. 墨云爆开",
+      "3. 浓烟障目",
+      "4. 幽雾弥漫"
+    ]
+  },
+  "wx_fist_jab": {
+    "id": "actives.wx_fist_jab",
+    "key": "wx_fist_jab",
+    "title": "冲拳",
+    "subtitle": "少林冲拳·连珠破风",
+    "seal": "冲拳",
+    "arch": "fist_flurry",
+    "seq": "wx_kin_fist_flurry",
+    "seq2": "",
+    "motion": "kin_dash_combo3",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 345,
+    "releaseMs": 505,
+    "totalMs": 880,
+    "hits": [
+      185,
+      345
+    ],
+    "shakePow": 4,
+    "tag": "踏步沉肩蓄拳 → 10帧六叠残影连珠冲拳爆气 → 拳环炸裂",
+    "beats": [
+      "1. 踏步沉肩",
+      "2. 残影连捶",
+      "3. 寸劲爆环",
+      "4. 收拳定势"
+    ]
+  },
+  "wx_fist_jingang": {
+    "id": "actives.wx_fist_jingang",
+    "key": "wx_fist_jingang",
+    "title": "金刚摧心掌",
+    "subtitle": "大日如来·金刚巨掌",
+    "seal": "如来",
+    "arch": "buddha_palm",
+    "seq": "wx_kin_buddha_palm",
+    "seq2": "",
+    "motion": "kin_dragon_palm",
+    "react": "kin_hit_launch",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 415,
+    "releaseMs": 560,
+    "totalMs": 980,
+    "hits": [
+      415
+    ],
+    "shakePow": 7,
+    "tag": "禅音合十聚金罡 → 10帧如来巨掌从天压落 → 梵文金环震地",
+    "beats": [
+      "1. 梵音合十",
+      "2. 巨掌降世",
+      "3. 镇岳击飞",
+      "4. 金莲余光"
+    ]
+  },
+  "wx_fist_jiuyin": {
+    "id": "actives.wx_fist_jiuyin",
+    "key": "wx_fist_jiuyin",
+    "title": "九阴摧心爪",
+    "subtitle": "九阴白骨·鬼爪撕天",
+    "seal": "九阴",
+    "arch": "claw_rend",
+    "seq": "wx_kin_claw_rend",
+    "seq2": "",
+    "motion": "kin_shadow_blink",
+    "react": "kin_hit_heavy",
+    "theme": "violet",
+    "col": "#b67cff",
+    "core": "#f3e8ff",
+    "tint": [
+      235,
+      210,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 355,
+    "releaseMs": 495,
+    "totalMs": 860,
+    "hits": [
+      230,
+      355
+    ],
+    "shakePow": 6,
+    "tag": "诡步突袭扑身 → 10帧三道水墨裂空鬼爪/兽爪撕裂 → 暗影残片",
+    "beats": [
+      "1. 伏身突袭",
+      "2. 利爪破风",
+      "3. 三痕撕裂",
+      "4. 煞气弥散"
+    ]
+  },
+  "wx_fist_longzhao": {
+    "id": "actives.wx_fist_longzhao",
+    "key": "wx_fist_longzhao",
+    "title": "少室擒龙爪",
+    "subtitle": "少室龙爪·裂甲分筋",
+    "seal": "龙爪",
+    "arch": "claw_rend",
+    "seq": "wx_kin_claw_rend",
+    "seq2": "",
+    "motion": "kin_shadow_blink",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      212,
+      110
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 355,
+    "releaseMs": 495,
+    "totalMs": 860,
+    "hits": [
+      230,
+      355
+    ],
+    "shakePow": 6,
+    "tag": "诡步突袭扑身 → 10帧三道水墨裂空鬼爪/兽爪撕裂 → 暗影残片",
+    "beats": [
+      "1. 伏身突袭",
+      "2. 利爪破风",
+      "3. 三痕撕裂",
+      "4. 煞气弥散"
+    ]
+  },
+  "wx_fist_luohan": {
+    "id": "actives.wx_fist_luohan",
+    "key": "wx_fist_luohan",
+    "title": "伏虎罗汉拳",
+    "subtitle": "少室罗汉·伏虎冲捶",
+    "seal": "罗汉",
+    "arch": "fist_flurry",
+    "seq": "wx_kin_fist_flurry",
+    "seq2": "wx_kin_buddha_palm",
+    "motion": "kin_dash_combo3",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 365,
+    "releaseMs": 505,
+    "totalMs": 880,
+    "hits": [
+      195,
+      355
+    ],
+    "shakePow": 5,
+    "tag": "踏步沉肩蓄拳 → 10帧六叠残影连珠冲拳爆气 → 拳环炸裂",
+    "beats": [
+      "1. 踏步沉肩",
+      "2. 残影连捶",
+      "3. 寸劲爆环",
+      "4. 收拳定势"
+    ]
+  },
+  "wx_fist_nianhua": {
+    "id": "actives.wx_fist_nianhua",
+    "key": "wx_fist_nianhua",
+    "title": "拈花擒拿手",
+    "subtitle": "灵山拈花·错骨锁脉",
+    "seal": "锁脉",
+    "arch": "lotus_poke",
+    "seq": "wx_kin_lotus_poke",
+    "seq2": "",
+    "motion": "kin_whip_snap",
+    "react": "kin_hit_heavy",
+    "theme": "violet",
+    "col": "#b67cff",
+    "core": "#f3e8ff",
+    "tint": [
+      228,
+      195,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 355,
+    "releaseMs": 490,
+    "totalMs": 860,
+    "hits": [
+      230,
+      355
+    ],
+    "shakePow": 4,
+    "tag": "兰花拂柳认穴 → 10帧七星点穴金莲法印绽放 → 封脉停滞",
+    "beats": [
+      "1. 拂柳认穴",
+      "2. 七星点落",
+      "3. 金莲绽放",
+      "4. 经脉锁闭"
+    ]
+  },
+  "wx_fist_nuchao": {
+    "id": "actives.wx_fist_nuchao",
+    "key": "wx_fist_nuchao",
+    "title": "钱塘裂岸掌",
+    "subtitle": "钱塘大潮·惊涛裂岸",
+    "seal": "怒潮",
+    "arch": "tidal_wave",
+    "seq": "wx_kin_tidal_wave",
+    "seq2": "",
+    "motion": "kin_dragon_palm",
+    "react": "kin_hit_launch",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      140,
+      238,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 385,
+    "releaseMs": 525,
+    "totalMs": 920,
+    "hits": [
+      385
+    ],
+    "shakePow": 7,
+    "tag": "蓄劲掀起墨涛 → 10帧沧溟巨浪卷沫拍岸崩击 → 水花四溅",
+    "beats": [
+      "1. 沉步起潮",
+      "2. 巨浪翻卷",
+      "3. 怒涛拍岸",
+      "4. 沧溟水雾"
+    ]
+  },
+  "wx_fist_piaoxue": {
+    "id": "actives.wx_fist_piaoxue",
+    "key": "wx_fist_piaoxue",
+    "title": "佛光绵骨掌",
+    "subtitle": "金顶穿云·飘雪绵掌",
+    "seal": "飘雪",
+    "arch": "snow_step",
+    "seq": "wx_kin_snow_step",
+    "seq2": "wx_kin_buddha_palm",
+    "motion": "kin_dragon_palm",
+    "react": "kin_hit_frost",
+    "theme": "frost",
+    "col": "#68dcff",
+    "core": "#eefbff",
+    "tint": [
+      210,
+      246,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "frost",
+    "impactMs": 210,
+    "releaseMs": 400,
+    "totalMs": 780,
+    "hits": [
+      210
+    ],
+    "shakePow": 5,
+    "tag": "踏霜轻跃起雪 → 10帧六棱冰晶雪花阵翩然盛开 → 踏雪无痕",
+    "beats": [
+      "1. 提气凌霜",
+      "2. 雪花初绽",
+      "3. 晶羽掠影",
+      "4. 寒雪落定"
+    ]
+  },
+  "wx_fist_qianzhu": {
+    "id": "actives.wx_fist_qianzhu",
+    "key": "wx_fist_qianzhu",
+    "title": "千蛛万毒手",
+    "subtitle": "五毒千蛛·蚀心毒丝",
+    "seal": "千蛛",
+    "arch": "venom_mire",
+    "seq": "wx_kin_venom_mire",
+    "seq2": "wx_kin_claw_rend",
+    "motion": "kin_throw_fan",
+    "react": "kin_hit_venom",
+    "theme": "venom",
+    "col": "#58eb44",
+    "core": "#e8ffd8",
+    "tint": [
+      215,
+      255,
+      198
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "venom",
+    "impactMs": 380,
+    "releaseMs": 520,
+    "totalMs": 940,
+    "hits": [
+      380
+    ],
+    "shakePow": 5,
+    "tag": "催毒聚瘴起势 → 10帧五毒碧磷瘴柱喷涌 → 剧毒腐池与毒泡",
+    "beats": [
+      "1. 催毒起瘴",
+      "2. 瘴柱翻涌",
+      "3. 蚀骨毒爆",
+      "4. 腐池弥漫"
+    ]
+  },
+  "wx_fist_qishang": {
+    "id": "actives.wx_fist_qishang",
+    "key": "wx_fist_qishang",
+    "title": "七伤总诀拳",
+    "subtitle": "崆峒七伤·五行乱劲",
+    "seal": "七伤",
+    "arch": "prism_burst",
+    "seq": "wx_kin_prism_burst",
+    "seq2": "wx_kin_sonic_wave",
+    "motion": "kin_dragon_palm",
+    "react": "kin_hit_launch",
+    "theme": "crimson",
+    "col": "#ff364c",
+    "core": "#ffe2e6",
+    "tint": [
+      255,
+      225,
+      230
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 395,
+    "releaseMs": 540,
+    "totalMs": 940,
+    "hits": [
+      395
+    ],
+    "shakePow": 7,
+    "tag": "五行真气逆冲 → 10帧五色奇劲裂体放射爆裂 → 震伤脏腑",
+    "beats": [
+      "1. 五气逆聚",
+      "2. 奇劲初裂",
+      "3. 五行爆散",
+      "4. 乱劲余震"
+    ]
+  },
+  "wx_fist_rulai": {
+    "id": "actives.wx_fist_rulai",
+    "key": "wx_fist_rulai",
+    "title": "如来千手印",
+    "subtitle": "千手如来·万佛朝宗",
+    "seal": "万佛",
+    "arch": "buddha_palm",
+    "seq": "wx_kin_buddha_palm",
+    "seq2": "wx_kin_sonic_wave",
+    "motion": "kin_dragon_palm",
+    "react": "kin_hit_launch",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "scorch",
+    "impactMs": 415,
+    "releaseMs": 560,
+    "totalMs": 980,
+    "hits": [
+      415
+    ],
+    "shakePow": 9,
+    "tag": "禅音合十聚金罡 → 10帧如来巨掌从天压落 → 梵文金环震地",
+    "beats": [
+      "1. 梵音合十",
+      "2. 巨掌降世",
+      "3. 镇岳击飞",
+      "4. 金莲余光"
+    ]
+  },
+  "wx_fist_shock": {
+    "id": "actives.wx_fist_shock",
+    "key": "wx_fist_shock",
+    "title": "寸劲震脉",
+    "subtitle": "贴山寸劲·隔甲透背",
+    "seal": "寸劲",
+    "arch": "fist_flurry",
+    "seq": "wx_kin_fist_flurry",
+    "seq2": "wx_kin_sonic_wave",
+    "motion": "kin_dragon_palm",
+    "react": "kin_hit_heavy",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      175,
+      245,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 365,
+    "releaseMs": 505,
+    "totalMs": 880,
+    "hits": [
+      180,
+      275,
+      365
+    ],
+    "shakePow": 6,
+    "tag": "踏步沉肩蓄拳 → 10帧六叠残影连珠冲拳爆气 → 拳环炸裂",
+    "beats": [
+      "1. 踏步沉肩",
+      "2. 残影连捶",
+      "3. 寸劲爆环",
+      "4. 收拳定势"
+    ]
+  },
+  "wx_fist_taiji": {
+    "id": "actives.wx_fist_taiji",
+    "key": "wx_fist_taiji",
+    "title": "揽雀借力掌",
+    "subtitle": "揽雀云手·太极借力",
+    "seal": "云手",
+    "arch": "taiji_seal",
+    "seq": "wx_kin_taiji_seal",
+    "seq2": "",
+    "motion": "kin_whirl_spin",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      180,
+      255,
+      232
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 350,
+    "releaseMs": 490,
+    "totalMs": 880,
+    "hits": [
+      350
+    ],
+    "shakePow": 5,
+    "tag": "云手划圆借劲 → 10帧阴阳鱼太极八卦旋转法阵 → 清浊二气环",
+    "beats": [
+      "1. 云手划圆",
+      "2. 阴阳初分",
+      "3. 八卦流转",
+      "4. 化劲归元"
+    ]
+  },
+  "wx_fist_tiegang": {
+    "id": "actives.wx_fist_tiegang",
+    "key": "wx_fist_tiegang",
+    "title": "铁线破甲拳",
+    "subtitle": "南派铁线·崩桥碎甲",
+    "seal": "铁线",
+    "arch": "fist_flurry",
+    "seq": "wx_kin_fist_flurry",
+    "seq2": "",
+    "motion": "kin_dragon_palm",
+    "react": "kin_hit_heavy",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      190,
+      125
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 365,
+    "releaseMs": 505,
+    "totalMs": 880,
+    "hits": [
+      180,
+      275,
+      365
+    ],
+    "shakePow": 5,
+    "tag": "踏步沉肩蓄拳 → 10帧六叠残影连珠冲拳爆气 → 拳环炸裂",
+    "beats": [
+      "1. 踏步沉肩",
+      "2. 残影连捶",
+      "3. 寸劲爆环",
+      "4. 收拳定势"
+    ]
+  },
+  "wx_fist_xianglong": {
+    "id": "actives.wx_fist_xianglong",
+    "key": "wx_fist_xianglong",
+    "title": "亢龙有悔掌",
+    "subtitle": "亢龙有悔·真龙盘空",
+    "seal": "绝学",
+    "arch": "dragon_surge",
+    "seq": "wx_kin_dragon_surge",
+    "seq2": "",
+    "motion": "kin_dragon_palm",
+    "react": "kin_hit_launch",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 420,
+    "releaseMs": 560,
+    "totalMs": 980,
+    "hits": [
+      420
+    ],
+    "shakePow": 9,
+    "tag": "马步聚气内收 → 12帧水墨真龙跨格冲袭 → 冲击波裂地",
+    "beats": [
+      "1. 沉步蓄劲",
+      "2. 真龙出渊",
+      "3. 穿阵击飞",
+      "4. 双波余威"
+    ]
+  },
+  "wx_fist_xiongzhao": {
+    "id": "actives.wx_fist_xiongzhao",
+    "key": "wx_fist_xiongzhao",
+    "title": "黑水裂山爪",
+    "subtitle": "黑水荒原·苍熊裂石",
+    "seal": "熊爪",
+    "arch": "claw_rend",
+    "seq": "wx_kin_claw_rend",
+    "seq2": "",
+    "motion": "kin_heavy_chop",
+    "react": "kin_hit_heavy",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      165,
+      95
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 355,
+    "releaseMs": 495,
+    "totalMs": 860,
+    "hits": [
+      230,
+      355
+    ],
+    "shakePow": 7,
+    "tag": "诡步突袭扑身 → 10帧三道水墨裂空鬼爪/兽爪撕裂 → 暗影残片",
+    "beats": [
+      "1. 伏身突袭",
+      "2. 利爪破风",
+      "3. 三痕撕裂",
+      "4. 煞气弥散"
+    ]
+  },
+  "wx_fist_xuanming": {
+    "id": "actives.wx_fist_xuanming",
+    "key": "wx_fist_xuanming",
+    "title": "玄冥寒毒掌",
+    "subtitle": "玄冥神掌·寒晶冰狱",
+    "seal": "玄冥",
+    "arch": "frost_burst",
+    "seq": "wx_kin_frost_burst",
+    "seq2": "",
+    "motion": "kin_upcut_launch",
+    "react": "kin_hit_frost",
+    "theme": "frost",
+    "col": "#68dcff",
+    "core": "#eefbff",
+    "tint": [
+      218,
+      248,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "frost",
+    "impactMs": 390,
+    "releaseMs": 530,
+    "totalMs": 940,
+    "hits": [
+      390
+    ],
+    "shakePow": 6,
+    "tag": "极寒吐纳凝霜 → 10帧玄冥七棱冰刺破地冲起 → 寒霜冻土碎晶",
+    "beats": [
+      "1. 凝霜蓄寒",
+      "2. 冰刺破土",
+      "3. 寒狱冻结",
+      "4. 冰晶纷飞"
+    ]
+  },
+  "wx_fist_yiyang": {
+    "id": "actives.wx_fist_yiyang",
+    "key": "wx_fist_yiyang",
+    "title": "一阳贯脉指",
+    "subtitle": "大理一阳·金虹贯日",
+    "seal": "一阳",
+    "arch": "celestial_beam",
+    "seq": "wx_kin_celestial_beam",
+    "seq2": "wx_kin_lotus_poke",
+    "motion": "kin_celestial_beam",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      224,
+      125
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 425,
+    "releaseMs": 575,
+    "totalMs": 1000,
+    "hits": [
+      425
+    ],
+    "shakePow": 6,
+    "tag": "凌空后飘聚芒 → 飞剑/剑气合流 → 10帧白虹贯日 + 一闪切屏",
+    "beats": [
+      "1. 凌空凝芒",
+      "2. 气虹聚势",
+      "3. 白虹一闪",
+      "4. 星芒流散"
+    ]
+  },
+  "wx_flail_entangle": {
+    "id": "actives.wx_flail_entangle",
+    "key": "wx_flail_entangle",
+    "title": "锁喉缠丝劲",
+    "subtitle": "锁喉缠丝·三匝绞杀",
+    "seal": "锁喉",
+    "arch": "whip_lash",
+    "seq": "wx_kin_whip_lash",
+    "seq2": "",
+    "motion": "kin_whip_snap",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      220,
+      130
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 365,
+    "releaseMs": 505,
+    "totalMs": 880,
+    "hits": [
+      365
+    ],
+    "shakePow": 5,
+    "tag": "后扯抖腕聚劲 → 10帧灵蛇S形波浪长鞭抽击 → 鞭梢音爆星闪",
+    "beats": [
+      "1. 抖腕蓄鞭",
+      "2. 灵蛇游走",
+      "3. 鞭梢炸响",
+      "4. 锁敌余波"
+    ]
+  },
+  "wx_flail_jinshe": {
+    "id": "actives.wx_flail_jinshe",
+    "key": "wx_flail_jinshe",
+    "title": "金蛇缠魂鞭",
+    "subtitle": "五毒金蛇·缠颈噬魂",
+    "seal": "金蛇",
+    "arch": "whip_lash",
+    "seq": "wx_kin_whip_lash",
+    "seq2": "wx_kin_bamboo_bind",
+    "motion": "kin_whip_snap",
+    "react": "kin_hit_venom",
+    "theme": "venom",
+    "col": "#58eb44",
+    "core": "#e8ffd8",
+    "tint": [
+      225,
+      255,
+      130
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "venom",
+    "impactMs": 365,
+    "releaseMs": 505,
+    "totalMs": 880,
+    "hits": [
+      365
+    ],
+    "shakePow": 5,
+    "tag": "后扯抖腕聚劲 → 10帧灵蛇S形波浪长鞭抽击 → 鞭梢音爆星闪",
+    "beats": [
+      "1. 抖腕蓄鞭",
+      "2. 灵蛇游走",
+      "3. 鞭梢炸响",
+      "4. 锁敌余波"
+    ]
+  },
+  "wx_flail_lash": {
+    "id": "actives.wx_flail_lash",
+    "key": "wx_flail_lash",
+    "title": "云梦绕盾抽",
+    "subtitle": "云梦软鞭·越盾击顶",
+    "seal": "软鞭",
+    "arch": "whip_lash",
+    "seq": "wx_kin_whip_lash",
+    "seq2": "",
+    "motion": "kin_whip_snap",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      200,
+      255,
+      232
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 365,
+    "releaseMs": 505,
+    "totalMs": 880,
+    "hits": [
+      365
+    ],
+    "shakePow": 5,
+    "tag": "后扯抖腕聚劲 → 10帧灵蛇S形波浪长鞭抽击 → 鞭梢音爆星闪",
+    "beats": [
+      "1. 抖腕蓄鞭",
+      "2. 灵蛇游走",
+      "3. 鞭梢炸响",
+      "4. 锁敌余波"
+    ]
+  },
+  "wx_flail_liuxing": {
+    "id": "actives.wx_flail_liuxing",
+    "key": "wx_flail_liuxing",
+    "title": "三首流星砸",
+    "subtitle": "云梦三首·流星乱坠",
+    "seal": "流星",
+    "arch": "whip_lash",
+    "seq": "wx_kin_whip_lash",
+    "seq2": "wx_kin_sonic_wave",
+    "motion": "kin_whirl_spin",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      215,
+      120
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 365,
+    "releaseMs": 505,
+    "totalMs": 880,
+    "hits": [
+      365
+    ],
+    "shakePow": 6,
+    "tag": "后扯抖腕聚劲 → 10帧灵蛇S形波浪长鞭抽击 → 鞭梢音爆星闪",
+    "beats": [
+      "1. 抖腕蓄鞭",
+      "2. 灵蛇游走",
+      "3. 鞭梢炸响",
+      "4. 锁敌余波"
+    ]
+  },
+  "wx_flail_panlong": {
+    "id": "actives.wx_flail_panlong",
+    "key": "wx_flail_panlong",
+    "title": "九节金龙抽",
+    "subtitle": "九节盘龙·越盾碎顶",
+    "seal": "九节",
+    "arch": "whip_lash",
+    "seq": "wx_kin_whip_lash",
+    "seq2": "wx_kin_dragon_surge",
+    "motion": "kin_whip_snap",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      215,
+      120
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 365,
+    "releaseMs": 505,
+    "totalMs": 880,
+    "hits": [
+      365
+    ],
+    "shakePow": 6,
+    "tag": "后扯抖腕聚劲 → 10帧灵蛇S形波浪长鞭抽击 → 鞭梢音爆星闪",
+    "beats": [
+      "1. 抖腕蓄鞭",
+      "2. 灵蛇游走",
+      "3. 鞭梢炸响",
+      "4. 锁敌余波"
+    ]
+  },
+  "wx_gun_huolong": {
+    "id": "actives.wx_gun_huolong",
+    "key": "wx_gun_huolong",
+    "title": "神机火龙炮",
+    "subtitle": "神机火龙·焚城轰雷",
+    "seal": "火龙",
+    "arch": "cannon_blast",
+    "seq": "wx_kin_cannon_blast",
+    "seq2": "wx_kin_dragon_surge",
+    "motion": "kin_bow_draw",
+    "react": "kin_hit_launch",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      224,
+      185
+    ],
+    "kind": "ranged",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "scorch",
+    "impactMs": 360,
+    "releaseMs": 510,
+    "totalMs": 960,
+    "hits": [
+      360
+    ],
+    "shakePow": 9,
+    "tag": "引燃赤硝轰发 → 10帧霹雳火球烈焰蘑菇云轰天爆 → 硝烟焦坑",
+    "beats": [
+      "1. 引信蓄硝",
+      "2. 火球轰发",
+      "3. 烈焰炸裂",
+      "4. 硝烟焦坑"
+    ]
+  },
+  "wx_gun_leihuo": {
+    "id": "actives.wx_gun_leihuo",
+    "key": "wx_gun_leihuo",
+    "title": "沙州雷火铳",
+    "subtitle": "沙州神机·三眼雷火",
+    "seal": "神机",
+    "arch": "cannon_blast",
+    "seq": "wx_kin_cannon_blast",
+    "seq2": "wx_kin_thunder_bolt",
+    "motion": "kin_bow_draw",
+    "react": "kin_hit_launch",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      224,
+      185
+    ],
+    "kind": "ranged",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "scorch",
+    "impactMs": 350,
+    "releaseMs": 510,
+    "totalMs": 960,
+    "hits": [
+      360
+    ],
+    "shakePow": 9,
+    "tag": "引燃赤硝轰发 → 10帧霹雳火球烈焰蘑菇云轰天爆 → 硝烟焦坑",
+    "beats": [
+      "1. 引信蓄硝",
+      "2. 火球轰发",
+      "3. 烈焰炸裂",
+      "4. 硝烟焦坑"
+    ]
+  },
+  "wx_hama_push": {
+    "id": "actives.wx_hama_push",
+    "key": "wx_hama_push",
+    "title": "金蟾推山扑",
+    "subtitle": "白驼金蟾·蓄劲推山",
+    "seal": "蛤蟆",
+    "arch": "venom_mire",
+    "seq": "wx_kin_venom_mire",
+    "seq2": "wx_kin_sonic_wave",
+    "motion": "kin_flame_leap",
+    "react": "kin_hit_launch",
+    "theme": "venom",
+    "col": "#58eb44",
+    "core": "#e8ffd8",
+    "tint": [
+      215,
+      255,
+      198
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "venom",
+    "impactMs": 380,
+    "releaseMs": 520,
+    "totalMs": 940,
+    "hits": [
+      380
+    ],
+    "shakePow": 8,
+    "tag": "催毒聚瘴起势 → 10帧五毒碧磷瘴柱喷涌 → 剧毒腐池与毒泡",
+    "beats": [
+      "1. 催毒起瘴",
+      "2. 瘴柱翻涌",
+      "3. 蚀骨毒爆",
+      "4. 腐池弥漫"
+    ]
+  },
+  "wx_hammer_faqiu": {
+    "id": "actives.wx_hammer_faqiu",
+    "key": "wx_hammer_faqiu",
+    "title": "发丘分金锤",
+    "subtitle": "发丘分金·破棺断石",
+    "seal": "发丘",
+    "arch": "earth_shatter",
+    "seq": "wx_kin_earth_shatter",
+    "seq2": "",
+    "motion": "kin_heavy_chop",
+    "react": "kin_hit_launch",
+    "theme": "ink",
+    "col": "#a6b4e6",
+    "core": "#eef2ff",
+    "tint": [
+      210,
+      195,
+      240
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 410,
+    "releaseMs": 555,
+    "totalMs": 980,
+    "hits": [
+      410
+    ],
+    "shakePow": 6,
+    "tag": "蓄力腾跃重砸 → 10帧裂地崩山巨岩地刺冲霄 → 焦痕裂隙飞石",
+    "beats": [
+      "1. 蓄力腾起",
+      "2. 重兵砸地",
+      "3. 裂岩冲霄",
+      "4. 碎石尘烟"
+    ]
+  },
+  "wx_hammer_jingua": {
+    "id": "actives.wx_hammer_jingua",
+    "key": "wx_hammer_jingua",
+    "title": "八棱金瓜砸",
+    "subtitle": "朔方金瓜·碎胄裂额",
+    "seal": "金瓜",
+    "arch": "earth_shatter",
+    "seq": "wx_kin_earth_shatter",
+    "seq2": "",
+    "motion": "kin_heavy_chop",
+    "react": "kin_hit_launch",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      205,
+      120
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 410,
+    "releaseMs": 555,
+    "totalMs": 980,
+    "hits": [
+      410
+    ],
+    "shakePow": 6,
+    "tag": "蓄力腾跃重砸 → 10帧裂地崩山巨岩地刺冲霄 → 焦痕裂隙飞石",
+    "beats": [
+      "1. 蓄力腾起",
+      "2. 重兵砸地",
+      "3. 裂岩冲霄",
+      "4. 碎石尘烟"
+    ]
+  },
+  "wx_hammer_leiting": {
+    "id": "actives.wx_hammer_leiting",
+    "key": "wx_hammer_leiting",
+    "title": "雷霆碎岳锤",
+    "subtitle": "雷霆碎岳·九天落雷",
+    "seal": "天雷",
+    "arch": "thunder_slam",
+    "seq": "wx_kin_thunder_bolt",
+    "seq2": "",
+    "motion": "kin_thunder_slam",
+    "react": "kin_hit_electro",
+    "theme": "violet",
+    "col": "#b67cff",
+    "core": "#f3e8ff",
+    "tint": [
+      235,
+      210,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 405,
+    "releaseMs": 565,
+    "totalMs": 1040,
+    "hits": [
+      405
+    ],
+    "shakePow": 9,
+    "tag": "举兵引霄蓄雷 → 10帧九天分叉狂雷劈顶 → 碎石触电震屏",
+    "beats": [
+      "1. 引雷蓄势",
+      "2. 紫雷贯顶",
+      "3. 触电爆石",
+      "4. 雷环余震"
+    ]
+  },
+  "wx_hammer_pocheng": {
+    "id": "actives.wx_hammer_pocheng",
+    "key": "wx_hammer_pocheng",
+    "title": "九曜破城锤",
+    "subtitle": "九曜坠星·一锤破城",
+    "seal": "破城",
+    "arch": "cannon_blast",
+    "seq": "wx_kin_cannon_blast",
+    "seq2": "wx_kin_earth_shatter",
+    "motion": "kin_flame_leap",
+    "react": "kin_hit_launch",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      224,
+      185
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "scorch",
+    "impactMs": 360,
+    "releaseMs": 510,
+    "totalMs": 960,
+    "hits": [
+      360
+    ],
+    "shakePow": 9,
+    "tag": "引燃赤硝轰发 → 10帧霹雳火球烈焰蘑菇云轰天爆 → 硝烟焦坑",
+    "beats": [
+      "1. 引信蓄硝",
+      "2. 火球轰发",
+      "3. 烈焰炸裂",
+      "4. 硝烟焦坑"
+    ]
+  },
+  "wx_hammer_polu": {
+    "id": "actives.wx_hammer_polu",
+    "key": "wx_hammer_polu",
+    "title": "北岳擂鼓震",
+    "subtitle": "北岳擂鼓·双锤震胆",
+    "seal": "擂鼓",
+    "arch": "sonic_wave",
+    "seq": "wx_kin_sonic_wave",
+    "seq2": "wx_kin_earth_shatter",
+    "motion": "kin_roar_pulse",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 360,
+    "releaseMs": 500,
+    "totalMs": 900,
+    "hits": [
+      360
+    ],
+    "shakePow": 8,
+    "tag": "丹田提气聚声 → 10帧四叠金刚雷音气浪扩散 → 震魂失衡",
+    "beats": [
+      "1. 丹田提气",
+      "2. 声波初绽",
+      "3. 四叠震荡",
+      "4. 余音绕梁"
+    ]
+  },
+  "wx_hammer_qianjun": {
+    "id": "actives.wx_hammer_qianjun",
+    "key": "wx_hammer_qianjun",
+    "title": "太行碎星锤",
+    "subtitle": "太行万钧·碎星崩岩",
+    "seal": "万钧",
+    "arch": "earth_shatter",
+    "seq": "wx_kin_earth_shatter",
+    "seq2": "",
+    "motion": "kin_thunder_slam",
+    "react": "kin_hit_launch",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 410,
+    "releaseMs": 555,
+    "totalMs": 980,
+    "hits": [
+      410
+    ],
+    "shakePow": 8,
+    "tag": "蓄力腾跃重砸 → 10帧裂地崩山巨岩地刺冲霄 → 焦痕裂隙飞石",
+    "beats": [
+      "1. 蓄力腾起",
+      "2. 重兵砸地",
+      "3. 裂岩冲霄",
+      "4. 碎石尘烟"
+    ]
+  },
+  "wx_hammer_quake": {
+    "id": "actives.wx_hammer_quake",
+    "key": "wx_hammer_quake",
+    "title": "裂地崩山锤",
+    "subtitle": "裂地崩山·三叠地刺",
+    "seal": "裂地",
+    "arch": "earth_shatter",
+    "seq": "wx_kin_earth_shatter",
+    "seq2": "wx_kin_sonic_wave",
+    "motion": "kin_flame_leap",
+    "react": "kin_hit_launch",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      224,
+      185
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "scorch",
+    "impactMs": 410,
+    "releaseMs": 555,
+    "totalMs": 980,
+    "hits": [
+      410
+    ],
+    "shakePow": 9,
+    "tag": "蓄力腾跃重砸 → 10帧裂地崩山巨岩地刺冲霄 → 焦痕裂隙飞石",
+    "beats": [
+      "1. 蓄力腾起",
+      "2. 重兵砸地",
+      "3. 裂岩冲霄",
+      "4. 碎石尘烟"
+    ]
+  },
+  "wx_hammer_shatter": {
+    "id": "actives.wx_hammer_shatter",
+    "key": "wx_hammer_shatter",
+    "title": "震岳碎甲击",
+    "subtitle": "震岳碎甲·崩星重击",
+    "seal": "碎甲",
+    "arch": "earth_shatter",
+    "seq": "wx_kin_earth_shatter",
+    "seq2": "",
+    "motion": "kin_heavy_chop",
+    "react": "kin_hit_launch",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 410,
+    "releaseMs": 555,
+    "totalMs": 980,
+    "hits": [
+      410
+    ],
+    "shakePow": 7,
+    "tag": "蓄力腾跃重砸 → 10帧裂地崩山巨岩地刺冲霄 → 焦痕裂隙飞石",
+    "beats": [
+      "1. 蓄力腾起",
+      "2. 重兵砸地",
+      "3. 裂岩冲霄",
+      "4. 碎石尘烟"
+    ]
+  },
+  "wx_henglian_jinchan": {
+    "id": "actives.wx_henglian_jinchan",
+    "key": "wx_henglian_jinchan",
+    "title": "金蝉卸甲劲",
+    "subtitle": "金蝉脱壳·柔云卸甲",
+    "seal": "金蝉",
+    "arch": "gold_needles",
+    "seq": "wx_kin_gold_needles",
+    "seq2": "wx_kin_golden_dome",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      180,
+      255,
+      220
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 280,
+    "releaseMs": 410,
+    "totalMs": 780,
+    "hits": [
+      300
+    ],
+    "shakePow": 4,
+    "tag": "指捻九根金针 → 10帧五气金针渡穴聚光生机环 → 祛毒回春",
+    "beats": [
+      "1. 九针悬空",
+      "2. 金针归穴",
+      "3. 生机绽放",
+      "4. 碧金余暖"
+    ]
+  },
+  "wx_henglian_panshi": {
+    "id": "actives.wx_henglian_panshi",
+    "key": "wx_henglian_panshi",
+    "title": "磐石镇岳架",
+    "subtitle": "北岳磐石·渊渟岳峙",
+    "seal": "磐石",
+    "arch": "xuanwu_aegis",
+    "seq": "wx_kin_xuanwu_aegis",
+    "seq2": "wx_kin_earth_shatter",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 290,
+    "releaseMs": 420,
+    "totalMs": 800,
+    "hits": [
+      290
+    ],
+    "shakePow": 4,
+    "tag": "沉盾踏罡结壁 → 10帧六棱玄武龟甲金碧盾阵锁合 → 铜墙铁壁",
+    "beats": [
+      "1. 沉盾定桩",
+      "2. 六棱甲生",
+      "3. 龟壁合锁",
+      "4. 金芒流转"
+    ]
+  },
+  "wx_henglian_tiebushan": {
+    "id": "actives.wx_henglian_tiebushan",
+    "key": "wx_henglian_tiebushan",
+    "title": "铁布横练功",
+    "subtitle": "少林铁布·铜皮铁骨",
+    "seal": "铁布",
+    "arch": "golden_dome",
+    "seq": "wx_kin_golden_dome",
+    "seq2": "",
+    "motion": "kin_roar_pulse",
+    "react": "kin_hit_heavy",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      204,
+      130
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 290,
+    "releaseMs": 420,
+    "totalMs": 800,
+    "hits": [
+      290
+    ],
+    "shakePow": 4,
+    "tag": "沉气顿足聚罡 → 10帧少林金钟梵罩凝结护体 → 圣光涟漪",
+    "beats": [
+      "1. 沉气顿足",
+      "2. 金罡凝罩",
+      "3. 梵钟震鸣",
+      "4. 护体常驻"
+    ]
+  },
+  "wx_henglian_tongtou": {
+    "id": "actives.wx_henglian_tongtou",
+    "key": "wx_henglian_tongtou",
+    "title": "铜头撞山劲",
+    "subtitle": "铁额铜头·迎面撞山",
+    "seal": "铜头",
+    "arch": "fist_flurry",
+    "seq": "wx_kin_fist_flurry",
+    "seq2": "wx_kin_earth_shatter",
+    "motion": "kin_dragon_palm",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 370,
+    "releaseMs": 505,
+    "totalMs": 880,
+    "hits": [
+      180,
+      275,
+      365
+    ],
+    "shakePow": 7,
+    "tag": "踏步沉肩蓄拳 → 10帧六叠残影连珠冲拳爆气 → 拳环炸裂",
+    "beats": [
+      "1. 踏步沉肩",
+      "2. 残影连捶",
+      "3. 寸劲爆环",
+      "4. 收拳定势"
+    ]
+  },
+  "wx_meditate": {
+    "id": "actives.wx_meditate",
+    "key": "wx_meditate",
+    "title": "调息吐纳",
+    "subtitle": "周天吐纳·三花聚顶",
+    "seal": "吐纳",
+    "arch": "gold_needles",
+    "seq": "wx_kin_gold_needles",
+    "seq2": "wx_kin_taiji_seal",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      175,
+      255,
+      225
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 280,
+    "releaseMs": 410,
+    "totalMs": 780,
+    "hits": [
+      300
+    ],
+    "shakePow": 4,
+    "tag": "指捻九根金针 → 10帧五气金针渡穴聚光生机环 → 祛毒回春",
+    "beats": [
+      "1. 九针悬空",
+      "2. 金针归穴",
+      "3. 生机绽放",
+      "4. 碧金余暖"
+    ]
+  },
+  "wx_neigong_chaoxi": {
+    "id": "actives.wx_neigong_chaoxi",
+    "key": "wx_neigong_chaoxi",
+    "title": "沧海潮生诀",
+    "subtitle": "沧海潮生·碧波调息",
+    "seal": "潮生",
+    "arch": "tidal_wave",
+    "seq": "wx_kin_tidal_wave",
+    "seq2": "",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_launch",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      155,
+      240,
+      255
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 280,
+    "releaseMs": 410,
+    "totalMs": 780,
+    "hits": [
+      385
+    ],
+    "shakePow": 4,
+    "tag": "蓄劲掀起墨涛 → 10帧沧溟巨浪卷沫拍岸崩击 → 水花四溅",
+    "beats": [
+      "1. 沉步起潮",
+      "2. 巨浪翻卷",
+      "3. 怒涛拍岸",
+      "4. 沧溟水雾"
+    ]
+  },
+  "wx_neigong_douzhuan": {
+    "id": "actives.wx_neigong_douzhuan",
+    "key": "wx_neigong_douzhuan",
+    "title": "斗转星移诀",
+    "subtitle": "斗转星移·星璇借力",
+    "seal": "斗转",
+    "arch": "warp_seal",
+    "seq": "wx_kin_warp_seal",
+    "seq2": "wx_kin_taiji_seal",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_heavy",
+    "theme": "violet",
+    "col": "#b67cff",
+    "core": "#f3e8ff",
+    "tint": [
+      210,
+      175,
+      255
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 290,
+    "releaseMs": 420,
+    "totalMs": 800,
+    "hits": [
+      200
+    ],
+    "shakePow": 4,
+    "tag": "步踏星斗缩地 → 10帧星门折跃光环与空间裂隙 → 咫尺天涯",
+    "beats": [
+      "1. 星盘启门",
+      "2. 空间折叠",
+      "3. 瞬步现身",
+      "4. 星环收拢"
+    ]
+  },
+  "wx_neigong_guiyuan": {
+    "id": "actives.wx_neigong_guiyuan",
+    "key": "wx_neigong_guiyuan",
+    "title": "太和归元劲",
+    "subtitle": "太和抱元·先天清气",
+    "seal": "归元",
+    "arch": "gold_needles",
+    "seq": "wx_kin_gold_needles",
+    "seq2": "",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_heavy",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      185,
+      248,
+      255
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 280,
+    "releaseMs": 410,
+    "totalMs": 780,
+    "hits": [
+      300
+    ],
+    "shakePow": 4,
+    "tag": "指捻九根金针 → 10帧五气金针渡穴聚光生机环 → 祛毒回春",
+    "beats": [
+      "1. 九针悬空",
+      "2. 金针归穴",
+      "3. 生机绽放",
+      "4. 碧金余暖"
+    ]
+  },
+  "wx_neigong_hanbing": {
+    "id": "actives.wx_neigong_hanbing",
+    "key": "wx_neigong_hanbing",
+    "title": "玄阴寒冰气",
+    "subtitle": "玄阴寒狱·六角霜罡",
+    "seal": "寒气",
+    "arch": "snow_step",
+    "seq": "wx_kin_snow_step",
+    "seq2": "wx_kin_frost_burst",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_frost",
+    "theme": "frost",
+    "col": "#68dcff",
+    "core": "#eefbff",
+    "tint": [
+      218,
+      248,
+      255
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "frost",
+    "impactMs": 300,
+    "releaseMs": 430,
+    "totalMs": 820,
+    "hits": [
+      210
+    ],
+    "shakePow": 4,
+    "tag": "踏霜轻跃起雪 → 10帧六棱冰晶雪花阵翩然盛开 → 踏雪无痕",
+    "beats": [
+      "1. 提气凌霜",
+      "2. 雪花初绽",
+      "3. 晶羽掠影",
+      "4. 寒雪落定"
+    ]
+  },
+  "wx_neigong_jinzhong": {
+    "id": "actives.wx_neigong_jinzhong",
+    "key": "wx_neigong_jinzhong",
+    "title": "金钟护体罡",
+    "subtitle": "少林金钟·梵音护体",
+    "seal": "金钟",
+    "arch": "golden_dome",
+    "seq": "wx_kin_golden_dome",
+    "seq2": "",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 290,
+    "releaseMs": 420,
+    "totalMs": 800,
+    "hits": [
+      290
+    ],
+    "shakePow": 4,
+    "tag": "沉气顿足聚罡 → 10帧少林金钟梵罩凝结护体 → 圣光涟漪",
+    "beats": [
+      "1. 沉气顿足",
+      "2. 金罡凝罩",
+      "3. 梵钟震鸣",
+      "4. 护体常驻"
+    ]
+  },
+  "wx_neigong_junwu": {
+    "id": "actives.wx_neigong_junwu",
+    "key": "wx_neigong_junwu",
+    "title": "破阵杀伐气",
+    "subtitle": "九边铁血·杀伐冲霄",
+    "seal": "杀伐",
+    "arch": "war_banner",
+    "seq": "wx_kin_war_banner",
+    "seq2": "wx_kin_flame_pillar",
+    "motion": "kin_roar_pulse",
+    "react": "kin_hit_heavy",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      175,
+      115
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 300,
+    "releaseMs": 430,
+    "totalMs": 820,
+    "hits": [
+      300
+    ],
+    "shakePow": 4,
+    "tag": "竖旗顿地扬威 → 10帧赤金帅旗猎猎招展与军令波 → 振奋全军",
+    "beats": [
+      "1. 擎旗高呼",
+      "2. 帅旗立地",
+      "3. 金波传令",
+      "4. 军威浩荡"
+    ]
+  },
+  "wx_neigong_taotie": {
+    "id": "actives.wx_neigong_taotie",
+    "key": "wx_neigong_taotie",
+    "title": "饕餮吞天诀",
+    "subtitle": "饕餮凶魄·鲸吞万气",
+    "seal": "饕餮",
+    "arch": "soul_vortex",
+    "seq": "wx_kin_soul_vortex",
+    "seq2": "wx_kin_prism_burst",
+    "motion": "kin_roar_pulse",
+    "react": "kin_hit_heavy",
+    "theme": "crimson",
+    "col": "#ff364c",
+    "core": "#ffe2e6",
+    "tint": [
+      255,
+      110,
+      135
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 320,
+    "releaseMs": 460,
+    "totalMs": 860,
+    "hits": [
+      330
+    ],
+    "shakePow": 6,
+    "tag": "逆脉催动黑渊 → 10帧漩涡气海强噬真元 → 奇点吞吐归元",
+    "beats": [
+      "1. 吐纳引势",
+      "2. 气漩成型",
+      "3. 吞吐归元",
+      "4. 余韵生辉"
+    ]
+  },
+  "wx_neigong_wudu": {
+    "id": "actives.wx_neigong_wudu",
+    "key": "wx_neigong_wudu",
+    "title": "万蛊噬元瘴",
+    "subtitle": "万蛊出柙·碧璘护体",
+    "seal": "万蛊",
+    "arch": "venom_mire",
+    "seq": "wx_kin_venom_mire",
+    "seq2": "",
+    "motion": "kin_roar_pulse",
+    "react": "kin_hit_venom",
+    "theme": "venom",
+    "col": "#58eb44",
+    "core": "#e8ffd8",
+    "tint": [
+      215,
+      255,
+      198
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "venom",
+    "impactMs": 320,
+    "releaseMs": 450,
+    "totalMs": 840,
+    "hits": [
+      380
+    ],
+    "shakePow": 4,
+    "tag": "催毒聚瘴起势 → 10帧五毒碧磷瘴柱喷涌 → 剧毒腐池与毒泡",
+    "beats": [
+      "1. 催毒起瘴",
+      "2. 瘴柱翻涌",
+      "3. 蚀骨毒爆",
+      "4. 腐池弥漫"
+    ]
+  },
+  "wx_neigong_xixing": {
+    "id": "actives.wx_neigong_xixing",
+    "key": "wx_neigong_xixing",
+    "title": "北冥噬气诀",
+    "subtitle": "北冥黑渊·鲸吞噬气",
+    "seal": "噬气",
+    "arch": "soul_vortex",
+    "seq": "wx_kin_soul_vortex",
+    "seq2": "",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_heavy",
+    "theme": "violet",
+    "col": "#b67cff",
+    "core": "#f3e8ff",
+    "tint": [
+      235,
+      210,
+      255
+    ],
+    "kind": "util",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 330,
+    "releaseMs": 470,
+    "totalMs": 880,
+    "hits": [
+      330
+    ],
+    "shakePow": 5,
+    "tag": "逆脉催动黑渊 → 10帧漩涡气海强噬真元 → 奇点吞吐归元",
+    "beats": [
+      "1. 吐纳引势",
+      "2. 气漩成型",
+      "3. 吞吐归元",
+      "4. 余韵生辉"
+    ]
+  },
+  "wx_neigong_yijin": {
+    "id": "actives.wx_neigong_yijin",
+    "key": "wx_neigong_yijin",
+    "title": "易筋洗髓功",
+    "subtitle": "少室易筋·洗髓生莲",
+    "seal": "易筋",
+    "arch": "gold_needles",
+    "seq": "wx_kin_gold_needles",
+    "seq2": "wx_kin_golden_dome",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 290,
+    "releaseMs": 420,
+    "totalMs": 800,
+    "hits": [
+      300
+    ],
+    "shakePow": 4,
+    "tag": "指捻九根金针 → 10帧五气金针渡穴聚光生机环 → 祛毒回春",
+    "beats": [
+      "1. 九针悬空",
+      "2. 金针归穴",
+      "3. 生机绽放",
+      "4. 碧金余暖"
+    ]
+  },
+  "wx_neigong_zixia": {
+    "id": "actives.wx_neigong_zixia",
+    "key": "wx_neigong_zixia",
+    "title": "紫霞流云气",
+    "subtitle": "紫霞东来·流云归元",
+    "seal": "紫霞",
+    "arch": "prism_burst",
+    "seq": "wx_kin_prism_burst",
+    "seq2": "",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_launch",
+    "theme": "violet",
+    "col": "#b67cff",
+    "core": "#f3e8ff",
+    "tint": [
+      228,
+      172,
+      255
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 290,
+    "releaseMs": 420,
+    "totalMs": 800,
+    "hits": [
+      395
+    ],
+    "shakePow": 4,
+    "tag": "五行真气逆冲 → 10帧五色奇劲裂体放射爆裂 → 震伤脏腑",
+    "beats": [
+      "1. 五气逆聚",
+      "2. 奇劲初裂",
+      "3. 五行爆散",
+      "4. 乱劲余震"
+    ]
+  },
+  "wx_poise_charge": {
+    "id": "actives.wx_poise_charge",
+    "key": "wx_poise_charge",
+    "title": "沉刀蓄势",
+    "subtitle": "沉刀按锷·虎踞蓄意",
+    "seal": "蓄势",
+    "arch": "moon_crescent",
+    "seq": "wx_kin_moon_crescent",
+    "seq2": "",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 280,
+    "releaseMs": 410,
+    "totalMs": 780,
+    "hits": [
+      370
+    ],
+    "shakePow": 4,
+    "tag": "反撩起势映月 → 10帧银金孤月冷辉逆弧掠刃 → 星尘漫散",
+    "beats": [
+      "1. 沉刃映月",
+      "2. 孤月逆弧",
+      "3. 冷辉透骨",
+      "4. 星尘收刃"
+    ]
+  },
+  "wx_pole_fangtian": {
+    "id": "actives.wx_pole_fangtian",
+    "key": "wx_pole_fangtian",
+    "title": "画戟月牙斩",
+    "subtitle": "方天画戟·无双月斩",
+    "seal": "画戟",
+    "arch": "giant_axe",
+    "seq": "wx_kin_giant_axe",
+    "seq2": "wx_kin_whirl_cyclone",
+    "motion": "kin_whirl_spin",
+    "react": "kin_hit_launch",
+    "theme": "celestial",
+    "col": "#ffe88e",
+    "core": "#f6fcff",
+    "tint": [
+      255,
+      232,
+      162
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 400,
+    "releaseMs": 545,
+    "totalMs": 960,
+    "hits": [
+      400
+    ],
+    "shakePow": 8,
+    "tag": "双手高举巨兵 → 10帧盘古开天厚重青铜巨钺劈裂 → 裂隙震屏",
+    "beats": [
+      "1. 举钺开山",
+      "2. 巨弧压落",
+      "3. 裂地断盾",
+      "4. 焦土飞石"
+    ]
+  },
+  "wx_pole_fenjiang": {
+    "id": "actives.wx_pole_fenjiang",
+    "key": "wx_pole_fenjiang",
+    "title": "分江夜叉刺",
+    "subtitle": "洞庭夜叉·分江裂浪",
+    "seal": "分江",
+    "arch": "tidal_wave",
+    "seq": "wx_kin_tidal_wave",
+    "seq2": "wx_kin_spear_drill",
+    "motion": "kin_spear_drill",
+    "react": "kin_hit_launch",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      140,
+      250,
+      230
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 385,
+    "releaseMs": 525,
+    "totalMs": 920,
+    "hits": [
+      385
+    ],
+    "shakePow": 6,
+    "tag": "蓄劲掀起墨涛 → 10帧沧溟巨浪卷沫拍岸崩击 → 水花四溅",
+    "beats": [
+      "1. 沉步起潮",
+      "2. 巨浪翻卷",
+      "3. 怒涛拍岸",
+      "4. 沧溟水雾"
+    ]
+  },
+  "wx_pole_goulian": {
+    "id": "actives.wx_pole_goulian",
+    "key": "wx_pole_goulian",
+    "title": "钩镰锁足拽",
+    "subtitle": "钩镰破甲·锁足倒拽",
+    "seal": "钩镰",
+    "arch": "bamboo_bind",
+    "seq": "wx_kin_bamboo_bind",
+    "seq2": "wx_kin_whip_lash",
+    "motion": "kin_whip_snap",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      245,
+      224,
+      155
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 360,
+    "releaseMs": 500,
+    "totalMs": 880,
+    "hits": [
+      360
+    ],
+    "shakePow": 5,
+    "tag": "青竹横扫盘根 → 10帧翠影竹节交缠与利叶飞斩 → 缠足封步",
+    "beats": [
+      "1. 青竹起势",
+      "2. 盘根缠足",
+      "3. 竹叶飞斩",
+      "4. 借势卸兵"
+    ]
+  },
+  "wx_pole_pojun": {
+    "id": "actives.wx_pole_pojun",
+    "key": "wx_pole_pojun",
+    "title": "破军龙骧戟",
+    "subtitle": "破军龙骧·铁戟摧阵",
+    "seal": "破军",
+    "arch": "whirl_cyclone",
+    "seq": "wx_kin_whirl_cyclone",
+    "seq2": "wx_kin_earth_shatter",
+    "motion": "kin_whirl_spin",
+    "react": "kin_hit_launch",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      175,
+      105
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "scorch",
+    "impactMs": 370,
+    "releaseMs": 515,
+    "totalMs": 900,
+    "hits": [
+      220,
+      370
+    ],
+    "shakePow": 8,
+    "tag": "跨步旋身起势 → 10帧360°八方水墨罡风龙卷 → 群敌击退",
+    "beats": [
+      "1. 旋身借势",
+      "2. 罡风骤起",
+      "3. 龙卷横扫",
+      "4. 气浪散开"
+    ]
+  },
+  "wx_pole_sweep": {
+    "id": "actives.wx_pole_sweep",
+    "key": "wx_pole_sweep",
+    "title": "横扫千军",
+    "subtitle": "横扫千军·烈风龙卷",
+    "seal": "横扫",
+    "arch": "whirl_cyclone",
+    "seq": "wx_kin_whirl_cyclone",
+    "seq2": "",
+    "motion": "kin_whirl_spin",
+    "react": "kin_hit_launch",
+    "theme": "crimson",
+    "col": "#ff364c",
+    "core": "#ffe2e6",
+    "tint": [
+      255,
+      145,
+      145
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "",
+    "impactMs": 370,
+    "releaseMs": 515,
+    "totalMs": 900,
+    "hits": [
+      220,
+      370
+    ],
+    "shakePow": 6,
+    "tag": "跨步旋身起势 → 10帧360°八方水墨罡风龙卷 → 群敌击退",
+    "beats": [
+      "1. 旋身借势",
+      "2. 罡风骤起",
+      "3. 龙卷横扫",
+      "4. 气浪散开"
+    ]
+  },
+  "wx_qinggong_chanchu": {
+    "id": "actives.wx_qinggong_chanchu",
+    "key": "wx_qinggong_chanchu",
+    "title": "金蟾折跃步",
+    "subtitle": "金蟾折跃·落地震尘",
+    "seal": "金蟾",
+    "arch": "qinggong_gust",
+    "seq": "wx_kin_qinggong_gust",
+    "seq2": "wx_kin_sonic_wave",
+    "motion": "kin_qg_vault",
+    "react": "kin_hit_heavy",
+    "theme": "venom",
+    "col": "#58eb44",
+    "core": "#e8ffd8",
+    "tint": [
+      170,
+      255,
+      155
+    ],
+    "kind": "qinggong",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "",
+    "impactMs": 180,
+    "releaseMs": 380,
+    "totalMs": 740,
+    "hits": [
+      180
+    ],
+    "shakePow": 4,
+    "tag": "提气轻身起纵 → 10帧水墨流风步影腾挪 → 落点清风残影",
+    "beats": [
+      "1. 提气轻身",
+      "2. 踏风腾跃",
+      "3. 掠影落位",
+      "4. 余风消散"
+    ]
+  },
+  "wx_qinggong_feiyan": {
+    "id": "actives.wx_qinggong_feiyan",
+    "key": "wx_qinggong_feiyan",
+    "title": "飞燕掠空纵",
+    "subtitle": "穿云飞燕·凌霄掠影",
+    "seal": "穿云",
+    "arch": "warp_seal",
+    "seq": "wx_kin_warp_seal",
+    "seq2": "wx_kin_qinggong_gust",
+    "motion": "kin_qg_vault",
+    "react": "kin_hit_heavy",
+    "theme": "celestial",
+    "col": "#ffe88e",
+    "core": "#f6fcff",
+    "tint": [
+      225,
+      248,
+      255
+    ],
+    "kind": "qinggong",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 200,
+    "releaseMs": 390,
+    "totalMs": 780,
+    "hits": [
+      200
+    ],
+    "shakePow": 4,
+    "tag": "步踏星斗缩地 → 10帧星门折跃光环与空间裂隙 → 咫尺天涯",
+    "beats": [
+      "1. 星盘启门",
+      "2. 空间折叠",
+      "3. 瞬步现身",
+      "4. 星环收拢"
+    ]
+  },
+  "wx_qinggong_lingbo": {
+    "id": "actives.wx_qinggong_lingbo",
+    "key": "wx_qinggong_lingbo",
+    "title": "凌波腾挪步",
+    "subtitle": "凌波微步·八卦残影",
+    "seal": "凌波",
+    "arch": "warp_seal",
+    "seq": "wx_kin_warp_seal",
+    "seq2": "wx_kin_taiji_seal",
+    "motion": "kin_qg_vault",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      175,
+      255,
+      225
+    ],
+    "kind": "qinggong",
+    "isFootwork": true,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 200,
+    "releaseMs": 390,
+    "totalMs": 780,
+    "hits": [
+      200
+    ],
+    "shakePow": 4,
+    "tag": "步踏星斗缩地 → 10帧星门折跃光环与空间裂隙 → 咫尺天涯",
+    "beats": [
+      "1. 星盘启门",
+      "2. 空间折叠",
+      "3. 瞬步现身",
+      "4. 星环收拢"
+    ]
+  },
+  "wx_qinggong_meiying": {
+    "id": "actives.wx_qinggong_meiying",
+    "key": "wx_qinggong_meiying",
+    "title": "魅影迷踪步",
+    "subtitle": "幽谷魅影·分身迷踪",
+    "seal": "魅影",
+    "arch": "smoke_cloud",
+    "seq": "wx_kin_smoke_cloud",
+    "seq2": "wx_kin_qinggong_gust",
+    "motion": "kin_qg_vault",
+    "react": "kin_hit_venom",
+    "theme": "violet",
+    "col": "#b67cff",
+    "core": "#f3e8ff",
+    "tint": [
+      215,
+      165,
+      255
+    ],
+    "kind": "qinggong",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 320,
+    "releaseMs": 460,
+    "totalMs": 860,
+    "hits": [
+      320
+    ],
+    "shakePow": 4,
+    "tag": "抛洒奇门墨烟 → 10帧浓墨烟云翻卷障目隐形 → 诡影难测",
+    "beats": [
+      "1. 抬手掷烟",
+      "2. 墨云爆开",
+      "3. 浓烟障目",
+      "4. 幽雾弥漫"
+    ]
+  },
+  "wx_qinggong_shenxing": {
+    "id": "actives.wx_qinggong_shenxing",
+    "key": "wx_qinggong_shenxing",
+    "title": "神行百变步",
+    "subtitle": "神行百变·泥鳅滑影",
+    "seal": "神行",
+    "arch": "qinggong_gust",
+    "seq": "wx_kin_qinggong_gust",
+    "seq2": "",
+    "motion": "kin_qg_vault",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      234,
+      165
+    ],
+    "kind": "qinggong",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 180,
+    "releaseMs": 380,
+    "totalMs": 740,
+    "hits": [
+      180
+    ],
+    "shakePow": 4,
+    "tag": "提气轻身起纵 → 10帧水墨流风步影腾挪 → 落点清风残影",
+    "beats": [
+      "1. 提气轻身",
+      "2. 踏风腾跃",
+      "3. 掠影落位",
+      "4. 余风消散"
+    ]
+  },
+  "wx_qinggong_shuishang": {
+    "id": "actives.wx_qinggong_shuishang",
+    "key": "wx_qinggong_shuishang",
+    "title": "踏浪水上漂",
+    "subtitle": "一苇渡江·踏浪凌波",
+    "seal": "渡江",
+    "arch": "tidal_wave",
+    "seq": "wx_kin_tidal_wave",
+    "seq2": "wx_kin_qinggong_gust",
+    "motion": "kin_qg_vault",
+    "react": "kin_hit_launch",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      155,
+      248,
+      255
+    ],
+    "kind": "qinggong",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 385,
+    "releaseMs": 525,
+    "totalMs": 920,
+    "hits": [
+      385
+    ],
+    "shakePow": 4,
+    "tag": "蓄劲掀起墨涛 → 10帧沧溟巨浪卷沫拍岸崩击 → 水花四溅",
+    "beats": [
+      "1. 沉步起潮",
+      "2. 巨浪翻卷",
+      "3. 怒涛拍岸",
+      "4. 沧溟水雾"
+    ]
+  },
+  "wx_qinggong_suodi": {
+    "id": "actives.wx_qinggong_suodi",
+    "key": "wx_qinggong_suodi",
+    "title": "缩地成寸步",
+    "subtitle": "缩地成寸·咫尺天涯",
+    "seal": "缩地",
+    "arch": "warp_seal",
+    "seq": "wx_kin_warp_seal",
+    "seq2": "",
+    "motion": "kin_qg_vault",
+    "react": "kin_hit_heavy",
+    "theme": "celestial",
+    "col": "#ffe88e",
+    "core": "#f6fcff",
+    "tint": [
+      255,
+      238,
+      175
+    ],
+    "kind": "qinggong",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 200,
+    "releaseMs": 390,
+    "totalMs": 780,
+    "hits": [
+      200
+    ],
+    "shakePow": 4,
+    "tag": "步踏星斗缩地 → 10帧星门折跃光环与空间裂隙 → 咫尺天涯",
+    "beats": [
+      "1. 星盘启门",
+      "2. 空间折叠",
+      "3. 瞬步现身",
+      "4. 星环收拢"
+    ]
+  },
+  "wx_qinggong_xuelian": {
+    "id": "actives.wx_qinggong_xuelian",
+    "key": "wx_qinggong_xuelian",
+    "title": "踏雪无痕步",
+    "subtitle": "昆仑飞雪·踏雪无痕",
+    "seal": "踏雪",
+    "arch": "snow_step",
+    "seq": "wx_kin_snow_step",
+    "seq2": "",
+    "motion": "kin_qg_vault",
+    "react": "kin_hit_frost",
+    "theme": "frost",
+    "col": "#68dcff",
+    "core": "#eefbff",
+    "tint": [
+      210,
+      248,
+      255
+    ],
+    "kind": "qinggong",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "frost",
+    "impactMs": 210,
+    "releaseMs": 400,
+    "totalMs": 780,
+    "hits": [
+      210
+    ],
+    "shakePow": 4,
+    "tag": "踏霜轻跃起雪 → 10帧六棱冰晶雪花阵翩然盛开 → 踏雪无痕",
+    "beats": [
+      "1. 提气凌霜",
+      "2. 雪花初绽",
+      "3. 晶羽掠影",
+      "4. 寒雪落定"
+    ]
+  },
+  "wx_qinggong_yanxing": {
+    "id": "actives.wx_qinggong_yanxing",
+    "key": "wx_qinggong_yanxing",
+    "title": "燕子抄水步",
+    "subtitle": "飞燕抄水·掠波滑步",
+    "seal": "飞燕",
+    "arch": "qinggong_gust",
+    "seq": "wx_kin_qinggong_gust",
+    "seq2": "",
+    "motion": "kin_qg_vault",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      175,
+      255,
+      225
+    ],
+    "kind": "qinggong",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 180,
+    "releaseMs": 380,
+    "totalMs": 740,
+    "hits": [
+      180
+    ],
+    "shakePow": 4,
+    "tag": "提气轻身起纵 → 10帧水墨流风步影腾挪 → 落点清风残影",
+    "beats": [
+      "1. 提气轻身",
+      "2. 踏风腾跃",
+      "3. 掠影落位",
+      "4. 余风消散"
+    ]
+  },
+  "wx_qinggong_zongyue": {
+    "id": "actives.wx_qinggong_zongyue",
+    "key": "wx_qinggong_zongyue",
+    "title": "梯云纵跃步",
+    "subtitle": "武当梯云·踏风登天",
+    "seal": "梯云",
+    "arch": "qinggong_gust",
+    "seq": "wx_kin_qinggong_gust",
+    "seq2": "",
+    "motion": "kin_qg_vault",
+    "react": "kin_hit_heavy",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      255,
+      255,
+      255
+    ],
+    "kind": "qinggong",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 180,
+    "releaseMs": 380,
+    "totalMs": 740,
+    "hits": [
+      180
+    ],
+    "shakePow": 4,
+    "tag": "提气轻身起纵 → 10帧水墨流风步影腾挪 → 落点清风残影",
+    "beats": [
+      "1. 提气轻身",
+      "2. 踏风腾跃",
+      "3. 掠影落位",
+      "4. 余风消散"
+    ]
+  },
+  "wx_rally_command": {
+    "id": "actives.wx_rally_command",
+    "key": "wx_rally_command",
+    "title": "聚义号令",
+    "subtitle": "总瓢把令·帅旗招展",
+    "seal": "帅令",
+    "arch": "war_banner",
+    "seq": "wx_kin_war_banner",
+    "seq2": "",
+    "motion": "kin_roar_pulse",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 300,
+    "releaseMs": 430,
+    "totalMs": 820,
+    "hits": [
+      300
+    ],
+    "shakePow": 4,
+    "tag": "竖旗顿地扬威 → 10帧赤金帅旗猎猎招展与军令波 → 振奋全军",
+    "beats": [
+      "1. 擎旗高呼",
+      "2. 帅旗立地",
+      "3. 金波传令",
+      "4. 军威浩荡"
+    ]
+  },
+  "wx_saber_abi": {
+    "id": "actives.wx_saber_abi",
+    "key": "wx_saber_abi",
+    "title": "阿鼻修罗斩",
+    "subtitle": "阿鼻地狱·血海屠城",
+    "seal": "阿鼻",
+    "arch": "blood_cleave",
+    "seq": "wx_kin_blood_arc",
+    "seq2": "wx_kin_whirl_cyclone",
+    "motion": "kin_whirl_spin",
+    "react": "kin_hit_heavy",
+    "theme": "crimson",
+    "col": "#ff364c",
+    "core": "#ffe2e6",
+    "tint": [
+      255,
+      195,
+      200
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "scorch",
+    "impactMs": 385,
+    "releaseMs": 525,
+    "totalMs": 920,
+    "hits": [
+      220,
+      390
+    ],
+    "shakePow": 9,
+    "tag": "血煞压步蓄刀 → 10帧修罗泼墨血月大弧 → 猩红血雾飞溅",
+    "beats": [
+      "1. 血煞凝锋",
+      "2. 血月横空",
+      "3. 裂甲溅血",
+      "4. 残血归元"
+    ]
+  },
+  "wx_saber_bagua": {
+    "id": "actives.wx_saber_bagua",
+    "key": "wx_saber_bagua",
+    "title": "玄虚八卦刀",
+    "subtitle": "玄虚八卦·游身斜斩",
+    "seal": "八卦",
+    "arch": "taiji_seal",
+    "seq": "wx_kin_taiji_seal",
+    "seq2": "wx_kin_moon_crescent",
+    "motion": "kin_whirl_spin",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      200,
+      255,
+      232
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 350,
+    "releaseMs": 490,
+    "totalMs": 880,
+    "hits": [
+      350
+    ],
+    "shakePow": 5,
+    "tag": "云手划圆借劲 → 10帧阴阳鱼太极八卦旋转法阵 → 清浊二气环",
+    "beats": [
+      "1. 云手划圆",
+      "2. 阴阳初分",
+      "3. 八卦流转",
+      "4. 化劲归元"
+    ]
+  },
+  "wx_saber_baji": {
+    "id": "actives.wx_saber_baji",
+    "key": "wx_saber_baji",
+    "title": "淮阳八极斩",
+    "subtitle": "淮阳金刀·八极崩锷",
+    "seal": "八极",
+    "arch": "fist_flurry",
+    "seq": "wx_kin_fist_flurry",
+    "seq2": "wx_kin_spear_drill",
+    "motion": "kin_dragon_palm",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      215,
+      120
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 365,
+    "releaseMs": 505,
+    "totalMs": 880,
+    "hits": [
+      180,
+      275,
+      365
+    ],
+    "shakePow": 6,
+    "tag": "踏步沉肩蓄拳 → 10帧六叠残影连珠冲拳爆气 → 拳环炸裂",
+    "beats": [
+      "1. 踏步沉肩",
+      "2. 残影连捶",
+      "3. 寸劲爆环",
+      "4. 收拳定势"
+    ]
+  },
+  "wx_saber_chiyou": {
+    "id": "actives.wx_saber_chiyou",
+    "key": "wx_saber_chiyou",
+    "title": "蚩尤破阵斩",
+    "subtitle": "凶黎兵主·五兵裂阵",
+    "seal": "兵主",
+    "arch": "giant_axe",
+    "seq": "wx_kin_blood_arc",
+    "seq2": "wx_kin_giant_axe",
+    "motion": "kin_flame_leap",
+    "react": "kin_hit_launch",
+    "theme": "crimson",
+    "col": "#ff364c",
+    "core": "#ffe2e6",
+    "tint": [
+      255,
+      195,
+      200
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 400,
+    "releaseMs": 545,
+    "totalMs": 960,
+    "hits": [
+      400
+    ],
+    "shakePow": 9,
+    "tag": "双手高举巨兵 → 10帧盘古开天厚重青铜巨钺劈裂 → 裂隙震屏",
+    "beats": [
+      "1. 举钺开山",
+      "2. 巨弧压落",
+      "3. 裂地断盾",
+      "4. 焦土飞石"
+    ]
+  },
+  "wx_saber_cleave": {
+    "id": "actives.wx_saber_cleave",
+    "key": "wx_saber_cleave",
+    "title": "劈空重斩",
+    "subtitle": "劈空裂风·半月重斩",
+    "seal": "重刀",
+    "arch": "heavy_cleave",
+    "seq": "wx_kin_flame_cleave",
+    "seq2": "",
+    "motion": "kin_heavy_chop",
+    "react": "kin_hit_launch",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      215,
+      165
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 380,
+    "releaseMs": 520,
+    "totalMs": 900,
+    "hits": [
+      380
+    ],
+    "shakePow": 5,
+    "tag": "沉身蓄力挥弧 → 10帧210°宽幅炽刃重斩 → 破甲气浪",
+    "beats": [
+      "1. 沉身蓄势",
+      "2. 大弧劈落",
+      "3. 重击顿帧",
+      "4. 气劲余波"
+    ]
+  },
+  "wx_saber_duanyue": {
+    "id": "actives.wx_saber_duanyue",
+    "key": "wx_saber_duanyue",
+    "title": "断岳狂斩",
+    "subtitle": "断岳腾空·翻身碎岩",
+    "seal": "断岳",
+    "arch": "giant_axe",
+    "seq": "wx_kin_giant_axe",
+    "seq2": "",
+    "motion": "kin_flame_leap",
+    "react": "kin_hit_launch",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      218,
+      128
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 400,
+    "releaseMs": 545,
+    "totalMs": 960,
+    "hits": [
+      400
+    ],
+    "shakePow": 7,
+    "tag": "双手高举巨兵 → 10帧盘古开天厚重青铜巨钺劈裂 → 裂隙震屏",
+    "beats": [
+      "1. 举钺开山",
+      "2. 巨弧压落",
+      "3. 裂地断盾",
+      "4. 焦土飞石"
+    ]
+  },
+  "wx_saber_fanzhen": {
+    "id": "actives.wx_saber_fanzhen",
+    "key": "wx_saber_fanzhen",
+    "title": "两仪合璧斩",
+    "subtitle": "两仪刀剑·冰火十字",
+    "seal": "冰火",
+    "arch": "shadow_cross",
+    "seq": "wx_kin_flame_cleave",
+    "seq2": "wx_kin_frost_burst",
+    "motion": "kin_dash_combo3",
+    "react": "kin_hit_heavy",
+    "theme": "frost",
+    "col": "#68dcff",
+    "core": "#eefbff",
+    "tint": [
+      218,
+      248,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "frost",
+    "impactMs": 360,
+    "releaseMs": 500,
+    "totalMs": 860,
+    "hits": [
+      210,
+      360
+    ],
+    "shakePow": 6,
+    "tag": "魅影瞬步贴背 → 10帧紫电/寒光十字交剪绝杀 → 十字星爆顿帧",
+    "beats": [
+      "1. 隐身闪步",
+      "2. 一线起斩",
+      "3. 十字交爆",
+      "4. 残影退身"
+    ]
+  },
+  "wx_saber_huoyandao": {
+    "id": "actives.wx_saber_huoyandao",
+    "key": "wx_saber_huoyandao",
+    "title": "太原火焰斩",
+    "subtitle": "晋阳炎罡·劈空火刃",
+    "seal": "炎刀",
+    "arch": "cannon_blast",
+    "seq": "wx_kin_cannon_blast",
+    "seq2": "wx_kin_flame_cleave",
+    "motion": "kin_heavy_chop",
+    "react": "kin_hit_launch",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      210,
+      155
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 360,
+    "releaseMs": 510,
+    "totalMs": 960,
+    "hits": [
+      360
+    ],
+    "shakePow": 7,
+    "tag": "引燃赤硝轰发 → 10帧霹雳火球烈焰蘑菇云轰天爆 → 硝烟焦坑",
+    "beats": [
+      "1. 引信蓄硝",
+      "2. 火球轰发",
+      "3. 烈焰炸裂",
+      "4. 硝烟焦坑"
+    ]
+  },
+  "wx_saber_kuangfeng": {
+    "id": "actives.wx_saber_kuangfeng",
+    "key": "wx_saber_kuangfeng",
+    "title": "狂风快刀斩",
+    "subtitle": "狂风骤雨·六合乱刃",
+    "seal": "狂风",
+    "arch": "sword_combo3",
+    "seq": "wx_kin_sword_slash",
+    "seq2": "",
+    "motion": "kin_dash_combo3",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      180,
+      255,
+      220
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 405,
+    "releaseMs": 540,
+    "totalMs": 880,
+    "hits": [
+      175,
+      290,
+      405
+    ],
+    "shakePow": 5,
+    "tag": "后撤蓄锋 → 3段交叉水墨剑弧 → 穿身越背残影 + 顿帧",
+    "beats": [
+      "1. 后撤蓄锋",
+      "2. 交叉疾斩",
+      "3. 穿身顿帧",
+      "4. 残影收剑"
+    ]
+  },
+  "wx_saber_kuanglan": {
+    "id": "actives.wx_saber_kuanglan",
+    "key": "wx_saber_kuanglan",
+    "title": "八荒六合斩",
+    "subtitle": "八荒六合·金刀霸浪",
+    "seal": "霸刀",
+    "arch": "whirl_cyclone",
+    "seq": "wx_kin_whirl_cyclone",
+    "seq2": "wx_kin_moon_crescent",
+    "motion": "kin_whirl_spin",
+    "react": "kin_hit_launch",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      215,
+      115
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "",
+    "impactMs": 370,
+    "releaseMs": 515,
+    "totalMs": 900,
+    "hits": [
+      220,
+      370
+    ],
+    "shakePow": 7,
+    "tag": "跨步旋身起势 → 10帧360°八方水墨罡风龙卷 → 群敌击退",
+    "beats": [
+      "1. 旋身借势",
+      "2. 罡风骤起",
+      "3. 龙卷横扫",
+      "4. 气浪散开"
+    ]
+  },
+  "wx_saber_lingnan": {
+    "id": "actives.wx_saber_lingnan",
+    "key": "wx_saber_lingnan",
+    "title": "南岭滚堂刀",
+    "subtitle": "南岭矮步·滚堂削足",
+    "seal": "滚堂",
+    "arch": "bamboo_bind",
+    "seq": "wx_kin_bamboo_bind",
+    "seq2": "wx_kin_shadow_cross",
+    "motion": "kin_shadow_blink",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      145,
+      255,
+      195
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 360,
+    "releaseMs": 500,
+    "totalMs": 880,
+    "hits": [
+      360
+    ],
+    "shakePow": 5,
+    "tag": "青竹横扫盘根 → 10帧翠影竹节交缠与利叶飞斩 → 缠足封步",
+    "beats": [
+      "1. 青竹起势",
+      "2. 盘根缠足",
+      "3. 竹叶飞斩",
+      "4. 借势卸兵"
+    ]
+  },
+  "wx_saber_modao": {
+    "id": "actives.wx_saber_modao",
+    "key": "wx_saber_modao",
+    "title": "陌刀碎骑斩",
+    "subtitle": "唐军陌刀·碎骑挑斩",
+    "seal": "陌刀",
+    "arch": "moon_crescent",
+    "seq": "wx_kin_moon_crescent",
+    "seq2": "wx_kin_giant_axe",
+    "motion": "kin_upcut_launch",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      224,
+      150
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 370,
+    "releaseMs": 510,
+    "totalMs": 880,
+    "hits": [
+      370
+    ],
+    "shakePow": 7,
+    "tag": "反撩起势映月 → 10帧银金孤月冷辉逆弧掠刃 → 星尘漫散",
+    "beats": [
+      "1. 沉刃映月",
+      "2. 孤月逆弧",
+      "3. 冷辉透骨",
+      "4. 星尘收刃"
+    ]
+  },
+  "wx_saber_podao": {
+    "id": "actives.wx_saber_podao",
+    "key": "wx_saber_podao",
+    "title": "雁门斩马劈",
+    "subtitle": "雁门雄关·斩马裂铠",
+    "seal": "破刀",
+    "arch": "giant_axe",
+    "seq": "wx_kin_giant_axe",
+    "seq2": "wx_kin_flame_cleave",
+    "motion": "kin_heavy_chop",
+    "react": "kin_hit_launch",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      188,
+      125
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 400,
+    "releaseMs": 545,
+    "totalMs": 960,
+    "hits": [
+      400
+    ],
+    "shakePow": 8,
+    "tag": "双手高举巨兵 → 10帧盘古开天厚重青铜巨钺劈裂 → 裂隙震屏",
+    "beats": [
+      "1. 举钺开山",
+      "2. 巨弧压落",
+      "3. 裂地断盾",
+      "4. 焦土飞石"
+    ]
+  },
+  "wx_saber_ranmu": {
+    "id": "actives.wx_saber_ranmu",
+    "key": "wx_saber_ranmu",
+    "title": "燃木烈阳劈",
+    "subtitle": "燃木烈阳·焚天火柱",
+    "seal": "烈阳",
+    "arch": "flame_leap",
+    "seq": "wx_kin_flame_cleave",
+    "seq2": "wx_kin_flame_pillar",
+    "motion": "kin_flame_leap",
+    "react": "kin_hit_launch",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      224,
+      185
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 410,
+    "releaseMs": 560,
+    "totalMs": 1020,
+    "hits": [
+      410
+    ],
+    "shakePow": 8,
+    "tag": "纵身跃空(+78px) → 10帧烈焰重劈 → 冲天炎柱 + 焦痕裂地",
+    "beats": [
+      "1. 纵身拔葱",
+      "2. 凌空火刃",
+      "3. 炎柱冲天",
+      "4. 焦痕余烬"
+    ]
+  },
+  "wx_saber_shishen": {
+    "id": "actives.wx_saber_shishen",
+    "key": "wx_saber_shishen",
+    "title": "天狼噬魂斩",
+    "subtitle": "天狼啸月·噬血撕喉",
+    "seal": "噬神",
+    "arch": "blood_cleave",
+    "seq": "wx_kin_blood_arc",
+    "seq2": "wx_kin_claw_rend",
+    "motion": "kin_shadow_blink",
+    "react": "kin_hit_heavy",
+    "theme": "crimson",
+    "col": "#ff364c",
+    "core": "#ffe2e6",
+    "tint": [
+      255,
+      195,
+      200
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 385,
+    "releaseMs": 525,
+    "totalMs": 920,
+    "hits": [
+      385
+    ],
+    "shakePow": 7,
+    "tag": "血煞压步蓄刀 → 10帧修罗泼墨血月大弧 → 猩红血雾飞溅",
+    "beats": [
+      "1. 血煞凝锋",
+      "2. 血月横空",
+      "3. 裂甲溅血",
+      "4. 残血归元"
+    ]
+  },
+  "wx_saber_sweep": {
+    "id": "actives.wx_saber_sweep",
+    "key": "wx_saber_sweep",
+    "title": "八方狂澜斩",
+    "subtitle": "八方狂澜·沧溟旋斩",
+    "seal": "狂澜",
+    "arch": "tidal_wave",
+    "seq": "wx_kin_tidal_wave",
+    "seq2": "wx_kin_whirl_cyclone",
+    "motion": "kin_whirl_spin",
+    "react": "kin_hit_launch",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      155,
+      240,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "",
+    "impactMs": 385,
+    "releaseMs": 525,
+    "totalMs": 920,
+    "hits": [
+      385
+    ],
+    "shakePow": 6,
+    "tag": "蓄劲掀起墨涛 → 10帧沧溟巨浪卷沫拍岸崩击 → 水花四溅",
+    "beats": [
+      "1. 沉步起潮",
+      "2. 巨浪翻卷",
+      "3. 怒涛拍岸",
+      "4. 沧溟水雾"
+    ]
+  },
+  "wx_saber_tuxiong": {
+    "id": "actives.wx_saber_tuxiong",
+    "key": "wx_saber_tuxiong",
+    "title": "黑水屠熊劈",
+    "subtitle": "黑水战帮·屠熊裂胸",
+    "seal": "屠熊",
+    "arch": "claw_rend",
+    "seq": "wx_kin_claw_rend",
+    "seq2": "",
+    "motion": "kin_heavy_chop",
+    "react": "kin_hit_heavy",
+    "theme": "crimson",
+    "col": "#ff364c",
+    "core": "#ffe2e6",
+    "tint": [
+      255,
+      130,
+      120
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 355,
+    "releaseMs": 495,
+    "totalMs": 860,
+    "hits": [
+      230,
+      355
+    ],
+    "shakePow": 7,
+    "tag": "诡步突袭扑身 → 10帧三道水墨裂空鬼爪/兽爪撕裂 → 暗影残片",
+    "beats": [
+      "1. 伏身突袭",
+      "2. 利爪破风",
+      "3. 三痕撕裂",
+      "4. 煞气弥散"
+    ]
+  },
+  "wx_saber_xinyue": {
+    "id": "actives.wx_saber_xinyue",
+    "key": "wx_saber_xinyue",
+    "title": "瀚海弯月斩",
+    "subtitle": "瀚海孤月·流沙掠刃",
+    "seal": "孤月",
+    "arch": "moon_crescent",
+    "seq": "wx_kin_moon_crescent",
+    "seq2": "",
+    "motion": "kin_upcut_launch",
+    "react": "kin_hit_heavy",
+    "theme": "celestial",
+    "col": "#ffe88e",
+    "core": "#f6fcff",
+    "tint": [
+      255,
+      232,
+      165
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 370,
+    "releaseMs": 510,
+    "totalMs": 880,
+    "hits": [
+      370
+    ],
+    "shakePow": 5,
+    "tag": "反撩起势映月 → 10帧银金孤月冷辉逆弧掠刃 → 星尘漫散",
+    "beats": [
+      "1. 沉刃映月",
+      "2. 孤月逆弧",
+      "3. 冷辉透骨",
+      "4. 星尘收刃"
+    ]
+  },
+  "wx_saber_xuehai": {
+    "id": "actives.wx_saber_xuehai",
+    "key": "wx_saber_xuehai",
+    "title": "修罗饮血斩",
+    "subtitle": "修罗血海·噬魂归元",
+    "seal": "血海",
+    "arch": "blood_cleave",
+    "seq": "wx_kin_blood_arc",
+    "seq2": "wx_kin_soul_vortex",
+    "motion": "kin_heavy_chop",
+    "react": "kin_hit_heavy",
+    "theme": "crimson",
+    "col": "#ff364c",
+    "core": "#ffe2e6",
+    "tint": [
+      255,
+      195,
+      200
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 385,
+    "releaseMs": 525,
+    "totalMs": 920,
+    "hits": [
+      385
+    ],
+    "shakePow": 6,
+    "tag": "血煞压步蓄刀 → 10帧修罗泼墨血月大弧 → 猩红血雾飞溅",
+    "beats": [
+      "1. 血煞凝锋",
+      "2. 血月横空",
+      "3. 裂甲溅血",
+      "4. 残血归元"
+    ]
+  },
+  "wx_saber_zhanlang": {
+    "id": "actives.wx_saber_zhanlang",
+    "key": "wx_saber_zhanlang",
+    "title": "洞庭翻江斩",
+    "subtitle": "洞庭怒涛·翻江断浪",
+    "seal": "斩浪",
+    "arch": "tidal_wave",
+    "seq": "wx_kin_tidal_wave",
+    "seq2": "wx_kin_sonic_wave",
+    "motion": "kin_upcut_launch",
+    "react": "kin_hit_launch",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      255,
+      255,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 385,
+    "releaseMs": 525,
+    "totalMs": 920,
+    "hits": [
+      385
+    ],
+    "shakePow": 6,
+    "tag": "蓄劲掀起墨涛 → 10帧沧溟巨浪卷沫拍岸崩击 → 水花四溅",
+    "beats": [
+      "1. 沉步起潮",
+      "2. 巨浪翻卷",
+      "3. 怒涛拍岸",
+      "4. 沧溟水雾"
+    ]
+  },
+  "wx_shield_bash_qi": {
+    "id": "actives.wx_shield_bash_qi",
+    "key": "wx_shield_bash_qi",
+    "title": "铁壁震山靠",
+    "subtitle": "铁壁靠山·崩云撞击",
+    "seal": "铁壁",
+    "arch": "xuanwu_aegis",
+    "seq": "wx_kin_xuanwu_aegis",
+    "seq2": "wx_kin_sonic_wave",
+    "motion": "kin_dragon_palm",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 290,
+    "releaseMs": 420,
+    "totalMs": 820,
+    "hits": [
+      290
+    ],
+    "shakePow": 6,
+    "tag": "沉盾踏罡结壁 → 10帧六棱玄武龟甲金碧盾阵锁合 → 铜墙铁壁",
+    "beats": [
+      "1. 沉盾定桩",
+      "2. 六棱甲生",
+      "3. 龟壁合锁",
+      "4. 金芒流转"
+    ]
+  },
+  "wx_shield_tiebi": {
+    "id": "actives.wx_shield_tiebi",
+    "key": "wx_shield_tiebi",
+    "title": "不动明王盾",
+    "subtitle": "不动明王·玄武甲阵",
+    "seal": "明王",
+    "arch": "xuanwu_aegis",
+    "seq": "wx_kin_xuanwu_aegis",
+    "seq2": "",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      228,
+      145
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 280,
+    "releaseMs": 410,
+    "totalMs": 780,
+    "hits": [
+      290
+    ],
+    "shakePow": 4,
+    "tag": "沉盾踏罡结壁 → 10帧六棱玄武龟甲金碧盾阵锁合 → 铜墙铁壁",
+    "beats": [
+      "1. 沉盾定桩",
+      "2. 六棱甲生",
+      "3. 龟壁合锁",
+      "4. 金芒流转"
+    ]
+  },
+  "wx_shield_xuanwu": {
+    "id": "actives.wx_shield_xuanwu",
+    "key": "wx_shield_xuanwu",
+    "title": "玄武拒马盾",
+    "subtitle": "太古玄武·铁壁龟阵",
+    "seal": "玄武",
+    "arch": "xuanwu_aegis",
+    "seq": "wx_kin_xuanwu_aegis",
+    "seq2": "",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      185,
+      255,
+      220
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 280,
+    "releaseMs": 410,
+    "totalMs": 780,
+    "hits": [
+      290
+    ],
+    "shakePow": 4,
+    "tag": "沉盾踏罡结壁 → 10帧六棱玄武龟甲金碧盾阵锁合 → 铜墙铁壁",
+    "beats": [
+      "1. 沉盾定桩",
+      "2. 六棱甲生",
+      "3. 龟壁合锁",
+      "4. 金芒流转"
+    ]
+  },
+  "wx_smoke_cast": {
+    "id": "actives.wx_smoke_cast",
+    "key": "wx_smoke_cast",
+    "title": "掷烟蔽目",
+    "subtitle": "奇门瘴雾·墨烟障目",
+    "seal": "墨烟",
+    "arch": "smoke_cloud",
+    "seq": "wx_kin_smoke_cloud",
+    "seq2": "",
+    "motion": "kin_throw_fan",
+    "react": "kin_hit_venom",
+    "theme": "ink",
+    "col": "#a6b4e6",
+    "core": "#eef2ff",
+    "tint": [
+      190,
+      200,
+      225
+    ],
+    "kind": "ranged",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 320,
+    "releaseMs": 460,
+    "totalMs": 860,
+    "hits": [
+      320
+    ],
+    "shakePow": 4,
+    "tag": "抛洒奇门墨烟 → 10帧浓墨烟云翻卷障目隐形 → 诡影难测",
+    "beats": [
+      "1. 抬手掷烟",
+      "2. 墨云爆开",
+      "3. 浓烟障目",
+      "4. 幽雾弥漫"
+    ]
+  },
+  "wx_spear_bawang": {
+    "id": "actives.wx_spear_bawang",
+    "key": "wx_spear_bawang",
+    "title": "霸王挑山枪",
+    "subtitle": "霸王挑山·破甲升龙",
+    "seal": "霸王",
+    "arch": "dragon_surge",
+    "seq": "wx_kin_dragon_surge",
+    "seq2": "",
+    "motion": "kin_upcut_launch",
+    "react": "kin_hit_launch",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 420,
+    "releaseMs": 560,
+    "totalMs": 980,
+    "hits": [
+      420
+    ],
+    "shakePow": 7,
+    "tag": "马步聚气内收 → 12帧水墨真龙跨格冲袭 → 冲击波裂地",
+    "beats": [
+      "1. 沉步蓄劲",
+      "2. 真龙出渊",
+      "3. 穿阵击飞",
+      "4. 双波余威"
+    ]
+  },
+  "wx_spear_guard": {
+    "id": "actives.wx_spear_guard",
+    "key": "wx_spear_guard",
+    "title": "威远守线刺",
+    "subtitle": "威远枪阵·拒马铁壁",
+    "seal": "枪阵",
+    "arch": "xuanwu_aegis",
+    "seq": "wx_kin_xuanwu_aegis",
+    "seq2": "wx_kin_spear_drill",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_heavy",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      175,
+      244,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 280,
+    "releaseMs": 410,
+    "totalMs": 780,
+    "hits": [
+      290
+    ],
+    "shakePow": 4,
+    "tag": "沉盾踏罡结壁 → 10帧六棱玄武龟甲金碧盾阵锁合 → 铜墙铁壁",
+    "beats": [
+      "1. 沉盾定桩",
+      "2. 六棱甲生",
+      "3. 龟壁合锁",
+      "4. 金芒流转"
+    ]
+  },
+  "wx_spear_liangyin": {
+    "id": "actives.wx_spear_liangyin",
+    "key": "wx_spear_liangyin",
+    "title": "八宝亮寅刺",
+    "subtitle": "八宝亮寅·白虎穿星",
+    "seal": "白虎",
+    "arch": "phoenix_spear",
+    "seq": "wx_kin_phoenix_spear",
+    "seq2": "wx_kin_spear_drill",
+    "motion": "kin_spear_drill",
+    "react": "kin_hit_heavy",
+    "theme": "celestial",
+    "col": "#ffe88e",
+    "core": "#f6fcff",
+    "tint": [
+      235,
+      248,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 375,
+    "releaseMs": 515,
+    "totalMs": 900,
+    "hits": [
+      240,
+      375
+    ],
+    "shakePow": 6,
+    "tag": "抖枪如凤展翅 → 10帧炽翼凰影五枪攒刺贯穿 → 炎羽爆散",
+    "beats": [
+      "1. 抖枪展翼",
+      "2. 凰影合流",
+      "3. 五枪攒刺",
+      "4. 烈羽余辉"
+    ]
+  },
+  "wx_spear_liuhua": {
+    "id": "actives.wx_spear_liuhua",
+    "key": "wx_spear_liuhua",
+    "title": "梨花暴雨枪",
+    "subtitle": "梨花暴雨·万点寒星",
+    "seal": "梨花",
+    "arch": "phoenix_spear",
+    "seq": "wx_kin_phoenix_spear",
+    "seq2": "wx_kin_flying_knives",
+    "motion": "kin_spear_drill",
+    "react": "kin_hit_heavy",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      195,
+      248,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 375,
+    "releaseMs": 515,
+    "totalMs": 900,
+    "hits": [
+      240,
+      375
+    ],
+    "shakePow": 5,
+    "tag": "抖枪如凤展翅 → 10帧炽翼凰影五枪攒刺贯穿 → 炎羽爆散",
+    "beats": [
+      "1. 抖枪展翼",
+      "2. 凰影合流",
+      "3. 五枪攒刺",
+      "4. 烈羽余辉"
+    ]
+  },
+  "wx_spear_panlong": {
+    "id": "actives.wx_spear_panlong",
+    "key": "wx_spear_panlong",
+    "title": "长风追魂枪",
+    "subtitle": "长风盘龙·追魂贯喉",
+    "seal": "盘龙",
+    "arch": "dragon_surge",
+    "seq": "wx_kin_dragon_surge",
+    "seq2": "wx_kin_spear_drill",
+    "motion": "kin_spear_drill",
+    "react": "kin_hit_launch",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      165,
+      245,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 420,
+    "releaseMs": 560,
+    "totalMs": 980,
+    "hits": [
+      420
+    ],
+    "shakePow": 6,
+    "tag": "马步聚气内收 → 12帧水墨真龙跨格冲袭 → 冲击波裂地",
+    "beats": [
+      "1. 沉步蓄劲",
+      "2. 真龙出渊",
+      "3. 穿阵击飞",
+      "4. 双波余威"
+    ]
+  },
+  "wx_spear_shouguan": {
+    "id": "actives.wx_spear_shouguan",
+    "key": "wx_spear_shouguan",
+    "title": "北岳守隘刺",
+    "subtitle": "北岳雄关·铁矛守隘",
+    "seal": "守关",
+    "arch": "spear_drill",
+    "seq": "wx_kin_spear_drill",
+    "seq2": "wx_kin_xuanwu_aegis",
+    "motion": "kin_spear_drill",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      225,
+      145
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 365,
+    "releaseMs": 500,
+    "totalMs": 860,
+    "hits": [
+      365
+    ],
+    "shakePow": 5,
+    "tag": "沉腰后拉蓄枪 → 10帧螺旋破音穿甲长虹 → 音爆环贯穿",
+    "beats": [
+      "1. 沉腰拉锋",
+      "2. 螺旋贯刺",
+      "3. 破音透甲",
+      "4. 枪花收势"
+    ]
+  },
+  "wx_spear_thrust2": {
+    "id": "actives.wx_spear_thrust2",
+    "key": "wx_spear_thrust2",
+    "title": "百鸟朝凤刺",
+    "subtitle": "百鸟朝凤·九影攒刺",
+    "seal": "朝凤",
+    "arch": "phoenix_spear",
+    "seq": "wx_kin_phoenix_spear",
+    "seq2": "",
+    "motion": "kin_dash_combo3",
+    "react": "kin_hit_heavy",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      224,
+      185
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 375,
+    "releaseMs": 515,
+    "totalMs": 900,
+    "hits": [
+      185,
+      345
+    ],
+    "shakePow": 5,
+    "tag": "抖枪如凤展翅 → 10帧炽翼凰影五枪攒刺贯穿 → 炎羽爆散",
+    "beats": [
+      "1. 抖枪展翼",
+      "2. 凰影合流",
+      "3. 五枪攒刺",
+      "4. 烈羽余辉"
+    ]
+  },
+  "wx_spear_xuelong": {
+    "id": "actives.wx_spear_xuelong",
+    "key": "wx_spear_xuelong",
+    "title": "雪龙穿云刺",
+    "subtitle": "长白雪龙·穿云裂冰",
+    "seal": "雪龙",
+    "arch": "frost_burst",
+    "seq": "wx_kin_frost_burst",
+    "seq2": "wx_kin_snow_step",
+    "motion": "kin_upcut_launch",
+    "react": "kin_hit_frost",
+    "theme": "frost",
+    "col": "#68dcff",
+    "core": "#eefbff",
+    "tint": [
+      218,
+      248,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "frost",
+    "impactMs": 390,
+    "releaseMs": 530,
+    "totalMs": 940,
+    "hits": [
+      390
+    ],
+    "shakePow": 6,
+    "tag": "极寒吐纳凝霜 → 10帧玄冥七棱冰刺破地冲起 → 寒霜冻土碎晶",
+    "beats": [
+      "1. 凝霜蓄寒",
+      "2. 冰刺破土",
+      "3. 寒狱冻结",
+      "4. 冰晶纷飞"
+    ]
+  },
+  "wx_spear_yaqi": {
+    "id": "actives.wx_spear_yaqi",
+    "key": "wx_spear_yaqi",
+    "title": "牙旗破阵刺",
+    "subtitle": "中军牙旗·破阵扬威",
+    "seal": "牙旗",
+    "arch": "war_banner",
+    "seq": "wx_kin_war_banner",
+    "seq2": "wx_kin_whirl_cyclone",
+    "motion": "kin_whirl_spin",
+    "react": "kin_hit_heavy",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      210,
+      125
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "",
+    "impactMs": 300,
+    "releaseMs": 430,
+    "totalMs": 840,
+    "hits": [
+      300
+    ],
+    "shakePow": 6,
+    "tag": "竖旗顿地扬威 → 10帧赤金帅旗猎猎招展与军令波 → 振奋全军",
+    "beats": [
+      "1. 擎旗高呼",
+      "2. 帅旗立地",
+      "3. 金波传令",
+      "4. 军威浩荡"
+    ]
+  },
+  "wx_spear_zhenbiao": {
+    "id": "actives.wx_spear_zhenbiao",
+    "key": "wx_spear_zhenbiao",
+    "title": "定鼎镇岳枪",
+    "subtitle": "威远定鼎·镇岳崩云",
+    "seal": "镇岳",
+    "arch": "phoenix_spear",
+    "seq": "wx_kin_phoenix_spear",
+    "seq2": "wx_kin_dragon_surge",
+    "motion": "kin_spear_drill",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      224,
+      130
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 375,
+    "releaseMs": 515,
+    "totalMs": 900,
+    "hits": [
+      240,
+      375
+    ],
+    "shakePow": 7,
+    "tag": "抖枪如凤展翅 → 10帧炽翼凰影五枪攒刺贯穿 → 炎羽爆散",
+    "beats": [
+      "1. 抖枪展翼",
+      "2. 凰影合流",
+      "3. 五枪攒刺",
+      "4. 烈羽余辉"
+    ]
+  },
+  "wx_staff_challenge": {
+    "id": "actives.wx_staff_challenge",
+    "key": "wx_staff_challenge",
+    "title": "横杖叫阵",
+    "subtitle": "横杖顿地·金刚怒喝",
+    "seal": "怒喝",
+    "arch": "war_banner",
+    "seq": "wx_kin_war_banner",
+    "seq2": "wx_kin_sonic_wave",
+    "motion": "kin_roar_pulse",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 300,
+    "releaseMs": 430,
+    "totalMs": 820,
+    "hits": [
+      300
+    ],
+    "shakePow": 5,
+    "tag": "竖旗顿地扬威 → 10帧赤金帅旗猎猎招展与军令波 → 振奋全军",
+    "beats": [
+      "1. 擎旗高呼",
+      "2. 帅旗立地",
+      "3. 金波传令",
+      "4. 军威浩荡"
+    ]
+  },
+  "wx_staff_dagou": {
+    "id": "actives.wx_staff_dagou",
+    "key": "wx_staff_dagou",
+    "title": "绊字缠足杖",
+    "subtitle": "打狗缠字·青竹盘根",
+    "seal": "打狗",
+    "arch": "bamboo_bind",
+    "seq": "wx_kin_bamboo_bind",
+    "seq2": "",
+    "motion": "kin_whip_snap",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      145,
+      255,
+      185
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 360,
+    "releaseMs": 500,
+    "totalMs": 880,
+    "hits": [
+      360
+    ],
+    "shakePow": 4,
+    "tag": "青竹横扫盘根 → 10帧翠影竹节交缠与利叶飞斩 → 缠足封步",
+    "beats": [
+      "1. 青竹起势",
+      "2. 盘根缠足",
+      "3. 竹叶飞斩",
+      "4. 借势卸兵"
+    ]
+  },
+  "wx_staff_fengmo": {
+    "id": "actives.wx_staff_fengmo",
+    "key": "wx_staff_fengmo",
+    "title": "紧那罗伏魔棍",
+    "subtitle": "少室护法·紧那伏魔",
+    "seal": "伏魔",
+    "arch": "buddha_palm",
+    "seq": "wx_kin_flame_cleave",
+    "seq2": "wx_kin_golden_dome",
+    "motion": "kin_flame_leap",
+    "react": "kin_hit_launch",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      224,
+      185
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 415,
+    "releaseMs": 560,
+    "totalMs": 980,
+    "hits": [
+      415
+    ],
+    "shakePow": 8,
+    "tag": "禅音合十聚金罡 → 10帧如来巨掌从天压落 → 梵文金环震地",
+    "beats": [
+      "1. 梵音合十",
+      "2. 巨掌降世",
+      "3. 镇岳击飞",
+      "4. 金莲余光"
+    ]
+  },
+  "wx_staff_lianhua": {
+    "id": "actives.wx_staff_lianhua",
+    "key": "wx_staff_lianhua",
+    "title": "莲花落缠杖",
+    "subtitle": "莲花落拍·缠丝叩腕",
+    "seal": "莲花",
+    "arch": "bamboo_bind",
+    "seq": "wx_kin_bamboo_bind",
+    "seq2": "wx_kin_lotus_poke",
+    "motion": "kin_whip_snap",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      235,
+      255,
+      175
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 360,
+    "releaseMs": 500,
+    "totalMs": 880,
+    "hits": [
+      360
+    ],
+    "shakePow": 4,
+    "tag": "青竹横扫盘根 → 10帧翠影竹节交缠与利叶飞斩 → 缠足封步",
+    "beats": [
+      "1. 青竹起势",
+      "2. 盘根缠足",
+      "3. 竹叶飞斩",
+      "4. 借势卸兵"
+    ]
+  },
+  "wx_staff_qingou": {
+    "id": "actives.wx_staff_qingou",
+    "key": "wx_staff_qingou",
+    "title": "天下无狗棒",
+    "subtitle": "天下无狗·八方棒影",
+    "seal": "无狗",
+    "arch": "bamboo_bind",
+    "seq": "wx_kin_bamboo_bind",
+    "seq2": "wx_kin_whirl_cyclone",
+    "motion": "kin_whirl_spin",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      155,
+      255,
+      195
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "",
+    "impactMs": 360,
+    "releaseMs": 500,
+    "totalMs": 880,
+    "hits": [
+      360
+    ],
+    "shakePow": 7,
+    "tag": "青竹横扫盘根 → 10帧翠影竹节交缠与利叶飞斩 → 缠足封步",
+    "beats": [
+      "1. 青竹起势",
+      "2. 盘根缠足",
+      "3. 竹叶飞斩",
+      "4. 借势卸兵"
+    ]
+  },
+  "wx_staff_weituo": {
+    "id": "actives.wx_staff_weituo",
+    "key": "wx_staff_weituo",
+    "title": "韦陀杵碎颅",
+    "subtitle": "韦陀献杵·金雷灌顶",
+    "seal": "韦陀",
+    "arch": "thunder_slam",
+    "seq": "wx_kin_thunder_bolt",
+    "seq2": "",
+    "motion": "kin_thunder_slam",
+    "react": "kin_hit_electro",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      224,
+      130
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 405,
+    "releaseMs": 560,
+    "totalMs": 1020,
+    "hits": [
+      405
+    ],
+    "shakePow": 7,
+    "tag": "举兵引霄蓄雷 → 10帧九天分叉狂雷劈顶 → 碎石触电震屏",
+    "beats": [
+      "1. 引雷蓄势",
+      "2. 紫雷贯顶",
+      "3. 触电爆石",
+      "4. 雷环余震"
+    ]
+  },
+  "wx_staff_zhenjiang": {
+    "id": "actives.wx_staff_zhenjiang",
+    "key": "wx_staff_zhenjiang",
+    "title": "镇水盘龙扫",
+    "subtitle": "川江盘龙·镇水横棒",
+    "seal": "镇江",
+    "arch": "tidal_wave",
+    "seq": "wx_kin_tidal_wave",
+    "seq2": "wx_kin_whirl_cyclone",
+    "motion": "kin_whirl_spin",
+    "react": "kin_hit_launch",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      165,
+      232,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 385,
+    "releaseMs": 525,
+    "totalMs": 920,
+    "hits": [
+      385
+    ],
+    "shakePow": 6,
+    "tag": "蓄劲掀起墨涛 → 10帧沧溟巨浪卷沫拍岸崩击 → 水花四溅",
+    "beats": [
+      "1. 沉步起潮",
+      "2. 巨浪翻卷",
+      "3. 怒涛拍岸",
+      "4. 沧溟水雾"
+    ]
+  },
+  "wx_sword_bixue": {
+    "id": "actives.wx_sword_bixue",
+    "key": "wx_sword_bixue",
+    "title": "碧水惊涛剑",
+    "subtitle": "武夷碧水·惊涛叠剑",
+    "seal": "碧水",
+    "arch": "tidal_wave",
+    "seq": "wx_kin_tidal_wave",
+    "seq2": "wx_kin_sword_slash",
+    "motion": "kin_upcut_launch",
+    "react": "kin_hit_launch",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      140,
+      255,
+      215
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 385,
+    "releaseMs": 525,
+    "totalMs": 920,
+    "hits": [
+      385
+    ],
+    "shakePow": 6,
+    "tag": "蓄劲掀起墨涛 → 10帧沧溟巨浪卷沫拍岸崩击 → 水花四溅",
+    "beats": [
+      "1. 沉步起潮",
+      "2. 巨浪翻卷",
+      "3. 怒涛拍岸",
+      "4. 沧溟水雾"
+    ]
+  },
+  "wx_sword_canhe": {
+    "id": "actives.wx_sword_canhe",
+    "key": "wx_sword_canhe",
+    "title": "柳絮随风剑",
+    "subtitle": "姑苏柳絮·随风拂穴",
+    "seal": "参合",
+    "arch": "lotus_poke",
+    "seq": "wx_kin_lotus_poke",
+    "seq2": "wx_kin_taiji_seal",
+    "motion": "kin_dash_combo3",
+    "react": "kin_hit_heavy",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      175,
+      248,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 355,
+    "releaseMs": 490,
+    "totalMs": 860,
+    "hits": [
+      230,
+      355
+    ],
+    "shakePow": 4,
+    "tag": "兰花拂柳认穴 → 10帧七星点穴金莲法印绽放 → 封脉停滞",
+    "beats": [
+      "1. 拂柳认穴",
+      "2. 七星点落",
+      "3. 金莲绽放",
+      "4. 经脉锁闭"
+    ]
+  },
+  "wx_sword_combo": {
+    "id": "actives.wx_sword_combo",
+    "key": "wx_sword_combo",
+    "title": "清风连环剑",
+    "subtitle": "清风三叠·连环疾斩",
+    "seal": "连剑",
+    "arch": "sword_combo3",
+    "seq": "wx_kin_sword_slash",
+    "seq2": "",
+    "motion": "kin_dash_combo3",
+    "react": "kin_hit_heavy",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      255,
+      255,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 410,
+    "releaseMs": 545,
+    "totalMs": 880,
+    "hits": [
+      180,
+      295,
+      410
+    ],
+    "shakePow": 6,
+    "tag": "后撤蓄锋 → 3段交叉水墨剑弧 → 穿身越背残影 + 顿帧",
+    "beats": [
+      "1. 后撤蓄锋",
+      "2. 交叉疾斩",
+      "3. 穿身顿帧",
+      "4. 残影收剑"
+    ]
+  },
+  "wx_sword_counter": {
+    "id": "actives.wx_sword_counter",
+    "key": "wx_sword_counter",
+    "title": "回锋架势",
+    "subtitle": "回锋守月·借剑反撩",
+    "seal": "守势",
+    "arch": "taiji_seal",
+    "seq": "wx_kin_taiji_seal",
+    "seq2": "",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_heavy",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      255,
+      255,
+      255
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 280,
+    "releaseMs": 410,
+    "totalMs": 780,
+    "hits": [
+      350
+    ],
+    "shakePow": 4,
+    "tag": "云手划圆借劲 → 10帧阴阳鱼太极八卦旋转法阵 → 清浊二气环",
+    "beats": [
+      "1. 云手划圆",
+      "2. 阴阳初分",
+      "3. 八卦流转",
+      "4. 化劲归元"
+    ]
+  },
+  "wx_sword_cuixin": {
+    "id": "actives.wx_sword_cuixin",
+    "key": "wx_sword_cuixin",
+    "title": "松风摧心刺",
+    "subtitle": "松风摧心·青旋透脏",
+    "seal": "摧心",
+    "arch": "spear_drill",
+    "seq": "wx_kin_spear_drill",
+    "seq2": "",
+    "motion": "kin_spear_drill",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      145,
+      255,
+      210
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 365,
+    "releaseMs": 500,
+    "totalMs": 860,
+    "hits": [
+      365
+    ],
+    "shakePow": 5,
+    "tag": "沉腰后拉蓄枪 → 10帧螺旋破音穿甲长虹 → 音爆环贯穿",
+    "beats": [
+      "1. 沉腰拉锋",
+      "2. 螺旋贯刺",
+      "3. 破音透甲",
+      "4. 枪花收势"
+    ]
+  },
+  "wx_sword_dugu": {
+    "id": "actives.wx_sword_dugu",
+    "key": "wx_sword_dugu",
+    "title": "破刃荡剑式",
+    "subtitle": "独孤破刃·九宫荡剑",
+    "seal": "破剑",
+    "arch": "sword_rain",
+    "seq": "wx_kin_sword_rain",
+    "seq2": "wx_kin_shadow_cross",
+    "motion": "kin_dash_combo3",
+    "react": "kin_hit_heavy",
+    "theme": "celestial",
+    "col": "#ffe88e",
+    "core": "#f6fcff",
+    "tint": [
+      255,
+      242,
+      185
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 410,
+    "releaseMs": 555,
+    "totalMs": 980,
+    "hits": [
+      220,
+      315,
+      410
+    ],
+    "shakePow": 5,
+    "tag": "凌空剑指苍穹 → 10帧天河十二流光飞剑倾盆而降 → 剑阵贯地",
+    "beats": [
+      "1. 剑指苍穹",
+      "2. 天河剑雨",
+      "3. 万剑贯地",
+      "4. 剑芒余震"
+    ]
+  },
+  "wx_sword_duoming": {
+    "id": "actives.wx_sword_duoming",
+    "key": "wx_sword_duoming",
+    "title": "夺命三仙剑",
+    "subtitle": "夺命三仙·幻影合击",
+    "seal": "幻剑",
+    "arch": "shadow_cross",
+    "seq": "wx_kin_shadow_cross",
+    "seq2": "wx_kin_sword_slash",
+    "motion": "kin_dash_combo3",
+    "react": "kin_hit_heavy",
+    "theme": "violet",
+    "col": "#b67cff",
+    "core": "#f3e8ff",
+    "tint": [
+      235,
+      210,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 360,
+    "releaseMs": 500,
+    "totalMs": 860,
+    "hits": [
+      175,
+      295,
+      405
+    ],
+    "shakePow": 5,
+    "tag": "魅影瞬步贴背 → 10帧紫电/寒光十字交剪绝杀 → 十字星爆顿帧",
+    "beats": [
+      "1. 隐身闪步",
+      "2. 一线起斩",
+      "3. 十字交爆",
+      "4. 残影退身"
+    ]
+  },
+  "wx_sword_feixian": {
+    "id": "actives.wx_sword_feixian",
+    "key": "wx_sword_feixian",
+    "title": "天河落星剑",
+    "subtitle": "天河落星·七曜剑雨",
+    "seal": "飞仙",
+    "arch": "sword_rain",
+    "seq": "wx_kin_sword_rain",
+    "seq2": "wx_kin_celestial_beam",
+    "motion": "kin_celestial_beam",
+    "react": "kin_hit_heavy",
+    "theme": "celestial",
+    "col": "#ffe88e",
+    "core": "#f6fcff",
+    "tint": [
+      215,
+      245,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 410,
+    "releaseMs": 555,
+    "totalMs": 980,
+    "hits": [
+      220,
+      315,
+      410
+    ],
+    "shakePow": 6,
+    "tag": "凌空剑指苍穹 → 10帧天河十二流光飞剑倾盆而降 → 剑阵贯地",
+    "beats": [
+      "1. 剑指苍穹",
+      "2. 天河剑雨",
+      "3. 万剑贯地",
+      "4. 剑芒余震"
+    ]
+  },
+  "wx_sword_huifeng": {
+    "id": "actives.wx_sword_huifeng",
+    "key": "wx_sword_huifeng",
+    "title": "回锋惊鸿刺",
+    "subtitle": "回锋折燕·惊鸿返刺",
+    "seal": "回锋",
+    "arch": "moon_crescent",
+    "seq": "wx_kin_moon_crescent",
+    "seq2": "",
+    "motion": "kin_dash_combo3",
+    "react": "kin_hit_heavy",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      185,
+      250,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 370,
+    "releaseMs": 510,
+    "totalMs": 880,
+    "hits": [
+      370
+    ],
+    "shakePow": 5,
+    "tag": "反撩起势映月 → 10帧银金孤月冷辉逆弧掠刃 → 星尘漫散",
+    "beats": [
+      "1. 沉刃映月",
+      "2. 孤月逆弧",
+      "3. 冷辉透骨",
+      "4. 星尘收刃"
+    ]
+  },
+  "wx_sword_kuangfeng": {
+    "id": "actives.wx_sword_kuangfeng",
+    "key": "wx_sword_kuangfeng",
+    "title": "落英疾风剑",
+    "subtitle": "落英缤纷·疾风掠剑",
+    "seal": "落英",
+    "arch": "flying_knives",
+    "seq": "wx_kin_flying_knives",
+    "seq2": "wx_kin_sword_slash",
+    "motion": "kin_dash_combo3",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      255,
+      185,
+      215
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 325,
+    "releaseMs": 465,
+    "totalMs": 840,
+    "hits": [
+      210,
+      325
+    ],
+    "shakePow": 4,
+    "tag": "反手扣腕旋掷 → 10帧七星旋转柳叶飞刀扇雨 → 寒芒爆点",
+    "beats": [
+      "1. 扣腕藏刃",
+      "2. 七刀齐旋",
+      "3. 寒星穿甲",
+      "4. 流光消散"
+    ]
+  },
+  "wx_sword_miejian": {
+    "id": "actives.wx_sword_miejian",
+    "key": "wx_sword_miejian",
+    "title": "金顶绝命剑",
+    "subtitle": "峨眉金顶·绝命贯眉",
+    "seal": "灭剑",
+    "arch": "moon_crescent",
+    "seq": "wx_kin_moon_crescent",
+    "seq2": "",
+    "motion": "kin_flame_leap",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      232,
+      148
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 370,
+    "releaseMs": 510,
+    "totalMs": 880,
+    "hits": [
+      370
+    ],
+    "shakePow": 6,
+    "tag": "反撩起势映月 → 10帧银金孤月冷辉逆弧掠刃 → 星尘漫散",
+    "beats": [
+      "1. 沉刃映月",
+      "2. 孤月逆弧",
+      "3. 冷辉透骨",
+      "4. 星尘收刃"
+    ]
+  },
+  "wx_sword_pierce": {
+    "id": "actives.wx_sword_pierce",
+    "key": "wx_sword_pierce",
+    "title": "穿云透甲刺",
+    "subtitle": "穿云破甲·螺旋贯胸",
+    "seal": "破甲",
+    "arch": "spear_drill",
+    "seq": "wx_kin_spear_drill",
+    "seq2": "",
+    "motion": "kin_spear_drill",
+    "react": "kin_hit_heavy",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      210,
+      248,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 365,
+    "releaseMs": 500,
+    "totalMs": 860,
+    "hits": [
+      365
+    ],
+    "shakePow": 6,
+    "tag": "沉腰后拉蓄枪 → 10帧螺旋破音穿甲长虹 → 音爆环贯穿",
+    "beats": [
+      "1. 沉腰拉锋",
+      "2. 螺旋贯刺",
+      "3. 破音透甲",
+      "4. 枪花收势"
+    ]
+  },
+  "wx_sword_qinggang": {
+    "id": "actives.wx_sword_qinggang",
+    "key": "wx_sword_qinggang",
+    "title": "青釭透甲剑",
+    "subtitle": "青釭裂铠·寒星洞甲",
+    "seal": "青釭",
+    "arch": "spear_drill",
+    "seq": "wx_kin_spear_drill",
+    "seq2": "",
+    "motion": "kin_spear_drill",
+    "react": "kin_hit_heavy",
+    "theme": "frost",
+    "col": "#68dcff",
+    "core": "#eefbff",
+    "tint": [
+      195,
+      248,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 365,
+    "releaseMs": 500,
+    "totalMs": 860,
+    "hits": [
+      365
+    ],
+    "shakePow": 6,
+    "tag": "沉腰后拉蓄枪 → 10帧螺旋破音穿甲长虹 → 音爆环贯穿",
+    "beats": [
+      "1. 沉腰拉锋",
+      "2. 螺旋贯刺",
+      "3. 破音透甲",
+      "4. 枪花收势"
+    ]
+  },
+  "wx_sword_taiji": {
+    "id": "actives.wx_sword_taiji",
+    "key": "wx_sword_taiji",
+    "title": "两仪化劲剑",
+    "subtitle": "两仪化劲·阴阳鱼阵",
+    "seal": "太极",
+    "arch": "taiji_seal",
+    "seq": "wx_kin_taiji_seal",
+    "seq2": "wx_kin_sword_slash",
+    "motion": "kin_whirl_spin",
+    "react": "kin_hit_heavy",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      255,
+      255,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 350,
+    "releaseMs": 490,
+    "totalMs": 880,
+    "hits": [
+      350
+    ],
+    "shakePow": 5,
+    "tag": "云手划圆借劲 → 10帧阴阳鱼太极八卦旋转法阵 → 清浊二气环",
+    "beats": [
+      "1. 云手划圆",
+      "2. 阴阳初分",
+      "3. 八卦流转",
+      "4. 化劲归元"
+    ]
+  },
+  "wx_sword_tianwai": {
+    "id": "actives.wx_sword_tianwai",
+    "key": "wx_sword_tianwai",
+    "title": "天外一剑",
+    "subtitle": "天外飞仙·御剑化虹",
+    "seal": "孤本",
+    "arch": "celestial_beam",
+    "seq": "wx_kin_celestial_beam",
+    "seq2": "",
+    "motion": "kin_celestial_beam",
+    "react": "kin_hit_heavy",
+    "theme": "celestial",
+    "col": "#ffe88e",
+    "core": "#f6fcff",
+    "tint": [
+      255,
+      255,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 430,
+    "releaseMs": 585,
+    "totalMs": 1020,
+    "hits": [
+      430
+    ],
+    "shakePow": 8,
+    "tag": "凌空后飘聚芒 → 飞剑/剑气合流 → 10帧白虹贯日 + 一闪切屏",
+    "beats": [
+      "1. 凌空凝芒",
+      "2. 气虹聚势",
+      "3. 白虹一闪",
+      "4. 星芒流散"
+    ]
+  },
+  "wx_sword_wanjian": {
+    "id": "actives.wx_sword_wanjian",
+    "key": "wx_sword_wanjian",
+    "title": "万剑归宗诀",
+    "subtitle": "万剑归宗·九天剑潮",
+    "seal": "万剑",
+    "arch": "sword_rain",
+    "seq": "wx_kin_sword_rain",
+    "seq2": "wx_kin_whirl_cyclone",
+    "motion": "kin_celestial_beam",
+    "react": "kin_hit_heavy",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      255,
+      255,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "",
+    "impactMs": 410,
+    "releaseMs": 555,
+    "totalMs": 980,
+    "hits": [
+      220,
+      320,
+      415
+    ],
+    "shakePow": 8,
+    "tag": "凌空剑指苍穹 → 10帧天河十二流光飞剑倾盆而降 → 剑阵贯地",
+    "beats": [
+      "1. 剑指苍穹",
+      "2. 天河剑雨",
+      "3. 万剑贯地",
+      "4. 剑芒余震"
+    ]
+  },
+  "wx_sword_xuanbing": {
+    "id": "actives.wx_sword_xuanbing",
+    "key": "wx_sword_xuanbing",
+    "title": "昆仑玄霜剑",
+    "subtitle": "昆仑玄霜·冰封剑狱",
+    "seal": "玄冰",
+    "arch": "frost_burst",
+    "seq": "wx_kin_frost_burst",
+    "seq2": "wx_kin_sword_slash",
+    "motion": "kin_upcut_launch",
+    "react": "kin_hit_frost",
+    "theme": "frost",
+    "col": "#68dcff",
+    "core": "#eefbff",
+    "tint": [
+      218,
+      248,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "frost",
+    "impactMs": 390,
+    "releaseMs": 530,
+    "totalMs": 940,
+    "hits": [
+      390
+    ],
+    "shakePow": 6,
+    "tag": "极寒吐纳凝霜 → 10帧玄冥七棱冰刺破地冲起 → 寒霜冻土碎晶",
+    "beats": [
+      "1. 凝霜蓄寒",
+      "2. 冰刺破土",
+      "3. 寒狱冻结",
+      "4. 冰晶纷飞"
+    ]
+  },
+  "wx_sword_yinsha": {
+    "id": "actives.wx_sword_yinsha",
+    "key": "wx_sword_yinsha",
+    "title": "幽冥追魂剑",
+    "subtitle": "幽冥鬼影·追魂穿心",
+    "seal": "阴煞",
+    "arch": "smoke_cloud",
+    "seq": "wx_kin_smoke_cloud",
+    "seq2": "wx_kin_claw_rend",
+    "motion": "kin_shadow_blink",
+    "react": "kin_hit_venom",
+    "theme": "ink",
+    "col": "#a6b4e6",
+    "core": "#eef2ff",
+    "tint": [
+      190,
+      175,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 320,
+    "releaseMs": 460,
+    "totalMs": 860,
+    "hits": [
+      320
+    ],
+    "shakePow": 6,
+    "tag": "抛洒奇门墨烟 → 10帧浓墨烟云翻卷障目隐形 → 诡影难测",
+    "beats": [
+      "1. 抬手掷烟",
+      "2. 墨云爆开",
+      "3. 浓烟障目",
+      "4. 幽雾弥漫"
+    ]
+  },
+  "wx_sword_yunv": {
+    "id": "actives.wx_sword_yunv",
+    "key": "wx_sword_yunv",
+    "title": "冷月双飞剑",
+    "subtitle": "冷月清辉·双剑交剪",
+    "seal": "双剑",
+    "arch": "moon_crescent",
+    "seq": "wx_kin_moon_crescent",
+    "seq2": "",
+    "motion": "kin_dash_combo3",
+    "react": "kin_hit_heavy",
+    "theme": "frost",
+    "col": "#68dcff",
+    "core": "#eefbff",
+    "tint": [
+      215,
+      244,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 370,
+    "releaseMs": 510,
+    "totalMs": 880,
+    "hits": [
+      370
+    ],
+    "shakePow": 4,
+    "tag": "反撩起势映月 → 10帧银金孤月冷辉逆弧掠刃 → 星尘漫散",
+    "beats": [
+      "1. 沉刃映月",
+      "2. 孤月逆弧",
+      "3. 冷辉透骨",
+      "4. 星尘收刃"
+    ]
+  },
+  "wx_sword_zhenwu": {
+    "id": "actives.wx_sword_zhenwu",
+    "key": "wx_sword_zhenwu",
+    "title": "真武七星剑",
+    "subtitle": "真武七星·荡魔剑印",
+    "seal": "真武",
+    "arch": "sword_rain",
+    "seq": "wx_kin_sword_rain",
+    "seq2": "wx_kin_taiji_seal",
+    "motion": "kin_celestial_beam",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      234,
+      155
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 410,
+    "releaseMs": 555,
+    "totalMs": 980,
+    "hits": [
+      220,
+      315,
+      410
+    ],
+    "shakePow": 6,
+    "tag": "凌空剑指苍穹 → 10帧天河十二流光飞剑倾盆而降 → 剑阵贯地",
+    "beats": [
+      "1. 剑指苍穹",
+      "2. 天河剑雨",
+      "3. 万剑贯地",
+      "4. 剑芒余震"
+    ]
+  },
+  "wx_sword_zhongjian": {
+    "id": "actives.wx_sword_zhongjian",
+    "key": "wx_sword_zhongjian",
+    "title": "重剑无锋劈",
+    "subtitle": "玄铁无锋·大巧崩山",
+    "seal": "重剑",
+    "arch": "giant_axe",
+    "seq": "wx_kin_giant_axe",
+    "seq2": "wx_kin_earth_shatter",
+    "motion": "kin_heavy_chop",
+    "react": "kin_hit_launch",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      220,
+      140
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 400,
+    "releaseMs": 545,
+    "totalMs": 960,
+    "hits": [
+      400
+    ],
+    "shakePow": 8,
+    "tag": "双手高举巨兵 → 10帧盘古开天厚重青铜巨钺劈裂 → 裂隙震屏",
+    "beats": [
+      "1. 举钺开山",
+      "2. 巨弧压落",
+      "3. 裂地断盾",
+      "4. 焦土飞石"
+    ]
+  },
+  "wx_sword_zixia": {
+    "id": "actives.wx_sword_zixia",
+    "key": "wx_sword_zixia",
+    "title": "紫霞破气剑",
+    "subtitle": "西岳紫霞·破气贯虹",
+    "seal": "紫霞",
+    "arch": "celestial_beam",
+    "seq": "wx_kin_celestial_beam",
+    "seq2": "",
+    "motion": "kin_celestial_beam",
+    "react": "kin_hit_heavy",
+    "theme": "violet",
+    "col": "#b67cff",
+    "core": "#f3e8ff",
+    "tint": [
+      226,
+      170,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 425,
+    "releaseMs": 575,
+    "totalMs": 1000,
+    "hits": [
+      425
+    ],
+    "shakePow": 6,
+    "tag": "凌空后飘聚芒 → 飞剑/剑气合流 → 10帧白虹贯日 + 一闪切屏",
+    "beats": [
+      "1. 凌空凝芒",
+      "2. 气虹聚势",
+      "3. 白虹一闪",
+      "4. 星芒流散"
+    ]
+  },
+  "wx_tactics_bamen": {
+    "id": "actives.wx_tactics_bamen",
+    "key": "wx_tactics_bamen",
+    "title": "八门金锁阵",
+    "subtitle": "六韬八门·金锁连营",
+    "seal": "八门",
+    "arch": "war_banner",
+    "seq": "wx_kin_war_banner",
+    "seq2": "wx_kin_xuanwu_aegis",
+    "motion": "kin_roar_pulse",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      185,
+      255,
+      215
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 300,
+    "releaseMs": 430,
+    "totalMs": 820,
+    "hits": [
+      300
+    ],
+    "shakePow": 4,
+    "tag": "竖旗顿地扬威 → 10帧赤金帅旗猎猎招展与军令波 → 振奋全军",
+    "beats": [
+      "1. 擎旗高呼",
+      "2. 帅旗立地",
+      "3. 金波传令",
+      "4. 军威浩荡"
+    ]
+  },
+  "wx_tactics_guigu": {
+    "id": "actives.wx_tactics_guigu",
+    "key": "wx_tactics_guigu",
+    "title": "鬼谷纵横策",
+    "subtitle": "鬼谷纵横·星盘演兵",
+    "seal": "鬼谷",
+    "arch": "war_banner",
+    "seq": "wx_kin_war_banner",
+    "seq2": "wx_kin_taiji_seal",
+    "motion": "kin_roar_pulse",
+    "react": "kin_hit_heavy",
+    "theme": "celestial",
+    "col": "#ffe88e",
+    "core": "#f6fcff",
+    "tint": [
+      255,
+      236,
+      170
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 300,
+    "releaseMs": 430,
+    "totalMs": 820,
+    "hits": [
+      300
+    ],
+    "shakePow": 4,
+    "tag": "竖旗顿地扬威 → 10帧赤金帅旗猎猎招展与军令波 → 振奋全军",
+    "beats": [
+      "1. 擎旗高呼",
+      "2. 帅旗立地",
+      "3. 金波传令",
+      "4. 军威浩荡"
+    ]
+  },
+  "wx_tactics_jinzhen": {
+    "id": "actives.wx_tactics_jinzhen",
+    "key": "wx_tactics_jinzhen",
+    "title": "金针渡穴诀",
+    "subtitle": "扁鹊渡穴·五气金针",
+    "seal": "金针",
+    "arch": "gold_needles",
+    "seq": "wx_kin_gold_needles",
+    "seq2": "",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_heavy",
+    "theme": "jade",
+    "col": "#2ce89a",
+    "core": "#dcfff0",
+    "tint": [
+      195,
+      255,
+      220
+    ],
+    "kind": "util",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 300,
+    "releaseMs": 430,
+    "totalMs": 820,
+    "hits": [
+      300
+    ],
+    "shakePow": 4,
+    "tag": "指捻九根金针 → 10帧五气金针渡穴聚光生机环 → 祛毒回春",
+    "beats": [
+      "1. 九针悬空",
+      "2. 金针归穴",
+      "3. 生机绽放",
+      "4. 碧金余暖"
+    ]
+  },
+  "wx_tactics_kuiniu": {
+    "id": "actives.wx_tactics_kuiniu",
+    "key": "wx_tactics_kuiniu",
+    "title": "夔牛震天吼",
+    "subtitle": "东海夔牛·苍雷裂胆",
+    "seal": "夔牛",
+    "arch": "thunder_slam",
+    "seq": "wx_kin_thunder_bolt",
+    "seq2": "wx_kin_sonic_wave",
+    "motion": "kin_roar_pulse",
+    "react": "kin_hit_electro",
+    "theme": "violet",
+    "col": "#b67cff",
+    "core": "#f3e8ff",
+    "tint": [
+      235,
+      210,
+      255
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 360,
+    "releaseMs": 560,
+    "totalMs": 1020,
+    "hits": [
+      405
+    ],
+    "shakePow": 9,
+    "tag": "举兵引霄蓄雷 → 10帧九天分叉狂雷劈顶 → 碎石触电震屏",
+    "beats": [
+      "1. 引雷蓄势",
+      "2. 紫雷贯顶",
+      "3. 触电爆石",
+      "4. 雷环余震"
+    ]
+  },
+  "wx_tactics_qimen": {
+    "id": "actives.wx_tactics_qimen",
+    "key": "wx_tactics_qimen",
+    "title": "奇门遁甲雾",
+    "subtitle": "奇门遁甲·八阵迷烟",
+    "seal": "奇门",
+    "arch": "smoke_cloud",
+    "seq": "wx_kin_smoke_cloud",
+    "seq2": "wx_kin_taiji_seal",
+    "motion": "kin_stance_channel",
+    "react": "kin_hit_venom",
+    "theme": "ink",
+    "col": "#a6b4e6",
+    "core": "#eef2ff",
+    "tint": [
+      190,
+      200,
+      245
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "",
+    "impactMs": 300,
+    "releaseMs": 430,
+    "totalMs": 820,
+    "hits": [
+      320
+    ],
+    "shakePow": 4,
+    "tag": "抛洒奇门墨烟 → 10帧浓墨烟云翻卷障目隐形 → 诡影难测",
+    "beats": [
+      "1. 抬手掷烟",
+      "2. 墨云爆开",
+      "3. 浓烟障目",
+      "4. 幽雾弥漫"
+    ]
+  },
+  "wx_tactics_shihou": {
+    "id": "actives.wx_tactics_shihou",
+    "key": "wx_tactics_shihou",
+    "title": "金刚狮子吼",
+    "subtitle": "佛门狮吼·五叠震魂",
+    "seal": "狮吼",
+    "arch": "sonic_wave",
+    "seq": "wx_kin_sonic_wave",
+    "seq2": "",
+    "motion": "kin_roar_pulse",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      240,
+      190
+    ],
+    "kind": "stance",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "",
+    "impactMs": 360,
+    "releaseMs": 500,
+    "totalMs": 900,
+    "hits": [
+      360
+    ],
+    "shakePow": 8,
+    "tag": "丹田提气聚声 → 10帧四叠金刚雷音气浪扩散 → 震魂失衡",
+    "beats": [
+      "1. 丹田提气",
+      "2. 声波初绽",
+      "3. 四叠震荡",
+      "4. 余音绕梁"
+    ]
+  },
+  "wx_throw_duzhen": {
+    "id": "actives.wx_throw_duzhen",
+    "key": "wx_throw_duzhen",
+    "title": "五毒丧门钉",
+    "subtitle": "五毒丧门·百足瘴钉",
+    "seal": "毒钉",
+    "arch": "venom_mire",
+    "seq": "wx_kin_venom_mire",
+    "seq2": "wx_kin_arrow_barrage",
+    "motion": "kin_throw_fan",
+    "react": "kin_hit_venom",
+    "theme": "venom",
+    "col": "#58eb44",
+    "core": "#e8ffd8",
+    "tint": [
+      215,
+      255,
+      198
+    ],
+    "kind": "ranged",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "venom",
+    "impactMs": 380,
+    "releaseMs": 520,
+    "totalMs": 940,
+    "hits": [
+      380
+    ],
+    "shakePow": 5,
+    "tag": "催毒聚瘴起势 → 10帧五毒碧磷瘴柱喷涌 → 剧毒腐池与毒泡",
+    "beats": [
+      "1. 催毒起瘴",
+      "2. 瘴柱翻涌",
+      "3. 蚀骨毒爆",
+      "4. 腐池弥漫"
+    ]
+  },
+  "wx_throw_fan": {
+    "id": "actives.wx_throw_fan",
+    "key": "wx_throw_fan",
+    "title": "漫天花雨",
+    "subtitle": "漫天花雨·七星飞刀",
+    "seal": "飞刀",
+    "arch": "flying_knives",
+    "seq": "wx_kin_flying_knives",
+    "seq2": "",
+    "motion": "kin_throw_fan",
+    "react": "kin_hit_heavy",
+    "theme": "cyan",
+    "col": "#52e4ff",
+    "core": "#e4fcff",
+    "tint": [
+      190,
+      245,
+      255
+    ],
+    "kind": "ranged",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "",
+    "impactMs": 325,
+    "releaseMs": 465,
+    "totalMs": 840,
+    "hits": [
+      210,
+      325
+    ],
+    "shakePow": 4,
+    "tag": "反手扣腕旋掷 → 10帧七星旋转柳叶飞刀扇雨 → 寒芒爆点",
+    "beats": [
+      "1. 扣腕藏刃",
+      "2. 七刀齐旋",
+      "3. 寒星穿甲",
+      "4. 流光消散"
+    ]
+  },
+  "wx_throw_kongque": {
+    "id": "actives.wx_throw_kongque",
+    "key": "wx_throw_kongque",
+    "title": "孔雀翎绝杀",
+    "subtitle": "孔雀开屏·七彩绝杀",
+    "seal": "孔雀",
+    "arch": "peacock_fan",
+    "seq": "wx_kin_peacock_fan",
+    "seq2": "",
+    "motion": "kin_throw_fan",
+    "react": "kin_hit_heavy",
+    "theme": "celestial",
+    "col": "#ffe88e",
+    "core": "#f6fcff",
+    "tint": [
+      255,
+      255,
+      255
+    ],
+    "kind": "ranged",
+    "isFootwork": false,
+    "isAoe": true,
+    "ground": "",
+    "impactMs": 350,
+    "releaseMs": 495,
+    "totalMs": 900,
+    "hits": [
+      200,
+      270,
+      345
+    ],
+    "shakePow": 7,
+    "tag": "机括轻启展开 → 10帧孔雀开屏九道七彩神芒翎眼 → 绚丽绝杀",
+    "beats": [
+      "1. 机括初启",
+      "2. 七彩开屏",
+      "3. 翎眼齐爆",
+      "4. 虹屑纷飞"
+    ]
+  },
+  "wx_throw_liuyedao": {
+    "id": "actives.wx_throw_liuyedao",
+    "key": "wx_throw_liuyedao",
+    "title": "寒星追命镖",
+    "subtitle": "子母飞刀·寒星追命",
+    "seal": "子母",
+    "arch": "flying_knives",
+    "seq": "wx_kin_flying_knives",
+    "seq2": "",
+    "motion": "kin_throw_fan",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      228,
+      155
+    ],
+    "kind": "ranged",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 325,
+    "releaseMs": 465,
+    "totalMs": 840,
+    "hits": [
+      210,
+      325
+    ],
+    "shakePow": 5,
+    "tag": "反手扣腕旋掷 → 10帧七星旋转柳叶飞刀扇雨 → 寒芒爆点",
+    "beats": [
+      "1. 扣腕藏刃",
+      "2. 七刀齐旋",
+      "3. 寒星穿甲",
+      "4. 流光消散"
+    ]
+  },
+  "wx_throw_pilidan": {
+    "id": "actives.wx_throw_pilidan",
+    "key": "wx_throw_pilidan",
+    "title": "霹雳雷火弹",
+    "subtitle": "霹雳雷火·赤硝轰天",
+    "seal": "雷火",
+    "arch": "cannon_blast",
+    "seq": "wx_kin_cannon_blast",
+    "seq2": "wx_kin_thunder_bolt",
+    "motion": "kin_throw_fan",
+    "react": "kin_hit_launch",
+    "theme": "fire",
+    "col": "#ff6828",
+    "core": "#ffe5be",
+    "tint": [
+      255,
+      224,
+      185
+    ],
+    "kind": "ranged",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "scorch",
+    "impactMs": 360,
+    "releaseMs": 510,
+    "totalMs": 960,
+    "hits": [
+      360
+    ],
+    "shakePow": 9,
+    "tag": "引燃赤硝轰发 → 10帧霹雳火球烈焰蘑菇云轰天爆 → 硝烟焦坑",
+    "beats": [
+      "1. 引信蓄硝",
+      "2. 火球轰发",
+      "3. 烈焰炸裂",
+      "4. 硝烟焦坑"
+    ]
+  },
+  "wx_throwing_rain": {
+    "id": "actives.wx_throwing_rain",
+    "key": "wx_throwing_rain",
+    "title": "暴雨毒针",
+    "subtitle": "唐门暴雨·梨花千针",
+    "seal": "千针",
+    "arch": "peacock_fan",
+    "seq": "wx_kin_peacock_fan",
+    "seq2": "wx_kin_arrow_barrage",
+    "motion": "kin_throw_fan",
+    "react": "kin_hit_heavy",
+    "theme": "gold",
+    "col": "#ffcb42",
+    "core": "#fff4c6",
+    "tint": [
+      255,
+      232,
+      165
+    ],
+    "kind": "ranged",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 350,
+    "releaseMs": 495,
+    "totalMs": 900,
+    "hits": [
+      210,
+      275,
+      340
+    ],
+    "shakePow": 5,
+    "tag": "机括轻启展开 → 10帧孔雀开屏九道七彩神芒翎眼 → 绚丽绝杀",
+    "beats": [
+      "1. 机括初启",
+      "2. 七彩开屏",
+      "3. 翎眼齐爆",
+      "4. 虹屑纷飞"
+    ]
+  },
+  "wx_whip_suohou": {
+    "id": "actives.wx_whip_suohou",
+    "key": "wx_whip_suohou",
+    "title": "灵蛇锁喉鞭",
+    "subtitle": "灵蛇出洞·青鳞毒鞭",
+    "seal": "毒鞭",
+    "arch": "whip_lash",
+    "seq": "wx_kin_whip_lash",
+    "seq2": "wx_kin_venom_mire",
+    "motion": "kin_whip_snap",
+    "react": "kin_hit_venom",
+    "theme": "venom",
+    "col": "#58eb44",
+    "core": "#e8ffd8",
+    "tint": [
+      215,
+      255,
+      198
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "venom",
+    "impactMs": 365,
+    "releaseMs": 505,
+    "totalMs": 880,
+    "hits": [
+      365
+    ],
+    "shakePow": 5,
+    "tag": "后扯抖腕聚劲 → 10帧灵蛇S形波浪长鞭抽击 → 鞭梢音爆星闪",
+    "beats": [
+      "1. 抖腕蓄鞭",
+      "2. 灵蛇游走",
+      "3. 鞭梢炸响",
+      "4. 锁敌余波"
+    ]
+  },
+  "wx_whip_xiangxi": {
+    "id": "actives.wx_whip_xiangxi",
+    "key": "wx_whip_xiangxi",
+    "title": "辰州摄魂鞭",
+    "subtitle": "辰州铜铃·引路摄魂",
+    "seal": "摄魂",
+    "arch": "whip_lash",
+    "seq": "wx_kin_whip_lash",
+    "seq2": "wx_kin_soul_vortex",
+    "motion": "kin_whip_snap",
+    "react": "kin_hit_heavy",
+    "theme": "violet",
+    "col": "#b67cff",
+    "core": "#f3e8ff",
+    "tint": [
+      210,
+      155,
+      255
+    ],
+    "kind": "melee",
+    "isFootwork": false,
+    "isAoe": false,
+    "ground": "",
+    "impactMs": 365,
+    "releaseMs": 505,
+    "totalMs": 880,
+    "hits": [
+      365
+    ],
+    "shakePow": 6,
+    "tag": "后扯抖腕聚劲 → 10帧灵蛇S形波浪长鞭抽击 → 鞭梢音爆星闪",
+    "beats": [
+      "1. 抖腕蓄鞭",
+      "2. 灵蛇游走",
+      "3. 鞭梢炸响",
+      "4. 锁敌余波"
+    ]
+  }
+}

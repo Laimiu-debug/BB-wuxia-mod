@@ -127,25 +127,25 @@ this.wx_pill_battle_buff <- this.inherit("scripts/skills/skill", {
 			{ id = 2, type = "description", text = this.getDescription() }
 		];
 		if (this.m.HasQingxin)
-			ret.push({ id = 10, type = "text", icon = "ui/icons/special.png", text = "【清心解毒丹】免疫吹箭奇毒与蛛蝎毒素侵害" });
+			ret.push({ id = 10, type = "text", icon = "ui/icons/special.png", text = "【清心解毒丹】免疫奇毒，立于毒泽瘴气或受毒击每轮转化恢复 [color=" + pos + "]+3[/color] 内息" });
 		if (this.m.HasHugu)
-			ret.push({ id = 11, type = "text", icon = "ui/icons/fatigue.png", text = "【虎骨壮气丸】内息上限 [color=" + pos + "]+12[/color]，每回合回气 [color=" + pos + "]+2[/color]" });
+			ret.push({ id = 11, type = "text", icon = "ui/icons/fatigue.png", text = "【虎骨壮气丸】内息 [color=" + pos + "]+12[/color]、回气 [color=" + pos + "]+2[/color]；催化阳刚内功或震甲重招近战额外崩损 [color=" + pos + "]6[/color] 身甲" });
 		if (this.m.HasDingshen)
-			ret.push({ id = 12, type = "text", icon = "ui/icons/bravery.png", text = "【明目定神散】定力 [color=" + pos + "]+10[/color]，夜战免除视野与射艺惩罚" });
+			ret.push({ id = 12, type = "text", icon = "ui/icons/bravery.png", text = "【明目定神散】定力 [color=" + pos + "]+10[/color]、免夜盲；处于烟幕/夜雾迷障中近远命中 [color=" + pos + "]+6[/color]" });
 		if (this.m.HasZhuyu)
-			ret.push({ id = 13, type = "text", icon = "ui/icons/fatigue.png", text = "【祝余辟谷丹】内息上限 [color=" + pos + "]+16[/color]，每回合回气 [color=" + pos + "]+3[/color]" });
+			ret.push({ id = 13, type = "text", icon = "ui/icons/fatigue.png", text = "【祝余辟谷丹】内息 [color=" + pos + "]+16[/color]、回气 [color=" + pos + "]+3[/color]；「调息吐纳」额外多回 [color=" + pos + "]+8[/color] 气，半气以下出招省气 [color=" + pos + "]-10%[/color]" });
 		if (this.m.HasDuheng)
-			ret.push({ id = 14, type = "text", icon = "ui/icons/initiative.png", text = "【杜衡追风丸】身法 [color=" + pos + "]+18[/color]，远防 [color=" + pos + "]+5[/color]" });
+			ret.push({ id = 14, type = "text", icon = "ui/icons/initiative.png", text = "【杜衡追风丸】身法 [color=" + pos + "]+18[/color]、远防 [color=" + pos + "]+5[/color]；催化轻功穿步/步进招式命中后本轮双防 [color=" + pos + "]+3[/color]" });
 		if (this.m.HasDixiu)
-			ret.push({ id = 15, type = "text", icon = "ui/icons/bravery.png", text = "【帝休定岳丹】定力 [color=" + pos + "]+14[/color]，且免疫震晕击晕" });
+			ret.push({ id = 15, type = "text", icon = "ui/icons/bravery.png", text = "【帝休定岳丹】定力 [color=" + pos + "]+14[/color]、免击晕；装配横练硬功时承受破甲损耗额外 [color=" + pos + "]-12%[/color]" });
 		if (this.m.HasBingxin)
-			ret.push({ id = 16, type = "text", icon = "ui/icons/special.png", text = "【天山雪莲冰心丹】全程免疫奇毒侵害且免除夜战视野惩罚" });
+			ret.push({ id = 16, type = "text", icon = "ui/icons/special.png", text = "【天山雪莲冰心丹】免奇毒免夜盲；主修阴柔内功时受近战反凝寒霜减敌先攻并散气 [color=" + pos + "]3[/color] 点" });
 		if (this.m.HasGuiyuan)
-			ret.push({ id = 17, type = "text", icon = "ui/icons/health.png", text = "【首乌归元培气丸】气血上限 [color=" + pos + "]+18[/color]，每回合回气 [color=" + pos + "]+2[/color]" });
+			ret.push({ id = 17, type = "text", icon = "ui/icons/health.png", text = "【首乌归元培气丸】气血 [color=" + pos + "]+18[/color]、回气 [color=" + pos + "]+2[/color]；辅修第 2 门内功时每轮初额外自愈 [color=" + pos + "]+4[/color] 血、回气 [color=" + pos + "]+2[/color]" });
 		if (this.m.HasBaishe)
-			ret.push({ id = 18, type = "text", icon = "ui/icons/melee_defense.png", text = "【五毒百草辟瘴丸】免疫奇毒，且近防 [color=" + pos + "]+4[/color]、远防 [color=" + pos + "]+4[/color]" });
+			ret.push({ id = 18, type = "text", icon = "ui/icons/melee_defense.png", text = "【五毒百草辟瘴丸】免奇毒、双防 [color=" + pos + "]+4[/color]；受近战攻击时百草药瘴 [color=" + pos + "]30%[/color] 反染来敌【暗器奇毒】" });
 		if (this.m.HasJinzun)
-			ret.push({ id = 19, type = "text", icon = "ui/icons/armor_body.png", text = "【金刚铁骨护体丸】所受气血与护甲伤害减免 [color=" + pos + "]12%[/color]，且免疫击退抓取" });
+			ret.push({ id = 19, type = "text", icon = "ui/icons/armor_body.png", text = "【金刚铁骨护体丸】所受气血与护甲伤害减免 [color=" + pos + "]12%[/color]（严守60%封顶）、免击退；装配横练受近战反削来敌 [color=" + pos + "]6[/color] 身甲" });
 		if (this.m.HasHerbSwift)
 			ret.push({ id = 20, type = "text", icon = "ui/icons/initiative.png", text = "【杜衡奇草】身法临时 [color=" + pos + "]+10[/color]" });
 		if (this.m.HasHerbCalm)
@@ -184,7 +184,10 @@ this.wx_pill_battle_buff <- this.inherit("scripts/skills/skill", {
 		}
 		if (this.m.HasJinzun)
 		{
-			_properties.DamageReceivedRegularMult *= 0.88;
+			if ("CraftBridge" in ::Wuxia)
+				::Wuxia.CraftBridge.multCappedRegularDamageReceived(_properties, 0.88);
+			else
+				_properties.DamageReceivedRegularMult *= 0.88;
 			_properties.DamageReceivedArmorMult *= 0.88;
 			_properties.IsImmuneToKnockBackAndGrab = true;
 		}

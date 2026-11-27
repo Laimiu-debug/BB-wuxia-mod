@@ -146,8 +146,7 @@ this.wx_sect_sanctum <- this.inherit("scripts/entity/world/location", {
 		this.m.WX_AllowCombatEnter = false;
 		this.m.WX_BattleMode = "";
 		this.clearTroops();
-		if ("Loot" in this.m && this.m.Loot != null)
-			this.m.Loot.clear();
+		this.getLoot().clear();
 		try { this.setFaction(0); } catch (_e) {}
 		this.m.LocationType = this.Const.World.LocationType.Unique | this.Const.World.LocationType.Passive;
 		this.m.IsShowingDefenders = false;

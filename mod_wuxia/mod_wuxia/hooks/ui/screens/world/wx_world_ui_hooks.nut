@@ -8,6 +8,36 @@
 ::Wuxia.HooksMod.hook("scripts/ui/screens/world/world_screen", function( q )
 {
 	::Wuxia.UI.attachSectTeaHouseRPCs(q, false, true);
+
+	q.WX_PushSectQuestTracker <- function()
+	{
+		try
+		{
+			if (this.m.JSHandle != null && ("SectRelations" in ::Wuxia) && ("getAllActiveSanctumQuests" in ::Wuxia.SectRelations))
+				this.m.JSHandle.asyncCall("wxUpdateSectQuestTracker", ::Wuxia.SectRelations.getAllActiveSanctumQuests());
+		}
+		catch (_e) {}
+	};
+
+	if (::Wuxia.qHas(q, "show"))
+	{
+		q.show = @(__original) function( _animate = false )
+		{
+			local ret = __original(_animate);
+			this.WX_PushSectQuestTracker();
+			return ret;
+		};
+	}
+
+	if (::Wuxia.qHas(q, "updateContract"))
+	{
+		q.updateContract = @(__original) function( _data = null )
+		{
+			local ret = __original(_data);
+			this.WX_PushSectQuestTracker();
+			return ret;
+		};
+	}
 });
 
 ::Wuxia.HooksMod.hook("scripts/ui/screens/world/world_relations_screen", function( q )
@@ -23,10 +53,75 @@
 // Town Disguise & Appearance Pavilion (`铜镜江湖易容阁` — 1000-Faces Wuxia Customization + Rename + Jianghu Vendetta/Official Disguise)
 ::Wuxia.HooksMod.hook("scripts/ui/screens/world/modules/world_town_screen/town_barber_dialog_module", function( q )
 {
+	if (!::Wuxia.qHas(q, "onWXShowcaseSound"))
+	{
+		q.onWXShowcaseSound <- function( _cue )
+		{
+			local key = (typeof _cue == "array" && _cue.len() > 0) ? _cue[0] : _cue;
+			::Wuxia.UI.playShowcaseSound(key);
+			return { ok = true };
+		};
+	}
+
+	q.m.WX_BarberBareHeadMode <- true;
+
+	q.WX_RestoreAllBarberPreviews <- function( _keepBro = null )
+	{
+		if (!("World" in getroottable()) || ::World == null || ::World.getPlayerRoster() == null)
+			return [];
+		local restored = [];
+		local keepID = (_keepBro != null) ? ("" + _keepBro.getID()) : "";
+		foreach (b in ::World.getPlayerRoster().getAll())
+		{
+			if (b == null || !b.isAlive() || !("m" in b)) continue;
+			if (keepID != "" && ("" + b.getID()) == keepID) continue;
+			if (("WX_PreviewBareHead" in b.m) && b.m.WX_PreviewBareHead)
+			{
+				b.m.WX_PreviewBareHead = false;
+				if (b.getItems() != null && ::Wuxia.hasMember(b.getItems(), "updateAppearance"))
+					b.getItems().updateAppearance();
+				::Wuxia.Appearance.refreshActorSprites(b);
+				if ("Armory" in ::Wuxia && "syncActorHandheldAndArmor" in ::Wuxia.Armory)
+					::Wuxia.Armory.syncActorHandheldAndArmor(b);
+				if (::Wuxia.hasMember(b, "setDirty")) b.setDirty(true);
+				restored.push({ broId = b.getID(), imagePath = b.getImagePath() });
+			}
+		}
+		return restored;
+	};
+
+	q.WX_HasEquippedHeadgear <- function( _bro )
+	{
+		if (_bro == null || !::Wuxia.hasMember(_bro, "getItems") || _bro.getItems() == null) return false;
+		local headItem = _bro.getItems().getItemAtSlot(::Const.ItemSlot.Head);
+		if (headItem == null) return false;
+		local cond = ::Wuxia.hasMember(headItem, "getCondition") ? headItem.getCondition() : (::Wuxia.hasMember(headItem.m, "Condition") ? headItem.m.Condition : 1);
+		return cond > 0;
+	};
+
+	q.WX_SyncBarberPreviewForBro <- function( _bro )
+	{
+		local restored = this.WX_RestoreAllBarberPreviews(_bro);
+		if (_bro == null || !("m" in _bro)) return restored;
+		local wantBare = this.m.WX_BarberBareHeadMode && this.WX_HasEquippedHeadgear(_bro);
+		local prevBare = ("WX_PreviewBareHead" in _bro.m) ? (_bro.m.WX_PreviewBareHead ? true : false) : false;
+		_bro.m.WX_PreviewBareHead <- wantBare;
+		if (prevBare && !wantBare && _bro.getItems() != null && ::Wuxia.hasMember(_bro.getItems(), "updateAppearance"))
+			_bro.getItems().updateAppearance();
+		::Wuxia.Appearance.getOrInitState(_bro);
+		::Wuxia.Appearance.refreshActorSprites(_bro);
+		if ("Armory" in ::Wuxia && "syncActorHandheldAndArmor" in ::Wuxia.Armory)
+			::Wuxia.Armory.syncActorHandheldAndArmor(_bro);
+		if (prevBare != wantBare && ::Wuxia.hasMember(_bro, "setDirty"))
+			_bro.setDirty(true);
+		return restored;
+	};
+
 	if (::Wuxia.qHas(q, "queryRosterInformation"))
 	{
 		q.queryRosterInformation = @(__original) function()
 		{
+			this.WX_RestoreAllBarberPreviews(null);
 			local ret = __original();
 			if (ret != null && typeof ret == "table")
 			{
@@ -37,6 +132,18 @@
 		};
 	}
 
+	foreach (exitFn in ["onLeaveButtonPressed", "onModuleHidden", "clear", "destroy"])
+	{
+		if (::Wuxia.qHas(q, exitFn))
+		{
+			q[exitFn] = @(__original) function()
+			{
+				this.WX_RestoreAllBarberPreviews(null);
+				return __original();
+			};
+		}
+	}
+
 	if (::Wuxia.qHas(q, "onEntrySelected"))
 	{
 		q.onEntrySelected = @(__original) function( _entityID )
@@ -44,6 +151,7 @@
 			local bro = this.WX_FindBro(_entityID);
 			if (bro != null)
 			{
+				// The following state query returns all restored thumbnails to the UI.
 				::Wuxia.Appearance.getOrInitState(bro);
 				::Wuxia.Appearance.refreshActorSprites(bro);
 				return bro.getImagePath();
@@ -76,11 +184,12 @@
 		local roster = ::World.getPlayerRoster().getAll();
 		if (roster == null || roster.len() == 0)
 			return null;
-		if (_id != null && _id != 0)
+		if (_id != null && _id != 0 && ("" + _id) != "" && ("" + _id) != "0")
 		{
+			local targetStr = "" + _id;
 			foreach (b in roster)
 			{
-				if (b != null && b.getID() == _id)
+				if (b != null && ("" + b.getID()) == targetStr)
 					return b;
 			}
 		}
@@ -98,7 +207,7 @@
 		return ::Math.max(0, _cooldownDays - (curDay - lastDay));
 	};
 
-	q.WX_BuildDisguiseData <- function( _bro )
+	q.WX_BuildDisguiseData <- function( _bro, _restoredBros = null )
 	{
 		if (_bro == null)
 			return { ok = false, reason = "未找到该名侠客。" };
@@ -106,6 +215,8 @@
 		local st = ::Wuxia.Appearance.getOrInitState(_bro);
 		::Wuxia.Appearance.refreshActorSprites(_bro);
 		local labels = ::Wuxia.Appearance.getLabelsForState(st, _bro);
+		local hasHeadgear = this.WX_HasEquippedHeadgear(_bro);
+		local previewBareHead = hasHeadgear && ("WX_PreviewBareHead" in _bro.m) && _bro.m.WX_PreviewBareHead;
 
 		local money = ("World" in getroottable() && ::World != null && ::World.Assets != null) ? ::World.Assets.getMoney() : 0;
 		local curDay = ("World" in getroottable() && ::World != null && ::World.getTime() != null) ? ::World.getTime().Days : 1;
@@ -172,6 +283,9 @@
 			title            = _bro.getTitle(),
 			fullName         = _bro.getName(),
 			imagePath        = _bro.getImagePath(),
+			hasHeadgear      = hasHeadgear,
+			previewBareHead  = previewBareHead,
+			restoredBros     = (_restoredBros != null) ? _restoredBros : [],
 			labels           = labels,
 			money            = money,
 			hostileSectCount = hostileSectCount,
@@ -188,7 +302,21 @@
 	q.onWXBarberGetState <- function( _data )
 	{
 		local broID = (typeof _data == "array" && _data.len() > 0) ? _data[0] : _data;
-		return this.WX_BuildDisguiseData(this.WX_FindBro(broID));
+		local bro = this.WX_FindBro(broID);
+		local restored = this.WX_SyncBarberPreviewForBro(bro);
+		return this.WX_BuildDisguiseData(bro, restored);
+	};
+
+	q.onWXBarberToggleHat <- function( _data )
+	{
+		local broID = (typeof _data == "array" && _data.len() > 0) ? _data[0] : _data;
+		local bro = this.WX_FindBro(broID);
+		if (bro == null)
+			return { ok = false, reason = "未找到该名侠客。" };
+		this.m.WX_BarberBareHeadMode = !this.m.WX_BarberBareHeadMode;
+		local restored = this.WX_SyncBarberPreviewForBro(bro);
+		if (::Wuxia.hasMember(bro, "setDirty")) bro.setDirty(true);
+		return this.WX_BuildDisguiseData(bro, restored);
 	};
 
 	q.onWXBarberStepPart <- function( _data )
@@ -200,6 +328,9 @@
 			return { ok = false, reason = "未找到该名侠客。" };
 
 		::Wuxia.Appearance.stepAppearance(bro, "" + _data[1], _data[2]);
+		if ("Armory" in ::Wuxia && "syncActorHandheldAndArmor" in ::Wuxia.Armory)
+			::Wuxia.Armory.syncActorHandheldAndArmor(bro);
+		if (::Wuxia.hasMember(bro, "setDirty")) bro.setDirty(true);
 		if ("WorldVisuals" in ::Wuxia && "syncPlayerLeadAppearance" in ::Wuxia.WorldVisuals)
 			::Wuxia.WorldVisuals.syncPlayerLeadAppearance();
 
@@ -269,6 +400,7 @@
 		::World.Flags.set("wx_disguise_vendetta_day", curDay);
 
 		local easedNames = [];
+		local easedDeltas = [];
 		local despawnedHunt = 0;
 		local feudCapped = false;
 		local limit = ::Math.min(2, cands.len());
@@ -281,6 +413,7 @@
 			local afterRel = ::Wuxia.SectRelations.addRelation(entry.id, gain, true);
 			::Wuxia.SectRelations.discoverSect(entry.id);
 			easedNames.push("【" + entry.name + "】(" + entry.rel + "→" + afterRel + (entry.feud ? "·血仇未平" : "") + ")");
+			easedDeltas.push({ name = entry.name, oldRel = entry.rel, newRel = afterRel, tag = entry.feud ? "血仇暂缓" : "追缉消解" });
 
 			local huntFlag = "wx_hunt_" + entry.id + "_id";
 			if (::World.Flags.has(huntFlag))
@@ -300,8 +433,22 @@
 		}
 
 		local res = this.WX_BuildDisguiseData(bro);
+		if ("UIDataHelper" in getroottable() && ::UIDataHelper != null && "convertAssetsInformationToUIData" in ::UIDataHelper)
+			res.assets <- ::UIDataHelper.convertAssetsInformationToUIData();
 		local feudNote = feudCapped ? "（踢馆血仇非一纸易容可尽消，仅暂缓少许风声）" : "";
-		res.actionMessage <- "易容敛息：耗银 " + cost + " 两改换形貌暗记，已消解 " + easedNames[0] + (easedNames.len() > 1 ? ("、" + easedNames[1]) : "") + " 之追缉敌意" + (despawnedHunt > 0 ? "，并甩脱城外追杀执事队！" : "！") + feudNote;
+		local vMsg = "易容敛息：耗银 " + cost + " 两改换形貌暗记，已消解 " + easedNames[0] + (easedNames.len() > 1 ? ("、" + easedNames[1]) : "") + " 之追缉敌意" + (despawnedHunt > 0 ? "，并甩脱城外追杀执事队！" : "！") + feudNote;
+		res.actionMessage <- vMsg;
+		res.wxShowcase <- {
+			kind          = "disguise",
+			outcome       = despawnedHunt > 0 ? "crit" : "warded",
+			title         = "铜镜烟岚 · 千面敛息",
+			subtitle      = "耗纹银 " + cost + " 两改换形貌暗记，消解宗门追缉敌意",
+			ritualCaption = "铜镜烟岚 · 千面敛息……",
+			deltas        = easedDeltas,
+			despawnedHunt = despawnedHunt,
+			stampText     = feudCapped ? "风声暂缓" : "千面敛息",
+			message       = vMsg
+		};
 		return res;
 	};
 
@@ -344,10 +491,26 @@
 
 		::World.Assets.addMoney(-cost);
 		::World.Flags.set("wx_disguise_faction_day", ::World.getTime().Days);
+		local beforeFacRel = ::Math.round(lowestRel).tointeger();
 		bestFac.addPlayerRelation(12.0, "易容改换路引、托暗桩周旋");
+		local afterFacRel = ::Math.round(bestFac.getPlayerRelation()).tointeger();
 
 		local res = this.WX_BuildDisguiseData(bro);
-		res.actionMessage <- "伪造官凭：耗银 " + cost + " 两托驿馆暗桩换发路引，【" + bestFac.getName() + "】对义社之盘查敌意已显著缓和（关系 +12）！";
+		if ("UIDataHelper" in getroottable() && ::UIDataHelper != null && "convertAssetsInformationToUIData" in ::UIDataHelper)
+			res.assets <- ::UIDataHelper.convertAssetsInformationToUIData();
+		local fMsg = "伪造官凭：耗银 " + cost + " 两托驿馆暗桩换发路引，【" + bestFac.getName() + "】对义社之盘查敌意已显著缓和（关系 +12）！";
+		res.actionMessage <- fMsg;
+		res.wxShowcase <- {
+			kind          = "disguise",
+			outcome       = "warded",
+			title         = "暗桩通关节 · 官凭路引成",
+			subtitle      = "耗纹银 " + cost + " 两换发新路引，驿路盘查大幅缓和",
+			ritualCaption = "驿馆暗桩 · 换发官凭路引……",
+			deltas        = [{ name = bestFac.getName(), oldRel = beforeFacRel, newRel = afterFacRel, tag = "官凭通达 (+12)" }],
+			despawnedHunt = 0,
+			stampText     = "官凭通达",
+			message       = fMsg
+		};
 		return res;
 	};
 
@@ -385,6 +548,16 @@
 // Town Shop: 1-click sweep into 藏经阁 + auto-sweep newly purchased manuals/pages on leaving shop (respecting WithdrawnForSale)
 ::Wuxia.HooksMod.hook("scripts/ui/screens/world/modules/world_town_screen/town_shop_dialog_module", function( q )
 {
+	if (!::Wuxia.qHas(q, "onWXShowcaseSound"))
+	{
+		q.onWXShowcaseSound <- function( _cue )
+		{
+			local key = (typeof _cue == "array" && _cue.len() > 0) ? _cue[0] : _cue;
+			::Wuxia.UI.playShowcaseSound(key);
+			return { ok = true };
+		};
+	}
+
 	q.onWXSweepShopManuals <- function( _data = null )
 	{
 		if (!("World" in getroottable()) || ::World == null || ::World.Assets == null)
@@ -393,12 +566,15 @@
 		local stash = ::World.Assets.getStash();
 		local moved = ::Wuxia.Library.storeAllFromStash(stash, true);
 		local msg = "";
+		local shortSum = "";
 		if (moved.booksMoved > 0 || moved.pagesMoved > 0)
 		{
 			local parts = [];
-			if (moved.booksMoved > 0) parts.push(moved.booksMoved + " 册秘籍");
-			if (moved.pagesMoved > 0) parts.push(moved.pagesMoved + " 张残页");
+			local sp = [];
+			if (moved.booksMoved > 0) { parts.push(moved.booksMoved + " 册秘籍"); sp.push("秘籍×" + moved.booksMoved); }
+			if (moved.pagesMoved > 0) { parts.push(moved.pagesMoved + " 张残页"); sp.push("残页×" + moved.pagesMoved); }
 			msg = "已将仓库内 " + parts[0] + (parts.len() > 1 ? ("、" + parts[1]) : "") + " 归入【藏经阁】，释放 " + moved.slotsCleared + " 格仓库空间！";
+			shortSum = (sp.len() == 2 ? (sp[0] + " · " + sp[1]) : sp[0]) + " 入阁";
 		}
 		else
 		{
@@ -409,6 +585,7 @@
 		return {
 			ok             = true,
 			movedCount     = moved.booksMoved + moved.pagesMoved,
+			sweepSummary   = shortSum,
 			actionMessage  = msg,
 			Stash          = stashUI,
 			StashSpaceUsed = stash.getNumberOfFilledSlots(),
@@ -434,6 +611,16 @@
 // Post-Battle Combat Result Screen: Protect dropped manuals/pages from full-Stash loss by sweeping directly into 藏经阁!
 ::Wuxia.HooksMod.hook("scripts/ui/screens/tactical/tactical_combat_result_screen", function( q )
 {
+	if (!::Wuxia.qHas(q, "onWXShowcaseSound"))
+	{
+		q.onWXShowcaseSound <- function( _cue )
+		{
+			local key = (typeof _cue == "array" && _cue.len() > 0) ? _cue[0] : _cue;
+			::Wuxia.UI.playShowcaseSound(key);
+			return { ok = true };
+		};
+	}
+
 	q.WX_sweepLootAndStashToLibrary <- function( _includeWithdrawn = false )
 	{
 		local booksMoved = 0;
@@ -461,12 +648,15 @@
 	{
 		local swept = this.WX_sweepLootAndStashToLibrary(true);
 		local msg = "";
+		local shortSum = "";
 		if (swept.booksMoved > 0 || swept.pagesMoved > 0)
 		{
 			local parts = [];
-			if (swept.booksMoved > 0) parts.push(swept.booksMoved + " 册秘籍");
-			if (swept.pagesMoved > 0) parts.push(swept.pagesMoved + " 张残页");
+			local sp = [];
+			if (swept.booksMoved > 0) { parts.push(swept.booksMoved + " 册秘籍"); sp.push("秘籍×" + swept.booksMoved); }
+			if (swept.pagesMoved > 0) { parts.push(swept.pagesMoved + " 张残页"); sp.push("残页×" + swept.pagesMoved); }
 			msg = "已将战利品与仓库中 " + parts[0] + (parts.len() > 1 ? ("、" + parts[1]) : "") + " 直接归入【藏经阁】（不占仓库格）！";
+			shortSum = (sp.len() == 2 ? (sp[0] + " · " + sp[1]) : sp[0]) + " 入阁";
 		}
 		else
 		{
@@ -476,6 +666,7 @@
 		local res = {
 			ok             = true,
 			movedCount     = swept.booksMoved + swept.pagesMoved,
+			sweepSummary   = shortSum,
 			wxSweepMessage = msg
 		};
 		if (::Wuxia.hasMember(this, "onQueryStashList"))
@@ -538,25 +729,25 @@
 		["menu-screen.new-campaign.Ironman"]                  = ["生死无悔（铁人单档）", "江湖落子无悔：全程仅保留单一自动存档，不可手动回档重来，每一次生死抉择皆成定局。"],
 		["menu-screen.new-campaign.Exploration"]              = ["迷雾山河（舆图未探）", "九州城池与道路初始隐没于云雾之中，需亲自策马探路寻访各州府重镇。"],
 
-		// 2. Character & Tactical Attributes (`character-stats.*`)
-		["character-stats.Hitpoints"]      = ["气血", "侠客肉身气血之本，归零即重伤倒地乃至殒命。轻装修《金蝉卸力》与真气护体可化劲减伤（总上限 60%）；重甲修《铁布衫》可获气血加持与铜头铁额免爆头重创。"],
-		["character-stats.ActionPoints"]   = ["招式行动点 (AP)", "每回合走位腾挪与施展外功绝招可用的行动点。常人基准 9 AP，全局常驻硬封顶 11 AP（唯极少数孤本三重大成可破境）。"],
-		["character-stats.Fatigue"]        = ["丹田内息", "施展外功招式、轻功身法及格挡受击皆会消耗内息。沉重甲胄与兵刃负重会折损可用内息上限（重甲硬功『披甲行气』可减免负重）；辅修第 2 门内功常驻内息与回气按 50% 折算。"],
-		["character-stats.MaximumFatigue"] = ["内息上限", "丹田所能蓄纳的最大真气总量。沉重衣甲与兵刃会占用部分内息上限；主修内功心法决定回气路数（中正/阳刚/阴柔/邪功）与每轮调息回气效率。"],
-		["character-stats.Bravery"]        = ["武道定力", "临阵不乱的心性与胆魄。定力不仅抵御战意动摇与邪祟惊魂，更直接提升『洗经伐髓』成功率、满足高阶秘籍突破门槛，并驱动《聚义令》四格稳军心光环。"],
-		["character-stats.Initiative"]     = ["轻功身法", "决定每回合出手快慢先后；受当前已耗内息与衣甲负重影响。修习轻功后可将有效身法按比例（15%~20%）实时转化为近身招架与听风避暗。"],
-		["character-stats.MeleeSkill"]     = ["近战武艺", "决定刀剑、拳掌、枪戟、锤斧等近身兵刃的命中机率（D100 线性检定，5%~95% 硬边界）。兼修多门外功时常驻武艺加成取最高值，主动招式池可合并。"],
-		["character-stats.RangeSkill"]     = ["百步射艺", "决定良弓、强弩、甩手暗器与神机火铳的远距命中机率。配合弓术或唐门暗器谱可施展毒针封穴、流星追月等绝技。"],
-		["character-stats.MeleeDefense"]   = ["近身招架", "拆解卸开敌方近身兵刃攻势之机率。由角色根骨、外功守势、手中藤牌铁盾与轻功身法转化共同构筑。"],
-		["character-stats.RangeDefense"]   = ["听风避暗", "闪避拨落敌方箭矢、吹箭与飞镖暗器之机率。轻功身法与护身盾牌可大幅提升避暗造诣。"],
-		["character-stats.Morale"]         = ["临阵战意", "侠客当下的斗志状态（自信昂扬 → 沉着 → 动摇 → 胆寒 → 溃逃）。战意高涨可获攻防精进，溃败则失魂落魄。"],
-		["character-stats.ArmorHead"]      = ["头部护甲", "冠笠兜鍪可替天灵要穴承受兵刃劈刺；一旦护甲碎尽，头部受击将承受额外重创（修习『铜头铁额』可免疫爆头额外倍率）。"],
-		["character-stats.ArmorBody"]      = ["身躯护甲", "战袍甲胄可吸收敌方实伤冲击；唯高穿甲内劲拳掌、透甲锥匕与重锤破甲劲力能隔甲伤及肺腑。"],
-		["character-stats.RegularDamage"]  = ["兵刃气血伤害", "命中敌手时所造成的基础劈刺内劲伤害区间；若敌方有护甲，将按穿甲率直接透伤气血。"],
-		["character-stats.CrushingDamage"] = ["破甲震击效能", "命中护甲时削损敌方甲胄耐久之倍率；锤锏大斧与阳刚重兵尤为擅长摧甲裂盾。"],
-		["character-stats.ChanceToHitHead"]= ["取首命中率", "出招直击敌方天灵头部的机率；连枷软鞭与特定外功杀招更易越盾取首。"],
-		["character-stats.SightDistance"]  = ["目力视野", "战场可洞察敌踪与施展远射的距离格数；黑夜、密林与覆面重盔会遮蔽目力。"],
-		["character-stats.Talent"]         = ["武学根骨星级", "该项属性的天生经脉资质（1★~3★），升级加点时可获更高成长下限；亦可通过服用『洗髓丹』冲星或易筋换星（全身最多维持三项带星根骨）。"],
+		// 2. Character & Tactical Attributes (`character-stats.*`) — Pure, concise Wuxia lore & clarity
+		["character-stats.Hitpoints"]      = ["气血", "侠客肉身精血之本。临阵受创会折损气血，一旦耗尽便会重伤倒地，乃至殒命沙场。"],
+		["character-stats.ActionPoints"]   = ["行动力", "每回合腾挪步法、切换兵刃与施展招式所需之气力。寻常侠客每回合拥有九点行动力，唯有功参造化者方能借绝世武学再破常限。"],
+		["character-stats.Fatigue"]        = ["丹田内息", "侠客当前可供调运的丹田真气。施展外功招式、催动轻功及格挡受击皆会消耗内息，每回合调息自会回气；沉重甲胄与兵刃亦会压损可用内息。"],
+		["character-stats.MaximumFatigue"] = ["内息上限", "丹田经脉所能蓄纳的真气总量。披挂沉重甲胄与重兵会占用部分内息，而修习内功心法可拓宽丹田气海、增益每回合回气之速。"],
+		["character-stats.Bravery"]        = ["武道定力", "临阵不乱的心志与胆魄。定力深厚者面对强敌合围或邪祟惊魂皆能稳守心神不致溃散，且更易参透高深武学、承受洗经伐髓之苦。"],
+		["character-stats.Initiative"]     = ["轻功身法", "决定每回合出招先后之快慢。身法愈轻灵，愈能抢占先机；修习轻功后，更可借灵动身法化作招架与避暗之资。已耗内息与衣甲负重皆会拖慢身法。"],
+		["character-stats.MeleeSkill"]     = ["近战武艺", "执掌刀剑、拳掌、枪戟、斧锤等近身兵刃攻敌破招之造诣。武艺愈高，出招愈是精准凌厉，难以被敌手拆解闪避。"],
+		["character-stats.RangeSkill"]     = ["百步射艺", "运用良弓、强弩、暗器与火铳远距制敌之造诣。射艺愈精，百步穿杨、破空取敌之准头愈高。"],
+		["character-stats.MeleeDefense"]   = ["近身招架", "临阵拆解、格挡与卸开敌方近身攻势之造诣。招架愈高，敌方兵刃愈难伤及分毫。"],
+		["character-stats.RangeDefense"]   = ["听风避暗", "听声辨位、闪避与拨落敌方箭矢、吹箭及暗器之造诣。轻灵身法与手中盾牌皆有助于避暗护身。"],
+		["character-stats.Morale"]         = ["临阵战意", "侠客当下的斗志心境，由自信昂扬、沉着至动摇、胆寒乃至溃逃。战意高涨时攻守俱增，心神崩溃则无心恋战。"],
+		["character-stats.ArmorHead"]      = ["头部护甲", "冠笠兜鍪所提供的要害防护，可先替头颅承受兵刃劈刺。一旦护甲破损殆尽，天灵要害受创将远比身躯更为凶险。"],
+		["character-stats.ArmorBody"]      = ["身躯护甲", "衣甲战袍所提供的躯干防护，可大幅抵消寻常刀剑劈砍。唯透甲内劲、重锤震荡或破甲利刃方能隔甲伤及肺腑。"],
+		["character-stats.RegularDamage"]  = ["兵刃伤害", "当前兵刃命中敌手时造成的基础气血创伤区间；若敌方披甲，将依兵刃透甲劲力折算直伤。"],
+		["character-stats.CrushingDamage"] = ["破甲威势", "当前兵刃击中甲胄时削损其耐久的强弱。重锤、大斧与刚猛兵刃尤为擅长震裂铁甲。"],
+		["character-stats.ChanceToHitHead"]= ["取首机率", "出招直指敌方头颅要害之机率。软鞭、连枷与部分凌厉杀招尤易越盾取首。"],
+		["character-stats.SightDistance"]  = ["目力视野", "战场中洞察敌踪与施展远射所及的格数。夜色、密林与覆面重盔皆会缩减目力。"],
+		["character-stats.Talent"]         = ["武学根骨", "侠客某项属性的天生经脉资质，分为一星至三星。星数愈高，境界提升时进境愈佳；服用洗髓丹亦可重塑经脉资质。"],
 
 		// 3. Town Screen Buildings (`world-town-screen.main-dialog-module.*`)
 		["world-town-screen.main-dialog-module.Crowd"]        = ["江湖招贤茶摊", "各路走镖趟子手、行脚武僧、退隐剑客与落魄武人在此歇脚寻东家；可查看身价、切磋看相并招揽入伙。"],
@@ -594,7 +785,7 @@
 		["character-screen.right-panel-header-module.PerksButton"]     = ["武学修为（七槽经脉）", "进入该侠客的七大武学插槽、个人已习武库与洗经伐髓修行界面。"],
 		["character-screen.left-panel-header-module.Dismiss"]          = ["遣散归乡", "赠予路费或令该名侠客解甲归田、重返江湖人海。"],
 		["world-screen.topbar.options-module.ActiveContractButton"]    = ["当前江湖委托卷宗", "展开或收起正在履行的差事榜文要略。"],
-		["world-screen.topbar.options-module.RelationsButton"]         = ["江湖录 · 朝堂与百草丹经", "查阅各大地方藩镇交情，并可在此翻阅随身只读卷宗『江湖宗门名刺』与『丹经手札·百草器谱』（结交宗门请赴酒肆茶座或山门；开炉炼丹与重锻请赴城镇百工坊）。"],
+		["world-screen.topbar.options-module.RelationsButton"]         = ["江湖录 · 朝堂与百草丹经", "查阅各大地方藩镇交情，并可在此翻阅随身卷宗『江湖宗门名刺』与『丹经手札·百草器谱』（结交宗门请赴酒肆茶座或山门；开炉炼丹与重锻请赴城镇百工坊）。"],
 		["world-screen.topbar.options-module.CampButton"]              = ["安营扎寨调息", "就地驻马扎营，加快气血疗伤与兵甲修缮。"],
 		["world-screen.topbar.options-module.ObituaryButton"]          = ["忠烈英魂录", "缅怀自开山立社以来血洒疆场、马革裹尸的逝去同袍。"],
 		["world-screen.topbar.options-module.PerksButton"]             = ["行营篝火 · 江湖幕僚", "打开行营幕僚界面，延请丹鼎方士、百炼随匠、杏林医官等十八路江湖奇人随军襄助，并可扩建重装镖车。"],
@@ -604,7 +795,8 @@
 
 		// 5. Options Menu -> Gameplay: Wuxia Combat VFX & Actor Motion Toggles
 		["menu-screen.options.WXSkillVfx"]    = ["显示武学招式特效动画", "开启后，施展武学招式、轻功与内功心法时将播放渐入渐出的气芒、残影与法相特效（战斗加载时一次性预载至显存，消除施法卡顿）；关闭后仅保留简洁打击反馈并进一步降低战斗显存占用。"],
-		["menu-screen.options.WXActorMotion"] = ["启用侠客出招身法动作", "开启后，侠客出招与受击时将演出蓄力后撤、疾驰突进、腾空劈斩、旋风回旋、瞬步闪袭以及受击击退/侧身闪避身法；关闭后恢复原版静态摇晃表现。"]
+		["menu-screen.options.WXActorMotion"] = ["启用侠客出招身法动作", "开启后，侠客出招与受击时将演出蓄力后撤、疾驰突进、腾空劈斩、旋风回旋、瞬步闪袭以及受击击退/侧身闪避身法；关闭后恢复原版静态摇晃表现。"],
+		["menu-screen.options.WXSkillCutIn"]  = ["显示招式特写横幅与屏幕压暗", "开启后，施展武学招式时将在屏幕左上角弹出招式书法横幅并伴随屏幕暗角与边缘光效；默认关闭，以保持战场视野清爽。"]
 	};
 
 	if (!("UI" in ::Wuxia)) ::Wuxia.UI <- {};
@@ -731,6 +923,303 @@
 		}
 	}
 });
+
+// High-Contrast Parchment Item Tooltip Rarity & Tier Metadata (Zero-Mutation Title Metadata for Frontend + Custom Item Helpers)
+::Wuxia.UI.ItemTierColors <- [
+	"#1b1510", // 0: 凡品 / 常规
+	"#0b4a1e", // 1: 良工 / 百工奇物 / 门派上乘 / 精工 / 灵纹
+	"#50187d", // 2: 百炼 / 传世名器 / 绝学 / 珍稀奇草 / 大妖内丹
+	"#7c1414"  // 3: 神工 / 山海神兵 / 江湖孤本 / 丹霞极品 / 太古神丹
+];
+
+::Wuxia.UI.getQualityTooltipColor <- function( _quality )
+{
+	if (_quality == "unique") return "#7c1414";
+	if (_quality == "secret") return "#50187d";
+	if (_quality == "sect")   return "#0b4a1e";
+	return "#3f362a";
+};
+
+::Wuxia.UI.getNatureTooltipColor <- function( _nature )
+{
+	if ("Alchemy" in ::Wuxia.Config && "AuxInfusions" in ::Wuxia.Config.Alchemy && (_nature in ::Wuxia.Config.Alchemy.AuxInfusions))
+	{
+		local spec = ::Wuxia.Config.Alchemy.AuxInfusions[_nature];
+		if ("TooltipColor" in spec) return spec.TooltipColor;
+	}
+	if (_nature == "vital")  return "#0a4213";
+	if (_nature == "yang")   return "#721010";
+	if (_nature == "yin")    return "#094039";
+	if (_nature == "spirit") return "#4b1c76";
+	if (_nature == "venom")  return "#334d08";
+	if (_nature == "origin") return "#5e2c00";
+	return "#3f362a";
+};
+
+::Wuxia.UI.resolveItemTooltipMeta <- function( _item )
+{
+	local res = { Tier = 0, Tag = "", TitleColor = ::Wuxia.UI.ItemTierColors[0] };
+	if (typeof _item != "table" || !::Wuxia.hasMember(_item, "m") || _item.m == null)
+		return res;
+
+	local m = _item.m;
+
+	// 1. Martial Manuals & Fragment Pages (`wx_manual_item` / `wx_page_item`)
+	if (::Wuxia.hasMember(m, "ManualID") && m.ManualID != null && m.ManualID != "" && ("Slots" in ::Wuxia))
+	{
+		local mdef = ::Wuxia.Slots.getManualDef(m.ManualID);
+		if (mdef != null)
+		{
+			local q = ("Quality" in mdef) ? mdef.Quality : "common";
+			if (q == "unique")      { res.Tier = 3; res.Tag = "江湖孤本"; }
+			else if (q == "secret") { res.Tier = 2; res.Tag = "绝学"; }
+			else if (q == "sect")   { res.Tier = 1; res.Tag = "门派上乘"; }
+			else                    { res.Tier = 0; res.Tag = "大路货"; }
+			res.TitleColor = ::Wuxia.UI.ItemTierColors[res.Tier];
+			return res;
+		}
+	}
+
+	// 2. Alchemy Spirit Pills (`wx_pill_item`)
+	if (::Wuxia.hasMember(m, "PillID") && m.PillID != null && m.PillID != "" && ("Pills" in ::Wuxia.Config) && (m.PillID in ::Wuxia.Config.Pills))
+	{
+		local pdef = ::Wuxia.Config.Pills[m.PillID];
+		local pq = ("Quality" in pdef) ? pdef.Quality : "common";
+		local pg = (::Wuxia.hasMember(m, "PillGrade") && typeof m.PillGrade == "integer") ? m.PillGrade : 1;
+		if (pg >= 3)
+		{
+			res.Tier = 3;
+			res.Tag = "丹霞极品";
+		}
+		else if (pq == "unique")
+		{
+			res.Tier = 3;
+			res.Tag = "绝品灵丹";
+		}
+		else if (pq == "secret")
+		{
+			res.Tier = 2;
+			res.Tag = (pg == 2) ? "灵纹秘丹" : "秘传灵丹";
+		}
+		else if (pg == 2)
+		{
+			res.Tier = 1;
+			res.Tag = "灵纹灵丹";
+		}
+		else if (pq == "sect")
+		{
+			res.Tier = 1;
+			res.Tag = "上乘灵丹";
+		}
+		else
+		{
+			res.Tier = 0;
+			res.Tag = "江湖丹药";
+		}
+		res.TitleColor = ::Wuxia.UI.ItemTierColors[res.Tier];
+		return res;
+	}
+
+	// 3. Shan Hai Spirit Herbs (`wx_herb_base`)
+	if (::Wuxia.hasMember(m, "HerbID") && m.HerbID != null && m.HerbID != "" && ("Herbs" in ::Wuxia.Config) && (m.HerbID in ::Wuxia.Config.Herbs))
+	{
+		local hcfg = ::Wuxia.Config.Herbs[m.HerbID];
+		local hq = ("Quality" in hcfg) ? hcfg.Quality : "common";
+		local pot = 0;
+		if ("Alchemy" in ::Wuxia.Config && "HerbNatures" in ::Wuxia.Config.Alchemy && (m.HerbID in ::Wuxia.Config.Alchemy.HerbNatures))
+			pot = ::Wuxia.Config.Alchemy.HerbNatures[m.HerbID].Potency;
+		if (hq == "unique" || pot >= 5)      { res.Tier = 3; res.Tag = "天级仙草"; }
+		else if (hq == "secret" || pot == 4) { res.Tier = 2; res.Tag = "珍稀奇草"; }
+		else if (hq == "sect" || pot == 3)   { res.Tier = 1; res.Tag = "道地灵草"; }
+		else                                 { res.Tier = 0; res.Tag = "山野灵草"; }
+		res.TitleColor = ::Wuxia.UI.ItemTierColors[res.Tier];
+		return res;
+	}
+
+	// 4. Shan Hai Beast / Sovereign Neidan Cores (`wx_shanhai_core_base`)
+	if (::Wuxia.hasMember(m, "CoreID") && m.CoreID != null && m.CoreID != "" && ("ShanHaiCores" in ::Wuxia.Config) && (m.CoreID in ::Wuxia.Config.ShanHaiCores))
+	{
+		local ccfg = ::Wuxia.Config.ShanHaiCores[m.CoreID];
+		local expAmt = ("ExpAmount" in ccfg) ? ccfg.ExpAmount : 200;
+		if (expAmt >= 340)      { res.Tier = 3; res.Tag = "太古神丹"; }
+		else if (expAmt >= 240) { res.Tier = 2; res.Tag = "大妖内丹"; }
+		else                    { res.Tier = 1; res.Tag = "荒野兽丹"; }
+		res.TitleColor = ::Wuxia.UI.ItemTierColors[res.Tier];
+		return res;
+	}
+
+	// 5. Beast Craft Materials (`wx_beast_material_base`)
+	if (::Wuxia.hasMember(m, "MatID") && m.MatID != null && m.MatID != "")
+	{
+		local mVal = ("Value" in m && typeof m.Value == "integer") ? m.Value : 0;
+		if (mVal >= 800) { res.Tier = 2; res.Tag = "绝品奇材"; }
+		else             { res.Tier = 1; res.Tag = "百工奇材"; }
+		res.TitleColor = ::Wuxia.UI.ItemTierColors[res.Tier];
+		return res;
+	}
+
+	// 6. Weapons, Armors, Helmets, Shields, Accessories, Upgrades & Vanilla Items
+	local hasTypeFn = ::Wuxia.hasMember(_item, "isItemType");
+	local IT = ::Const.Items.ItemType;
+	local isWeapon    = hasTypeFn && _item.isItemType(IT.Weapon);
+	local isArmor     = hasTypeFn && _item.isItemType(IT.Armor);
+	local isHelmet    = hasTypeFn && _item.isItemType(IT.Helmet);
+	local isShield    = hasTypeFn && _item.isItemType(IT.Shield);
+	local isAcc       = hasTypeFn && _item.isItemType(IT.Accessory);
+	local isNamed     = hasTypeFn && _item.isItemType(IT.Named);
+	local isLegendary = hasTypeFn && _item.isItemType(IT.Legendary);
+	local isCrafting  = hasTypeFn && _item.isItemType(IT.Crafting);
+	local isTrade     = hasTypeFn && _item.isItemType(IT.TradeGood);
+
+	local tier = 0;
+	local tag = "";
+	local isShanHai = false;
+
+	if (("WX_ShanHaiGearID" in m) && m.WX_ShanHaiGearID != null && m.WX_ShanHaiGearID != "")
+	{
+		isShanHai = true;
+		tier = 3;
+		tag = isWeapon ? "山海神兵" : (isAcc ? "山海奇珍" : "山海神装");
+	}
+	else if (("WX_RelicID" in m) && m.WX_RelicID != null && m.WX_RelicID != "")
+	{
+		local rcfg = ("RelicWeapons" in ::Wuxia.Config && (m.WX_RelicID in ::Wuxia.Config.RelicWeapons))
+			? ::Wuxia.Config.RelicWeapons[m.WX_RelicID]
+			: null;
+		if (rcfg != null && ("IsShanHai" in rcfg) && rcfg.IsShanHai)
+		{
+			isShanHai = true;
+			tier = 3;
+			tag = "山海神兵";
+		}
+		else
+		{
+			tier = 2;
+			tag = "传世名器";
+		}
+	}
+
+	if (isLegendary && tier < 3)
+	{
+		tier = 3;
+		tag = "传世至宝";
+	}
+	else if (isNamed && tier < 2)
+	{
+		tier = 2;
+		tag = isWeapon ? "传世名器" : (isShield ? "传世神盾" : "传世宝甲");
+	}
+
+	local isBeastUpg  = ("UpgID" in m) && m.UpgID != null && m.UpgID != "";
+	local isBeastGear = isBeastUpg || (("WX_BeastGearID" in m) && m.WX_BeastGearID != null && m.WX_BeastGearID != "");
+	if (isBeastGear && tier < 1)
+	{
+		tier = 1;
+		tag = isBeastUpg ? "百工镶缀" : "百工奇物";
+	}
+
+	// Forge Grade elevation (`凡锻 / 良工 / 百炼 / 神工`)
+	if (("WX_ForgeGrade" in m) && m.WX_ForgeGrade != null && typeof m.WX_ForgeGrade == "integer")
+	{
+		local fg = m.WX_ForgeGrade;
+		if (fg >= 3)
+		{
+			tier = 3;
+			tag = isShanHai ? "神工·山海" : "神工";
+		}
+		else if (fg == 2)
+		{
+			if (tier < 2) { tier = 2; tag = "百炼"; }
+			else if (isShanHai) { tag = "百炼·山海"; }
+		}
+		else if (fg == 1)
+		{
+			if (tier < 1) { tier = 1; tag = "良工"; }
+		}
+	}
+
+	// Mid/late-game high-value ordinary steel gear & special loot
+	if (tier == 0)
+	{
+		local val = ("Value" in m && typeof m.Value == "integer") ? m.Value : 0;
+		if (isWeapon || isArmor || isHelmet || isShield)
+		{
+			if (val >= 2000)
+			{
+				tier = 1;
+				tag = isWeapon ? "精工利器" : "精工甲胄";
+			}
+		}
+		else if (isAcc && val >= 1200)
+		{
+			tier = 1;
+			tag = "江湖奇佩";
+		}
+		else if (isCrafting)
+		{
+			tier = 1;
+			tag = "百工材料";
+		}
+		else if (isTrade)
+		{
+			tier = 1;
+			tag = "行商珍货";
+		}
+	}
+
+	res.Tier = tier;
+	res.Tag = tag;
+	res.TitleColor = ::Wuxia.UI.ItemTierColors[tier];
+	return res;
+};
+
+::Wuxia.UI.applyItemTooltipTier <- function( _item, _ret )
+{
+	if (_ret == null || typeof _ret != "array" || _item == null)
+		return _ret;
+	for (local i = 0; i < _ret.len(); i = ++i)
+	{
+		local row = _ret[i];
+		if (row != null && typeof row == "table" && ("type" in row) && row.type == "title")
+		{
+			if (!("wxTier" in row))
+			{
+				local meta = ::Wuxia.UI.resolveItemTooltipMeta(_item);
+				row.wxTier <- meta.Tier;
+				row.wxTierTag <- meta.Tag;
+				row.wxTierColor <- meta.TitleColor;
+			}
+			break;
+		}
+	}
+	return _ret;
+};
+
+foreach (ttClsPath in [
+	"scripts/items/item",
+	"scripts/items/weapons/weapon",
+	"scripts/items/shields/shield",
+	"scripts/items/armor/armor",
+	"scripts/items/helmets/helmet",
+	"scripts/items/accessory/accessory",
+	"scripts/items/armor_upgrades/armor_upgrade",
+	"scripts/items/ammo/ammo",
+	"scripts/items/supplies/food_item",
+	"scripts/items/supplies/money_item"
+])
+{
+	::Wuxia.HooksMod.hook(ttClsPath, function( q )
+	{
+		if (::Wuxia.qHas(q, "getTooltip"))
+		{
+			q.getTooltip = @(__original) function()
+			{
+				local ret = __original();
+				return ::Wuxia.UI.applyItemTooltipTier(this, ret);
+			};
+		}
+	});
+}
 
 // Town Temple Clinic (`古刹济世医馆`): Allow healing temporary `effects.wx_internal_injury` & `effects.wx_scatter_weakness`!
 ::Wuxia.HooksMod.hook("scripts/ui/screens/world/modules/world_town_screen/town_temple_dialog_module", function( q )

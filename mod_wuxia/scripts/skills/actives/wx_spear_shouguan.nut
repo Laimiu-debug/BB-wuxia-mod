@@ -36,10 +36,12 @@ this.wx_spear_shouguan <- this.inherit("scripts/skills/actives/wx_move_base", {
 		local target = _targetTile.getEntity();
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, this.m.WX_VfxBrush);
 		local hit = this.attackEntity(_user, target);
+		if ("Streams" in ::Wuxia) ::Wuxia.Streams.activateSpearWallStance(_user, 2);
 		if (hit && target != null && target.isAlive())
 		{
 			this.wxApplyStatusToTarget(target, "effects.wx_scatter_weakness", "scripts/skills/effects/wx_scatter_weakness");
 		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

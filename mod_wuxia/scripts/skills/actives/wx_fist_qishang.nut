@@ -7,7 +7,7 @@ this.wx_fist_qishang <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_fist_qishang";
 		this.m.Name = "七伤总诀拳";
-		this.m.Description = "一拳既出七股刚柔暗劲齐发：消耗 5 AP、22 内息和 4 点气血（气血须大于 4），总伤 +30%，命中附内伤与破绽。";
+		this.m.Description = "一拳既出七股刚柔暗劲齐发：消耗 5 AP、22 内息和 6 点气血（气血须大于 6），总伤 +18%、穿甲 +10%，命中附内伤与破绽。";
 		this.m.Icon = "skills/wx_fist_qishang.png";
 		this.m.IconDisabled = "skills/wx_fist_qishang_sw.png";
 		this.m.Overlay = "wx_ov_wx_fist_qishang";
@@ -22,28 +22,32 @@ this.wx_fist_qishang <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.MinRange = 1;
 		this.m.MaxRange = 1;
 		this.m.RequiredWeaponTypes = ["Fist"];
-		this.m.DirectDamageMult = 0.45;
+		this.m.DirectDamageMult = 0.40;
 	}
 
 	function onAnySkillUsed( _skill, _targetEntity, _properties )
 	{
 		if (_skill == this)
 		{
-			_properties.DamageTotalMult *= 1.30; _properties.DamageDirectAdd += 0.15;
+			this.wxApplyTagPreHitProps(_targetEntity, _properties);
+			_properties.DamageTotalMult *= 1.18;
+			if ("Streams" in ::Wuxia) ::Wuxia.Streams.addCappedPen(_properties, 0.10);
 		}
 	}
 
 	function isUsable()
 	{
-		return this.wx_move_base.isUsable() && this.getContainer().getActor().getHitpoints() > 4;
+		return this.wx_move_base.isUsable() && this.getContainer().getActor().getHitpoints() > 6;
 	}
 
 	function onUse( _user, _targetTile )
 	{
 		local target = _targetTile.getEntity();
 		local hp = _user.getHitpoints();
-		if (target == null || hp <= 4) return false;
-		_user.setHitpoints(hp - 4);
+		if (target == null || hp <= 6) return false;
+		local elem = ("TileField" in ::Wuxia) ? ::Wuxia.TileField.getPrimaryNeigongElement(_user) : "";
+		local recoil = (elem == "yang" || elem == "harmony") ? 2 : 6;
+		_user.setHitpoints(hp - recoil);
 
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, this.m.WX_VfxBrush);
 		local hit = this.attackEntity(_user, target);
@@ -51,7 +55,9 @@ this.wx_fist_qishang <- this.inherit("scripts/skills/actives/wx_move_base", {
 		{
 			this.wxApplyStatusToTarget(target, "effects.wx_internal_injury", "scripts/skills/effects/wx_internal_injury");
 			this.wxApplyStatusToTarget(target, "effects.wx_status_opening", "scripts/skills/effects/wx_status_opening");
+			this.wxApplyStatusToTarget(target, "effects.wx_scatter_weakness", "scripts/skills/effects/wx_scatter_weakness");
 		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

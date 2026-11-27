@@ -200,12 +200,43 @@
 
 	_actor.m.WX_LoadoutKey <- _archetypeKey;
 
-	// Enemy tiers are fixed by archetype. Keep the same category rules as player slots.
+	local prof = profiles[_archetypeKey];
+	local isBossOrElite = (("IsBoss" in prof) && prof.IsBoss) || loadout.len() >= 3;
+	local threat = ("CombatRules" in ::Wuxia && "getCampaignThreatProfile" in ::Wuxia.CombatRules)
+		? ::Wuxia.CombatRules.getCampaignThreatProfile() : { era = 0 };
+	local era = threat.era;
+
+	// Equip archetype manuals and dynamically scale Manual Tiers (`一重 -> 二重 -> 三重大成`) with campaign Era!
 	local usedSlots = {};
+	local neigongCount = 0;
+	local qinggongCount = 0;
+
 	foreach (entry in loadout)
 	{
 		local def = ::Wuxia.Slots.getManualDef(entry.ManualID);
 		if (def == null) continue;
+		if (def.Category == "neigong" && neigongCount >= 2) continue;
+		if (def.Category == "qinggong" && qinggongCount >= 2) continue;
+
+		local dynTier = entry.Tier;
+		if (era == 1)
+		{
+			if (isBossOrElite) dynTier = ::Math.min(3, dynTier + 1);
+			else if (::Math.rand(1, 100) <= 45) dynTier = ::Math.min(2, dynTier + 1);
+		}
+		else if (era == 2)
+		{
+			dynTier = ::Math.min(isBossOrElite ? 3 : 2, dynTier + 1);
+			if (!isBossOrElite && entry.Tier >= 2) dynTier = ::Math.min(3, entry.Tier + 1);
+		}
+		else if (era == 3)
+		{
+			dynTier = isBossOrElite ? 3 : ::Math.min(3, ::Math.max(2, dynTier + (::Math.rand(1, 100) <= 50 ? 2 : 1)));
+		}
+		else if (era >= 4)
+		{
+			dynTier = 3;
+		}
 
 		for (local i = 0; i < ::Wuxia.Config.SlotLayout.len(); i = ++i)
 		{
@@ -213,17 +244,84 @@
 			if (::Wuxia.Slots.isCategoryAllowedInSlot(i, def.Category))
 			{
 				c.m.Slots[i].ManualID   = entry.ManualID;
-				c.m.Slots[i].Tier       = entry.Tier;
+				c.m.Slots[i].Tier       = dynTier;
 				c.m.Slots[i].Exp        = 0;
 				c.m.Slots[i].IsFragment = false;
 				usedSlots[i] <- true;
+				if (def.Category == "neigong") neigongCount += 1;
+				else if (def.Category == "qinggong") qinggongCount += 1;
 				break;
 			}
 		}
 	}
 
+	// Unlock thematic supplementary slots in Era 1..4 (strictly obeying AGENTS.md <= 2 Neigong, <= 2 Qinggong, 7-slot cap)
+	local tryFillExtraManual = function( _manualID, _tier )
+	{
+		local exDef = ::Wuxia.Slots.getManualDef(_manualID);
+		if (exDef == null) return false;
+		if (exDef.Category == "neigong" && neigongCount >= 2) return false;
+		if (exDef.Category == "qinggong" && qinggongCount >= 2) return false;
+		foreach (slCheck in c.m.Slots)
+		{
+			if (slCheck.ManualID == _manualID) return false;
+		}
+		for (local sIdx = 0; sIdx < ::Wuxia.Config.SlotLayout.len(); sIdx = ++sIdx)
+		{
+			if (sIdx in usedSlots) continue;
+			if (::Wuxia.Slots.isCategoryAllowedInSlot(sIdx, exDef.Category))
+			{
+				c.m.Slots[sIdx].ManualID   = _manualID;
+				c.m.Slots[sIdx].Tier       = ::Math.max(1, ::Math.min(3, _tier));
+				c.m.Slots[sIdx].Exp        = 0;
+				c.m.Slots[sIdx].IsFragment = false;
+				usedSlots[sIdx] <- true;
+				if (exDef.Category == "neigong") neigongCount += 1;
+				else if (exDef.Category == "qinggong") qinggongCount += 1;
+				return true;
+			}
+		}
+		return false;
+	};
+
+	if ((era >= 2 || (era == 1 && isBossOrElite)) && qinggongCount == 0)
+	{
+		local qgID = (era >= 3 && isBossOrElite) ? "wx_manual_taxue" : ((era >= 2 && isBossOrElite) ? "wx_manual_yanxing" : "wx_manual_jianbu");
+		tryFillExtraManual(qgID, isBossOrElite ? ::Math.min(3, era) : ::Math.min(2, era));
+	}
+	if (era >= 2)
+	{
+		local bodyArmorMax = (::Wuxia.hasMember(_actor, "getArmorMax")) ? _actor.getArmorMax(::Const.BodyPart.Body) : 0;
+		local hlID = (bodyArmorMax >= 135)
+			? ((era >= 4 && isBossOrElite) ? "wx_manual_jinzhong" : "wx_manual_tiebushan")
+			: (isBossOrElite ? "wx_manual_jinchan" : "wx_manual_yingpi");
+		tryFillExtraManual(hlID, isBossOrElite ? ::Math.min(3, era) : ::Math.max(1, era - 1));
+	}
+	if (era >= 3 && (isBossOrElite || era >= 4) && neigongCount < 2)
+	{
+		local mainDef = (c.m.Slots[0].ManualID != null) ? ::Wuxia.Slots.getManualDef(c.m.Slots[0].ManualID) : null;
+		local mainEl = (mainDef != null && mainDef.Element != null) ? mainDef.Element : "neutral";
+		local ngID = "wx_manual_songtao";
+		if (isBossOrElite)
+			ngID = (mainEl == "yang") ? "wx_manual_songtao" : "wx_manual_guiyuan";
+		else
+			ngID = (mainEl == "yin" || mainEl == "evil") ? "wx_manual_tuna" : "wx_manual_xingqi";
+		tryFillExtraManual(ngID, isBossOrElite ? ::Math.min(3, era - 1) : 2);
+	}
+
 	c.syncGrantedSkills();
 	local skills = _actor.getSkills();
+
+	// Late-game Jianghu leaders & grandmasters consume battle elixirs before combat in Era 3..4
+	if (era >= 3 && (isBossOrElite || (era >= 4 && ::Math.rand(1, 100) <= 35)) && !skills.hasSkill("effects.wx_pill_battle_buff"))
+	{
+		local pillBuff = ::new("scripts/skills/effects/wx_pill_battle_buff");
+		pillBuff.addPillBuff(isBossOrElite ? "buff_zhuyu" : "buff_hugu");
+		if (era >= 4 && isBossOrElite)
+			pillBuff.addPillBuff("buff_jinzun");
+		skills.add(pillBuff);
+	}
+
 	skills.update();
 
 	// Anti-double-stacking fairness: strip overlapping vanilla defensive perks when an enemy equips equivalent Wuxia manuals!
@@ -249,12 +347,16 @@
 	if (::Wuxia.hasMember(_actor, "getAIAgent") && _actor.getAIAgent() != null)
 	{
 		local agent = _actor.getAIAgent();
+		local addedBeh = false;
 		local ensureBeh = function( _agent, _behID, _behScript )
 		{
 			try
 			{
 				if (::Wuxia.hasMember(_agent, "getBehavior") && _agent.getBehavior(_behID) == null)
+				{
 					_agent.addBehavior(::new(_behScript));
+					addedBeh = true;
+				}
 			}
 			catch (_e) {}
 		};
@@ -279,10 +381,22 @@
 			ensureBeh(agent, ::Const.AI.Behavior.ID.Warcry, "scripts/ai/tactical/behaviors/ai_warcry");
 			ensureBeh(agent, ::Const.AI.Behavior.ID.Rally, "scripts/ai/tactical/behaviors/ai_rally");
 		}
+		if (skills.hasSkill("actives.wx_sword_counter") || skills.hasSkill("actives.wx_poise_charge"))
+			ensureBeh(agent, ::Const.AI.Behavior.ID.Riposte, "scripts/ai/tactical/behaviors/ai_defend_riposte");
+		if (skills.hasSkill("actives.wx_axe_split"))
+			ensureBeh(agent, ::Const.AI.Behavior.ID.SplitShield, "scripts/ai/tactical/behaviors/ai_attack_splitshield");
+		if (skills.hasSkill("actives.wx_shield_tiebi") || skills.hasSkill("actives.wx_shield_xuanwu"))
+			ensureBeh(agent, ::Const.AI.Behavior.ID.ShieldWall, "scripts/ai/tactical/behaviors/ai_defend_shieldwall");
+		if (skills.hasSkill("actives.wx_shield_bash_qi"))
+			ensureBeh(agent, ::Const.AI.Behavior.ID.KnockBack, "scripts/ai/tactical/behaviors/ai_defend_knock_back");
 		if (skills.hasSkill("actives.wx_saber_sweep") || skills.hasSkill("actives.wx_pole_sweep") || skills.hasSkill("actives.wx_axe_whirl")
 			|| skills.hasSkill("actives.wx_sword_wanjian") || skills.hasSkill("actives.wx_saber_abi") || skills.hasSkill("actives.wx_saber_kuanglan")
 			|| skills.hasSkill("actives.wx_fist_rulai") || skills.hasSkill("actives.wx_pole_pojun") || skills.hasSkill("actives.wx_staff_qingou") || skills.hasSkill("actives.wx_hammer_pocheng"))
 			ensureBeh(agent, ::Const.AI.Behavior.ID.Swing, "scripts/ai/tactical/behaviors/ai_attack_swing");
+		if (addedBeh && ::Wuxia.hasMember(agent, "finalizeBehaviors"))
+		{
+			try { agent.finalizeBehaviors(); } catch (_eFin) {}
+		}
 	}
 };
 

@@ -22,7 +22,9 @@ this.wx_crossbow_shenji <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.FatigueCost = 20;
 		this.m.MinRange = 2;
 		this.m.MaxRange = 6;
+		this.m.MaxLevelDifference = 4;
 		this.m.IsRanged = true;
+		this.m.IsIgnoredAsAOO = true;
 		this.m.IsShowingProjectile = true;
 		this.m.ProjectileType = ::Const.ProjectileType.WX_Shenjishi;
 		this.m.IsProjectileRotated = true;

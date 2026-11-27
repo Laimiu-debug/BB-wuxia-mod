@@ -1,4 +1,4 @@
-// Sect Fist Move: 金刚摧心掌 (5 AP, 18 Qi, +20% dmg, +10% armor pen, drains 12 Qi; Tier 3 has 50% stun chance)
+// Sect Fist Move: 金刚摧心掌 (5 AP, 18 Qi, +5% dmg, +8% armor pen, drains 12 Qi; Tier 3 has 50% stun chance)
 
 this.wx_fist_jingang <- this.inherit("scripts/skills/actives/wx_move_base", {
 	m = {},
@@ -12,7 +12,7 @@ this.wx_fist_jingang <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.WX_AnimMode <- "buddha_palm";
 		this.m.WX_ChoreoID <- "wx_fist_jingang";
 		this.m.Name = "金刚摧心掌";
-		this.m.Description = "少室刚猛掌力透甲摧脉：总伤害 +20%、穿甲率 +10%，命中震散目标 12 点内息并致「失衡」；大成后有 50% 几率当场震晕目标 1 回合。";
+		this.m.Description = "少室刚猛掌力透甲摧脉：总伤害 +5%、穿甲率 +8%，命中震散目标 12 点内息并致「失衡」；大成后有 50% 几率当场震晕目标 1 回合。";
 		this.m.KilledString = "一掌震碎心脉";
 		this.m.Icon = "skills/wx_fist_jingang.png";
 		this.m.IconDisabled = "skills/wx_fist_jingang_sw.png";
@@ -32,7 +32,7 @@ this.wx_fist_jingang <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.InjuriesOnBody = this.Const.Injury.BluntBody;
 		this.m.InjuriesOnHead = this.Const.Injury.BluntHead;
 		this.m.RequiredWeaponTypes = ["Fist"];
-		this.m.DirectDamageMult = 0.40;
+		this.m.DirectDamageMult = 0.36;
 		this.m.IsIgnoredAsAOO = true;
 	}
 
@@ -40,8 +40,8 @@ this.wx_fist_jingang <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		if (_skill == this)
 		{
-			_properties.DamageTotalMult *= 1.20;
-			_properties.DamageDirectAdd += 0.10;
+			_properties.DamageTotalMult *= 1.05;
+			_properties.DamageDirectAdd += 0.08;
 		}
 	}
 

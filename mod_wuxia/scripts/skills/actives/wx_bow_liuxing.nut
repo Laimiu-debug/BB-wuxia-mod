@@ -22,7 +22,9 @@ this.wx_bow_liuxing <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.FatigueCost = 18;
 		this.m.MinRange = 2;
 		this.m.MaxRange = 6;
+		this.m.MaxLevelDifference = 4;
 		this.m.IsRanged = true;
+		this.m.IsIgnoredAsAOO = true;
 		this.m.IsShowingProjectile = true;
 		this.m.ProjectileType = ::Const.ProjectileType.WX_Liuxingjian;
 		this.m.IsProjectileRotated = true;

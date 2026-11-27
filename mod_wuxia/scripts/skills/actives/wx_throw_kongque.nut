@@ -16,6 +16,7 @@ this.wx_throw_kongque <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.WX_AnimMode <- "flurry_kongque";
 		this.m.WX_ChoreoID <- "wx_throw_kongque";
 		this.m.IsRanged = true;
+		this.m.IsIgnoredAsAOO = true;
 		this.m.IsShowingProjectile = true;
 		this.m.ProjectileType = ::Const.ProjectileType.WX_Kongqueling;
 		this.m.IsProjectileRotated = true;
@@ -26,6 +27,7 @@ this.wx_throw_kongque <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.FatigueCost = 24;
 		this.m.MinRange = 2;
 		this.m.MaxRange = 4;
+		this.m.MaxLevelDifference = 4;
 		this.m.RequiredWeaponTypes = ["Throwing"];
 		this.m.DirectDamageMult = 0.46;
 	}

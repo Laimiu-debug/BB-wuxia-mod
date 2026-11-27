@@ -16,10 +16,14 @@ this.wx_whip_xiangxi <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.WX_AnimMode <- "whip_xiangxi";
 		this.m.WX_ChoreoID <- "wx_whip_xiangxi";
 		this.m.SoundOnUse = ["sounds/combat/slash_01.wav", "sounds/combat/slash_02.wav"];
+		this.m.SoundOnHit = ["sounds/combat/slash_hit_01.wav", "sounds/combat/slash_hit_02.wav"];
+		this.m.IsShieldRelevant = false;
+		this.m.IsIgnoredAsAOO = true;
 		this.m.ActionPointCost = 4;
 		this.m.FatigueCost = 18;
 		this.m.MinRange = 1;
 		this.m.MaxRange = 2;
+		this.m.MaxLevelDifference = 2;
 		this.m.RequiredWeaponTypes = ["Flail"];
 		this.m.DirectDamageMult = 0.30;
 	}
@@ -27,7 +31,9 @@ this.wx_whip_xiangxi <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		if (_skill == this)
 		{
-			_properties.MeleeSkill += 8; _properties.IsIgnoringShieldBonus = true; if (_targetEntity != null && ::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity)) _properties.DamageTotalMult *= 1.25;
+			_properties.MeleeSkill += 8;
+			if (_targetEntity != null && ::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity))
+				_properties.DamageTotalMult *= 1.25;
 		}
 	}
 

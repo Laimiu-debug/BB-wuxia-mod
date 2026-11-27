@@ -11,6 +11,8 @@ this.wx_boss_erfu <- this.inherit("scripts/entity/tactical/enemies/zombie_betray
 
 	function onDeath( _killer, _skill, _tile, _fatalityType )
 	{
+		if ("ShanHaiMultiBody" in ::Wuxia)
+			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.zombie_betrayer.onDeath(_killer, _skill, _tile, _fatalityType);
 		::Wuxia.ShanHai.dropBossCore("boss_erfu", _tile);
 	}

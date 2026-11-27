@@ -42,6 +42,8 @@ this.wx_tactics_kuiniu <- this.inherit("scripts/skills/skill", {
 		this.m.ActiveBuff = true;
 		this.m.Cooldown = 3;
 		::Wuxia.VFX.playSkillVfx(this, _user, _user.getTile(), this.m.WX_VfxBrush);
+		if (_user.getTile() != null && ("TileField" in ::Wuxia))
+			::Wuxia.TileField.dispelFieldsInRadius(_user.getTile(), 3, ["mirage_mist"]);
 		local actors = ::Tactical.Entities.getAllInstances(); local myT = _user.getTile(); foreach (team in actors) { foreach (a in team) { if (a == null || !a.isAlive() || !a.isPlacedOnMap() || _user.isAlliedWith(a)) continue; if (myT.getDistanceTo(a.getTile()) <= 2) { local ask = a.getSkills(); if (ask != null) { if (!ask.hasSkill("effects.wx_status_offbalance")) ask.add(::new("scripts/skills/effects/wx_status_offbalance")); if (!ask.hasSkill("effects.wx_scatter_weakness")) ask.add(::new("scripts/skills/effects/wx_scatter_weakness")); }
 			if (!::Wuxia.CombatRules.isUndeadOrConstruct(a)) a.checkMorale(-1, -15); } } }
 		this.getContainer().update();

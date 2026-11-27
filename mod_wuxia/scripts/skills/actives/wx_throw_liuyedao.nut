@@ -16,6 +16,7 @@ this.wx_throw_liuyedao <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.WX_AnimMode <- "flurry_liuyedao";
 		this.m.WX_ChoreoID <- "wx_throw_liuyedao";
 		this.m.IsRanged = true;
+		this.m.IsIgnoredAsAOO = true;
 		this.m.IsShowingProjectile = true;
 		this.m.ProjectileType = ::Const.ProjectileType.WX_Liuyefeidao;
 		this.m.IsProjectileRotated = true;
@@ -25,6 +26,7 @@ this.wx_throw_liuyedao <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.FatigueCost = 16;
 		this.m.MinRange = 2;
 		this.m.MaxRange = 4;
+		this.m.MaxLevelDifference = 4;
 		this.m.RequiredWeaponTypes = ["Throwing"];
 		this.m.DirectDamageMult = 0.42;
 	}
@@ -41,10 +43,14 @@ this.wx_throw_liuyedao <- this.inherit("scripts/skills/actives/wx_move_base", {
 		local target = _targetTile.getEntity();
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, this.m.WX_VfxBrush);
 		local hit = this.wxThrowAt(_user, target);
-		if (hit && target != null && target.isAlive())
+		if (hit)
 		{
-			if (!::Wuxia.CombatRules.isUndeadOrConstruct(target)) this.wxApplyStatusToTarget(target, "effects.bleeding", "scripts/skills/effects/bleeding_effect");
+			if (target != null && target.isAlive() && !::Wuxia.CombatRules.isUndeadOrConstruct(target))
+				this.wxApplyStatusToTarget(target, "effects.bleeding", "scripts/skills/effects/bleeding_effect");
+			if ("Streams" in ::Wuxia)
+				::Wuxia.Streams.plantTangmenCaltrop(_user, _targetTile);
 		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

@@ -7,7 +7,7 @@ this.wx_fist_heisha <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_fist_heisha";
 		this.m.Name = "黑砂透骨掌";
-		this.m.Description = "绿林阴毒铁砂毒掌：消耗 4 AP 与 16 内息，掌带腥黑毒砂隔衣伤肺（穿甲 +14%，附加内伤）。";
+		this.m.Description = "绿林阴毒铁砂毒掌：消耗 4 AP 与 16 内息，掌带腥黑毒砂隔衣伤肺（穿甲 +8%，附加内伤）。";
 		this.m.Icon = "skills/wx_fist_heisha.png";
 		this.m.IconDisabled = "skills/wx_fist_heisha_sw.png";
 		this.m.Overlay = "wx_ov_wx_fist_heisha";
@@ -21,13 +21,13 @@ this.wx_fist_heisha <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.MinRange = 1;
 		this.m.MaxRange = 1;
 		this.m.RequiredWeaponTypes = ["Fist"];
-		this.m.DirectDamageMult = 0.38;
+		this.m.DirectDamageMult = 0.36;
 	}
 	function onAnySkillUsed( _skill, _targetEntity, _properties )
 	{
 		if (_skill == this)
 		{
-			_properties.MeleeSkill += 6; _properties.DamageDirectAdd += 0.14;
+			_properties.MeleeSkill += 6; _properties.DamageDirectAdd += 0.08;
 		}
 	}
 

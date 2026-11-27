@@ -7,7 +7,7 @@ this.wx_fist_canhezhi <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_fist_canhezhi";
 		this.m.Name = "参合截脉指";
-		this.m.Description = "姑苏凌空指劲绝学：消耗 4 AP 与 20 内息，隔空两格弹出无形剑气指风（命中 +10，穿甲 +18%，封穴截脉）。";
+		this.m.Description = "姑苏凌空指劲绝学：消耗 5 AP 与 20 内息，隔空两格弹出无形剑气指风（命中 +10，总伤 90%，穿甲 +12%，封穴截脉）。";
 		this.m.Icon = "skills/wx_fist_canhezhi.png";
 		this.m.IconDisabled = "skills/wx_fist_canhezhi_sw.png";
 		this.m.Overlay = "wx_ov_wx_fist_canhezhi";
@@ -16,18 +16,21 @@ this.wx_fist_canhezhi <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.WX_AnimMode <- "pierce_canhezhi";
 		this.m.WX_ChoreoID <- "wx_fist_canhezhi";
 		this.m.SoundOnUse = ["sounds/combat/slash_01.wav", "sounds/combat/slash_02.wav"];
-		this.m.ActionPointCost = 4;
+		this.m.ActionPointCost = 5;
 		this.m.FatigueCost = 20;
 		this.m.MinRange = 1;
 		this.m.MaxRange = 2;
 		this.m.RequiredWeaponTypes = ["Fist"];
-		this.m.DirectDamageMult = 0.45;
+		this.m.DirectDamageMult = 0.40;
 	}
 	function onAnySkillUsed( _skill, _targetEntity, _properties )
 	{
 		if (_skill == this)
 		{
-			_properties.MeleeSkill += 10; _properties.DamageDirectAdd += 0.18;
+			this.wxApplyTagPreHitProps(_targetEntity, _properties);
+			_properties.MeleeSkill += 10;
+			_properties.DamageTotalMult *= 0.90;
+			if ("Streams" in ::Wuxia) ::Wuxia.Streams.addCappedPen(_properties, 0.12);
 		}
 	}
 
@@ -39,7 +42,9 @@ this.wx_fist_canhezhi <- this.inherit("scripts/skills/actives/wx_move_base", {
 		if (hit && target != null && target.isAlive())
 		{
 			this.wxApplyStatusToTarget(target, "effects.wx_status_acupoint", "scripts/skills/effects/wx_status_acupoint");
+			if ("Streams" in ::Wuxia) ::Wuxia.Streams.interruptEnemyCharge(_user, target, 2);
 		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

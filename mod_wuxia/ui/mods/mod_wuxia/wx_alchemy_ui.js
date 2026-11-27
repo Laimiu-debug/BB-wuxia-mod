@@ -32,13 +32,18 @@
 		selectedFormulaId: 'free',
 		slotKeys: ['', '', ''], // [junKey, aux1Key, aux2Key]
 		activeSlotIdx: 0,       // 0 = Jun, 1 = Aux1, 2 = Aux2
+		fireMode: 'balanced',   // 'gentle' | 'balanced' | 'fierce'
 		reforgeFilter: 'all',   // 'all' | 'equipped' | 'stash' | 'upgradeable'
 		selectedReforgeUid: null,
 		confirmMasterworkUid: null,
+		quenchId: 'none',       // 'none' | 'frost' | 'flame' | 'thunder' | 'blood'
+		lockSlot: '',           // '' | 'f1' | 'f2'
 		cabKindFilter: 'all',   // 'all' | 'herb' | 'core' | 'trophy'
 		cabNatureFilter: 'all',
 		cabSearch: '',
-		bannerTimer: null
+		bannerTimer: null,
+		busy: false,
+		taxNeedsRefresh: false
 	};
 
 	function wxIsWorkshopMode() {
@@ -68,6 +73,120 @@
 		return null;
 	}
 
+	function wxResolveCoreImprint(_jun, _pillKind) {
+		if (!_jun || _jun.kind !== 'core') return null;
+		var cid = (_jun.key && _jun.key.indexOf('core:') === 0) ? _jun.key.slice(5) : (_jun.key || '');
+		var cmap = (wxAlcState.data && wxAlcState.data.coreImprints) ? wxAlcState.data.coreImprints : null;
+		if (cmap && (cid in cmap)) {
+			var sp = cmap[cid];
+			var d = sp.prepDesc || '山海大妖本命丹韵共振';
+			if (_pillKind === 'infuse_exp') d = '大妖本命精魄灌顶：拖入武学插槽额外增幅 +15% 火候！';
+			else if (_pillKind && _pillKind.indexOf('marrow_wash') === 0) d = '大妖本命精元固本：启用此丹洗经伐髓成功率额外再 +3%！';
+			return { title: sp.title || (_jun.name + '本命韵'), color: sp.color || '#f0bc42', desc: d };
+		}
+		return { title: _jun.name + '本命韵', color: '#f0bc42', desc: '山海大妖内丹坐镇君药，额外铭刻本命丹韵催化四脉武学！' };
+	}
+
+	function wxGetFireSpec(_fmode) {
+		var list = (wxAlcState.data && wxAlcState.data.fireModes) ? wxAlcState.data.fireModes : null;
+		var want = _fmode || wxAlcState.fireMode || 'balanced';
+		if (list && list.length) {
+			for (var i = 0; i < list.length; i++) {
+				if (list[i].id === want) return list[i];
+			}
+		}
+		var fallbacks = {
+			gentle: { id: 'gentle', title: '文火温养', short: '文火', color: '#7ee29a', costMult: 0.90, grade2Bonus: 8, grade3Bonus: -4, doubleBonus: -5, desc: '缓火守丹：灵纹率+8%、炭资九折、零丹劫风险' },
+			balanced: { id: 'balanced', title: '中火守正', short: '中火', color: '#dda21f', costMult: 1.00, grade2Bonus: 0, grade3Bonus: 0, doubleBonus: 0, desc: '中正鼎火：品阶与双丹均衡稳妥' },
+			fierce: { id: 'fierce', title: '武火催霞', short: '武火', color: '#ff8a5c', costMult: 1.20, grade2Bonus: -4, grade3Bonus: 18, doubleBonus: 15, desc: '猛火冲霞：丹霞极品率+18%、双丹率+15%，药性冲克时易发丹劫或逆炼奇丹' }
+		};
+		return fallbacks[want] || fallbacks.balanced;
+	}
+
+	function wxEvalClientMeridian(_jun, _auxObjs, _fireMode) {
+		var genMap = { origin: 'vital', vital: 'yang', yang: 'spirit', spirit: 'yin', yin: 'venom', venom: 'origin' };
+		var overMap = { yang: 'yin', yin: 'yang', vital: 'venom', venom: 'vital', spirit: 'origin', origin: 'spirit' };
+		var genPairs = 0;
+		var clashPairs = 0;
+		var hasYang = (_jun && _jun.nature === 'yang');
+		var hasYin = (_jun && _jun.nature === 'yin');
+		var hasVital = (_jun && _jun.nature === 'vital');
+		var hasVenom = (_jun && _jun.nature === 'venom');
+		var hasSpirit = (_jun && _jun.nature === 'spirit');
+		var hasCore = !!(_jun && _jun.kind === 'core');
+
+		for (var i = 0; i < _auxObjs.length; i++) {
+			var ax = _auxObjs[i];
+			if (!ax) continue;
+			var an = ax.nature || '';
+			var jn = _jun ? (_jun.nature || '') : '';
+			if (ax.kind === 'core') hasCore = true;
+			if (an === 'yang') hasYang = true;
+			if (an === 'yin') hasYin = true;
+			if (an === 'vital') hasVital = true;
+			if (an === 'venom') hasVenom = true;
+			if (an === 'spirit') hasSpirit = true;
+			if ((jn && genMap[jn] === an) || (an && genMap[an] === jn)) genPairs++;
+			else if ((jn && overMap[jn] === an) || (an && overMap[an] === jn)) clashPairs++;
+		}
+		if (_auxObjs.length >= 2 && _auxObjs[0] && _auxObjs[1]) {
+			var a0 = _auxObjs[0].nature || '';
+			var a1 = _auxObjs[1].nature || '';
+			if ((a0 && genMap[a0] === a1) || (a1 && genMap[a1] === a0)) genPairs++;
+			else if ((a0 && overMap[a0] === a1) || (a1 && overMap[a1] === a0)) clashPairs++;
+		}
+
+		var mutName = '';
+		if (hasCore && hasYang && hasYin) mutName = '《两仪逆命混元丹》';
+		else if (hasCore && hasVital && hasVenom) mutName = '《枯荣生死涅槃丸》';
+		else if (hasCore && hasSpirit && hasVenom) mutName = '《神魔一念辟邪丹》';
+		var reverseReady = (mutName !== '');
+		var mstBonus = (wxAlcState.data && wxAlcState.data.mastery) ? (wxAlcState.data.mastery.bonusDoublePct || 0) : 0;
+		var tribPct = 0;
+		if (_fireMode === 'fierce') {
+			if (reverseReady) {
+				tribPct = 0;
+			} else {
+				tribPct = 8 + clashPairs * 18 - genPairs * 6 - Math.floor(mstBonus * 0.5);
+				if (tribPct < 0) tribPct = 0;
+				if (tribPct > 48) tribPct = 48;
+			}
+		}
+
+		var label = '';
+		var color = '#bd9d71';
+		if (reverseReady && _fireMode === 'fierce') {
+			label = '✦ 阴阳逆命丹象已成：大妖内丹统御两极相克，武火催霞可逆炼失传奇药' + mutName + '！';
+			color = '#ffe28a';
+		} else if (reverseReady) {
+			label = '✦ 鼎内已具【山海内丹 + 两极相克】逆命之基（切至【武火催霞】可逆炼' + mutName + '）';
+			color = '#f0bc42';
+		} else if (genPairs > 0 && clashPairs === 0) {
+			label = '六脉相生 ×' + genPairs + '：鼎内药力额外 +' + genPairs + '，双丹与上品率稳步增益' + (tribPct > 0 ? ('（武火丹劫率 ' + tribPct + '%）') : '');
+			color = '#7ee29a';
+		} else if (clashPairs > 0) {
+			label = '六脉冲克 ×' + clashPairs + (_fireMode === 'fierce' ? ('：武火激荡，有 ' + tribPct + '% 概率引动【丹劫】化为《丹劫暴烈奇毒散》！') : '：药性相激，双丹率微降（若以大妖内丹配水火再催武火可逆炼奇丹）');
+			color = (_fireMode === 'fierce') ? '#ff8a5c' : '#e6a96b';
+		} else if (tribPct > 0) {
+			label = '六脉平顺 · 武火催霞丹劫异变率 ' + tribPct + '%（换文火可免丹劫，配相生辅药可压低丹劫）';
+			color = '#d7b174';
+		} else {
+			label = '六脉调和 · 鼎火安稳无虞';
+			color = '#bd9d71';
+		}
+
+		return {
+			genPairs: genPairs,
+			clashPairs: clashPairs,
+			potencyBonus: genPairs,
+			harmonyDelta: genPairs * 10 - clashPairs * 8,
+			reverseReady: reverseReady,
+			tribulationPct: tribPct,
+			label: label,
+			color: color
+		};
+	}
+
 	function wxMatchFreeFormulaRule(_jun, _auxNatures, _totalPot, _costMult) {
 		var rules = null;
 		if (wxAlcState.data && wxAlcState.data.freeRules && wxAlcState.data.freeRules.length) {
@@ -81,11 +200,13 @@
 		var bestScore = -1;
 		for (var i = 0; i < rules.length; i++) {
 			var f = rules[i];
+			if (f.isHiddenMutation) continue;
 			if (!wxClientDoesJunMatch(_jun, f)) continue;
 			if (_auxNatures.length < (f.minAuxCount || 1) || _totalPot < (f.targetPotency || 1)) continue;
 
 			var isUndisc = (f.discovered === false);
-			var score = (isUndisc ? 100000 : 0) + (f.targetPotency || 0) * 200 + (f.minJunPotency || 0) * 40 + (f.requireRareJun ? 25 : 0);
+			var coreBonus = (f.requiredCoreKey && f.requiredCoreKey === _jun.key) ? 50000 : 0;
+			var score = (isUndisc ? 100000 : 0) + coreBonus + (f.targetPotency || 0) * 200 + (f.minJunPotency || 0) * 40 + (f.requireRareJun ? 25 : 0);
 			var jn = f.junNatures || [];
 			if (jn.length > 0 && jn[0] === _jun.nature) score += 30;
 			var pref = f.preferredAuxNatures || [];
@@ -113,6 +234,7 @@
 	function wxComputeFreePreview() {
 		var ingMap = wxGetIngMap();
 		var sk = wxAlcState.slotKeys;
+		var fSpec = wxGetFireSpec(wxAlcState.fireMode);
 		var costMult = (wxAlcState.data && typeof wxAlcState.data.costMult === 'number') ? wxAlcState.data.costMult : 1.0;
 		var money = (wxAlcState.data && typeof wxAlcState.data.money === 'number') ? wxAlcState.data.money : 0;
 
@@ -122,7 +244,8 @@
 				reason: '请先在左侧【君药主引】鼎位投入 1 味奇草、大妖内丹或异兽奇材为主药。',
 				curPot: 0,
 				auxCnt: 0,
-				silverCost: Math.max(80, Math.floor(145 * costMult))
+				fireSpec: fSpec,
+				silverCost: Math.max(60, Math.floor(145 * costMult * fSpec.costMult))
 			};
 		}
 		var jun = ingMap[sk[0]];
@@ -130,6 +253,7 @@
 		used[sk[0]] = 1;
 		var auxCnt = 0;
 		var auxNatures = [];
+		var auxObjs = [];
 		var totalPot = jun.potency;
 		var bestAuxNat = '';
 		var bestAuxPot = -1;
@@ -138,14 +262,15 @@
 			var k = sk[s];
 			if (!k) continue;
 			if (!(k in ingMap)) {
-				return { ok: false, reason: '所选辅药存量不足。', curPot: totalPot, auxCnt: auxCnt, silverCost: 120 };
+				return { ok: false, reason: '所选辅药存量不足。', curPot: totalPot, auxCnt: auxCnt, fireSpec: fSpec, silverCost: 120 };
 			}
 			used[k] = (used[k] || 0) + 1;
 			if (used[k] > ingMap[k].totalCount) {
-				return { ok: false, reason: '「' + ingMap[k].name + '」持有数量不足以同炉重复投入。', curPot: totalPot, auxCnt: auxCnt, silverCost: 120 };
+				return { ok: false, reason: '「' + ingMap[k].name + '」持有数量不足以同炉重复投入。', curPot: totalPot, auxCnt: auxCnt, fireSpec: fSpec, silverCost: 120 };
 			}
 			var ax = ingMap[k];
 			auxCnt++;
+			auxObjs.push(ax);
 			auxNatures.push(ax.nature || '');
 			totalPot += ax.potency;
 			if (ax.potency > bestAuxPot) {
@@ -154,18 +279,23 @@
 			}
 		}
 		if (used[sk[0]] > jun.totalCount) {
-			return { ok: false, reason: '「' + jun.name + '」存量不足。', curPot: totalPot, auxCnt: auxCnt, silverCost: 120 };
+			return { ok: false, reason: '「' + jun.name + '」存量不足。', curPot: totalPot, auxCnt: auxCnt, fireSpec: fSpec, silverCost: 120 };
 		}
-		var matchedRule = (auxCnt >= 1) ? wxMatchFreeFormulaRule(jun, auxNatures, totalPot, costMult) : null;
-		var estCost = matchedRule
-			? matchedRule.silverCost
-			: Math.max(80, Math.floor((90 + totalPot * 28) * costMult));
+		var syn = wxEvalClientMeridian(jun, auxObjs, wxAlcState.fireMode);
+		var effPot = totalPot + syn.potencyBonus;
+		var matchedRule = (auxCnt >= 1) ? wxMatchFreeFormulaRule(jun, auxNatures, effPot, costMult) : null;
+		var rawCost = (syn.reverseReady && wxAlcState.fireMode === 'fierce')
+			? Math.floor(620 * costMult)
+			: (matchedRule ? matchedRule.silverCost : Math.max(80, Math.floor((90 + effPot * 28) * costMult)));
+		var estCost = Math.max(50, Math.floor(rawCost * fSpec.costMult));
 		if (auxCnt < 1) {
 			return {
 				ok: false,
 				reason: '已择君药「' + jun.name + '」(' + jun.natureShort + '·力' + jun.potency + ')，请至少再投入 1 味【臣佐辅药】调和鼎火。',
-				curPot: totalPot,
+				curPot: effPot,
 				auxCnt: 0,
+				syn: syn,
+				fireSpec: fSpec,
 				silverCost: estCost
 			};
 		}
@@ -182,8 +312,10 @@
 			return {
 				ok: false,
 				reason: '炉火炭资纹银不足（预估需 ' + estCost + ' 两，现存 ' + money + ' 两）。',
-				curPot: totalPot,
+				curPot: effPot,
 				auxCnt: auxCnt,
+				syn: syn,
+				fireSpec: fSpec,
 				silverCost: estCost,
 				junName: jun.name,
 				junNat: jun.natureName,
@@ -192,23 +324,44 @@
 				auxColor: auxColor
 			};
 		}
+		var coreImpFree = wxResolveCoreImprint(jun, 'buff_');
 		return {
 			ok: true,
 			reason: '',
-			curPot: totalPot,
+			curPot: effPot,
 			auxCnt: auxCnt,
+			syn: syn,
+			fireSpec: fSpec,
 			silverCost: estCost,
 			junName: jun.name,
 			junNat: jun.natureName,
 			junColor: jun.natureColor,
 			auxTitle: auxTitle,
-			auxColor: auxColor
+			auxColor: auxColor,
+			coreImp: coreImpFree
 		};
 	}
 
 	function wxShowAlcBanner(_msg, _isErr) {
+		if (!_msg) return;
+		if (window.WX_Showcase && window.WX_Showcase.plaque) {
+			var tabIco = (wxAlcState.mode === 'reforge')
+				? 'ui/wx_icons/wx_asset_supplies.png'
+				: ((wxAlcState.mode === 'cabinet') ? 'ui/wx_icons/wx_glyph_herb_cabinet.png' : 'ui/wx_icons/wx_glyph_cauldron.png');
+			var tabTitle = _isErr
+				? '百工丹坊 · 提示'
+				: ((wxAlcState.mode === 'reforge') ? '神兵重锻' : ((wxAlcState.mode === 'cabinet') ? '百草药柜' : '八卦丹炉'));
+			window.WX_Showcase.plaque({
+				title: tabTitle,
+				message: _msg,
+				icon: tabIco,
+				isError: !!_isErr,
+				theme: _isErr ? 'err' : 'gold'
+			});
+			return;
+		}
 		var el = $('.wx-alc-backdrop .wx-alc-banner');
-		if (!el.length || !_msg) return;
+		if (!el.length) return;
 		if (wxAlcState.bannerTimer !== null) {
 			clearTimeout(wxAlcState.bannerTimer);
 			wxAlcState.bannerTimer = null;
@@ -222,18 +375,18 @@
 		}, 4200);
 	}
 
-	function wxSyncHostFromAlchemyResponse(_res) {
+	function wxSyncHostFromAlchemyResponse(_res, _deferTaxRefresh) {
 		if (!_res || typeof _res !== 'object') return;
 		if (typeof _res.money === 'number') {
 			$('.world-town-screen .asset-container.is-money .label, .world-screen .asset-container.is-money .label').text(wxFormatMoneyStr(_res.money));
 		}
 		if (wxAlcState.taxMod && wxAlcState.taxMod.mSQHandle && typeof wxAlcState.taxMod.loadFromData === 'function') {
-			SQ.call(wxAlcState.taxMod.mSQHandle, 'queryBlueprints', null, function (_bpData) {
-				if (_bpData && wxAlcState.taxMod) {
-					delete _bpData.wxCraftBanner;
-					wxAlcState.taxMod.loadFromData(_bpData);
-				}
-			});
+			// Defer refreshing the hidden Taxidermist blueprint list until the Alchemy modal closes
+			// so brewing/reforging never stalls on a 400-node background DOM rebuild!
+			wxAlcState.taxNeedsRefresh = true;
+			if (!_deferTaxRefresh) {
+				wxFlushDeferredTaxRefresh();
+			}
 		}
 		if (wxAlcState.hostDS && typeof wxAlcState.hostDS.wxApplyVanillaSync === 'function') {
 			wxAlcState.hostDS.wxApplyVanillaSync(_res);
@@ -246,7 +399,23 @@
 		}
 	}
 
+	function wxFlushDeferredTaxRefresh() {
+		if (!wxAlcState.taxNeedsRefresh) return;
+		wxAlcState.taxNeedsRefresh = false;
+		if (wxAlcState.taxMod && wxAlcState.taxMod.mSQHandle && typeof wxAlcState.taxMod.loadFromData === 'function') {
+			var tm = wxAlcState.taxMod;
+			SQ.call(tm.mSQHandle, 'queryBlueprints', null, function (_bpData) {
+				if (_bpData && tm && tm.mDialogContainer) {
+					delete _bpData.wxCraftBanner;
+					delete _bpData.wxCraftShowcase;
+					tm.loadFromData(_bpData);
+				}
+			});
+		}
+	}
+
 	function wxCloseAlchemyModal() {
+		wxAlcState.busy = false;
 		var existing = $('.wx-alc-backdrop');
 		if (existing.length) {
 			existing.remove();
@@ -254,6 +423,7 @@
 			if (wxAlcState.hostDS && wxAlcState.hostDS.notifyBackendPopupDialogIsVisible) {
 				wxAlcState.hostDS.notifyBackendPopupDialogIsVisible(false);
 			}
+			wxFlushDeferredTaxRefresh();
 		}
 	}
 
@@ -269,6 +439,7 @@
 
 	function wxClientDoesJunMatch(_ing, _f) {
 		if (!_ing || !_f) return false;
+		if (_f.requiredCoreKey && _f.requiredCoreKey !== '' && _ing.key !== _f.requiredCoreKey) return false;
 		if (_ing.potency < _f.minJunPotency) return false;
 		if (_f.requireRareJun && !_ing.isRare) return false;
 		var jn = _f.junNatures || [];
@@ -281,23 +452,30 @@
 	function wxComputeClientPreview(_f) {
 		var ingMap = wxGetIngMap();
 		var sk = wxAlcState.slotKeys;
-		if (!_f) return { ok: false, reason: '未选择丹方。', curPot: 0, reqPot: 1, doubleChance: 0 };
+		var fSpec = wxGetFireSpec(wxAlcState.fireMode);
+		if (!_f) return { ok: false, reason: '未选择丹方。', curPot: 0, reqPot: 1, doubleChance: 0, fireSpec: fSpec };
+		var effCost = Math.max(50, Math.floor((_f.silverCost || 80) * fSpec.costMult));
 		if (!sk[0] || !(sk[0] in ingMap)) {
 			return {
 				ok: false,
 				reason: '请先在左侧【君药主引】鼎位放入符合药性的奇草/内丹/药材（或点击「智能抓药」）。',
 				curPot: 0,
 				reqPot: _f.targetPotency,
+				silverCost: effCost,
+				fireSpec: fSpec,
 				doubleChance: 0
 			};
 		}
 		var jun = ingMap[sk[0]];
 		if (!wxClientDoesJunMatch(jun, _f)) {
+			var coreReqTxt = (_f.requiredCoreKey && _f.requiredCoreKey !== '') ? '，且限本命大妖内丹为主引' : (_f.requireRareJun ? '，限奇草/内丹/神木灵心' : '');
 			return {
 				ok: false,
-				reason: '「' + jun.name + '」不符合本方君药要求（需 ' + _f.junNatureText + ' 药性且药力≥' + _f.minJunPotency + (_f.requireRareJun ? '，限奇草/内丹/神木灵心' : '') + '）。',
+				reason: '「' + jun.name + '」不符合本方君药要求（需 ' + _f.junNatureText + ' 药性且药力≥' + _f.minJunPotency + coreReqTxt + '）。',
 				curPot: jun.potency,
 				reqPot: _f.targetPotency,
+				silverCost: effCost,
+				fireSpec: fSpec,
 				doubleChance: 0
 			};
 		}
@@ -305,6 +483,7 @@
 		var used = {};
 		used[sk[0]] = 1;
 		var auxCnt = 0;
+		var auxObjs = [];
 		var totalPot = jun.potency;
 		var harmony = 0;
 		var bestAuxNat = '';
@@ -313,14 +492,15 @@
 			var k = sk[s];
 			if (!k) continue;
 			if (!(k in ingMap)) {
-				return { ok: false, reason: '所选辅药存量不足。', curPot: totalPot, reqPot: _f.targetPotency, doubleChance: 0 };
+				return { ok: false, reason: '所选辅药存量不足。', curPot: totalPot, reqPot: _f.targetPotency, silverCost: effCost, fireSpec: fSpec, doubleChance: 0 };
 			}
 			used[k] = (used[k] || 0) + 1;
 			if (used[k] > ingMap[k].totalCount) {
-				return { ok: false, reason: '「' + ingMap[k].name + '」持有数量不足以同炉重复置入。', curPot: totalPot, reqPot: _f.targetPotency, doubleChance: 0 };
+				return { ok: false, reason: '「' + ingMap[k].name + '」持有数量不足以同炉重复置入。', curPot: totalPot, reqPot: _f.targetPotency, silverCost: effCost, fireSpec: fSpec, doubleChance: 0 };
 			}
 			var ax = ingMap[k];
 			auxCnt++;
+			auxObjs.push(ax);
 			totalPot += ax.potency;
 			if (ax.potency > bestAuxPot) {
 				bestAuxPot = ax.potency;
@@ -334,36 +514,49 @@
 			else if (ax.kind === 'core') harmony += 10;
 		}
 
+		var syn = wxEvalClientMeridian(jun, auxObjs, wxAlcState.fireMode);
+		var effPot = totalPot + syn.potencyBonus;
+		harmony += syn.harmonyDelta;
+
 		if (auxCnt < _f.minAuxCount) {
 			return {
 				ok: false,
 				reason: '至少需放入 ' + _f.minAuxCount + ' 味【臣佐辅药】调和鼎火（当前已放 ' + auxCnt + ' 味）。',
-				curPot: totalPot,
+				curPot: effPot,
 				reqPot: _f.targetPotency,
+				syn: syn,
+				fireSpec: fSpec,
+				silverCost: effCost,
 				doubleChance: 0
 			};
 		}
-		if (totalPot < _f.targetPotency) {
+		if (effPot < _f.targetPotency) {
 			return {
 				ok: false,
-				reason: '鼎内总药力不足（当前 ' + totalPot + ' / 需达 ' + _f.targetPotency + '），请补入第 2 味佐药或换更高阶奇草/内丹。',
-				curPot: totalPot,
+				reason: '鼎内总药力不足（当前 ' + effPot + ' / 需达 ' + _f.targetPotency + '），请补入第 2 味相生佐药或换高阶奇草/内丹。',
+				curPot: effPot,
 				reqPot: _f.targetPotency,
+				syn: syn,
+				fireSpec: fSpec,
+				silverCost: effCost,
 				doubleChance: 0
 			};
 		}
 		var mstBonus = (wxAlcState.data && wxAlcState.data.mastery) ? (wxAlcState.data.mastery.bonusDoublePct || 0) : 0;
-		var sur = totalPot > _f.targetPotency ? (totalPot - _f.targetPotency) : 0;
-		var dbl = 12 + sur * 10 + harmony + mstBonus;
-		if (dbl > 85) dbl = 85;
+		var sur = effPot > _f.targetPotency ? (effPot - _f.targetPotency) : 0;
+		var dbl = 12 + sur * 10 + harmony + mstBonus + (fSpec.doubleBonus || 0);
+		if (dbl < 5) dbl = 5;
+		if (dbl > 88) dbl = 88;
 
-		var g3 = 8 + sur * 4 + Math.floor((harmony + mstBonus) * 0.40);
-		if (g3 > 42) g3 = 42;
-		var g2 = 30 + sur * 5 + Math.floor((harmony + mstBonus) * 0.35);
-		if (g2 > 48) g2 = 48;
-		if (g2 + g3 > 90) g2 = 90 - g3;
+		var g3 = 8 + sur * 4 + Math.floor((harmony + mstBonus) * 0.40) + (fSpec.grade3Bonus || 0);
+		if (g3 < 2) g3 = 2;
+		if (g3 > 58) g3 = 58;
+		var g2 = 30 + sur * 5 + Math.floor((harmony + mstBonus) * 0.35) + (fSpec.grade2Bonus || 0);
+		if (g2 < 10) g2 = 10;
+		if (g2 > 56) g2 = 56;
+		if (g2 + g3 > 92) g2 = 92 - g3;
 		var g1 = 100 - g2 - g3;
-		if (g1 < 10) g1 = 10;
+		if (g1 < 8) g1 = 8;
 
 		var auxTitle = '';
 		var auxColor = '#bd9d71';
@@ -392,12 +585,15 @@
 		}
 
 		var money = (wxAlcState.data && typeof wxAlcState.data.money === 'number') ? wxAlcState.data.money : 0;
-		if (money < _f.silverCost) {
+		if (money < effCost) {
 			return {
 				ok: false,
-				reason: '炉火纹银不足（需 ' + _f.silverCost + ' 两，现存 ' + money + ' 两）。',
-				curPot: totalPot,
+				reason: '炉火纹银不足（需 ' + effCost + ' 两，现存 ' + money + ' 两）。',
+				curPot: effPot,
 				reqPot: _f.targetPotency,
+				syn: syn,
+				fireSpec: fSpec,
+				silverCost: effCost,
 				doubleChance: dbl,
 				gradeChances: [g1, g2, g3],
 				auxTitle: auxTitle,
@@ -405,16 +601,21 @@
 				auxDesc: auxDesc
 			};
 		}
+		var coreImpObj = wxResolveCoreImprint(jun, _f.pillKind || 'buff_');
 		return {
 			ok: true,
 			reason: '',
-			curPot: totalPot,
+			curPot: effPot,
 			reqPot: _f.targetPotency,
+			syn: syn,
+			fireSpec: fSpec,
+			silverCost: effCost,
 			doubleChance: dbl,
 			gradeChances: [g1, g2, g3],
 			auxTitle: auxTitle,
 			auxColor: auxColor,
-			auxDesc: auxDesc
+			auxDesc: auxDesc,
+			coreImp: coreImpObj
 		};
 	}
 
@@ -432,7 +633,7 @@
 		var rfgItems = fg.items || [];
 
 		var metaHtml =
-			(inWs ? '<span style="color:#7ee29a;">【城镇百工丹坊 · 可开炉重锻】</span>　' : '<span style="color:#ffe28a;">【随身只读卷宗 · 操作请赴城镇百工丹坊】</span>　') +
+			(inWs ? '<span style="color:#7ee29a;">【城镇百工丹坊 · 可开炉重锻】</span>　' : '<span style="color:#ffe28a;">【随身手札 · 开炉重锻与存取请赴城镇百工丹坊】</span>　') +
 			'纹银：<strong>' + d.money + ' 两</strong>　│　' +
 			'掌炉：<strong>' + wxEsc(mst.masterLabel) + '</strong> · 掌锤：<strong>' + wxEsc(fg.smithLabel) + '</strong>　│　' +
 			'药柜寄存：奇草 <strong>' + sum.cabinetHerbs + '</strong> · 内丹 <strong>' + sum.cabinetCores + '</strong> · 奇材 <strong>' + sum.cabinetTrophies + '</strong>' +
@@ -573,7 +774,7 @@
 		if (!_f) {
 			_wb.html(
 				'<div style="padding:2.2rem 1.4rem;color:#d7b174;line-height:2.05rem;">' +
-					'<div style="font-size:1.75rem;color:#dda21f;margin-bottom:0.6rem;">《丹经手札》 · 随身只读卷宗（已悟 ' + discCnt + ' / ' + totalFCnt + ' 方）</div>' +
+					'<div style="font-size:1.75rem;color:#dda21f;margin-bottom:0.6rem;">《丹经手札》 · 随身丹谱（已悟 ' + discCnt + ' / ' + totalFCnt + ' 方）</div>' +
 					'<div style="color:#bd9d71;margin-bottom:1.0rem;">行军途中无地火青铜丹鼎，此处仅可翻阅已参悟收录之古丹方、六脉药性法度与百草药柜账册。</div>' +
 					'<div class="wx-alc-wb-req" style="margin-bottom:1.1rem;">' +
 						'<div><strong>实地开炉指引：</strong></div>' +
@@ -608,7 +809,7 @@
 				'<div class="wx-alc-pv-line"><strong>三阶丹品法度：</strong>成丹（基准药效） · <span style="color:#5ec47a;">灵纹上品（药效 112%~128%）</span> · <span style="color:#f0bc42;">丹霞极品（药效 132%~155%，免除第 3 丹丹毒郁结与疯魔燃血战后反噬）</span></div>' +
 			'</div>' +
 			(auxRowsHtml ? ('<div style="font-size:1.32rem;color:#dda21f;margin-bottom:0.35rem;">本方臣佐辅药 · 丹韵变化参考</div><div style="padding:0.45rem 0.75rem;margin-bottom:0.8rem;background:rgba(12,8,5,0.55);border:1px solid rgba(90,67,37,0.55);">' + auxRowsHtml + '</div>') : '') +
-			'<div class="wx-alc-ro-notice">随身《丹经手札》仅供电阅 —— 欲开炉炼制此丹或盲投试丹参悟新方，请亲赴州县城镇<strong>【百工丹坊】</strong>操作。</div>';
+			'<div class="wx-alc-ro-notice">随身《丹经手札》仅供翻阅 —— 欲开炉炼制此丹或盲投试丹参悟新方，请亲赴州县城镇<strong>【百工丹坊】</strong>。</div>';
 
 		_wb.html(html);
 	}
@@ -827,44 +1028,70 @@
 		var actBtnsHtml = '';
 		var slotLabelNames = ['【君药主引】', '【臣药辅火】', '【佐使调和】'];
 
+		var fModes = (wxAlcState.data && wxAlcState.data.fireModes && wxAlcState.data.fireModes.length)
+			? wxAlcState.data.fireModes
+			: [wxGetFireSpec('gentle'), wxGetFireSpec('balanced'), wxGetFireSpec('fierce')];
+		var activeFire = wxGetFireSpec(wxAlcState.fireMode);
+		var fireBarHtml = '<div class="wx-alc-fire-bar"><strong style="color:#dda21f;margin-right:0.4rem;">文武控火：</strong>';
+		for (var fi = 0; fi < fModes.length; fi++) {
+			var fm = fModes[fi];
+			var fAct = (fm.id === activeFire.id);
+			fireBarHtml += '<span class="wx-alc-fire-btn' + (fAct ? ' is-active' : '') + '" data-fmode="' + wxEsc(fm.id) + '" style="color:' + (fAct ? fm.color : '#bd9d71') + ';">' + wxEsc(fm.title) + '</span>';
+		}
+		fireBarHtml += '<span style="font-size:1.16rem;color:' + activeFire.color + ';margin-left:0.25rem;">' + wxEsc(activeFire.desc) + '</span></div>';
+
+		var synLineHtml = (pv.syn && pv.syn.label)
+			? ('<div class="wx-alc-pv-line" style="color:' + pv.syn.color + ';">' + wxEsc(pv.syn.label) + '</div>')
+			: '';
+
 		if (isFree) {
 			if (pv.ok) {
 				pvHtml =
 					'<div class="wx-alc-pv-line" style="color:#7ee29a;">鼎内药气已聚：君药 <strong style="color:' + pv.junColor + ';">' + wxEsc(pv.junName) + '（' + wxEsc(pv.junNat) + '）</strong> + 辅药 <strong>' + pv.auxCnt + ' 味</strong>　│　鼎内总药力：<strong>' + pv.curPot + '</strong>　│　试炉炭资：<strong>≤' + pv.silverCost + ' 两</strong></div>' +
-					'<div class="wx-alc-pv-line" style="color:#d7b174;">丹象未卜：若配伍契合失传古方，成丹瞬间将自动铭刻入左侧《丹经手札》；纵未契合古方，亦会凝成对症药散并获丹火感悟！' +
+					synLineHtml +
+					'<div class="wx-alc-pv-line" style="color:#d7b174;">丹象未卜：若配伍契合失传古方或逆命丹象，成丹瞬间将自动铭刻入左侧《丹经手札》！' +
 						(pv.auxTitle ? ('（当前辅药丹韵：<span style="color:' + pv.auxColor + ';">【' + wxEsc(pv.auxTitle) + '】</span>）') : '') +
+						(pv.coreImp ? ('（本命妖丹：<span style="color:' + pv.coreImp.color + ';">【' + wxEsc(pv.coreImp.title) + '】</span>）') : '') +
 					'</div>';
 			} else {
-				pvHtml = '<div style="color:#ff9482;">鼎内总药力：' + pv.curPot + ' —— ' + wxEsc(pv.reason) + '</div>';
+				pvHtml = '<div style="color:#ff9482;">鼎内总药力：' + pv.curPot + ' —— ' + wxEsc(pv.reason) + '</div>' + synLineHtml;
 			}
 
 			hdrHtml =
 				'<div class="wx-alc-wb-hdr">' +
 					'<img class="wx-alc-wb-hdr-icon" src="coui://gfx/ui/wx_icons/wx_glyph_cauldron.png" alt=""/>' +
-					'<div class="wx-alc-wb-title">八卦丹炉 · 盲投试丹参悟 <span style="font-size:1.3rem;color:#ffe28a;">[自由探索配伍 · 成丹录方]</span></div>' +
-					'<div class="wx-alc-wb-desc">丹道无现成死方：观百草内丹之【生机 / 赤阳 / 玄阴 / 镇魂 / 奇毒 / 造化】六性，自由择 1 味君药与 1~2 味臣佐辅药投入炉中试炼！</div>' +
+					'<div class="wx-alc-wb-title">八卦丹炉 · 盲投试丹参悟 <span style="font-size:1.3rem;color:#ffe28a;">[文武控火 · 六脉生克 · 逆命录方]</span></div>' +
+					'<div class="wx-alc-wb-desc">丹道无现成死方：观百草内丹之【生机 / 赤阳 / 玄阴 / 镇魂 / 奇毒 / 造化】六脉生克，自由择君臣药引并控文武炉火试炼！</div>' +
 				'</div>';
 			reqHtml =
 				'<div class="wx-alc-wb-req">' +
-					'<div><strong>参悟法门：</strong>高阶仙丹往往须以【天下奇草】或【山海大妖内丹】为君药，并配齐 2 味辅药推高鼎内总药力；已悟透之丹方将记入左侧《丹经手札》，日后可一键按方抓药。</div>' +
+					'<div><strong>六脉秘传：</strong>造化→生机→赤阳→镇魂→玄阴→奇毒循环相生（每对相生药力+1）；大妖内丹配齐【赤阳+玄阴】催动【武火催霞】可逆炼失传奇药《两仪逆命混元丹》！</div>' +
 				'</div>';
 			actBtnsHtml =
 				'<span class="wx-alc-act-btn" data-wbact="clearall"><img src="coui://gfx/ui/wx_icons/wx_glyph_scale_mortar.png" style="width:1.9rem;height:1.9rem;vertical-align:middle;margin:-0.25rem 0.3rem 0 0;" alt=""/>清空鼎炉</span>' +
 				'<span class="wx-alc-act-btn' + (pv.ok ? '' : ' is-disabled') + '" data-wbact="brew"><img src="coui://gfx/ui/wx_icons/wx_glyph_cauldron.png" style="width:1.9rem;height:1.9rem;vertical-align:middle;margin:-0.25rem 0.3rem 0 0;" alt=""/>凝火试丹</span>';
 		} else {
 			var yieldStr = _f.baseYield > 1 ? ('（每炉成丹 ' + _f.baseYield + ' 枚）') : '';
-			var rareReqStr = _f.requireRareJun ? '奇草 / 大妖内丹 / 万年灵心' : '任意匹配奇草 / 内丹 / 异兽材';
+			var rareReqStr = (_f.requiredCoreKey && _f.requiredCoreKey !== '')
+				? '限本命山海大妖内丹为主引'
+				: (_f.requireRareJun ? '奇草 / 大妖内丹 / 万年灵心' : '任意匹配奇草 / 内丹 / 异兽材');
+			var showCost = pv.silverCost || _f.silverCost;
 			if (pv.ok) {
 				var gc = pv.gradeChances || [60, 30, 10];
 				pvHtml =
-					'<div class="wx-alc-pv-line" style="color:#7ee29a;">鼎火纯青：总药力 <strong>' + pv.curPot + ' / ' + pv.reqPot + '</strong>　│　炉资：<strong>' + _f.silverCost + ' 两</strong>　│　紫气双丹率：<strong style="color:#f0bc42;">' + pv.doubleChance + '%</strong></div>' +
-					'<div class="wx-alc-pv-line">成丹品阶：成丹 <strong>' + gc[0] + '%</strong> · <span style="color:#5ec47a;">灵纹 <strong>' + gc[1] + '%</strong> (药效112%~128%)</span> · <span style="color:#f0bc42;">丹霞极品 <strong>' + gc[2] + '%</strong> (132%~155% · 免第3丹丹毒/疯魔反噬)</span></div>';
+					'<div class="wx-alc-pv-line" style="color:#7ee29a;">鼎火纯青：总药力 <strong>' + pv.curPot + ' / ' + pv.reqPot + '</strong>　│　炉资：<strong>' + showCost + ' 两</strong>　│　紫气双丹率：<strong style="color:#f0bc42;">' + pv.doubleChance + '%</strong></div>' +
+					'<div class="wx-alc-pv-line">成丹品阶：成丹 <strong>' + gc[0] + '%</strong> · <span style="color:#5ec47a;">灵纹 <strong>' + gc[1] + '%</strong> (药效112%~128%)</span> · <span style="color:#f0bc42;">丹霞极品 <strong>' + gc[2] + '%</strong> (132%~155% · 免第3丹丹毒/疯魔反噬)</span></div>' +
+					synLineHtml;
 				if (pv.auxTitle && pv.auxDesc) {
 					pvHtml +=
 						'<div class="wx-alc-pv-aux"><span style="color:' + pv.auxColor + ';">【' + wxEsc(pv.auxTitle) + '】</span>' + wxEsc(pv.auxDesc) + ' <span style="color:#a98e67;">（更换右上/右下臣佐辅药药性即可定制成丹附带奇效！）</span></div>';
 				}
+				if (pv.coreImp && pv.coreImp.title) {
+					pvHtml +=
+						'<div class="wx-alc-pv-aux"><span style="color:' + pv.coreImp.color + ';">【本命丹韵 · ' + wxEsc(pv.coreImp.title) + '】</span>' + wxEsc(pv.coreImp.desc) + '</div>';
+				}
 			} else {
-				pvHtml = '<div style="color:#ff9482;">鼎内状态：总药力 ' + pv.curPot + ' / ' + pv.reqPot + ' —— ' + wxEsc(pv.reason) + '</div>';
+				pvHtml = '<div style="color:#ff9482;">鼎内状态：总药力 ' + pv.curPot + ' / ' + pv.reqPot + ' —— ' + wxEsc(pv.reason) + '</div>' + synLineHtml;
 			}
 
 			hdrHtml =
@@ -880,7 +1107,7 @@
 				'</div>';
 			actBtnsHtml =
 				'<span class="wx-alc-act-btn" data-wbact="autofill"><img src="coui://gfx/ui/wx_icons/wx_glyph_scale_mortar.png" style="width:1.9rem;height:1.9rem;vertical-align:middle;margin:-0.25rem 0.3rem 0 0;" alt=""/>按方抓药</span>' +
-				'<span class="wx-alc-act-btn' + (pv.ok ? '' : ' is-disabled') + '" data-wbact="brew"><img src="coui://gfx/ui/wx_icons/wx_glyph_cauldron.png" style="width:1.9rem;height:1.9rem;vertical-align:middle;margin:-0.25rem 0.3rem 0 0;" alt=""/>起火开炉（' + _f.silverCost + '两）</span>';
+				'<span class="wx-alc-act-btn' + (pv.ok ? '' : ' is-disabled') + '" data-wbact="brew"><img src="coui://gfx/ui/wx_icons/wx_glyph_cauldron.png" style="width:1.9rem;height:1.9rem;vertical-align:middle;margin:-0.25rem 0.3rem 0 0;" alt=""/>起火开炉（' + showCost + '两）</span>';
 		}
 
 		var html =
@@ -892,12 +1119,18 @@
 				wxBuildSlotCardHtml(1, 'pos-aux1', '【臣药辅火】', ingMap, _f) +
 				wxBuildSlotCardHtml(2, 'pos-aux2', '【佐使调和】', ingMap, _f) +
 			'</div>' +
+			fireBarHtml +
 			'<div class="wx-alc-preview-bar">' + pvHtml + '</div>' +
 			'<div class="wx-alc-act-row">' + actBtnsHtml + '</div>' +
 			'<div class="wx-alc-picker-title">正在为 ' + slotLabelNames[actIdx] + ' 拣选药材（点击下方药柜/行囊奇材即可置入鼎位）：</div>' +
 			'<div class="wx-alc-picker-grid">' + chipsHtml + '</div>';
 
 		_wb.html(html);
+
+		_wb.find('[data-fmode]').on('click', function () {
+			wxAlcState.fireMode = $(this).attr('data-fmode') || 'balanced';
+			wxRenderWorkbench(_wb, _f, _dlg);
+		});
 
 		_wb.find('[data-clear-slot]').on('click', function (_e) {
 			_e.stopPropagation();
@@ -935,42 +1168,83 @@
 		});
 
 		_wb.find('[data-wbact="brew"]').on('click', function () {
-			if ($(this).hasClass('is-disabled') || !wxAlcState.sqHandle) return;
+			if ($(this).hasClass('is-disabled') || !wxAlcState.sqHandle || wxAlcState.busy) return;
+			wxAlcState.busy = true;
 			var reqFormulaId = isFree ? 'free' : _f.id;
-			SQ.call(
-				wxAlcState.sqHandle,
-				'onWXAlchemyBrew',
-				[reqFormulaId, wxAlcState.slotKeys[0], wxAlcState.slotKeys[1], wxAlcState.slotKeys[2], wxAlcState.entityId],
-				function (_res) {
-					if (_res && _res.ok) {
-						wxSyncHostFromAlchemyResponse(_res);
-						wxAlcState.data = _res;
-						if (isFree) {
-							var newMap = wxGetIngMap();
-							var usedAfter = {};
-							for (var sIdx = 0; sIdx < 3; sIdx++) {
-								var sk = wxAlcState.slotKeys[sIdx];
-								if (!sk) continue;
-								usedAfter[sk] = (usedAfter[sk] || 0) + 1;
-								if (!(sk in newMap) || newMap[sk].totalCount < usedAfter[sk]) {
-									wxAlcState.slotKeys[sIdx] = '';
+
+			// Launch cauldron animation at 0ms immediately on click while Squirrel brews in parallel!
+			var curInputs = [];
+			var curMap = wxGetIngMap();
+			for (var ii = 0; ii < 3; ii++) {
+				var kIn = wxAlcState.slotKeys[ii];
+				if (kIn && (kIn in curMap)) {
+					curInputs.push({ name: curMap[kIn].name, icon: curMap[kIn].icon });
+				}
+			}
+			var startedPending = false;
+			if (window.WX_Showcase && window.WX_Showcase.beginPending) {
+				startedPending = window.WX_Showcase.beginPending(
+					{ kind: 'alchemy', inputs: curInputs },
+					{ sqHandle: wxAlcState.sqHandle }
+				);
+			}
+
+			var brewArgs = [reqFormulaId, wxAlcState.slotKeys[0], wxAlcState.slotKeys[1], wxAlcState.slotKeys[2], wxAlcState.entityId, wxAlcState.fireMode];
+			var brewSq = wxAlcState.sqHandle;
+			// Yield 1 paint frame (20ms) so CoherentUI draws Frame 1 of the furnace BEFORE Squirrel executes!
+			setTimeout(function () {
+				SQ.call(
+					brewSq,
+					'onWXAlchemyBrew',
+					brewArgs,
+					function (_res) {
+						wxAlcState.busy = false;
+						if (_res && _res.ok) {
+							wxSyncHostFromAlchemyResponse(_res, true);
+							wxAlcState.data = _res;
+							if (isFree) {
+								var newMap = wxGetIngMap();
+								var usedAfter = {};
+								for (var sIdx = 0; sIdx < 3; sIdx++) {
+									var sk = wxAlcState.slotKeys[sIdx];
+									if (!sk) continue;
+									usedAfter[sk] = (usedAfter[sk] || 0) + 1;
+									if (!(sk in newMap) || newMap[sk].totalCount < usedAfter[sk]) {
+										wxAlcState.slotKeys[sIdx] = '';
+									}
+								}
+								if (!wxAlcState.slotKeys[0]) wxAlcState.activeSlotIdx = 0;
+							} else {
+								var updatedF = wxFindFormulaObj(_f.id);
+								var checkPv = wxComputeClientPreview(updatedF);
+								if (!checkPv.ok && updatedF) {
+									wxSelectFormulaAndAutoFill(updatedF);
 								}
 							}
-							if (!wxAlcState.slotKeys[0]) wxAlcState.activeSlotIdx = 0;
-						} else {
-							var updatedF = wxFindFormulaObj(_f.id);
-							var checkPv = wxComputeClientPreview(updatedF);
-							if (!checkPv.ok && updatedF) {
-								wxSelectFormulaAndAutoFill(updatedF);
+							if (_res.wxShowcase && window.WX_Showcase) {
+								// Defer heavy workbench DOM rebuild until reveal closes so animation runs at 60fps!
+								window.WX_Showcase.resolvePending(_res.wxShowcase, {
+									sqHandle: brewSq,
+									onClose: function () { wxRenderAll(_dlg); }
+								});
+							} else {
+								if (startedPending && window.WX_Showcase) window.WX_Showcase.abortPending();
+								wxRenderAll(_dlg);
+								wxShowAlcBanner(_res.actionMessage || '开炉炼丹完成！', false);
 							}
+						} else {
+							if (startedPending && window.WX_Showcase) window.WX_Showcase.abortPending();
+							if (window.WX_Showcase) {
+								window.WX_Showcase.pulseElement(_wb.find('.wx-alc-furnace-art').parent(), {
+									theme: 'crimson',
+									floatText: '未能成炉'
+								});
+							}
+							wxShowAlcBanner((_res && _res.reason) ? _res.reason : '未能完成炼丹。', true);
 						}
-						wxRenderAll(_dlg);
-						wxShowAlcBanner(_res.actionMessage || '开炉炼丹完成！', false);
-					} else {
-						wxShowAlcBanner((_res && _res.reason) ? _res.reason : '未能完成炼丹。', true);
 					}
-				}
-			);
+				);
+			}, startedPending ? 20 : 0);
 		});
 	}
 
@@ -994,7 +1268,7 @@
 		} else {
 			toolbarHtml =
 				'<div class="wx-alc-cab-toolbar">' +
-					'<span style="font-size:1.26rem;color:#ffe28a;">百工总号【百草药柜】寄存与随军行囊奇材账册（只读）</span>' +
+					'<span style="font-size:1.26rem;color:#ffe28a;">百工总号【百草药柜】寄存与随军行囊奇材账册</span>' +
 					'<span style="font-size:1.22rem;color:#bd9d71;margin-left:0.8rem;">—— 存取奇材或调整寄存规制请亲赴城镇【百工丹坊】</span>' +
 					'<input type="text" class="wx-alc-cab-search" data-cab="search" value="' + wxEsc(wxAlcState.cabSearch) + '" placeholder="搜奇草/内丹/药性..." />' +
 				'</div>' +
@@ -1112,7 +1386,18 @@
 						wxSyncHostFromAlchemyResponse(_res);
 						wxAlcState.data = _res;
 						wxRenderAll(_dlg);
-						wxShowAlcBanner(_res.actionMessage, false);
+						if (_res.sweepSummary && window.WX_Showcase && window.WX_Showcase.sweepFx) {
+							var cabBtn = _dlg.find('[data-amode="cabinet"]:first');
+							window.WX_Showcase.sweepFx(cabBtn.length ? cabBtn : _dlg, {
+								theme: 'jade',
+								icon: 'ui/wx_icons/wx_glyph_herb_cabinet.png',
+								floatText: _res.sweepSummary,
+								sqHandle: wxAlcState.sqHandle,
+								soundCue: 'sweep_whoosh'
+							});
+						} else {
+							wxShowAlcBanner(_res.actionMessage, false);
+						}
 					} else {
 						wxShowAlcBanner((_res && _res.reason) ? _res.reason : '收纳失败。', true);
 					}
@@ -1181,7 +1466,7 @@
 		if (!_sel || !fg) {
 			_wb.html(
 				'<div style="padding:3.5rem 1.8rem;color:#bd9d71;text-align:center;line-height:2.1rem;">' +
-					'<div style="font-size:1.55rem;color:#dda21f;margin-bottom:0.6rem;">' + (inWs ? '百工神兵重锻炉 · 免大妖内丹淬洗极品' : '《百工器谱》 · 神兵品相与词条卷宗（只读）') + '</div>' +
+					'<div style="font-size:1.55rem;color:#dda21f;margin-bottom:0.6rem;">' + (inWs ? '百工神兵重锻炉 · 免大妖内丹淬洗极品' : '《百工器谱》 · 神兵品相与词条手札') + '</div>' +
 					'<div>当前战团尚无已铸造的【百工奇物 / 山海神装 / 传世名器】。</div>' +
 					'<div>前往城镇【百工丹坊】打造兵甲后，即可在此查阅品相词条，并于百工丹坊内耗百工奇材重复淬洗极品！</div>' +
 				'</div>'
@@ -1213,33 +1498,89 @@
 		}
 
 		var mwHtml = (_sel.grade >= 3)
-			? ('<div class="wx-rfg-mw-note">✦ 此器已觉醒<strong>【神工共鸣】</strong>：若附带器魂灵韵，实战触发概率额外 +8%、灼烧/回血等数值 +2！' + (inWs ? '若仍欲追求更高完美度，连点两次下方按钮即可重洗。' : '') + '</div>')
+			? ('<div class="wx-rfg-mw-note">✦ 此器已觉醒<strong>【神工共鸣】</strong>：若附带器魂灵韵，实战触发概率额外 +8%、灼烧/回血等数值 +2！' + (inWs ? '若仍欲追求更高完美度或更换淬火词条，连点两次下方按钮即可重洗。' : '') + '</div>')
 			: '';
 
+		var qList = (fg.quenchCatalysts && fg.quenchCatalysts.length)
+			? fg.quenchCatalysts
+			: [{ id: 'none', name: '凡水淬锋', short: '凡水', color: '#bd9d71', affixTitle: '', affixDesc: '不耗额外引子，均衡塑形', available: true, matName: '' }];
+		var selQ = qList[0];
+		for (var qi = 0; qi < qList.length; qi++) {
+			if (qList[qi].id === wxAlcState.quenchId) { selQ = qList[qi]; break; }
+		}
+		var lockUse = (wxAlcState.lockSlot === 'f1' || wxAlcState.lockSlot === 'f2') ? wxAlcState.lockSlot : '';
+		var needMats = lockUse ? 2 : 1;
+		var effSilver = lockUse ? Math.max(100, Math.floor(_sel.silverCost * 1.50)) : _sel.silverCost;
 		var money = (d && typeof d.money === 'number') ? d.money : 0;
-		var canAfford = fg.catalystFound && (money >= _sel.silverCost);
+		var matTotal = fg.catalystTotal || 0;
+		var hasEnoughMats = fg.catalystFound && (matTotal >= needMats);
+		var quenchOk = (selQ.id === 'none') || !!selQ.available;
+		var canAfford = hasEnoughMats && quenchOk && (money >= effSilver);
 		var lackNote = '';
 		if (inWs) {
-			if (!fg.catalystFound) {
-				lackNote = '<div style="color:#ff8070;margin-top:0.2rem;">缺少百工奇材辅料（需赤炎翎 / 真龙逆鳞 / 太古凶角 / 战神煞骨 / 天妖蛟筋 / 蚀骨毒晶 任一 ×1）。</div>';
-			} else if (money < _sel.silverCost) {
-				lackNote = '<div style="color:#ff8070;margin-top:0.2rem;">纹银不足（需 ' + _sel.silverCost + ' 两，现存 ' + money + ' 两）。</div>';
+			if (!hasEnoughMats) {
+				lackNote = '<div style="color:#ff8070;margin-top:0.2rem;">' + (needMats >= 2 ? ('开启【百炼锁词精铸】需消耗 2 份百工奇材（当前仅存 ' + matTotal + ' 份）。') : '缺少百工奇材辅料（需异兽奇材或大妖破部精粹任一 ×1）。') + '</div>';
+			} else if (!quenchOk) {
+				lackNote = '<div style="color:#ff8070;margin-top:0.2rem;">缺少【' + wxEsc(selQ.name) + '】所需引子药材或精粹（请改选「凡水淬锋」或已备齐的引子）。</div>';
+			} else if (money < effSilver) {
+				lackNote = '<div style="color:#ff8070;margin-top:0.2rem;">纹银不足（本次重锻需 ' + effSilver + ' 两，现存 ' + money + ' 两）。</div>';
 			}
+		}
+
+		var ctrlHtml = '';
+		if (inWs) {
+			var qChips = '';
+			for (var qj = 0; qj < qList.length; qj++) {
+				var qc = qList[qj];
+				var qAct = (qc.id === selQ.id);
+				var qLack = (qc.id !== 'none' && !qc.available);
+				var qSub = (qc.id === 'none') ? '' : (qc.available ? ' · 备妥' : ' · 缺引');
+				qChips += '<span class="wx-rfg-opt-chip' + (qAct ? ' is-active' : '') + (qLack ? ' is-lacking' : '') + '" data-qid="' + wxEsc(qc.id) + '" style="color:' + (qAct ? qc.color : '#d7b174') + ';">' + wxEsc(qc.name) + qSub + '</span>';
+			}
+			var lockOpts = [
+				['', '自由重铸（奇材×1）'],
+				['f1', '锁主词条·伤/甲/近防（奇材×2 · 银×1.5）'],
+				['f2', '锁副词条·破甲/轻盈/远防（奇材×2 · 银×1.5）']
+			];
+			var lChips = '';
+			for (var li = 0; li < lockOpts.length; li++) {
+				var lo = lockOpts[li];
+				var lAct = (lockUse === lo[0]);
+				lChips += '<span class="wx-rfg-opt-chip' + (lAct ? ' is-active' : '') + '" data-rlock="' + lo[0] + '">' + lo[1] + '</span>';
+			}
+			ctrlHtml =
+				'<div class="wx-rfg-ctrl-bar">' +
+					'<div class="wx-rfg-ctrl-row"><strong style="color:#dda21f;margin-right:0.35rem;">淬火塑形：</strong>' + qChips +
+						'<div style="font-size:1.15rem;color:' + selQ.color + ';line-height:1.65rem;">' +
+							(selQ.affixTitle ? ('【' + wxEsc(selQ.affixTitle) + '】') : '') + wxEsc(selQ.affixDesc || '') +
+							(selQ.id !== 'none' && selQ.matName ? ('（将耗引子：' + wxEsc(selQ.matName) + ' ×1）') : '') +
+						'</div>' +
+					'</div>' +
+					'<div class="wx-rfg-ctrl-row"><strong style="color:#dda21f;margin-right:0.35rem;">百炼锁词：</strong>' + lChips + '</div>' +
+				'</div>';
 		}
 
 		var isConfirmingMw = (_sel.grade >= 3 && wxAlcState.confirmMasterworkUid === _sel.uid);
 		var btnLabel = isConfirmingMw
-			? ('⚠ 确认重洗神工（' + _sel.silverCost + '两）')
-			: ('重锤淬炼（' + _sel.silverCost + '两 + 奇材×1）');
+			? ('⚠ 确认重洗神工（' + effSilver + '两）')
+			: ((lockUse ? '锁词精铸' : '重锤淬炼') + '（' + effSilver + '两 + 奇材×' + needMats + (selQ.id !== 'none' ? ' + 引子' : '') + '）');
 
 		var catStr = fg.catalystFound
-			? ('百工重淬耗材：<strong style="color:#7ee29a;">' + wxEsc(fg.catalystName) + ' ×1</strong> + <strong>' + _sel.silverCost + ' 两纹银</strong>（药柜/行囊共余奇材 ' + fg.catalystTotal + ' 份 · <strong>免耗山海大妖内丹</strong>）')
-			: ('百工重淬耗材：任意百工奇材 ×1 + ' + _sel.silverCost + ' 两纹银（当前余 0 份）');
+			? ('百工重淬耗材：<strong style="color:#7ee29a;">' + wxEsc(fg.catalystName) + ' ×' + needMats + '</strong> + <strong>' + effSilver + ' 两纹银</strong>（药柜/行囊共余奇材 ' + matTotal + ' 份 · <strong>免耗山海大妖内丹</strong>）')
+			: ('百工重淬耗材：任意百工奇材 ×' + needMats + ' + ' + effSilver + ' 两纹银（当前余 0 份）');
+
+		var extraBadges = '';
+		if (_sel.weaponModName) {
+			extraBadges += '　│　<span style="color:#7ee29a;">【兵刃铭配：' + wxEsc(_sel.weaponModName) + '】</span>';
+		}
+		if (_sel.quenchTitle) {
+			extraBadges += '　│　<span style="color:' + (_sel.quenchColor || '#ffe28a') + ';">【淬火：' + wxEsc(_sel.quenchTitle) + '】</span>';
+		}
 
 		var footerHtml = inWs
 			? (
 				'<div class="wx-alc-act-row">' +
-					'<span class="wx-alc-act-btn' + (canAfford ? '' : ' is-disabled') + '" style="width:25.6rem;" data-rfg-exec="1">' +
+					'<span class="wx-alc-act-btn' + (canAfford ? '' : ' is-disabled') + '" style="width:28.6rem;" data-rfg-exec="1">' +
 						'<img src="coui://gfx/ui/icons/asset_supplies.png" style="width:1.9rem;height:1.9rem;vertical-align:middle;margin:-0.25rem 0.3rem 0 0;" alt=""/>' + btnLabel +
 					'</span>' +
 				'</div>'
@@ -1252,7 +1593,7 @@
 				'<div class="wx-alc-wb-title">' + wxEsc(_sel.name) +
 					' <span style="font-size:1.28rem;color:' + _sel.gradeColor + ';">【' + wxEsc(_sel.gradeTitle) + ' · 完美度 ' + _sel.perfectionPct + '%】</span>' +
 				'</div>' +
-				'<div class="wx-alc-wb-desc">归属：<strong>' + wxEsc(_sel.ownerLabel) + '</strong>　│　' + wxEsc(_sel.description) + '</div>' +
+				'<div class="wx-alc-wb-desc">归属：<strong>' + wxEsc(_sel.ownerLabel) + '</strong>' + extraBadges + '　│　' + wxEsc(_sel.description) + '</div>' +
 			'</div>' +
 			'<div class="wx-rfg-pity-box">' +
 				'<div>掌锤匠师：<strong style="color:#dda21f;">' + wxEsc(fg.smithLabel) + '</strong>' +
@@ -1265,6 +1606,7 @@
 				'<div>' + catStr + '</div>' +
 				lackNote +
 			'</div>' +
+			ctrlHtml +
 			mwHtml +
 			'<div class="wx-rfg-stat-box">' +
 				'<div class="wx-rfg-stat-hdr">' +
@@ -1280,8 +1622,18 @@
 		_wb.html(html);
 
 		if (inWs) {
+			_wb.find('[data-qid]').on('click', function () {
+				wxAlcState.quenchId = $(this).attr('data-qid') || 'none';
+				wxAlcState.confirmMasterworkUid = null;
+				wxRenderReforgeWorkbench(_wb, _sel, _dlg);
+			});
+			_wb.find('[data-rlock]').on('click', function () {
+				wxAlcState.lockSlot = $(this).attr('data-rlock') || '';
+				wxAlcState.confirmMasterworkUid = null;
+				wxRenderReforgeWorkbench(_wb, _sel, _dlg);
+			});
 			_wb.find('[data-rfg-exec="1"]').on('click', function () {
-				if ($(this).hasClass('is-disabled') || !wxAlcState.sqHandle) return;
+				if ($(this).hasClass('is-disabled') || !wxAlcState.sqHandle || wxAlcState.busy) return;
 				if (_sel.grade >= 3 && wxAlcState.confirmMasterworkUid !== _sel.uid) {
 					wxAlcState.confirmMasterworkUid = _sel.uid;
 					wxRenderReforgeWorkbench(_wb, _sel, _dlg);
@@ -1289,21 +1641,43 @@
 					return;
 				}
 				wxAlcState.confirmMasterworkUid = null;
-				SQ.call(
-					wxAlcState.sqHandle,
-					'onWXForgeReforge',
-					[_sel.uid, wxAlcState.entityId],
-					function (_res) {
-						if (_res && _res.ok) {
-							wxSyncHostFromAlchemyResponse(_res);
-							wxAlcState.data = _res;
-							wxRenderAll(_dlg);
-							wxShowAlcBanner(_res.actionMessage || '百工重锻完成！', false);
-						} else {
-							wxShowAlcBanner((_res && _res.reason) ? _res.reason : '未能完成神兵重锻。', true);
+				wxAlcState.busy = true;
+				var startedPendingR = false;
+				if (window.WX_Showcase && window.WX_Showcase.beginPending) {
+					startedPendingR = window.WX_Showcase.beginPending(
+						{ kind: 'reforge' },
+						{ sqHandle: wxAlcState.sqHandle }
+					);
+				}
+				var rfgSq = wxAlcState.sqHandle;
+				var rfgArgs = [_sel.uid, wxAlcState.entityId, selQ.id, lockUse];
+				setTimeout(function () {
+					SQ.call(
+						rfgSq,
+						'onWXForgeReforge',
+						rfgArgs,
+						function (_res) {
+							wxAlcState.busy = false;
+							if (_res && _res.ok) {
+								wxSyncHostFromAlchemyResponse(_res, true);
+								wxAlcState.data = _res;
+								if (_res.wxShowcase && window.WX_Showcase) {
+									window.WX_Showcase.resolvePending(_res.wxShowcase, {
+										sqHandle: rfgSq,
+										onClose: function () { wxRenderAll(_dlg); }
+									});
+								} else {
+									if (startedPendingR && window.WX_Showcase) window.WX_Showcase.abortPending();
+									wxRenderAll(_dlg);
+									wxShowAlcBanner(_res.actionMessage || '百工重锻完成！', false);
+								}
+							} else {
+								if (startedPendingR && window.WX_Showcase) window.WX_Showcase.abortPending();
+								wxShowAlcBanner((_res && _res.reason) ? _res.reason : '未能完成神兵重锻。', true);
+							}
 						}
-					}
-				);
+					);
+				}, startedPendingR ? 20 : 0);
 			});
 		}
 	}
@@ -1378,6 +1752,8 @@
 
 	function wxOpenAlchemyModalDOM(_payload) {
 		wxCloseAlchemyModal();
+		wxAlcState.busy = false;
+		wxAlcState.taxNeedsRefresh = false;
 		wxAlcState.data = _payload;
 		var inWs = wxIsWorkshopMode();
 
@@ -1412,7 +1788,7 @@
 
 		var hdrTitle = inWs
 			? '百工丹坊'
-			: '<img src="coui://gfx/ui/wx_icons/wx_glyph_herb_cabinet.png" alt=""/>丹经与药柜录 · 已悟丹方 · 百工器谱 · 奇材账册（只读）';
+			: '<img src="coui://gfx/ui/wx_icons/wx_glyph_herb_cabinet.png" alt=""/>丹经与药柜录 · 已悟丹方 · 百工器谱 · 奇材账册';
 
 		var backdrop = $(
 			'<div class="wx-alc-backdrop">' +
@@ -1440,6 +1816,7 @@
 			}
 		});
 		$(document).on('keydown.wxAlcModal', function (_e) {
+			if ($('.wx-fx-backdrop').length > 0) return;
 			if (_e.keyCode === 27) {
 				wxCloseAlchemyModal();
 				_e.stopPropagation();
@@ -1506,18 +1883,101 @@
 			content.addClass('wx-workshop-content').prepend(row);
 		};
 
+		var origTaxNotifyCraft = WorldTownScreenTaxidermistDialogModule.prototype.notifyBackendCraft;
+		if (typeof origTaxNotifyCraft === 'function') {
+			WorldTownScreenTaxidermistDialogModule.prototype.notifyBackendCraft = function (_blueprintID, _callback) {
+				var self = this;
+				if (self.mWXCraftBusy) return;
+				self.mWXCraftBusy = true;
+				var startedPendingC = false;
+				if (window.WX_Showcase && window.WX_Showcase.beginPending) {
+					var entry = (this.mSelectedEntry && this.mSelectedEntry.data) ? this.mSelectedEntry.data('entry') : null;
+					var imgPath = (entry && entry.ImagePath) ? String(entry.ImagePath) : '';
+					var bpName  = (entry && entry.Name) ? String(entry.Name) : '';
+					var isPillBp = (imgPath.indexOf('consumables/') !== -1 || imgPath.indexOf('wx_pill_') !== -1 || bpName.indexOf('丹') !== -1 || bpName.indexOf('丸') !== -1 || bpName.indexOf('散') !== -1 || bpName.indexOf('膏') !== -1);
+					var inpCards = [];
+					if (entry && entry.Ingredients && entry.Ingredients.length) {
+						for (var ci = 0; ci < entry.Ingredients.length && ci < 3; ci++) {
+							var ig = entry.Ingredients[ci];
+							if (ig && ig.ImagePath) {
+								inpCards.push({ name: '', icon: 'ui/items/' + ig.ImagePath });
+							}
+						}
+					}
+					if (!entry || entry.IsCraftable !== false) {
+						startedPendingC = window.WX_Showcase.beginPending(
+							{ kind: isPillBp ? 'alchemy' : 'forge', inputs: inpCards },
+							{ sqHandle: self.mSQHandle }
+						);
+					}
+				}
+				// Yield 1 paint frame (20ms) so CoherentUI draws Frame 1 of the anvil/furnace BEFORE Squirrel crafts!
+				setTimeout(function () {
+					origTaxNotifyCraft.call(self, _blueprintID, function (_result) {
+						self.mWXCraftBusy = false;
+						if (_result && _result.wxCraftShowcase && window.WX_Showcase) {
+							// Sync topbar silver/assets immediately, and defer the heavy 400-node vanilla blueprint
+							// list rebuild until the player dismisses the forged item reveal card!
+							if (self.mAssets && _result.Assets) {
+								try { self.mAssets.loadFromData(_result.Assets); } catch (_eAs) {}
+							}
+							window.WX_Showcase.resolvePending(_result.wxCraftShowcase, {
+								sqHandle: self.mSQHandle,
+								onClose: function () {
+									if (!self.mDialogContainer) return;
+									if (_callback) {
+										var cleanRes = jQuery.extend({}, _result);
+										delete cleanRes.wxCraftShowcase;
+										delete cleanRes.wxCraftBanner;
+										_callback(cleanRes);
+									}
+								}
+							});
+							return;
+						}
+						if (startedPendingC && window.WX_Showcase) {
+							window.WX_Showcase.abortPending();
+						}
+						if (_callback) _callback(_result);
+					});
+				}, startedPendingC ? 20 : 0);
+			};
+		}
+
 		var origTaxLoadCraftBanner = WorldTownScreenTaxidermistDialogModule.prototype.loadFromData;
 		if (typeof origTaxLoadCraftBanner === 'function') {
 			WorldTownScreenTaxidermistDialogModule.prototype.loadFromData = function (_data) {
+				if (_data && _data.wxCraftShowcase && window.WX_Showcase) {
+					var selfTax = this;
+					window.WX_Showcase.play(_data.wxCraftShowcase, {
+						sqHandle: this.mSQHandle,
+						onClose: function () {
+							var cleanD = jQuery.extend({}, _data);
+							delete cleanD.wxCraftShowcase;
+							delete cleanD.wxCraftBanner;
+							origTaxLoadCraftBanner.call(selfTax, cleanD);
+						}
+					});
+					return;
+				}
 				origTaxLoadCraftBanner.call(this, _data);
 				if (_data && _data.wxCraftBanner && this.mDialogContainer) {
-					var oldB = this.mDialogContainer.find('.wx-screen-banner');
-					if (oldB.length) oldB.remove();
-					var bEl = $('<div class="wx-screen-banner">' + wxEsc(_data.wxCraftBanner) + '</div>');
-					this.mDialogContainer.append(bEl);
-					setTimeout(function () {
-						bEl.fadeOut(260, function () { bEl.remove(); });
-					}, 4200);
+					if (window.WX_Showcase && window.WX_Showcase.plaque) {
+						window.WX_Showcase.plaque({
+							title: '百工丹坊',
+							message: _data.wxCraftBanner,
+							icon: 'ui/wx_icons/wx_glyph_cauldron.png',
+							isError: (_data.wxCraftBanner.indexOf('不足') !== -1 || _data.wxCraftBanner.indexOf('找不到') !== -1)
+						});
+					} else {
+						var oldB = this.mDialogContainer.find('.wx-screen-banner');
+						if (oldB.length) oldB.remove();
+						var bEl = $('<div class="wx-screen-banner">' + wxEsc(_data.wxCraftBanner) + '</div>');
+						this.mDialogContainer.append(bEl);
+						setTimeout(function () {
+							bEl.fadeOut(260, function () { bEl.remove(); });
+						}, 4200);
+					}
 				}
 			};
 		}

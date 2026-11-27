@@ -16,15 +16,17 @@ this.wx_bow_luori <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.WX_AnimMode <- "pierce_luori";
 		this.m.WX_ChoreoID <- "wx_bow_luori";
 		this.m.IsRanged = true;
+		this.m.IsIgnoredAsAOO = true;
 		this.m.IsShowingProjectile = true;
 		this.m.ProjectileType = ::Const.ProjectileType.WX_Liuxingjian;
 		this.m.IsProjectileRotated = true;
 		this.m.ProjectileTimeScale = 1.25;
-		this.m.SoundOnUse = ["sounds/combat/aimed_shot_01.wav", "sounds/combat/aimed_shot_02.wav"];
+		this.m.SoundOnUse = ["sounds/combat/quick_shot_01.wav", "sounds/combat/quick_shot_02.wav", "sounds/combat/quick_shot_03.wav"];
 		this.m.ActionPointCost = 6;
 		this.m.FatigueCost = 26;
 		this.m.MinRange = 2;
 		this.m.MaxRange = 8;
+		this.m.MaxLevelDifference = 4;
 		this.m.RequiredWeaponTypes = ["Bow", "Crossbow"];
 		this.m.DirectDamageMult = 0.50;
 	}
@@ -32,7 +34,10 @@ this.wx_bow_luori <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		if (_skill == this)
 		{
-			_properties.RangedSkill += 14; _properties.DamageDirectAdd += 0.22; _properties.DamageTotalMult *= 1.25;
+			this.wxApplyTagPreHitProps(_targetEntity, _properties);
+			_properties.RangedSkill += 14;
+			if ("Streams" in ::Wuxia) ::Wuxia.Streams.addCappedPen(_properties, 0.22);
+			_properties.DamageTotalMult *= 1.25;
 		}
 	}
 
@@ -41,10 +46,14 @@ this.wx_bow_luori <- this.inherit("scripts/skills/actives/wx_move_base", {
 		local target = _targetTile.getEntity();
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, this.m.WX_VfxBrush);
 		local hit = this.wxShootBowAt(_user, target);
-		if (hit && target != null && target.isAlive())
+		if (hit)
 		{
-			this.wxApplyStatusToTarget(target, "effects.wx_internal_injury", "scripts/skills/effects/wx_internal_injury");
+			if (target != null && target.isAlive())
+				this.wxApplyStatusToTarget(target, "effects.wx_internal_injury", "scripts/skills/effects/wx_internal_injury");
+			if (_targetTile != null && ("TileField" in ::Wuxia))
+				::Wuxia.TileField.setField(_targetTile, "drought_scorch", 2, _user);
 		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

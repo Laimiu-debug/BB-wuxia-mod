@@ -152,6 +152,9 @@
 	}
 };
 
+::Wuxia.Purify.KnownPlaceNamesSorted <- null;
+::Wuxia.Purify.KnownPersonNamesSorted <- null;
+
 ::Wuxia.Purify.isWuxiaTownName <- function( _name )
 {
 	if (_name == null || _name == "") return false;
@@ -168,6 +171,284 @@
 		}
 	}
 	return (_name in ::Wuxia.Purify.KnownTownNames);
+};
+
+::Wuxia.Purify.getKnownPlaceNamesSorted <- function()
+{
+	if (::Wuxia.Purify.KnownPlaceNamesSorted == null)
+	{
+		local seen = {};
+		local arr = [];
+		local addName = function( _nm )
+		{
+			if (_nm != null && typeof _nm == "string" && _nm != "" && !(_nm in seen))
+			{
+				seen[_nm] <- true;
+				arr.push(_nm);
+			}
+		};
+		if ("WorldVisuals" in ::Wuxia.Config && "SettlementNames" in ::Wuxia.Config.WorldVisuals)
+		{
+			foreach (_pk, list in ::Wuxia.Config.WorldVisuals.SettlementNames)
+				foreach (nm in list) addName(nm);
+		}
+		foreach (nh in ::Wuxia.Purify.NobleHouses) addName(nh[0]);
+		foreach (os in ::Wuxia.Purify.OasisStates) addName(os[0]);
+		arr.sort(function( _a, _b ) {
+			if (_a.len() != _b.len()) return _a.len() > _b.len() ? -1 : 1;
+			return _a <=> _b;
+		});
+		::Wuxia.Purify.KnownPlaceNamesSorted = arr;
+	}
+	local out = ::Wuxia.Purify.KnownPlaceNamesSorted;
+	// Include any live settlement/faction names not already in static pools
+	if ("World" in getroottable() && ::World != null && ("EntityManager" in ::World) && ::World.EntityManager != null)
+	{
+		local extra = [];
+		local settlements = ::World.EntityManager.getSettlements();
+		if (settlements != null)
+		{
+			foreach (st in settlements)
+			{
+				if (st != null && st.isAlive())
+				{
+					local sn = st.getName();
+					if (sn != null && sn != "" && !::Wuxia.Purify.isWuxiaTownName(sn))
+						extra.push(sn);
+				}
+			}
+		}
+		if (extra.len() > 0)
+		{
+			local merged = clone out;
+			local seen2 = {};
+			foreach (p in merged) seen2[p] <- true;
+			foreach (e in extra)
+			{
+				if (!(e in seen2)) { seen2[e] <- true; merged.push(e); }
+			}
+			merged.sort(function( _a, _b ) {
+				if (_a.len() != _b.len()) return _a.len() > _b.len() ? -1 : 1;
+				return _a <=> _b;
+			});
+			return merged;
+		}
+	}
+	return out;
+};
+
+::Wuxia.Purify.getKnownPersonNamesSorted <- function()
+{
+	if (::Wuxia.Purify.KnownPersonNamesSorted == null)
+	{
+		local seen = {};
+		local arr = [];
+		if ("NamePools" in ::Wuxia.Config && ::Wuxia.Config.NamePools != null)
+		{
+			foreach (_pk, list in ::Wuxia.Config.NamePools)
+			{
+				foreach (nm in list)
+				{
+					if (nm != null && typeof nm == "string" && nm != "" && !(nm in seen))
+					{
+						seen[nm] <- true;
+						arr.push(nm);
+					}
+				}
+			}
+		}
+		arr.sort(function( _a, _b ) {
+			if (_a.len() != _b.len()) return _a.len() > _b.len() ? -1 : 1;
+			return _a <=> _b;
+		});
+		::Wuxia.Purify.KnownPersonNamesSorted = arr;
+	}
+	return ::Wuxia.Purify.KnownPersonNamesSorted;
+};
+
+// Fix reversed English "<Person> of <Place>" / "<Person> 的 <Place>" actor names (from vanilla/zhcn settlement & noble characters)
+::Wuxia.Purify.formatLocatedActorName <- function( _name, _title )
+{
+	if (_name == null || _title == null || typeof _name != "string" || typeof _title != "string")
+		return null;
+	if (_name == "" || _title == "")
+		return null;
+
+	foreach (pfx in ["的 ", "of the ", "Of the ", "of ", "Of ", "家族 "])
+	{
+		if (_title.find(pfx) == 0)
+		{
+			local place = strip(_title.slice(pfx.len()));
+			if (place != "")
+				return place + "的" + _name;
+		}
+	}
+	return null;
+};
+
+// Flip any residual "<Person> 的 <Place>" / "<Person> of <Place>" in dialogue/contract prose
+// AND collapse redundant same-clause town prefixes like "替桃源屯的一位头面人物桃源屯的裴景行办事" -> "替桃源屯的一位头面人物裴景行办事".
+::Wuxia.Purify.fixLocatedChineseNames <- function( _str )
+{
+	if (_str == null || typeof _str != "string" || _str == "")
+		return _str;
+	local s = _str;
+	local hasDelim = (s.find(" 的 ") != null || s.find(" of ") != null || s.find(" Of ") != null);
+	local hasDe = (s.find("的") != null);
+	if (!hasDelim && !hasDe)
+		return s;
+
+	local places = ::Wuxia.Purify.getKnownPlaceNamesSorted();
+
+	// Pass 1: Flip "<Person> 的 <Place>" / "<Person> of <Place>" using exact known place & person boundaries
+	if (hasDelim)
+	{
+		local persons = ::Wuxia.Purify.getKnownPersonNamesSorted();
+		foreach (delim in [" 的 ", " of ", " Of "])
+		{
+			local searchFrom = 0;
+			local dLen = delim.len();
+			local guard = 0;
+			while (guard < 24)
+			{
+				guard += 1;
+				local pos = s.find(delim, searchFrom);
+				if (pos == null) break;
+				local afterPos = pos + dLen;
+				local matchedPlace = null;
+				foreach (pl in places)
+				{
+					if (afterPos + pl.len() <= s.len() && s.slice(afterPos, afterPos + pl.len()) == pl)
+					{
+						matchedPlace = pl;
+						break;
+					}
+				}
+				if (matchedPlace == null)
+				{
+					searchFrom = afterPos;
+					continue;
+				}
+
+				local matchedPerson = null;
+				foreach (pn in persons)
+				{
+					if (pos >= pn.len() && s.slice(pos - pn.len(), pos) == pn)
+					{
+						matchedPerson = pn;
+						break;
+					}
+				}
+				if (matchedPerson == null)
+				{
+					// Only move a whole short Chinese name with an explicit left boundary.
+					local scanStart = ::Math.max(0, pos - 15);
+					local chunk = s.slice(scanStart, pos);
+					local bestCut = (scanStart == 0) ? 0 : -1;
+					foreach (sep in [" ", "\t", "\n", ",", ".", "，", "。", "、", "；", "：", "！", "？", "（", "【", "《", "『", "「", "“", "‘", "物", "人", "位", "名", "替", "由", "向", "与", "是", "叫"])
+					{
+						local idx = chunk.find(sep);
+						while (idx != null)
+						{
+							local afterSep = idx + sep.len();
+							if (afterSep > bestCut)
+								bestCut = afterSep;
+							idx = chunk.find(sep, afterSep);
+						}
+					}
+					local cand = (bestCut >= 0) ? chunk.slice(bestCut) : "";
+					if (cand.len() >= 6 && cand.len() <= 12 && cand.len() % 3 == 0)
+					{
+						local isName = true;
+						for (local i = 0; i < cand.len(); i += 3)
+						{
+							local a = cand[i] & 255, b = cand[i + 1] & 255, c = cand[i + 2] & 255;
+							if (a < 0xE3 || a > 0xE9 || b < 0x80 || b > 0xBF || c < 0x80 || c > 0xBF ||
+								(a == 0xE3 && b < 0x90))
+							{
+								isName = false;
+								break;
+							}
+						}
+						if (isName) matchedPerson = cand;
+					}
+				}
+
+				if (matchedPerson != null && matchedPerson != "")
+				{
+					local rep = matchedPlace + "的" + matchedPerson;
+					local nameStart = pos - matchedPerson.len();
+					local placeEnd = afterPos + matchedPlace.len();
+					s = s.slice(0, nameStart) + rep + s.slice(placeEnd);
+					searchFrom = nameStart + rep.len();
+				}
+				else
+				{
+					searchFrom = afterPos;
+				}
+			}
+		}
+	}
+
+	// Pass 2: Collapse redundant repeated "<Place>" in the same clause before "<Place>的<Person>"
+	// e.g. "替桃源屯的一位头面人物桃源屯的裴景行办事" -> "替桃源屯的一位头面人物裴景行办事"
+	if (s.find("的") != null)
+	{
+		local roleSuffixes = [
+			"人物", "长老", "镇长", "城主", "乡绅", "管事", "主事", "大人", "官员",
+			"商贾", "商人", "代表", "使者", "首领", "头目", "贵族", "领主", "东家",
+			"掌柜", "族长", "帮主", "门主", "掌门", "成员", "一位", "那位", "这位"
+		];
+		foreach (pl in places)
+		{
+			local plDe = pl + "的";
+			local p2 = s.find(plDe);
+			if (p2 == null) continue;
+			local p1 = s.find(pl);
+			if (p1 == null) continue;
+
+			local guard2 = 0;
+			while (guard2 < 12)
+			{
+				guard2 += 1;
+				local nextP2 = s.find(plDe, p1 + pl.len());
+				if (nextP2 == null) break;
+				local gap = s.slice(p1 + pl.len(), nextP2);
+				local hasBreak = (gap.len() > 36
+					|| gap.find("，") != null || gap.find("。") != null || gap.find("！") != null
+					|| gap.find("？") != null || gap.find("；") != null || gap.find("\n") != null);
+				local shouldCollapse = false;
+				if (!hasBreak)
+				{
+					if (gap == "" || gap == "的")
+					{
+						shouldCollapse = true;
+					}
+					else if (gap.find("的") == 0)
+					{
+						foreach (rs in roleSuffixes)
+						{
+							if (gap.len() >= rs.len() && gap.slice(gap.len() - rs.len()) == rs)
+							{
+								shouldCollapse = true;
+								break;
+							}
+						}
+					}
+				}
+				if (shouldCollapse)
+				{
+					s = s.slice(0, nextP2) + s.slice(nextP2 + (gap == "" ? pl.len() : plDe.len()));
+				}
+				else
+				{
+					p1 = nextP2;
+				}
+			}
+		}
+	}
+
+	return s;
 };
 
 ::Wuxia.Purify.applyItemText <- function( _item, _scriptName = "" )
@@ -303,9 +584,41 @@
 	return out;
 };
 
+::Wuxia.Purify.TermCache <- {};
+::Wuxia.Purify.TermCacheCount <- 0;
+::Wuxia.Purify.TermCacheHits <- 0;
+::Wuxia.Purify.TermCacheWorldSalt <- -1;
+
+::Wuxia.Purify.clearTermCache <- function()
+{
+	::Wuxia.Purify.TermCache = {};
+	::Wuxia.Purify.TermCacheCount = 0;
+};
+
+::Wuxia.Purify.getWorldCacheSalt <- function()
+{
+	if ("World" in getroottable() && ::World != null && ("EntityManager" in ::World) && ::World.EntityManager != null)
+	{
+		local st = ::World.EntityManager.getSettlements();
+		if (st != null) return st.len();
+	}
+	return 0;
+};
+
 ::Wuxia.Purify.rewriteCurrencyAndSupplyTerms <- function( _str )
 {
 	if (_str == null || typeof _str != "string" || _str == "") return _str;
+	local salt = ::Wuxia.Purify.getWorldCacheSalt();
+	if (salt != ::Wuxia.Purify.TermCacheWorldSalt)
+	{
+		::Wuxia.Purify.clearTermCache();
+		::Wuxia.Purify.TermCacheWorldSalt = salt;
+	}
+	if (_str.len() <= 512 && (_str in ::Wuxia.Purify.TermCache))
+	{
+		::Wuxia.Purify.TermCacheHits += 1;
+		return ::Wuxia.Purify.TermCache[_str];
+	}
 	local s = _str;
 	s = ::Wuxia.Purify.strReplace(s, "克朗", "两纹银");
 	s = ::Wuxia.Purify.strReplace(s, "两两纹银", "两纹银");
@@ -345,6 +658,14 @@
 	s = ::Wuxia.Purify.strReplace(s, "Maximum Fatigue", "内息上限");
 	s = ::Wuxia.Purify.strReplace(s, "Max. Fatigue", "内息上限");
 	s = ::Wuxia.Purify.strReplace(s, "Fatigue", "内息");
+	s = ::Wuxia.Purify.fixLocatedChineseNames(s);
+	if (_str.len() <= 512)
+	{
+		if (::Wuxia.Purify.TermCacheCount >= 512)
+			::Wuxia.Purify.clearTermCache();
+		::Wuxia.Purify.TermCache[_str] <- s;
+		::Wuxia.Purify.TermCacheCount += 1;
+	}
 	return s;
 };
 

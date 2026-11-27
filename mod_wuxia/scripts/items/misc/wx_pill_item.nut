@@ -4,10 +4,11 @@
 
 this.wx_pill_item <- this.inherit("scripts/items/item", {
 	m = {
-		PillID     = "wx_pill_huxin",
-		PillGrade  = 1,
-		PotencyPct = 100,
-		AuxNature  = ""
+		PillID      = "wx_pill_huxin",
+		PillGrade   = 1,
+		PotencyPct  = 100,
+		AuxNature   = "",
+		CoreImprint = ""
 	},
 
 	function create()
@@ -30,16 +31,33 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 		this.m.PillGrade = 1;
 		this.m.PotencyPct = 100;
 		this.m.AuxNature = "";
+		this.m.CoreImprint = "";
 		this.refreshFromConfig();
 	}
 
-	function initPillVariant( _pillID, _grade = 1, _potencyPct = 100, _auxNature = "" )
+	function initPillVariant( _pillID, _grade = 1, _potencyPct = 100, _auxNature = "", _coreImprint = "" )
 	{
 		this.m.PillID = _pillID;
 		this.m.PillGrade = ::Math.max(1, ::Math.min(3, _grade));
 		this.m.PotencyPct = ::Math.max(80, ::Math.min(170, _potencyPct));
-		this.m.AuxNature = (_auxNature != null) ? _auxNature : "";
+		this.m.AuxNature = (_auxNature != null && _auxNature != "none") ? _auxNature : "";
+		this.m.CoreImprint = (_coreImprint != null) ? _coreImprint : "";
 		this.refreshFromConfig();
+	}
+
+	function getCoreImprint()
+	{
+		return this.m.CoreImprint;
+	}
+
+	function getCoreImprintSpec()
+	{
+		if (this.m.CoreImprint != "" && "Alchemy" in ::Wuxia && "getCoreImprintPreview" in ::Wuxia.Alchemy)
+		{
+			local def = (this.m.PillID in ::Wuxia.Config.Pills) ? ::Wuxia.Config.Pills[this.m.PillID] : null;
+			return ::Wuxia.Alchemy.getCoreImprintPreview(this.m.CoreImprint, def != null ? def.Kind : "buff_");
+		}
+		return null;
 	}
 
 	function getPillID()
@@ -86,7 +104,7 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 
 	function getWashGradeBonus()
 	{
-		return this.getGradeSpec().WashBonus;
+		return this.getGradeSpec().WashBonus + (this.m.CoreImprint != "" ? 3 : 0);
 	}
 
 	function getProtectGradeBonus()
@@ -128,6 +146,12 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 				}
 			}
 		}
+		if (_actor != null && _actor.getSkills() != null && this.m.CoreImprint != "")
+		{
+			baseAmt = ::Math.round(baseAmt * 1.15).tointeger();
+			local ciSp = this.getCoreImprintSpec();
+			note += "（" + (ciSp != null ? ciSp.Title : "本命妖丹丹韵") + "灌顶 +15%！）";
+		}
 		return { ExpAmount = baseAmt, Note = note };
 	}
 
@@ -156,8 +180,15 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 		{
 			extra.push("【" + aux.Title + "：" + this.getAuxContextLine(def.Kind) + "】");
 		}
+		local cImp = this.getCoreImprintSpec();
+		if (cImp != null)
+		{
+			extra.push("【" + cImp.Title + "：" + cImp.Desc + "】");
+		}
 		if (extra.len() == 0) return def.Description;
-		local prefix = extra[0] + (extra.len() > 1 ? (" " + extra[1]) : "") + " ";
+		local prefix = "";
+		for (local ei = 0; ei < extra.len(); ei = ++ei)
+			prefix += extra[ei] + " ";
 		return prefix + def.Description;
 	}
 
@@ -186,7 +217,9 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 		if (this.m.PillID in ::Wuxia.Config.Pills)
 		{
 			local def = ::Wuxia.Config.Pills[this.m.PillID];
-			local qLabel = ("Quality" in def && def.Quality in ::Wuxia.Text.Qualities) ? ::Wuxia.Text.Qualities[def.Quality] : "丹药";
+			local qKey = ("Quality" in def) ? def.Quality : "common";
+			local qLabel = (qKey in ::Wuxia.Text.Qualities) ? ::Wuxia.Text.Qualities[qKey] : "丹药";
+			local qCol = ("UI" in ::Wuxia && "getQualityTooltipColor" in ::Wuxia.UI) ? ::Wuxia.UI.getQualityTooltipColor(qKey) : "#3f362a";
 			local sub = ("SubLabel" in def) ? def.SubLabel : "江湖灵药";
 			local gSpec = this.getGradeSpec();
 			local isPreview = ("WX_IsBlueprintPreview" in this.m) && this.m.WX_IsBlueprintPreview;
@@ -196,9 +229,9 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 				id = 15,
 				type = "text",
 				icon = "ui/icons/special.png",
-				text = "丹药品阶：【" + qLabel + " · " + sub + "】" +
+				text = "[color=#3a3052][b]丹药品阶：[/b][/color][color=" + qCol + "][b]【" + qLabel + " · " + sub + "】[/b][/color]" +
 					((!isPreview && (this.m.PillGrade >= 2 || this.m.PotencyPct != 100))
-						? ("  [color=" + gCol + "]（" + gSpec.Title + " · 药效 " + this.m.PotencyPct + "%）[/color]")
+						? ("  [color=" + gCol + "][b]（" + gSpec.Title + " · 药效 " + this.m.PotencyPct + "%）[/b][/color]")
 						: "")
 			});
 
@@ -238,6 +271,16 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 						text = "[color=" + auxCol + "]【" + aux.Title + "】[/color]" + this.getAuxContextLine(def.Kind)
 					});
 				}
+				local cImp2 = this.getCoreImprintSpec();
+				if (cImp2 != null)
+				{
+					ret.push({
+						id = 20,
+						type = "text",
+						icon = "ui/icons/special.png",
+						text = "[color=" + cImp2.TooltipColor + "]【本命丹韵 · " + cImp2.Title + "】[/color]" + cImp2.Desc
+					});
+				}
 				if (this.m.PillGrade >= 3 && def.Kind != null && def.Kind.find("buff_") == 0)
 				{
 					ret.push({
@@ -265,7 +308,7 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 					id = 16,
 					type = "text",
 					icon = "ui/icons/xp_received.png",
-					text = "修为灌注：拖入武学插槽立即增加 [color=" + ::Const.UI.Color.PositiveValue + "]+" + this.getEffectiveExpAmount() + "[/color] 火候"
+					text = "[color=#5e2c00][b]修为灌注：[/b][/color]拖入武学插槽立即增加 [color=#0b4a1e][b]+" + this.getEffectiveExpAmount() + "[/b][/color] 火候"
 				});
 			}
 			else if (this.isDirectConsumeKind(def.Kind))
@@ -274,7 +317,7 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 					id = 16,
 					type = "text",
 					icon = "ui/icons/health.png",
-					text = "用法：可在行囊右键直接给角色服药，或在「武学修为 → 灵丹」页点击一键服用"
+					text = "[color=#094a44][b]用法：[/b][/color]可在行囊右键直接给角色服药，或在「武学修为 → 灵丹」页点击一键服用"
 				});
 			}
 			else if (def.Kind == "marrow_wash" || def.Kind == "wash_protect")
@@ -283,7 +326,7 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 					id = 16,
 					type = "text",
 					icon = "ui/icons/bravery.png",
-					text = "用法：在「武学修为」页点击「✦ 洗经伐髓」即可启用（优先消耗最高品相灵丹）"
+					text = "[color=#094a44][b]用法：[/b][/color]在「武学修为」页点击「✦ 洗经伐髓」即可启用（优先消耗最高品相灵丹）"
 				});
 			}
 		}
@@ -403,7 +446,7 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 			}
 			buff.addPillBuff("buff_bingxin");
 			if ("applyPillPotencyAndAux" in buff)
-				buff.applyPillPotencyAndAux(this.m.PotencyPct, this.m.AuxNature, false, firstBattleEffect);
+				buff.applyPillPotencyAndAux(this.m.PotencyPct, this.m.AuxNature, false, firstBattleEffect, this.m.CoreImprint);
 			local auxNote2 = this.applyAuxHealBonus(_actor, skills);
 			skills.update();
 			return { Ok = true, Message = _actor.getName() + " 服下「" + this.m.Name + "」，涤清内患并获下场战斗冰心辟毒药力" + auxNote2 + "！" };
@@ -496,7 +539,7 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 			if ("applyPillPotencyAndAux" in buff2)
 			{
 				local waiveFengmo = (def.Kind == "buff_fengmo" && this.m.PillGrade >= 3);
-				buff2.applyPillPotencyAndAux(this.m.PotencyPct, this.m.AuxNature, waiveFengmo, firstBattleEffect);
+				buff2.applyPillPotencyAndAux(this.m.PotencyPct, this.m.AuxNature, waiveFengmo, firstBattleEffect, this.m.CoreImprint);
 			}
 			if (this.m.AuxNature == "vital" && _actor.getHitpoints() < _actor.getHitpointsMax())
 			{
@@ -531,9 +574,14 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 	function onSerialize( _out )
 	{
 		this.item.onSerialize(_out);
-		if (this.m.PillGrade == 1 && this.m.PotencyPct == 100 && this.m.AuxNature == "")
+		if (this.m.PillGrade == 1 && this.m.PotencyPct == 100 && this.m.AuxNature == "" && this.m.CoreImprint == "")
 		{
 			_out.writeString(this.m.PillID);
+		}
+		else if (this.m.CoreImprint != "")
+		{
+			local auxTok = (this.m.AuxNature != "") ? this.m.AuxNature : "none";
+			_out.writeString(this.m.PillID + "|" + this.m.PillGrade + "|" + this.m.PotencyPct + "|" + auxTok + "|" + this.m.CoreImprint);
 		}
 		else
 		{
@@ -552,15 +600,17 @@ this.wx_pill_item <- this.inherit("scripts/items/item", {
 			this.m.PillGrade = 1;
 			this.m.PotencyPct = 100;
 			this.m.AuxNature = "";
+			this.m.CoreImprint = "";
 		}
 		else
 		{
 			local parts = split(raw, "|");
-			this.m.PillID     = parts.len() >= 1 ? parts[0] : "wx_pill_huxin";
-			this.m.PillGrade  = parts.len() >= 2 ? ::Math.max(1, ::Math.min(3, parts[1].tointeger())) : 1;
-			this.m.PotencyPct = parts.len() >= 3 ? ::Math.max(80, ::Math.min(170, parts[2].tointeger())) : 100;
-			this.m.AuxNature  = parts.len() >= 4 ? parts[3] : "";
-			// Note: `split("id|2|120|", "|")` in Squirrel omits empty trailing token, so `parts.len() == 3` cleanly gives `""`!
+			this.m.PillID      = parts.len() >= 1 ? parts[0] : "wx_pill_huxin";
+			this.m.PillGrade   = parts.len() >= 2 ? ::Math.max(1, ::Math.min(3, parts[1].tointeger())) : 1;
+			this.m.PotencyPct  = parts.len() >= 3 ? ::Math.max(80, ::Math.min(170, parts[2].tointeger())) : 100;
+			local rawAux       = parts.len() >= 4 ? parts[3] : "";
+			this.m.AuxNature   = (rawAux != "none") ? rawAux : "";
+			this.m.CoreImprint = parts.len() >= 5 ? parts[4] : "";
 		}
 		this.refreshFromConfig();
 	}

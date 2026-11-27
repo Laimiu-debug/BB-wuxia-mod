@@ -43,6 +43,8 @@ this.wx_neigong_zixia <- this.inherit("scripts/skills/skill", {
 		this.m.Cooldown = 3;
 		::Wuxia.VFX.playSkillVfx(this, _user, _user.getTile(), this.m.WX_VfxBrush);
 		_user.setFatigue(::Math.max(0, _user.getFatigue() - 20));
+		if ("Streams" in ::Wuxia && _user.getTile() != null)
+			::Wuxia.Streams.spawnSwordNode(_user, _user.getTile());
 		this.getContainer().update();
 		return true;
 	}

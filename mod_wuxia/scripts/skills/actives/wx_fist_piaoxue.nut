@@ -7,7 +7,7 @@ this.wx_fist_piaoxue <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_fist_piaoxue";
 		this.m.Name = "佛光绵骨掌";
-		this.m.Description = "峨眉柔中带刚绝掌：消耗 4 AP 与 16 内息，掌影飘忽无声透衣伤腑（命中 +10，穿甲 +15%，附加散劲虚弱）。";
+		this.m.Description = "峨眉柔中带刚绝掌：消耗 4 AP 与 16 内息，掌影飘忽无声透衣伤腑（命中 +10，穿甲 +10%，附加散劲虚弱）。";
 		this.m.Icon = "skills/wx_fist_piaoxue.png";
 		this.m.IconDisabled = "skills/wx_fist_piaoxue_sw.png";
 		this.m.Overlay = "wx_ov_wx_fist_piaoxue";
@@ -21,13 +21,13 @@ this.wx_fist_piaoxue <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.MinRange = 1;
 		this.m.MaxRange = 1;
 		this.m.RequiredWeaponTypes = ["Fist"];
-		this.m.DirectDamageMult = 0.40;
+		this.m.DirectDamageMult = 0.36;
 	}
 	function onAnySkillUsed( _skill, _targetEntity, _properties )
 	{
 		if (_skill == this)
 		{
-			_properties.MeleeSkill += 10; _properties.DamageDirectAdd += 0.15;
+			_properties.MeleeSkill += 10; _properties.DamageDirectAdd += 0.10;
 		}
 	}
 

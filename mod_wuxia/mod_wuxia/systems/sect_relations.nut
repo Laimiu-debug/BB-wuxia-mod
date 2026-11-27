@@ -113,6 +113,64 @@
 	};
 };
 
+// Map every Sect ID to its dedicated Town-Style Mountain Gate panoramic backdrop (`gfx/ui/sanctums/wx_sanctum_bg_<key>[_night].jpg`)
+::Wuxia.SectRelations.getSanctumSceneKey <- function( _sectID )
+{
+	if (_sectID != null && (_sectID in ::Wuxia.SectRelations.SanctumSpecs))
+		return _sectID;
+	local sDef = (_sectID != null && (_sectID in ::Wuxia.Config.Sects)) ? ::Wuxia.Config.Sects[_sectID] : null;
+	if (sDef == null) return "reg_mountains";
+	local reg = ("Region" in sDef) ? sDef.Region : "mountains";
+	local align = ("Alignment" in sDef) ? sDef.Alignment : "neutral";
+	if (align == "outlaw" && reg != "swamp" && reg != "snow" && reg != "desert")
+		return "reg_outlaw";
+	if (reg == "plains" || reg == "mountains" || reg == "forest" || reg == "swamp" || reg == "snow" || reg == "desert")
+		return "reg_" + reg;
+	return "reg_mountains";
+};
+
+::Wuxia.SectRelations.getSanctumBannerUIPath <- function( _sectID )
+{
+	local spec = ::Wuxia.SectRelations.getSanctumVisualSpec(_sectID);
+	if (spec != null && ("BannerBrush" in spec) && spec.BannerBrush != "")
+		return "ui/banners/" + spec.BannerBrush + ".png";
+	return "ui/banners/banner_52.png";
+};
+
+::Wuxia.SectRelations.getSanctumDisciplePreview <- function( _sectID )
+{
+	local sDef = (_sectID != null && (_sectID in ::Wuxia.Config.Sects)) ? ::Wuxia.Config.Sects[_sectID] : null;
+	local sName = (sDef != null) ? sDef.Name : "本门";
+	local reg = (sDef != null && "Region" in sDef) ? sDef.Region : "mountains";
+	local align = (sDef != null && "Alignment" in sDef) ? sDef.Alignment : "neutral";
+
+	if (_sectID == "shaolin")
+		return { title = "少室护法行者", style = "行脚武僧根骨 · 精铁指虎或齐眉短棍 · 2 级入队并预装本门内外功" };
+	if (_sectID == "taihe")
+		return { title = "太和入室剑客", style = "退隐剑客根骨 · 长剑冲和守御 · 2 级入队并预装本门内外功" };
+	if (_sectID == "qingfeng")
+		return { title = "清风试剑传人", style = "退隐剑客根骨 · 快剑拆招轻灵 · 2 级入队并预装本门内外功" };
+	if (_sectID == "xuanbing")
+		return { title = "昆仑寒霜剑侍", style = "女侠剑侍根骨 · 寒剑飞雪身法 · 2 级入队并预装本门内外功" };
+	if (_sectID == "tangmen")
+		return { title = "唐门机括暗手", style = "神射猎户根骨 · 踏张劲弩与暗器 · 2 级入队并预装本门内外功" };
+	if (_sectID == "yinsha")
+		return { title = "幽冥执匕影卫", style = "刺客猎手根骨 · 短匕透甲夜行 · 2 级入队并预装本门内外功" };
+	if (_sectID == "gaibang")
+		return { title = "丐帮六袋弟子", style = "走镖好手根骨 · 齐眉长棍护阵 · 2 级入队并预装本门内外功" };
+	if (_sectID == "weiyuan")
+		return { title = "威远八方镖师", style = "老练镖师根骨 · 长枪守线硬功 · 2 级入队并预装本门内外功" };
+	if (_sectID == "wudu")
+		return { title = "五毒驭蛊门人", style = "密林猎手根骨 · 淬毒短刃奇门 · 2 级入队并预装本门内外功" };
+	if (_sectID == "pishan" || reg == "snow")
+		return { title = sName + "锐士", style = "关外悍客根骨 · 开山重斧破盾 · 2 级入队并预装本门内外功" };
+	if (_sectID == "zhenyue")
+		return { title = sName + "悍徒", style = "力士拳师根骨 · 重锤碎甲硬功 · 2 级入队并预装本门内外功" };
+	if (align == "outlaw")
+		return { title = sName + "悍徒", style = "绿林好汉根骨 · 弯刀猛劈狂攻 · 2 级入队并预装本门内外功" };
+	return { title = sName + "真传", style = "成名游侠根骨 · 趁手兵刃战甲 · 2 级入队并预装本门内外功" };
+};
+
 ::Wuxia.SectRelations.getLocalRegion <- function()
 {
 	if (!("World" in getroottable()) || ::World == null || !("State" in ::World) || ::World.State == null || ::World.State.getPlayer() == null)
@@ -324,103 +382,129 @@
 	local w = size.X - 6;
 	local isExpandedMap = (size.X >= 145);
 	local minTownSep = isExpandedMap ? 7 : 5;
-	local maxTownSep = isExpandedMap ? 28 : 20;
-	local minSiteSep = isExpandedMap ? 7 : 5;
+	local minSiteSep = isExpandedMap ? 6 : 5;
 
-	local bestTile = null;
-	local bestScore = -999999;
-	local samples = ::Math.min(1200, totalTiles);
+	local sanctumTiles = [];
+	foreach (lc0 in locs)
+	{
+		if (lc0 != null && lc0.isAlive() && lc0.getTile() != null && lc0.getTypeID() == "location.wx_sect_sanctum")
+			sanctumTiles.push(lc0.getTile());
+	}
+
+	local samples = ::Math.min(1400, totalTiles);
 	local stepOffset = ::Math.abs(_seed * 193 + 37) % totalTiles;
 
-	for (local i = 0; i < samples; i = ++i)
+	// Pass 0 enforces wide inter-sanctum dispersion (`>= 14` hexes apart) across the map; Pass 1 relaxes only if a biome is tiny
+	for (local pass = 0; pass < 2; ++pass)
 	{
-		local idx = (stepOffset + (i * totalTiles) / samples) % totalTiles;
-		local tx = 3 + (idx % w);
-		local ty = 3 + (idx / w);
-		local tile = ::World.getTileSquare(tx, ty);
-		if (tile == null || tile.IsOccupied || tile.HasRoad) continue;
-		if (tile.Type == tt.Ocean || tile.Type == tt.Shore || tile.Type == tt.Mountains || tile.Type == tt.Impassable || tile.Type == tt.Urban)
-			continue;
+		local minSanctumSep = (pass == 0) ? 14 : 8;
+		local maxTownSep = (pass == 0) ? (isExpandedMap ? 32 : 26) : (isExpandedMap ? 40 : 34);
+		local bestTile = null;
+		local bestScore = -999999;
 
-		// Keep independent Mountain Gates / Manors spaciously separated from Towns & other Sites!
-		local minTownD = 9999;
-		local tooClose = false;
-		foreach (tw in towns)
+		for (local i = 0; i < samples; i = ++i)
 		{
-			if (tw == null || !tw.isAlive() || tw.getTile() == null) continue;
-			local d = tile.getDistanceTo(tw.getTile());
-			if (d < minTownSep) { tooClose = true; break; }
-			if (d < minTownD) minTownD = d;
-		}
-		if (tooClose || minTownD > maxTownSep) continue;
+			local idx = (stepOffset + (i * totalTiles) / samples) % totalTiles;
+			local tx = 3 + (idx % w);
+			local ty = 3 + (idx / w);
+			local tile = ::World.getTileSquare(tx, ty);
+			if (tile == null || tile.IsOccupied || tile.HasRoad) continue;
+			if (tile.Type == tt.Ocean || tile.Type == tt.Shore || tile.Type == tt.Mountains || tile.Type == tt.Impassable || tile.Type == tt.Urban)
+				continue;
 
-		foreach (lc in locs)
-		{
-			if (lc != null && lc.isAlive() && lc.getTile() != null && tile.getDistanceTo(lc.getTile()) < minSiteSep)
+			local minTownD = 9999;
+			local tooClose = false;
+			foreach (tw in towns)
 			{
-				tooClose = true;
-				break;
+				if (tw == null || !tw.isAlive() || tw.getTile() == null) continue;
+				local d = tile.getDistanceTo(tw.getTile());
+				if (d < minTownSep) { tooClose = true; break; }
+				if (d < minTownD) minTownD = d;
+			}
+			if (tooClose || minTownD > maxTownSep) continue;
+
+			local minSanctumD = 40;
+			foreach (stTile in sanctumTiles)
+			{
+				local sd = tile.getDistanceTo(stTile);
+				if (sd < minSanctumSep) { tooClose = true; break; }
+				if (sd < minSanctumD) minSanctumD = sd;
+			}
+			if (tooClose) continue;
+
+			foreach (lc in locs)
+			{
+				if (lc != null && lc.isAlive() && lc.getTile() != null && tile.getDistanceTo(lc.getTile()) < minSiteSep)
+				{
+					tooClose = true;
+					break;
+				}
+			}
+			if (tooClose) continue;
+
+			local adjMtn = false;
+			local adjWater = false;
+			local adjRoad = false;
+			for (local d = 0; d < 6; ++d)
+			{
+				if (!tile.hasNextTile(d)) continue;
+				local nt = tile.getNextTile(d);
+				if (nt.Type == tt.Mountains || nt.Type == tt.Hills) adjMtn = true;
+				if (nt.Type == tt.Ocean || nt.Type == tt.Shore || nt.Type == tt.Swamp) adjWater = true;
+				if (nt.HasRoad) adjRoad = true;
+			}
+
+			local score = 0;
+			if (_region == "mountains")
+			{
+				if (tile.Type == tt.Hills) score += 260;
+				if (adjMtn) score += 220;
+				if (tile.Type == tt.Forest || tile.Type == tt.LeaveForest) score += 80;
+			}
+			else if (_region == "snow")
+			{
+				if (tile.Type == tt.Snow || ("SnowyForest" in tt && tile.Type == tt.SnowyForest)) score += 320;
+				else if ("Tundra" in tt && tile.Type == tt.Tundra) score += 220;
+				if (adjMtn) score += 80;
+			}
+			else if (_region == "desert")
+			{
+				if ("Oasis" in tt && tile.Type == tt.Oasis) score += 320;
+				else if ("Desert" in tt && tile.Type == tt.Desert) score += 260;
+				else if ("Steppe" in tt && tile.Type == tt.Steppe) score += 150;
+			}
+			else if (_region == "forest")
+			{
+				if (tile.Type == tt.Forest || tile.Type == tt.LeaveForest || ("AutumnForest" in tt && tile.Type == tt.AutumnForest)) score += 300;
+				if (adjMtn) score += 60;
+			}
+			else if (_region == "swamp")
+			{
+				if (tile.Type == tt.Swamp) score += 300;
+				if (adjWater) score += 180;
+			}
+			else // plains
+			{
+				if (tile.Type == tt.Plains || ("Steppe" in tt && tile.Type == tt.Steppe)) score += 240;
+				if (adjRoad) score += 110;
+			}
+
+			// Prefer convenient 6..15 tile ring around settlements AND reward spreading far from other Sect Mountain Gates!
+			if (minTownD >= 6 && minTownD <= 15) score += 65;
+			score += ::Math.min(32, minSanctumD) * 7;
+			score += ::Math.abs(tx * 73 + ty * 137 + _seed * 31) % 45;
+
+			if (score > bestScore)
+			{
+				bestScore = score;
+				bestTile = tile;
 			}
 		}
-		if (tooClose) continue;
 
-		local adjMtn = false;
-		local adjWater = false;
-		local adjRoad = false;
-		for (local d = 0; d < 6; ++d)
-		{
-			if (!tile.hasNextTile(d)) continue;
-			local nt = tile.getNextTile(d);
-			if (nt.Type == tt.Mountains || nt.Type == tt.Hills) adjMtn = true;
-			if (nt.Type == tt.Ocean || nt.Type == tt.Shore || nt.Type == tt.Swamp) adjWater = true;
-			if (nt.HasRoad) adjRoad = true;
-		}
-
-		local score = 0;
-		if (_region == "mountains")
-		{
-			if (tile.Type == tt.Hills) score += 260;
-			if (adjMtn) score += 220;
-			if (tile.Type == tt.Forest || tile.Type == tt.LeaveForest) score += 80;
-		}
-		else if (_region == "snow")
-		{
-			if (tile.Type == tt.Snow || ("SnowyForest" in tt && tile.Type == tt.SnowyForest)) score += 320;
-			else if ("Tundra" in tt && tile.Type == tt.Tundra) score += 220;
-			if (adjMtn) score += 80;
-		}
-		else if (_region == "desert")
-		{
-			if ("Oasis" in tt && tile.Type == tt.Oasis) score += 320;
-			else if ("Desert" in tt && tile.Type == tt.Desert) score += 260;
-			else if ("Steppe" in tt && tile.Type == tt.Steppe) score += 150;
-		}
-		else if (_region == "forest")
-		{
-			if (tile.Type == tt.Forest || tile.Type == tt.LeaveForest || ("AutumnForest" in tt && tile.Type == tt.AutumnForest)) score += 300;
-			if (adjMtn) score += 60;
-		}
-		else if (_region == "swamp")
-		{
-			if (tile.Type == tt.Swamp) score += 300;
-			if (adjWater) score += 180;
-		}
-		else // plains
-		{
-			if (tile.Type == tt.Plains || ("Steppe" in tt && tile.Type == tt.Steppe)) score += 240;
-			if (adjRoad) score += 110;
-		}
-
-		// Prefer convenient 6..13 tile ring around settlements so reachable without road clutter
-		if (minTownD >= 6 && minTownD <= 13) score += 75;
-
-		if (score > bestScore)
-		{
-			bestScore = score;
-			bestTile = tile;
-		}
+		if (bestTile != null)
+			return bestTile;
 	}
-	return bestTile;
+	return null;
 };
 
 // Spawn & index 18 Independent Sect Mountain Gates / Manors / Strongholds (`location.wx_sect_sanctum`) on the World Map!
@@ -831,9 +915,18 @@
 	local newRel = ::Wuxia.SectRelations.addRelation(_sectID, 2);
 	local destNote = ::Wuxia.Library.isAutoStoreEnabled() ? "已直接收录入【藏经阁】" : "已放入战团行囊";
 	local venueStr = meet.AtSanctum ? ("于【" + meet.PlaceName + "】奉上香火束脩 ") : ("于【" + meet.PlaceName + "】奉上束脩 ");
+	local msg = venueStr + offer.Price + " 两，请得【" + sect.Name + "】秘传《" + mdef.Name + "》（" + destNote + "，交情 +2 → " + newRel + "）！";
 	return {
-		ok      = true,
-		message = venueStr + offer.Price + " 两，请得【" + sect.Name + "】秘传《" + mdef.Name + "》（" + destNote + "，交情 +2 → " + newRel + "）！"
+		ok       = true,
+		message  = msg,
+		showcase = {
+			kind     = "learn_manual",
+			outcome  = (mdef.Quality == "unique" || mdef.Quality == "secret") ? "crit" : "success",
+			title    = "藏经奉脩 · 获授秘传",
+			subtitle = sect.Name + " · " + destNote + "（交情 +2 → " + newRel + "）",
+			items    = [::Wuxia.UI.buildManualShowcaseCard(offer.ManualID, destNote)],
+			message  = msg
+		}
 	};
 };
 
@@ -857,14 +950,29 @@
 	::World.Assets.addMoney(-cost);
 	::World.Flags.set("wx_tea_banq_" + _sectID, ::World.getTime().Days);
 	local sect = ::Wuxia.Config.Sects[_sectID];
-	local gain = meet.AtSanctum ? 18 : 14;
-	local newRel = ::Wuxia.SectRelations.addRelation(_sectID, gain);
+	local oldRel = ::Wuxia.SectRelations.getRelation(_sectID);
+	local newRel = ::Wuxia.SectRelations.addRelation(_sectID, meet.AtSanctum ? 18 : 14);
+	local gain = newRel - oldRel;
 	local msg = meet.AtSanctum
 		? ("亲登【" + meet.PlaceName + "】递帖奉礼、与执事长老品茗论道，【" + sect.Name + "】交情 +" + gain + "（当前：" + newRel + "）！")
 		: ("于【" + meet.PlaceName + "】设上等酒席款待【" + sect.Name + "】游历门人，宗门交情 +" + gain + "（当前：" + newRel + "）！");
 	return {
-		ok      = true,
-		message = msg
+		ok       = true,
+		message  = msg,
+		showcase = {
+			kind          = "sect_relation",
+			outcome       = newRel >= 45 ? "great" : "success",
+			title         = meet.AtSanctum ? "递帖奉茗 · 宾主尽欢" : "茶肆摆宴 · 把酒论交",
+			subtitle      = meet.PlaceName + " · 奉礼 " + cost + " 两纹银",
+			ritualCaption = meet.AtSanctum ? "递帖奉茗 · 礼敬宗门……" : "摆宴候客 · 把酒论交……",
+			bannerImg     = ::Wuxia.SectRelations.getSanctumBannerUIPath(_sectID),
+			sectName      = sect.Name,
+			oldRel        = oldRel,
+			newRel        = newRel,
+			delta         = gain,
+			stampText     = "交情 +" + gain,
+			message       = msg
+		}
 	};
 };
 
@@ -880,12 +988,28 @@
 	local sect = ::Wuxia.Config.Sects[_sectID];
 	if (_mode == "offend")
 	{
+		local oldRelOff = ::Wuxia.SectRelations.getRelation(_sectID);
 		local nextRel = ::Wuxia.SectRelations.addRelation(_sectID, -35);
-		local vWarn = ::Wuxia.SectRelations.isVendettaActive(_sectID) ? "该派已传下江湖追杀令，小心道上寻仇高手（可赴城镇易容阁敛息消解）！" : "双方梁子已结！";
+		local hasVend = ::Wuxia.SectRelations.isVendettaActive(_sectID);
+		local vWarn = hasVend ? "该派已传下江湖追杀令，小心道上寻仇高手（可赴城镇易容阁敛息消解）！" : "双方梁子已结！";
 		local actTxt = meet.AtSanctum ? ("于【" + meet.PlaceName + "】当众剑劈知客牌匾") : ("于【" + meet.PlaceName + "】当众拂袖撕碎门帖");
+		local offMsg = actTxt + "，【" + sect.Name + "】交情 " + (nextRel - oldRelOff) + "（当前：" + nextRel + "）！" + vWarn;
 		return {
-			ok      = true,
-			message = actTxt + "，【" + sect.Name + "】交情 -35（当前：" + nextRel + "）！" + vWarn
+			ok       = true,
+			message  = offMsg,
+			showcase = {
+				kind          = "sect_relation",
+				outcome       = "fail",
+				title         = meet.AtSanctum ? "剑劈牌匾 · 当众断交" : "拂袖撕帖 · 结下梁子",
+				subtitle      = sect.Name + (hasVend ? "已向江湖传下追杀令！" : "与义社彻底交恶"),
+				ritualCaption = "拂袖断交 · 剑气裂匾……",
+				sectName      = sect.Name,
+				oldRel        = oldRelOff,
+				newRel        = nextRel,
+				delta         = nextRel - oldRelOff,
+				stampText     = hasVend ? "江湖追杀令！" : "势同水火",
+				message       = offMsg
+			}
 		};
 	}
 
@@ -908,9 +1032,10 @@
 
 	::World.Flags.set("wx_tea_spar_" + _sectID, ::World.getTime().Days);
 	local strongWin = (bestScore + ::Math.rand(1, 20) >= 90);
-	local relGain = (strongWin ? 12 : 7) + (meet.AtSanctum ? 3 : 0);
+	local oldRel = ::Wuxia.SectRelations.getRelation(_sectID);
 	local expGain = (strongWin ? 65 : 40) + (meet.AtSanctum ? 20 : 0);
-	local newRel = ::Wuxia.SectRelations.addRelation(_sectID, relGain);
+	local newRel = ::Wuxia.SectRelations.addRelation(_sectID, (strongWin ? 12 : 7) + (meet.AtSanctum ? 3 : 0));
+	local relGain = newRel - oldRel;
 
 	if ("Mastery" in ::Wuxia && "grantFlatExpToEquipped" in ::Wuxia.Mastery)
 	{
@@ -929,9 +1054,24 @@
 		}
 	}
 
+	local sparMsg = bestBro.getName() + " 于【" + meet.PlaceName + "】演武坪与【" + sect.Name + "】高手拆招印证，" + (strongWin ? "招式精妙引满堂喝彩" : "点到为止互有启发") + "！交情 +" + relGain + "（→ " + newRel + "），全身已装功法历练 +" + expGain + "！";
 	return {
-		ok      = true,
-		message = bestBro.getName() + " 于【" + meet.PlaceName + "】演武坪与【" + sect.Name + "】高手拆招印证，" + (strongWin ? "招式精妙引满堂喝彩" : "点到为止互有启发") + "！交情 +" + relGain + "（→ " + newRel + "），全身已装功法历练 +" + expGain + "！"
+		ok       = true,
+		message  = sparMsg,
+		showcase = {
+			kind         = "spar",
+			outcome      = strongWin ? "crit" : "success",
+			title        = strongWin ? "演武拆招 · 满堂喝彩！" : "点到拆招 · 以武会友",
+			subtitle     = meet.PlaceName + " · " + sect.Name + "演武印证",
+			broName      = bestBro.getName(),
+			broImagePath = ::Wuxia.hasMember(bestBro, "getImagePath") ? bestBro.getImagePath() : "",
+			strongWin    = strongWin,
+			verdict      = strongWin ? "技惊四座 · 满堂喝彩" : "点到为止 · 互有启发",
+			relGain      = relGain,
+			newRel       = newRel,
+			expGain      = expGain,
+			message      = sparMsg
+		}
 	};
 };
 
@@ -967,10 +1107,25 @@
 		picked.ent.setDiscovered(true);
 		::Wuxia.SectRelations.discoverSect(picked.sid);
 		local info = ::Wuxia.SectRelations.getSectAnchorInfo(picked.sid);
-		local dirNote = (info.dir != "" && info.dist >= 0) ? ("（位于此处" + info.dir + "约 " + info.dist + " 格）") : "";
+		local dirNote = (info.dir != "" && info.dist >= 0) ? ("位于此处" + info.dir + "约 " + info.dist + " 格") : "已标明于九州舆图";
+		local sectCfg = (picked.sid in ::Wuxia.Config.Sects) ? ::Wuxia.Config.Sects[picked.sid] : null;
+		local regLbl = ::Wuxia.SectRelations.getRegionLabel(sectCfg != null ? sectCfg.Region : null);
+		local rMsg = "奉上酒资 " + cost + " 两，老镖客低声指点迷津：已在世界舆图上标明独立山门【" + picked.ent.getName() + "】（" + dirNote + "），并录入《江湖名刺》！";
 		return {
-			ok      = true,
-			message = "奉上酒资 " + cost + " 两，老镖客低声指点迷津：已在世界舆图上标明独立山门【" + picked.ent.getName() + "】" + dirNote + "，并录入《江湖名刺》！"
+			ok       = true,
+			message  = rMsg,
+			showcase = {
+				kind        = "rumor_sect",
+				outcome     = "great",
+				title       = "江湖秘闻 · 山门显迹",
+				subtitle    = "酒肆老镖客暗传方位，已落印九州舆图与《江湖名刺》",
+				bannerImg   = ::Wuxia.SectRelations.getSanctumBannerUIPath(picked.sid),
+				sanctumName = picked.ent.getName(),
+				sectName    = sectCfg != null ? sectCfg.Name : picked.ent.getName(),
+				regionName  = regLbl,
+				dirNote     = dirNote,
+				message     = rMsg
+			}
 		};
 	}
 
@@ -982,9 +1137,39 @@
 		{
 			::World.Assets.addMoney(-cost);
 			::World.Flags.set("wx_tea_rumor_global", ::World.getTime().Days);
+			local pIco = "ui/wx_icons/wx_glyph_cauldron.png";
+			local pDesc = "游方老药师酒后吐露古方秘要，此后可在城镇【百工丹坊 · 八卦丹炉】按方炼制。";
+			foreach (_pid, pdef in ::Wuxia.Config.Pills)
+			{
+				if (pdef.Name == unlockedPill)
+				{
+					if ("Icon" in pdef && pdef.Icon != "")
+						pIco = (pdef.Icon.find("ui/") == 0) ? pdef.Icon : ("ui/items/" + pdef.Icon);
+					if ("Description" in pdef && pdef.Description != "")
+						pDesc = pdef.Description;
+					break;
+				}
+			}
+			local fMsg = "奉上酒资 " + cost + " 两，偶遇游方老药师酒后吐露古方秘要：已将《" + unlockedPill + "》配伍法度载入《丹经手札》！";
 			return {
-				ok      = true,
-				message = "奉上酒资 " + cost + " 两，偶遇游方老药师酒后吐露古方秘要：已将《" + unlockedPill + "》配伍法度载入《丹经手札》！"
+				ok       = true,
+				message  = fMsg,
+				showcase = {
+					kind     = "formula_unlock",
+					outcome  = "crit",
+					title    = "酒肆奇闻 · 偶得古丹方",
+					subtitle = "游方老药师吐露秘诀 · 已载入《丹经手札》",
+					items    = [{
+						isPill      = true,
+						name        = "《" + unlockedPill + "》古丹方",
+						icon        = pIco,
+						grade       = 3,
+						gradeTitle  = "酒肆秘方",
+						gradeColor  = "#f0bc42",
+						description = pDesc
+					}],
+					message  = fMsg
+				}
 			};
 		}
 	}
@@ -1024,9 +1209,39 @@
 	::World.Assets.addMoney(-cost);
 	::World.Flags.set("wx_tea_alc_" + _sectID, ::World.getTime().Days);
 	local sect = ::Wuxia.Config.Sects[_sectID];
+	local fIcon = "ui/wx_icons/wx_glyph_cauldron.png";
+	local fDesc = "长老亲授君臣药变之法，此后可在城镇【百工丹坊 · 八卦丹炉】按方开炉炼制。";
+	foreach (pid, pdef in ::Wuxia.Config.Pills)
+	{
+		if (pdef.Name == pillName)
+		{
+			if ("Icon" in pdef && pdef.Icon != "")
+				fIcon = (pdef.Icon.find("ui/") == 0) ? pdef.Icon : ("ui/items/" + pdef.Icon);
+			if ("Description" in pdef && pdef.Description != "")
+				fDesc = pdef.Description;
+			break;
+		}
+	}
+	local msg = "于【" + sect.Name + "】丹房奉上香火 " + cost + " 两，长老展卷亲授君臣火候——《" + pillName + "》古方已永久载入《丹经手札》！";
 	return {
-		ok      = true,
-		message = "于【" + sect.Name + "】丹房奉上香火 " + cost + " 两，长老展卷亲授君臣火候——《" + pillName + "》古方已永久载入《丹经手札》！"
+		ok       = true,
+		message  = msg,
+		showcase = {
+			kind     = "formula_unlock",
+			outcome  = "crit",
+			title    = "丹房授诀 · 参悟古方",
+			subtitle = sect.Name + " · 古方已永久载入《丹经手札》",
+			items    = [{
+				isPill      = true,
+				name        = "《" + pillName + "》古丹方",
+				icon        = fIcon,
+				grade       = 3,
+				gradeTitle  = "秘传古方",
+				gradeColor  = "#f0bc42",
+				description = fDesc
+			}],
+			message  = msg
+		}
 	};
 };
 

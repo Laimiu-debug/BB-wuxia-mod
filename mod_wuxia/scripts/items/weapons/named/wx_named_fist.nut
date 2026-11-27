@@ -29,10 +29,10 @@ this.wx_named_fist <- this.inherit("scripts/items/weapons/named/named_weapon", {
 		this.m.Condition = 80.0;
 		this.m.ConditionMax = 80.0;
 		this.m.StaminaModifier = -10;
-		this.m.RegularDamage = 44;
-		this.m.RegularDamageMax = 62;
-		this.m.ArmorDamageMult = 1.10;
-		this.m.DirectDamageMult = 0.45;
+		this.m.RegularDamage = 36;
+		this.m.RegularDamageMax = 50;
+		this.m.ArmorDamageMult = 1.00;
+		this.m.DirectDamageMult = 0.40;
 
 		this.m.Variant = ::Math.rand(1, 10);
 		this.m.WX_VariantIdx = this.m.Variant;

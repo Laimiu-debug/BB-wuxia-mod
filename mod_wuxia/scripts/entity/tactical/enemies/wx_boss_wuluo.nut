@@ -8,6 +8,8 @@ this.wx_boss_wuluo <- this.inherit("scripts/entity/tactical/enemies/hexe", {
 	}
 	function onDeath( _killer, _skill, _tile, _fatalityType )
 	{
+		if ("ShanHaiMultiBody" in ::Wuxia)
+			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.hexe.onDeath(_killer, _skill, _tile, _fatalityType);
 		::Wuxia.ShanHai.dropBossCore("boss_wuluo", _tile);
 	}

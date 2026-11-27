@@ -8,6 +8,8 @@ this.wx_boss_qiangliang <- this.inherit("scripts/entity/tactical/enemies/orc_war
 	}
 	function onDeath( _killer, _skill, _tile, _fatalityType )
 	{
+		if ("ShanHaiMultiBody" in ::Wuxia)
+			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.orc_warlord.onDeath(_killer, _skill, _tile, _fatalityType);
 		::Wuxia.ShanHai.dropBossCore("boss_qiangliang", _tile);
 	}

@@ -1722,6 +1722,15 @@
 			throw "Wanderer bamboo hat did not split into _back and _front";
 		if (sp.hair.BrushName != "wx_hair_09_tucked_white" || sp.beard.BrushName != "wx_beard_14_white")
 			throw "Multi-tone tucked hair / beard mismatch: " + sp.hair.BrushName + " / " + sp.beard.BrushName;
+		// Verify Disguise Pavilion bare-head mirror preview hides helmet & shows untucked hair, then restores cleanly
+		hero.m.WX_PreviewBareHead <- true;
+		::Wuxia.Appearance.refreshActorSprites(hero);
+		if (sp.helmet.Visible || sp.armor_upgrade_back.Visible || sp.hair.BrushName != "wx_hair_09_white")
+			throw "WX_PreviewBareHead failed to hide headgear or expose untucked hair: " + sp.hair.BrushName;
+		hero.m.WX_PreviewBareHead = false;
+		::Wuxia.Appearance.refreshActorSprites(hero);
+		if (!sp.helmet.Visible || sp.hair.BrushName != "wx_hair_09_tucked_white")
+			throw "WX_PreviewBareHead failed to restore headgear on exit";
 		if (sp.tattoo_head.BrushName != "wx_scar_04" || !sp.tattoo_head.Visible || sp.permanent_injury_1.Visible)
 			throw "Permanent injury.missing_eye did not map to wx_scar_04 eyepatch & hide vanilla overlay";
 
@@ -2056,7 +2065,7 @@
 		local ambStd = ::new("scripts/ambitions/ambitions/battle_standard_ambition");
 		local ambSgt = ::new("scripts/ambitions/ambitions/sergeant_ambition");
 		local ambHam = ::new("scripts/ambitions/ambitions/hammer_mastery_ambition");
-		if (ambStd.getButtonText().find("大纛") == null || ambSgt.getButtonTooltip().find("聚义令") == null || ambHam.getButtonText().find("锤杖") == null)
+		if (ambStd.getButtonText().find("大纛") == null || ambSgt.getTooltipText().find("聚义令") == null || ambHam.getButtonText().find("锤杖") == null)
 			throw "Ambition Wuxia localization mismatch: " + ambStd.getButtonText();
 
 		foreach (evName in [
@@ -2124,7 +2133,7 @@
 		foreach (skPath in ::IO.enumerateFiles("scripts/skills/actives"))
 		{
 			local leaf = split(skPath, "/").top();
-			if (leaf == "wx_move_base" || leaf.find("wx_") != 0) continue;
+			if (leaf == "wx_move_base" || leaf == "wx_shanhai_bespoke_active_base" || leaf.find("wx_boss_") == 0 || leaf.find("wx_item_") == 0 || leaf.find("wx_") != 0) continue;
 			local skObj = ::new(skPath);
 			if (!(::Wuxia.hasMember(skObj.m, "WX_ChoreoID")) || !(skObj.m.WX_ChoreoID in ::Wuxia.VFX.SkillChoreo))
 				throw "Active skill missing SkillChoreo entry: " + leaf;
@@ -2167,6 +2176,55 @@
 			throw "Yang-Neigong sword slash did not resolve to wx_vfx_02 fiery aura: " + auraGot;
 
 		::logInfo("[WX-SELFTEST] Verified Stage 10 招式气芒与动作特效: 72/72 zero-duplicate 4-frame sequences (288 frames), 32 Qi-Auras, 16 Dharma FX & Practitioner Weapon Auras");
+	});
+
+	check("Stage 10b 全量 171 式新一代逐帧动态战斗特效校验 (wx_kinetic_0..6.brush = 430 帧)", function() {
+		if (!("KineticVFX" in ::Wuxia) || !("Profiles" in ::Wuxia.KineticVFX))
+			throw "::Wuxia.KineticVFX missing";
+		local profCount = ::Wuxia.KineticVFX.Profiles.len();
+		if (profCount != 171)
+			throw "Expected 171 KineticVFX profiles, got " + profCount;
+		foreach (skKey, _ in ::Wuxia.VFX.SkillChoreo)
+		{
+			if (!(skKey in ::Wuxia.KineticVFX.Profiles))
+				throw "Skill missing from KineticVFX.Profiles: " + skKey;
+		}
+		local angE = ::Wuxia.KineticVFX.atan2Deg(0.0, 1.0);
+		local angN = ::Wuxia.KineticVFX.atan2Deg(1.0, 0.0);
+		if (::Math.abs(angE) > 1.0 || ::Math.abs(angN - 90.0) > 1.0)
+			throw "atan2Deg calibration error: E=" + angE + ", N=" + angN;
+
+		if ("doesBrushExist" in getroottable())
+		{
+			local seqFrames = 0;
+			foreach (seqPrefix, cnt in ::Wuxia.KineticVFX.SeqFrameCount)
+			{
+				for (local i = 0; i < cnt; i = ++i)
+				{
+					local bn = seqPrefix + "_" + ::Wuxia.KineticVFX.pad2(i);
+					if (!::doesBrushExist(bn))
+						throw "Missing kinetic animation brush in C++ registry: " + bn;
+					seqFrames += 1;
+				}
+			}
+			local pts = [
+				"wx_pt_spark_cyan", "wx_pt_spark_gold", "wx_pt_spark_fire", "wx_pt_spark_violet",
+				"wx_pt_spark_crimson", "wx_pt_spark_jade", "wx_pt_spark_frost", "wx_pt_spark_venom",
+				"wx_pt_ink_drop", "wx_pt_ember", "wx_pt_smoke", "wx_pt_rock",
+				"wx_pt_ring_gold", "wx_pt_ring_cyan", "wx_pt_ring_fire", "wx_pt_ring_violet",
+				"wx_pt_ring_crimson", "wx_pt_ring_jade", "wx_pt_ring_frost", "wx_pt_ring_venom",
+				"wx_pt_glint_star", "wx_pt_crater_scorch", "wx_pt_wind_wisp", "wx_pt_sword_ray",
+				"wx_pt_petal", "wx_pt_ice_shard", "wx_pt_frost_patch", "wx_pt_venom_pool"
+			];
+			foreach (pt in pts)
+			{
+				if (!::doesBrushExist(pt))
+					throw "Missing kinetic particle brush in C++ registry: " + pt;
+			}
+			if (seqFrames + pts.len() != 430)
+				throw "Expected 430 kinetic sprites, got " + (seqFrames + pts.len());
+		}
+		::logInfo("[WX-SELFTEST] Verified Stage 10b Full Kinetic VFX: 430 sprites across wx_kinetic_0..6.brush + all 171 active skills!");
 	});
 
 	// Stage 11: Deepened Alchemy System — 31 Pills, Zero-Slot Herb/Core Cabinet, 28 Bagua Cauldron Formulas, 8 Town Pill Blueprints & +25% ArmorPen Cap
@@ -2412,7 +2470,7 @@
 			if (mRebuilt == null || mRebuilt.getID() != "misc." + mid)
 				throw "BeastMaterial failed Cabinet reconstruction: " + mid;
 		}
-		if (matCount != 6) throw "Expected 6 BeastMaterials, got " + matCount;
+		if (matCount != 18) throw "Expected 18 BeastMaterials (6 wild + 12 boss part essences), got " + matCount;
 
 		// 2. Verify all 64 ShanHaiBosses have valid BossBonusLoot (`Mat` + `Trophy` instantiate cleanly)
 		foreach (_bid, bcfg in ::Wuxia.Config.ShanHaiBosses)
@@ -2509,7 +2567,8 @@
 			if (bpCrafted.len() == 0 || bpCrafted.top() == null)
 				throw "CraftBlueprint failed onCraft: " + bpid;
 		}
-		if (bpCrafted.len() != 16) throw "Expected 16 crafted BeastGear products, got " + bpCrafted.len();
+		if (bpCrafted.len() < 16 || bpCrafted.len() != ::Wuxia.Config.CraftBlueprints.len())
+			throw "Expected CraftBlueprints count (" + ::Wuxia.Config.CraftBlueprints.len() + ") crafted BeastGear products, got " + bpCrafted.len();
 
 		// 6. Verify runtime `wx_gear_spirit_trait` mechanics (SteelBrow, CycleZhuyin, AuraWard) & 0 AP bloat
 		local spBrow = ::new("scripts/skills/special/wx_gear_spirit_trait");
@@ -2859,8 +2918,30 @@
 		};
 		::Wuxia.UI.bindTooltipEventsInstance(mockTipEvents);
 		local fatTip = mockTipEvents.general_queryUIElementTooltipData(1, "character-stats.Fatigue", "");
-		if (fatTip[0].text != "丹田内息" || fatTip[0].text.find("疲劳") != null || fatTip[1].text.find("内息") == null)
-			throw "Fatigue stat tooltip failed to override 疲劳 -> 丹田内息: " + fatTip[0].text;
+		if (fatTip[0].text != "丹田内息" || fatTip[0].text.find("疲劳") != null || fatTip[1].text.find("内息") == null || fatTip[1].text.find("50%") != null)
+			throw "Fatigue stat tooltip failed to override/purify 疲劳 -> 丹田内息: " + fatTip[0].text;
+		local msTip = mockTipEvents.general_queryUIElementTooltipData(1, "character-stats.MeleeSkill", "");
+		if (msTip[0].text != "近战武艺" || msTip[1].text.find("D100") != null)
+			throw "MeleeSkill tooltip still contains non-immersive technical jargon: " + msTip[1].text;
+
+		// Verify Chinese Name-of-Place translation & duplicate-prefix collapse (`裴景行 的 桃源屯` -> `桃源屯的裴景行` / deduplicated in clause)
+		if (::Wuxia.Purify.formatLocatedActorName("裴景行", "的 桃源屯") != "桃源屯的裴景行")
+			throw "formatLocatedActorName failed to flip '的 桃源屯'";
+		if (::Wuxia.Purify.formatLocatedActorName("裴景行", "of 桃源屯") != "桃源屯的裴景行")
+			throw "formatLocatedActorName failed to flip 'of 桃源屯'";
+		if (::Wuxia.Purify.formatLocatedActorName("江素心", "断水青锋") != null)
+			throw "formatLocatedActorName must not alter regular Jianghu epithets";
+		local fixedContractLine = ::Wuxia.Contracts.rewriteText("他自称议事会成员，替桃源屯的一位头面人物裴景行 的 桃源屯办事，请你前去会面。");
+		if (fixedContractLine != "他自称州县乡绅管事，替桃源屯的一位头面人物裴景行办事，请你前去会面。")
+			throw "Contract located-name fix failed: " + fixedContractLine;
+		local fixedStandalone = ::Wuxia.Purify.fixLocatedChineseNames("裴景行 的 桃源屯 派人前来相请。");
+		if (fixedStandalone != "桃源屯的裴景行 派人前来相请。")
+			throw "Standalone located-name fix failed: " + fixedStandalone;
+		if (::Wuxia.Purify.fixLocatedChineseNames("在此处寻找无籍陌客甲 的 桃源屯。") != "在此处寻找无籍陌客甲 的 桃源屯。"
+			|| ::Wuxia.Purify.fixLocatedChineseNames("north of 桃源屯") != "north of 桃源屯"
+			|| ::Wuxia.Purify.fixLocatedChineseNames("名叫顾无尘 的 桃源屯。") != "名叫桃源屯的顾无尘。"
+			|| ::Wuxia.Purify.fixLocatedChineseNames("桃源屯桃源屯的裴景行") != "桃源屯的裴景行")
+			throw "Located-name rewriting lost a word boundary or possessive";
 		local itemTip = mockTipEvents.tactical_queryUIItemTooltipData(1, "x", "");
 		if (itemTip[0].text.find("疲劳") != null || itemTip[1].text.find("疲劳") != null || itemTip[0].text.find("内息上限") == null)
 			throw "Item tooltip failed to harmonize 疲劳 -> 内息: " + itemTip[0].text + " / " + itemTip[1].text;
@@ -2945,6 +3026,12 @@
 		local sanctumSpec = ::Wuxia.SectRelations.getSanctumVisualSpec("shaolin");
 		if (sanctumSpec == null || sanctumSpec.FullName == "" || sanctumSpec.WorldBrush == "")
 			throw "getSanctumVisualSpec(shaolin) invalid";
+		if (::Wuxia.SectRelations.getSanctumSceneKey("gaibang") != "gaibang"
+			|| ::Wuxia.SectRelations.getSanctumSceneKey("luoyang_biao") != "reg_plains"
+			|| ::Wuxia.SectRelations.getSanctumSceneKey("taihang_zhai") != "reg_outlaw"
+			|| ::Wuxia.SectRelations.getSanctumBannerUIPath("gaibang") != "ui/banners/banner_60.png"
+			|| !("sanctumSceneKey" in sectDir) || !("isNight" in sectDir))
+			throw "Town-style Sect Sanctum scene/banner mapping invalid";
 		::include("scripts/entity/world/locations/wx_sect_sanctum");
 
 		// Verify Exploration Alchemy (`盲炉试丹` + `《丹经手札》` starts locked at 0 known formulas) & Read-Only vs Town Workshop RPC Gatekeeping
@@ -3202,11 +3289,11 @@
 			if (pInst.getTooltip().len() < 3 || pInst.m.Icon == "")
 				throw "Pill variant validation failed: " + pid;
 		}
-		if (pillCnt != 50)
-			throw "Expected 50 total Spirit Pills, got " + pillCnt;
+		if (pillCnt < 52)
+			throw "Expected >= 52 total Spirit Pills, got " + pillCnt;
 
-		if (::Wuxia.Config.Alchemy.Formulas.len() != 50)
-			throw "Expected 50 Bagua Cauldron Formulas, got " + ::Wuxia.Config.Alchemy.Formulas.len();
+		if (::Wuxia.Config.Alchemy.Formulas.len() < 52)
+			throw "Expected >= 52 Bagua Cauldron Formulas, got " + ::Wuxia.Config.Alchemy.Formulas.len();
 
 		local seenFID = {};
 		local seenPID = {};
@@ -3232,8 +3319,9 @@
 				throw "Advanced formula expected locked initially: " + lf;
 		}
 		local alcPayload = ::Wuxia.UI.buildAlchemyModalPayload(true);
-		if (alcPayload.discoveredFormulaCount != 6 || alcPayload.totalFormulaCount != 50)
-			throw "Expected 6/50 starter modal counts, got " + alcPayload.discoveredFormulaCount + "/" + alcPayload.totalFormulaCount;
+		local expectedFormulas = ::Wuxia.Config.Alchemy.Formulas.len();
+		if (alcPayload.discoveredFormulaCount != 6 || alcPayload.totalFormulaCount != expectedFormulas)
+			throw "Expected 6/" + expectedFormulas + " starter modal counts, got " + alcPayload.discoveredFormulaCount + "/" + alcPayload.totalFormulaCount;
 
 		// Verify all 19 new Town 百工丹坊 Blueprints
 		foreach (nbp in [
@@ -3420,6 +3508,84 @@
 			local sc = ::new("scripts/scenarios/world/" + scScript);
 			if (sc == null || sc.m.ID.find("scenario.wx_") != 0 || !("onInit" in sc))
 				throw "Wuxia origin missing onInit or invalid ID: " + scScript;
+		}
+
+		local scLone = ::new("scripts/scenarios/world/wx_origin_lone_sword");
+		local talents = array(::Const.Attributes.COUNT, 1);
+		scLone.WX_RollStartingTalents(talents);
+		local starred = 0;
+		foreach (stars in talents)
+		{
+			if (stars == 0) continue;
+			if (stars != 2 && stars != 3) throw "Invalid lone-sword starting talent";
+			++starred;
+		}
+		if (starred != 3 || talents[::Const.Attributes.MeleeSkill] == 0 || talents[::Const.Attributes.RangedSkill] != 0 || talents[::Const.Attributes.RangedDefense] != 0)
+			throw "Expected melee skill and two supporting talents for lone-sword origin";
+		local heavyActives = {};
+		foreach (id in ["actives.overhead_strike", "actives.split", "actives.swing", "actives.split_shield", "actives.bandage_ally"])
+			heavyActives[id] <- true;
+		local crowdedManuals = ["wx_manual_hanbing", "wx_manual_gusumu_canhe", "wx_manual_jiutian_fuyao", "wx_manual_shaolin_tongren"];
+		local startingTiers = scLone.WX_RollStartingTiers(heavyActives, crowdedManuals);
+		heavyActives["actives.recover"] <- true;
+		local secondTiers = 0;
+		foreach (i, mid in crowdedManuals)
+		{
+			if (startingTiers[i] == 2) ++secondTiers;
+			foreach (id in ::Wuxia.Slots.getManualDef(mid).Levels[startingTiers[i] - 1].GrantSkills)
+				if (id.find("actives.") == 0) heavyActives[id] <- true;
+		}
+		if (secondTiers != 2 || heavyActives.len() > 9)
+			throw "Lone-sword greatsword loadout exceeds the action bar or loses starting mastery";
+		foreach (kw in ["5 级精锐剑客", "1 门镇派绝学", "3 门上乘武学", "二重小成"])
+		{
+			if (scLone.m.Description.find(kw) == null)
+				throw "wx_origin_lone_sword description missing keyword: " + kw;
+		}
+		foreach (loneItemPath in [
+			"scripts/items/weapons/noble_sword",
+			"scripts/items/weapons/fencing_sword",
+			"scripts/items/weapons/shamshir",
+			"scripts/items/weapons/wx_beast_sword",
+			"scripts/items/weapons/longsword",
+			"scripts/items/weapons/greatsword",
+			"scripts/items/weapons/warbrand",
+			"scripts/items/weapons/named/named_sword",
+			"scripts/items/weapons/named/named_fencing_sword",
+			"scripts/items/weapons/named/named_greatsword",
+			"scripts/items/armor/padded_leather",
+			"scripts/items/armor/leather_lamellar",
+			"scripts/items/armor/mail_shirt",
+			"scripts/items/armor/wx_beast_armor_light",
+			"scripts/items/armor/mail_hauberk",
+			"scripts/items/armor/wx_beast_armor_med",
+			"scripts/items/helmets/hunters_hat",
+			"scripts/items/helmets/feathered_hat",
+			"scripts/items/helmets/wx_beast_helm_light",
+			"scripts/items/helmets/kettle_hat",
+			"scripts/items/helmets/padded_kettle_hat",
+			"scripts/items/helmets/wx_beast_helm_heavy",
+			"scripts/items/accessory/bandage_item",
+			"scripts/items/accessory/antidote_item"
+		])
+		{
+			local li = ::new(loneItemPath);
+			if (li == null)
+				throw "wx_origin_lone_sword candidate item failed to instantiate: " + loneItemPath;
+		}
+		foreach (loneWpnPath in [
+			"scripts/items/weapons/noble_sword",
+			"scripts/items/weapons/fencing_sword",
+			"scripts/items/weapons/shamshir",
+			"scripts/items/weapons/wx_beast_sword",
+			"scripts/items/weapons/longsword",
+			"scripts/items/weapons/greatsword",
+			"scripts/items/weapons/warbrand"
+		])
+		{
+			local lw = ::new(loneWpnPath);
+			if (!::Wuxia.CombatRules.matchesWeapon(lw, ["Sword"]))
+				throw "wx_origin_lone_sword candidate sword did not match Sword Waigong: " + loneWpnPath;
 		}
 
 		// 7. P2.4: All 9 Sequential Jianghu Event Chain scripts
@@ -3790,8 +3956,8 @@
 		s19Step = "S19-2-freeRules";
 		::Wuxia.Alchemy.resetFallback();
 		local alcP = ::Wuxia.UI.buildAlchemyModalPayload(true);
-		if (!("freeRules" in alcP) || alcP.freeRules.len() != 50)
-			throw "Expected 50 freeRules in alchemy payload";
+		if (!("freeRules" in alcP) || alcP.freeRules.len() != ::Wuxia.Config.Alchemy.Formulas.len())
+			throw "Expected " + ::Wuxia.Config.Alchemy.Formulas.len() + " freeRules in alchemy payload";
 		local foundJc = false;
 		foreach (fr in alcP.freeRules)
 		{
@@ -5034,6 +5200,2953 @@
 			if (!("TooltipColor" in ti) || ti.TooltipColor == "") throw "Missing BossTierInfo TooltipColor on tier " + t;
 		}
 		::logInfo("[WX-SELFTEST] Verified v0.8.8 Enemy Facing, Shan Hai Beast VFX Choreo & High-Contrast Parchment Tooltip Palette");
+	});
+
+	check("Visual Showcase Payloads (Alchemy Pills, Forge Gear, Manuals, Marrow Wash & Audio Cues)", function() {
+		// 1. Pill showcase card
+		local p = ::new("scripts/items/misc/wx_pill_item");
+		p.initPillVariant("wx_pill_xisui", 3, 142, "origin");
+		local pCard = ::Wuxia.Alchemy.buildPillShowcaseCard(p, true);
+		if (pCard == null || !pCard.isPill || !pCard.isBonus || pCard.grade != 3 || pCard.potencyPct != 142 || pCard.icon.find("ui/items/") != 0)
+			throw "Invalid buildPillShowcaseCard result";
+
+		// 2. Forged gear showcase card
+		local w = ::new("scripts/items/weapons/wx_beast_sword");
+		::Wuxia.Forge.rollCraftedGear(w);
+		local wCard = ::Wuxia.Forge.buildItemShowcaseCard(w);
+		if (wCard == null || wCard.isPill || wCard.icon.find("ui/items/") != 0 || wCard.statRows.len() == 0 || wCard.perfectionPct < 0)
+			throw "Invalid buildItemShowcaseCard result for forged weapon";
+
+		// 3. Manual showcase card
+		local mCard = ::Wuxia.UI.buildManualShowcaseCard("wx_manual_tuna", "破境登阶");
+		if (mCard == null || mCard.icon.find("ui/items/misc/wx_book_") != 0 || mCard.name.find("《") != 0 || mCard.overlayIcon == "")
+			throw "Invalid buildManualShowcaseCard result";
+
+		// 4. Marrow wash showcase (success / warded / fail)
+		local mockBro = { function getName() { return "令狐冲"; } };
+		local wsOk = ::Wuxia.UI.buildWashShowcase(mockBro, { Succeeded = true, WashPillID = "wx_pill_zijin_xisui", WashPillName = "太乙紫金洗髓丹", TargetAttrIdx = 4, TargetAttrName = "近战武艺", OldStars = 1, NextStar = 2, IsReplaceMode = false, ReplaceAttrName = "", AvoidAllShock = false, GotPermanentInjury = false, Message = "ok" });
+		local wsWd = ::Wuxia.UI.buildWashShowcase(mockBro, { Succeeded = false, WashPillID = "wx_pill_xisui", WashPillName = "洗髓丹", TargetAttrIdx = 4, TargetAttrName = "近战武艺", OldStars = 1, NextStar = 2, IsReplaceMode = false, ReplaceAttrName = "", AvoidAllShock = true, GotPermanentInjury = false, Message = "warded" });
+		local wsFl = ::Wuxia.UI.buildWashShowcase(mockBro, { Succeeded = false, WashPillID = "wx_pill_xisui", WashPillName = "洗髓丹", TargetAttrIdx = 4, TargetAttrName = "近战武艺", OldStars = 1, NextStar = 2, IsReplaceMode = false, ReplaceAttrName = "", AvoidAllShock = false, GotPermanentInjury = true, Message = "fail" });
+		if (wsOk.outcome != "success" || wsWd.outcome != "warded" || wsFl.outcome != "fail" || wsOk.newStars != 2)
+			throw "Invalid buildWashShowcase outcomes";
+
+		// 5. Sound cue dispatcher safety
+		::Wuxia.UI.playShowcaseSound("alchemy_start");
+		::Wuxia.UI.playShowcaseSound("forge_hammer");
+		::Wuxia.UI.playShowcaseSound("unknown_noop");
+
+		// 6. Craft items buffer reset
+		::Wuxia.Forge.LastCraftItems = [wCard];
+		local consumed = ::Wuxia.Forge.consumeLastCraftItems();
+		if (consumed.len() != 1 || ::Wuxia.Forge.LastCraftItems.len() != 0)
+			throw "consumeLastCraftItems failed to flush";
+
+		::logInfo("[WX-SELFTEST] Verified Visual Showcase Payloads (Alchemy, Forge, Manuals, Marrow Wash & Audio Cues)");
+	});
+
+	check("Non-Lethal Mountain Gate Trial & Restricted Sect Apothecary Herb Catalogs", function() {
+		// 1. Verify ALL 44 sects strictly forbid P5 mythic herbs & wx_marrow_herb from apothecary purchase
+		local herbNat = ::Wuxia.Config.Alchemy.HerbNatures;
+		foreach (sid, _sdef in ::Wuxia.Config.Sects)
+		{
+			local cat = ::Wuxia.SectRelations.getSectApothecaryCatalog(sid);
+			if (cat.common.len() < 3 || cat.rare.len() < 2)
+				throw "Sect " + sid + " has undersized apothecary herb catalog";
+			foreach (hid in cat.common)
+			{
+				if (hid in ::Wuxia.SectRelations.ForbiddenShopHerbs)
+					throw "Forbidden herb " + hid + " leaked into common shop of " + sid;
+				if (!(hid in herbNat) || herbNat[hid].Potency > 3)
+					throw "Common shop herb " + hid + " exceeds Potency 3 for " + sid;
+			}
+			foreach (rhid in cat.rare)
+			{
+				if (rhid in ::Wuxia.SectRelations.ForbiddenShopHerbs)
+					throw "Forbidden herb " + rhid + " leaked into rare shop of " + sid;
+				if (!(rhid in herbNat) || herbNat[rhid].Potency != 4)
+					throw "Rare shop herb " + rhid + " must be strictly Potency 4 for " + sid;
+			}
+		}
+		local descSample = ::Wuxia.SectRelations.describeHerbIds(::Wuxia.SectRelations.getSectApothecaryCatalog("shaolin").common);
+		if (descSample.len() < 3 || descSample[0].name == "" || descSample[0].natureShort == "")
+			throw "describeHerbIds failed to resolve Shaolin herb metadata";
+
+		// 2. Verify non-lethal trial helpers exist & trialPlayerKnockout preserves IsAlive = true
+		if (::Wuxia.SectRelations.isTrialCombatActive())
+			throw "isTrialCombatActive should be false outside tactical combat";
+		local savedTrial = ::Wuxia.SectRelations.ActiveTrial;
+		local flagMap = {};
+		local bleedRemoved = false;
+		local retreated = false;
+		local mockHero = {
+			m = { IsAlive = true, IsDying = false, IsTurnDone = false, Hitpoints = 0 },
+			function getID() { return 777; },
+			function getName() { return "令狐少侠"; },
+			function getHitpointsMax() { return 80; },
+			function getFlags() {
+				return {
+					function get( _k ) { return (_k in flagMap) ? flagMap[_k] : false; },
+					function set( _k, _v ) { flagMap[_k] <- _v; }
+				};
+			},
+			function getSkills() {
+				return {
+					function hasSkill( _id ) { return _id == "effects.bleeding"; },
+					function removeByID( _id ) { if (_id == "effects.bleeding") bleedRemoved = true; }
+				};
+			},
+			function retreat() { retreated = true; },
+			function isPlacedOnMap() { return false; }
+		};
+		local oldTact = ("Tactical" in getroottable()) ? ::Tactical : null;
+		::Wuxia.SectRelations.ActiveTrial = { sectID = "shaolin", sanctum = null, knockedOut = {}, preInjuries = {}, preHP = {}, preInternal = {} };
+		::Wuxia.SectRelations.ActiveTrial.preHP[777] <- 5;
+		::Tactical <- {
+			EventLog = { function logEx( _t ) {} },
+			Entities = {
+				function getInstancesOfFaction( _f ) { return [1]; },
+				function setLastCombatResult( _r ) {},
+				function checkCombatFinished() {}
+			}
+		};
+		try
+		{
+			::Wuxia.SectRelations.trialPlayerKnockout(mockHero, null, null);
+		}
+		catch (_errT)
+		{
+			::Tactical = oldTact;
+			::Wuxia.SectRelations.ActiveTrial = savedTrial;
+			throw _errT;
+		}
+		::Tactical = oldTact;
+		::Wuxia.SectRelations.ActiveTrial = savedTrial;
+
+		if (!mockHero.m.IsAlive || mockHero.m.IsDying || mockHero.m.Hitpoints != 5 || !bleedRemoved || !retreated)
+			throw "trialPlayerKnockout failed to preserve non-lethal hero state";
+
+		::logInfo("[WX-SELFTEST] Verified Non-Lethal Mountain Gate Trial & 44-Sect Restricted Apothecary Herb Catalogs");
+	});
+
+	// Stage: Alchemy & Forge Stutter-Fix Fast-Path Equivalence Check
+	check("炼丹与百工铸兵高频缓存路径等价性校验", function() {
+		// 1. Verify CabinetMetaCache & buildAutoPickSortedViews equivalence
+		::Wuxia.Alchemy.resetFallback();
+		::Wuxia.Alchemy.Cabinet.addCount("core:wx_core_yinglong", 2, "scripts/items/misc/wx_core_yinglong", "");
+		::Wuxia.Alchemy.Cabinet.addCount("herb:wx_marrow_herb", 2, "scripts/items/misc/wx_marrow_herb", "");
+		local ingList = ::Wuxia.Alchemy.getUnifiedIngredients(null);
+		if (!("core:wx_core_yinglong" in ::Wuxia.Alchemy.CabinetMetaCache))
+			throw "CabinetMetaCache did not populate for core:wx_core_yinglong";
+		local preViews = ::Wuxia.Alchemy.buildAutoPickSortedViews(ingList);
+		local sNoPre = ::Wuxia.Alchemy.autoPickIngredients("f_zijin_xisui", ingList);
+		local sWithPre = ::Wuxia.Alchemy.autoPickIngredients("f_zijin_xisui", ingList, preViews);
+		if (sNoPre[0] != sWithPre[0] || sNoPre[1] != sWithPre[1] || sNoPre[2] != sWithPre[2])
+			throw "autoPickIngredients preViews mismatch";
+
+		// 2. Verify BeastCraft O(1) QueryStashCounts & cached WX_CabKey match non-cached blueprint evaluation
+		local bp = ::new("scripts/crafting/blueprints/wx_bp_beast_sword");
+		local c0 = bp.m.PreviewComponents[0];
+		local cabK = ::Wuxia.BeastCraft.getCachedIngredientCabKey(c0);
+		if (cabK == "" || !("WX_CabKey" in c0) || c0.WX_CabKey != cabK)
+			throw "getCachedIngredientCabKey failed to cache key on wx_bp_beast_sword";
+		local fakeStash = [c0.Instance];
+		local qMap = ::Wuxia.BeastCraft.buildStashCountMap(fakeStash);
+		if (!(c0.Instance.getID() in qMap) || qMap[c0.Instance.getID()] != 1)
+			throw "buildStashCountMap returned wrong count";
+		::Wuxia.BeastCraft.QueryStashCounts = qMap;
+		local fastRows;
+		try { fastRows = bp.getIngredients(); }
+		catch (_fe) { ::Wuxia.BeastCraft.QueryStashCounts = null; throw _fe; }
+		::Wuxia.BeastCraft.QueryStashCounts = null;
+		if (fastRows.len() == 0 || fastRows[0].InstanceID != 0 || fastRows[0].IsMissing != false || fastRows[0].ImagePath != c0.Instance.getIcon())
+			throw "Fast-path blueprint getIngredients row mismatch";
+
+		::Wuxia.Alchemy.resetFallback();
+		::logInfo("[WX-SELFTEST] Verified Alchemy CabinetMetaCache, preViews & BeastCraft O(1) QueryStashCounts fast paths");
+	});
+
+	// Stage: Extended Showcase Audio Cues & Sect/Disguise/Tourney Animation Contracts
+	check("全场景仪式亮宝与原位轻动效音效校验", function() {
+		foreach (cue in ["spar_clash", "offend_crack", "disguise_smoke", "heal_chime", "sweep_whoosh", "sect_gain", "pill_drink"])
+		{
+			::Wuxia.UI.playShowcaseSound(cue);
+		}
+		local bannerTest = ::Wuxia.SectRelations.getSanctumBannerUIPath("shaolin");
+		if (bannerTest == null || bannerTest == "")
+			throw "getSanctumBannerUIPath returned empty for shaolin";
+		local mCard = ::Wuxia.UI.buildManualShowcaseCard("wx_manual_tuna", "法帖赏赐残页 ×1");
+		if (mCard == null || mCard.icon == "" || mCard.name == "")
+			throw "buildManualShowcaseCard failed for quest reward card";
+		::logInfo("[WX-SELFTEST] Verified Extended Showcase Cues (spar/heal/disguise/offend/sweep) & Sect Banner/Card Helpers");
+	});
+
+	// Permanent regression: Perkless Ambitions (`sergeant`, `hammer_mastery`, `ranged_mastery`, `weapon_mastery`),
+	// full `choose_ambition_event` -> `ambition_manager` -> `ambition_fulfilled_event` lifecycle, and all 54 tooltips.
+	check("Perkless Ambitions & Fulfillment Event Crash-Free Regression (54 Ambitions)", function() {
+		local hadWorld = ("World" in getroottable());
+		local prevWorld = hadWorld ? ::World : null;
+		local mockStore = {};
+		local treasury = 5000;
+		local stashItems = [];
+		local stashCapacity = 1;
+		local mockStash = {
+			function hasEmptySlot() { return stashItems.len() < stashCapacity; },
+			function add( _i ) {
+				if (!this.hasEmptySlot()) throw "unexpected award to a full stash";
+				stashItems.push(_i);
+				return stashItems.len() - 1;
+			},
+			function getItems() { return stashItems; }
+		};
+		local makeBro = function( _id, _name, _lvl, _bravery, _rskill, _manualID, _tier )
+		{
+			local mc = ::new("scripts/skills/special/wx_martial_container");
+			if (_manualID != null)
+			{
+				mc.m.Slots[0].ManualID = _manualID;
+				mc.m.Slots[0].Tier = _tier;
+				mc.syncSlotToLearned(0);
+			}
+			local bBase = ::Const.CharacterProperties.getClone();
+			bBase.Bravery = _bravery;
+			bBase.RangedSkill = _rskill;
+			local bSkills = {
+				function hasSkill( _sid ) { return _sid == "special.wx_martial_container"; },
+				function getSkillByID( _sid ) { return _sid == "special.wx_martial_container" ? mc : null; },
+				function getAllSkillsOfType( _t ) { return []; },
+				function update() {}
+			};
+			local bItems = {
+				function getItemAtSlot( _s ) { return null; },
+				function getAllItems() { return []; }
+			};
+			return {
+				m = { ID = _id, Title = "", Level = _lvl },
+				function getID() { return this.m.ID; },
+				function isAlive() { return true; },
+				function getName() { return this.m.Title != "" ? (_name + " " + this.m.Title) : _name; },
+				function getNameOnly() { return _name; },
+				function getTitle() { return this.m.Title; },
+				function setTitle( _t ) { this.m.Title = _t; },
+				function getHireTime() { return _id.tofloat(); },
+				function getLevel() { return this.m.Level; },
+				function getHitpoints() { return 70; },
+				function getHitpointsMax() { return 70; },
+				function getHitpointsPct() { return 1.0; },
+				function getBravery() { return bBase.Bravery; },
+				function getRangedSkill() { return bBase.RangedSkill; },
+				function getBaseProperties() { return bBase; },
+				function getCurrentProperties() { return bBase; },
+				function getSkills() { return bSkills; },
+				function getItems() { return bItems; },
+				function getMoodState() { return ::Const.MoodState.Neutral; },
+				function improveMood( _d, _r ) {},
+				function worsenMood( _d, _r ) {},
+				function getMoodStateIcon() { return "ui/icons/mood_04.png"; },
+				function getImagePath() { return "ui/portraits/dummy.png"; },
+				function getBackground() {
+					return {
+						function getID() { return "background.farmhand"; },
+						function isLowborn() { return true; },
+						function isNoble() { return false; }
+					};
+				},
+				function getTalents() { return [1, 1, 1, 1, 1, 1, 1, 1]; }
+			};
+		};
+		local fillerBro = makeBro(99, "普通趟子手", 2, 40, 35, null, 0);
+		local rosterBros = [makeBro(1, "郭小侠", 3, 45, 35, null, 0), fillerBro];
+		local topbarTexts = [];
+		local fulfilledEvent = null;
+		local mockTown = {
+			function getName() { return "洛阳城"; },
+			function getNameOnly() { return "洛阳城"; },
+			function isAlive() { return true; },
+			function isMilitary() { return false; },
+			function isIsolated() { return false; },
+			function isAlliedWithPlayer() { return true; },
+			function getTile() { return { function getDistanceTo( _t ) { return 5; }, Type = 0, TacticalType = 0 }; },
+			function getOwner() { return { function getName() { return "河东节度府"; }, function getNameOnly() { return "河东节度府"; } }; }
+		};
+		local mockNobleFac = {
+			function getName() { return "河东节度府"; },
+			function getNameOnly() { return "河东节度府"; },
+			function getMotto() { return "定鼎中原"; },
+			function getBannerSmall() { return "banner_01"; },
+			function getSettlements() { return [mockTown]; }
+		};
+		local mockPlayerParty = {
+			function isAlive() { return true; },
+			function getTile() {
+				return {
+					Type = 0,
+					TacticalType = 0,
+					Subregion = 0,
+					HasRoad = true,
+					function getDistanceTo( _t ) { return 10; }
+				};
+			},
+			function getStrength() { return 100; }
+		};
+		local mockWorld = {
+			Time = { Days = 25, SecondsPerDay = 250.0, SecondsPerHour = 10.4, IsDaytime = true, Hours = 11, Time = 25.0 * 250.0 },
+			Flags = {
+				has      = function( _k ) { return (_k in mockStore); },
+				get      = function( _k ) { return (_k in mockStore) ? mockStore[_k] : false; },
+				getAsInt = function( _k ) { return (_k in mockStore && typeof mockStore[_k] == "integer") ? mockStore[_k] : 0; },
+				set      = function( _k, _v ) { mockStore[_k] <- _v; }
+			},
+			State = {
+				function getPlayer() { return mockPlayerParty; },
+				function isInTown() { return false; },
+				function isPaused() { return false; }
+			},
+			TopbarAmbitionModule = { function setText( _t ) { topbarTexts.push(_t); } },
+			Assets = {
+				function getName() { return "山海义社"; },
+				function getBanner() { return "banner_51"; },
+				function getBannerID() { return 51; },
+				function getMoney() { return treasury; },
+				function addMoney( _d ) { treasury += _d; },
+				function getBusinessReputation() { return 1200; },
+				function addBusinessReputation( _d ) {},
+				function resetToDefaults() {},
+				function getAverageMoodState() { return 3.0; },
+				function getStash() { return mockStash; },
+				function getOrigin() { return { function getID() { return "scenario.wx_jianghu_start"; }, function isAmbitionAllowed( _id ) { return true; } }; },
+				function getCombatDifficulty() { return 1; },
+				function getBrothersMax() { return 20; },
+				function isIronman() { return false; }
+			},
+			Events = {
+				function fire( _id ) {
+					if (_id != "event.ambition_fulfilled") throw "unexpected event " + _id;
+					// The manager clears ActiveAmbition as soon as fire() returns.
+					fulfilledEvent = ::new("scripts/events/events/special/ambition_fulfilled_event");
+					fulfilledEvent.fire();
+					fulfilledEvent.getUITitle();
+					return true;
+				},
+				function canFireEvent( _ignoreEvaluating = false ) { return true; }
+			},
+			EntityManager = {
+				function getSettlements() { return [mockTown]; },
+				function getLocations() { return []; }
+			},
+			FactionManager = {
+				function getFactionsOfType( _t ) { return [mockNobleFac]; },
+				function getAlliedFactions( _id ) { return []; },
+				function isCivilWar() { return false; },
+				function isGreenskinInvasion() { return false; },
+				function isUndeadScourge() { return false; },
+				function isHolyWar() { return false; },
+				function isGreaterEvil() { return false; }
+			},
+			Retinue = {
+				function getNumberOfCurrentFollowers() { return 0; },
+				function getMaxFollowers() { return 1; }
+			},
+			Statistics = {
+				function getFlags() { return ::World.Flags; }
+			},
+			Ambitions = null,
+			function getTime() { return this.Time; },
+			function getPlayerRoster() { return { function getAll() { return clone rosterBros; }, function getSize() { return rosterBros.len(); } }; },
+			function getGuestRoster() { return { function getAll() { return []; }, function getSize() { return 0; } }; }
+		};
+
+		::World <- mockWorld;
+		local err = null;
+		local stepTag = "init";
+		local originalGradeChances = ::Wuxia.Alchemy.calcPillGradeChances;
+		try
+		{
+			local mgr = ::new("scripts/ambitions/ambition_manager");
+			mockWorld.Ambitions = mgr;
+			// Exercise the manager on demand without waiting for world-map time and UI transitions.
+			mgr.isAvailable <- function() { return true; };
+			local bs = mgr.getAmbition("ambition.battle_standard");
+			if (bs != null) bs.m.IsDone = true;
+
+			// Accept before or after qualifying. A full stash keeps the ambition active.
+			foreach (tc in [
+				{ lbl = "Sgt-Juyiling", bro = makeBro(1, "张镖头", 3, 50, 35, "wx_manual_juyiling", 1), qualified = true },
+				{ lbl = "Sgt-Shuaiqi1", bro = makeBro(2, "赵军师", 4, 60, 35, "wx_manual_wuwei_shuaiqi", 1), qualified = true },
+				{ lbl = "Sgt-Baima",    bro = makeBro(6, "孙百夫", 3, 55, 35, "wx_manual_baima_zhenshu", 1), qualified = true },
+				{ lbl = "Sgt-Guigu",    bro = makeBro(7, "周谋士", 4, 60, 35, "wx_manual_guigu_zongheng", 1), qualified = true },
+				{ lbl = "Sgt-Lv5Brv65", bro = makeBro(3, "李护法", 5, 65, 35, null, 0), qualified = true },
+				{ lbl = "Sgt-Lv5Brv64", bro = makeBro(4, "郭小侠", 5, 64, 35, null, 0), qualified = false },
+				{ lbl = "Sgt-Lv4Brv65", bro = makeBro(5, "王护院", 4, 65, 35, null, 0), qualified = false }
+			])
+			{
+				stepTag = tc.lbl + ":init";
+				rosterBros = [fillerBro, tc.bro];
+				stashItems = [];
+				fulfilledEvent = null;
+				topbarTexts = [];
+				local sgt = mgr.getAmbition("ambition.sergeant");
+				sgt.reset();
+				sgt.update();
+				if (sgt.getScore() <= 0 || sgt.isSuccess() != tc.qualified)
+					throw "unexpected score or eligibility";
+				stepTag = tc.lbl + ":choose";
+				mgr.m.Selection = [sgt];
+				local choice = ::new("scripts/events/events/special/choose_ambition_event");
+				choice.fire();
+				local tooltip = choice.getUIButtons()[0].tooltip;
+				local hasTask = false;
+				local hasReward = false;
+				if (typeof tooltip != "array") throw "expected tooltip rows on the choice button";
+				foreach (row in tooltip)
+				{
+					if (row.type == "text" && row.text.find("聚义令") != null) hasTask = true;
+					if (row.type == "text" && row.text == sgt.getRewardTooltip()) hasReward = true;
+				}
+				if (!hasTask || !hasReward) throw "missing task or reward in choice tooltip";
+				if (choice.processInput(0) || mgr.getActiveAmbition() != sgt || topbarTexts.top() != sgt.getUIText())
+					throw "choice did not activate the ambition and close";
+				mgr.m.Selection = null;
+
+				if (!tc.qualified)
+				{
+					mgr.update();
+					if (fulfilledEvent != null || mgr.getActiveAmbition() != sgt || stashItems.len() != 0)
+						throw "completed before reaching level 5 and resolve 65";
+					tc.bro.m.Level = 5;
+					tc.bro.getBaseProperties().Bravery = 65;
+				}
+				stepTag = tc.lbl + ":full_stash";
+				stashCapacity = 0;
+				mgr.update();
+				if (fulfilledEvent != null || mgr.getActiveAmbition() != sgt || stashItems.len() != 0)
+					throw "completed without room for the badge";
+				stepTag = tc.lbl + ":fulfillment";
+				stashCapacity = 1;
+				mgr.update();
+				if (fulfilledEvent == null || mgr.hasActiveAmbition() || !sgt.isDone() || topbarTexts.top() != null)
+					throw "fulfillment did not clear the ambition";
+				local body = fulfilledEvent.m.ActiveScreen.Text;
+				if (body.find(tc.bro.getNameOnly()) == null || body.find("%rallybrother%") != null)
+					throw "wrong sergeant in reward text";
+				if (fulfilledEvent.processInput(0) || stashItems.len() != 1 || stashItems[0].getID() != "accessory.sergeant_badge")
+					throw "reward did not close with exactly one badge";
+			}
+
+			// 2. Hammer / Ranged / Weapon Mastery ambitions: score zeroing when satisfied, UIText progress, & crash-free fulfillment!
+			foreach (mc2 in [
+				{ lbl = "Ham", path = "scripts/ambitions/ambitions/hammer_mastery_ambition", expectUI = "(1/1)",
+				  bros = [makeBro(11, "王铁锤", 5, 50, 35, "wx_manual_tiebushan", 2), fillerBro] },
+				{ lbl = "Rng", path = "scripts/ambitions/ambitions/ranged_mastery_ambition", expectUI = "(1/1)",
+				  bros = [makeBro(12, "林神箭", 5, 50, 70, "wx_manual_jichujian", 2), fillerBro] },
+				{ lbl = "Wpn", path = "scripts/ambitions/ambitions/weapon_mastery_ambition", expectUI = "(3/3)",
+				  bros = [
+					makeBro(13, "甲剑客", 5, 50, 35, "wx_manual_jichujian", 2),
+					makeBro(14, "乙刀客", 5, 50, 35, "wx_manual_jichujian", 2),
+					makeBro(15, "丙枪客", 5, 50, 35, "wx_manual_jichujian", 2),
+					fillerBro
+				  ] }
+			])
+			{
+				stepTag = mc2.lbl + ":check";
+				rosterBros = mc2.bros;
+				local a = ::new(mc2.path);
+				a.update();
+				if (a.getScore() != 0)
+					throw mc2.lbl + " expected score=0 when already satisfied, got " + a.getScore();
+				if (!a.onCheckSuccess())
+					throw mc2.lbl + " expected onCheckSuccess=true";
+				local uiTxt = a.getUIText();
+				if (uiTxt.find(mc2.expectUI) == null)
+					throw mc2.lbl + " expected UIText to contain " + mc2.expectUI + ", got " + uiTxt;
+				stepTag = mc2.lbl + ":fulfilled_ev";
+				mgr.m.ActiveAmbition = a;
+				local fulEv = ::new("scripts/events/events/special/ambition_fulfilled_event");
+				fulEv.onPrepare();
+				fulEv.setScreen(fulEv.m.Screens[0]);
+				if (fulEv.m.ActiveScreen == null || fulEv.m.ActiveScreen.Text.find("%masterbrother%") != null)
+					throw mc2.lbl + " ambition_fulfilled_event left unresolved placeholder";
+			}
+
+			// 2b. `ambition.wx_brew_elixir`: must settle from BOTH Town 百工丹坊 blueprint pill rolls AND existing stash Grade 2+ pills!
+			stepTag = "BrewElixir:check";
+			local brewAmb = mgr.getAmbition("ambition.wx_brew_elixir");
+			if (brewAmb == null) throw "ambition.wx_brew_elixir missing from ambition_manager";
+			brewAmb.reset();
+			mockStore["wx_brewed_high_pill"] <- false;
+			stashItems = [];
+			stashCapacity = 4;
+			local lowPill = ::new("scripts/items/misc/wx_pill_item");
+			lowPill.initPillVariant("wx_pill_huxin", 1, 100, "");
+			stashItems.push(lowPill);
+			brewAmb.update();
+			if (brewAmb.getScore() <= 0 || brewAmb.isSuccess())
+				throw "wx_brew_elixir should not succeed with only a Grade 1 pill";
+			mgr.m.ActiveAmbition = brewAmb;
+			fulfilledEvent = null;
+			mgr.update();
+			if (fulfilledEvent != null || mgr.getActiveAmbition() != brewAmb)
+				throw "wx_brew_elixir fulfilled prematurely with Grade 1 pill";
+
+			// Existing-save recovery: Grade 2+ pill already in stash settles immediately and backfills flag
+			local hiPill = ::new("scripts/items/misc/wx_pill_item");
+			hiPill.initPillVariant("wx_pill_huxin", 2, 120, "");
+			stashItems.push(hiPill);
+			mgr.update();
+			if (fulfilledEvent == null || mgr.hasActiveAmbition() || !brewAmb.isDone() || !mockStore["wx_brewed_high_pill"])
+				throw "wx_brew_elixir did not settle from existing Grade 2+ pill in stash";
+
+			// Town blueprint pill crafting (`rollTownCraftedPill`) sets `wx_brewed_high_pill` whenever Grade >= 2
+			stepTag = "BrewElixir:townCraft";
+			brewAmb.reset();
+			mockStore["wx_brewed_high_pill"] <- false;
+			stashItems = [];
+			foreach (grade in [1, 2, 3])
+			{
+				local chances = [0, 0, 0];
+				chances[grade - 1] = 100;
+				::Wuxia.Alchemy.calcPillGradeChances = function( _jun, _potency, _bonus ) { return chances; };
+				mockStore["wx_brewed_high_pill"] = false;
+				local tp = ::new("scripts/items/misc/wx_pill_item");
+				tp.initPill("wx_pill_ningshen");
+				local rInfo = ::Wuxia.Alchemy.rollTownCraftedPill(tp);
+				if (rInfo == null || rInfo.Grade != grade || mockStore["wx_brewed_high_pill"] != (grade >= 2) || brewAmb.isSuccess() != (grade >= 2))
+					throw "town pill ambition disagrees with rolled grade " + grade;
+			}
+			::Wuxia.Alchemy.calcPillGradeChances = originalGradeChances;
+
+			// 2c. `ambition.taxidermist` counts Bagua Cauldron brews via `recordWorkshopCraft` & displays `(x/3)`
+			stepTag = "Taxidermist:check";
+			local taxAmb = mgr.getAmbition("ambition.taxidermist");
+			if (taxAmb == null) throw "ambition.taxidermist missing from ambition_manager";
+			taxAmb.reset();
+			mockStore["ItemsCrafted"] <- 0;
+			if (taxAmb.isSuccess())
+				throw "taxidermist_ambition succeeded at 0 crafts";
+			::Wuxia.Alchemy.recordWorkshopCraft();
+			::Wuxia.Alchemy.recordWorkshopCraft();
+			if (taxAmb.isSuccess() || taxAmb.getUIText().find("(2/3)") == null)
+				throw "taxidermist_ambition expected (2/3) before 3rd craft, got " + taxAmb.getUIText();
+			::Wuxia.Alchemy.recordWorkshopCraft();
+			if (!taxAmb.isSuccess() || taxAmb.getUIText().find("(3/3)") == null)
+				throw "taxidermist_ambition did not succeed after 3rd workshop craft!";
+
+			// A legacy blueprint stores its own count even when the world statistic is missing.
+			mockStore["ItemsCrafted"] = 0;
+			mockWorld.Crafting <- { m = { Blueprints = [{ m = { TimesCrafted = 2 } }] } };
+			if (taxAmb.getUIText().find("(2/3)") == null) throw "lost legacy blueprint crafts";
+			::Wuxia.Alchemy.recordWorkshopCraft();
+			if (!taxAmb.isSuccess() || mockStore["ItemsCrafted"] != 3) throw "lost the next cauldron brew";
+			delete mockWorld.Crafting;
+
+			stepTag = "HaveTalent:oneAttribute";
+			local talent = mgr.getAmbition("ambition.have_talent");
+			rosterBros = [fillerBro];
+			if (talent.isSuccess()) throw "qualified without a three-star talent";
+			local starBro = makeBro(22, "沈三", 3, 45, 35, null, 0);
+			starBro.getTalents = function() { return [0, 3, 0, 0, 0, 0, 0, 0]; };
+			rosterBros.push(starBro);
+			local starVars = [];
+			talent.onPrepareVariables(starVars);
+			if (!talent.isSuccess() || starVars.len() != 1 || starVars[0][1] != starBro.getName())
+				throw "expected the single three-star brother in the reward event";
+
+			// 2d. `ambition.wx_marrow_wash`: full-stash fulfillment compensates silver cleanly instead of dropping pill
+			stepTag = "MarrowWash:fullStash";
+			local mwAmb = mgr.getAmbition("ambition.wx_marrow_wash");
+			if (mwAmb == null) throw "ambition.wx_marrow_wash missing from ambition_manager";
+			mwAmb.reset();
+			mockStore["wx_marrow_wash_success"] <- true;
+			stashItems = [];
+			stashCapacity = 0;
+			fulfilledEvent = null;
+			mgr.m.ActiveAmbition = mwAmb;
+			local silverBefore = treasury;
+			mgr.update();
+			if (fulfilledEvent == null || !mwAmb.isDone() || treasury - silverBefore != 800 || stashItems.len() != 0)
+				throw "wx_marrow_wash did not cleanly compensate silver when stash was full";
+			local showsSilver = false;
+			foreach (row in fulfilledEvent.m.ActiveScreen.List)
+				if (row.text.find("800") != null) showsSilver = true;
+			if (!showsSilver) throw "missing full-stash compensation in reward event";
+
+			// 3. Sweep all 54 ambitions for clean Wuxia TooltipText & UIText (zero vanilla/legacy/misleading leaks)
+			stepTag = "sweep54";
+			rosterBros = [makeBro(21, "郭小侠", 3, 45, 35, null, 0), fillerBro];
+			foreach (amb in mgr.m.Ambitions)
+			{
+				local tip = amb.getTooltipText();
+				local btn = amb.getButtonText();
+				local ui  = amb.getUIText();
+				foreach (bad in ["特长", "克朗", "战锤精通", "重振士气", "哥布林", "兽人", "亡灵", "贵族家族", "百工猎妖炼丹房", "三项根骨三星"])
+				{
+					if ((tip != null && tip.find(bad) != null)
+						|| (btn != null && btn.find(bad) != null)
+						|| (ui != null && ui.find(bad) != null))
+						throw "Ambition " + amb.getID() + " leaked stale/vanilla term '" + bad + "'";
+				}
+			}
+
+			::logInfo("[WX-SELFTEST] Verified Perkless Ambitions (sergeant/hammer/ranged/weapon) end-to-end choose->fulfill & all " + mgr.m.Ambitions.len() + " tooltips clean!");
+		}
+		catch (eAmb)
+		{
+			err = "[" + stepTag + "] " + eAmb;
+		}
+		::Wuxia.Alchemy.calcPillGradeChances = originalGradeChances;
+		if (hadWorld) ::World <- prevWorld;
+		else delete ::World;
+		if (err != null) throw err;
+	});
+
+	check("Item Tooltip Rarity Tier Metadata & Rich Parchment Color Coding", function() {
+		if (!("UI" in ::Wuxia) || !("resolveItemTooltipMeta" in ::Wuxia.UI) || !("applyItemTooltipTier" in ::Wuxia.UI))
+			throw "Missing ::Wuxia.UI item tooltip tier helpers";
+
+		// 1. Ordinary low-tier weapon -> Tier 0
+		local wPlain = ::new("scripts/items/weapons/shortsword");
+		local mPlain = ::Wuxia.UI.resolveItemTooltipMeta(wPlain);
+		if (mPlain.Tier != 0) throw "Expected ordinary shortsword Tier=0, got " + mPlain.Tier;
+
+		// 2. Beast craft weapon -> Tier >= 1, Historical Relic -> Tier 2, ShanHai Relic -> Tier 3
+		local wBeast = ::new("scripts/items/weapons/wx_beast_sword");
+		local ttBeast = wBeast.getTooltip();
+		if (!("wxTier" in ttBeast[0]) || ttBeast[0].wxTier < 1)
+			throw "Beast weapon missing wxTier >= 1 on title row";
+
+		local wRelic = ::new("scripts/items/weapons/named/wx_relic_taie");
+		local ttRelic = wRelic.getTooltip();
+		if (!("wxTier" in ttRelic[0]) || ttRelic[0].wxTier != 2 || ttRelic[0].wxTierTag == "")
+			throw "Historical relic expected wxTier=2 with tag, got " + (("wxTier" in ttRelic[0]) ? ttRelic[0].wxTier : "none");
+
+		local wShanHai = ::new("scripts/items/weapons/named/wx_relic_xingtianqi");
+		local ttShanHai = wShanHai.getTooltip();
+		if (!("wxTier" in ttShanHai[0]) || ttShanHai[0].wxTier != 3 || ttShanHai[0].wxTierTag.find("山海") == null)
+			throw "ShanHai relic expected wxTier=3 with 山海 tag";
+
+		// 3. Manuals across common/sect/secret/unique qualities
+		foreach (pair in [
+			["wx_manual_tuna", 0],
+			["wx_manual_songtao", 1],
+			["wx_manual_xuesha", 2],
+			["wx_manual_taixu", 3]
+		])
+		{
+			local mi = ::new("scripts/items/misc/wx_manual_item");
+			mi.initManual(pair[0]);
+			local mtt = mi.getTooltip();
+			if (!("wxTier" in mtt[0]) || mtt[0].wxTier != pair[1])
+				throw "Manual " + pair[0] + " expected wxTier=" + pair[1] + ", got " + (("wxTier" in mtt[0]) ? mtt[0].wxTier : "none");
+		}
+
+		// 4. Danxia Grade-3 Pill -> Tier 3, Herb shows nature/potency, Beast material shows 百工奇材
+		local p3 = ::new("scripts/items/misc/wx_pill_item");
+		p3.initPillVariant("wx_pill_huxin", 3, 145, "vital");
+		local ptt = p3.getTooltip();
+		if (!("wxTier" in ptt[0]) || ptt[0].wxTier != 3)
+			throw "Danxia pill expected wxTier=3";
+
+		local h = ::new("scripts/items/misc/wx_herb_zhuyu");
+		local htt = h.getTooltip();
+		local hasHerbNat = false;
+		foreach (r in htt) { if (("text" in r) && r.text != null && r.text.find("药力") != null) hasHerbNat = true; }
+		if (!hasHerbNat || !("wxTier" in htt[0]) || htt[0].wxTier < 1)
+			throw "Herb tooltip missing nature/potency or wxTier";
+
+		local mat = ::new("scripts/items/misc/wx_mat_chiling");
+		local matTT = mat.getTooltip();
+		local hasMatTag = false;
+		foreach (r in matTT) { if (("text" in r) && r.text != null && r.text.find("【百工奇材") != null) hasMatTag = true; }
+		if (!hasMatTag || !("wxTier" in matTT[0]) || matTT[0].wxTier < 1)
+			throw "Beast material tooltip missing 【百工奇材】 row or wxTier";
+
+		::logInfo("[WX-SELFTEST] Verified Item Tooltip Rarity Tiers (0..3) & Rich Parchment Color Coding across Weapons, Manuals, Pills, Herbs & Materials");
+	});
+
+	check("Ranged Enemy AI Mobility, Crisp Skill Sounds, Left/Right Mirrored VFX & Cut-In Option Toggle", function() {
+		// 1. Verify ai_engage_ranged covers throwing weapons & all 16 Wuxia ranged active skills
+		local engageRng = ::new("scripts/ai/tactical/behaviors/ai_engage_ranged");
+		if (engageRng == null || !(::Wuxia.hasMember(engageRng.m, "PossibleSkills")) || engageRng.m.PossibleSkills == null)
+			throw "ai_engage_ranged missing PossibleSkills";
+		local reqEngageSkills = [
+			"actives.throw_javelin", "actives.throw_axe", "actives.throw_balls", "actives.throw_spear",
+			"actives.wx_bow_luori", "actives.wx_bow_snipe", "actives.wx_bow_jiuxing", "actives.wx_bow_yanxing", "actives.wx_bow_liuxing",
+			"actives.wx_crossbow_shenji", "actives.wx_crossbow_liannu",
+			"actives.wx_gun_huolong", "actives.wx_gun_leihuo",
+			"actives.wx_throw_pilidan", "actives.wx_throw_duzhen", "actives.wx_throw_liuyedao", "actives.wx_throw_kongque",
+			"actives.wx_throwing_rain", "actives.wx_throw_fan", "actives.wx_smoke_cast"
+		];
+		foreach (sid in reqEngageSkills)
+		{
+			if (engageRng.m.PossibleSkills.find(sid) == null)
+				throw "ai_engage_ranged.m.PossibleSkills missing " + sid;
+		}
+
+		// Verify handgonne reload script path instantiates cleanly and matches `actives.reload_handgonne`
+		local rgSkill = ::new("scripts/skills/actives/reload_handgonne_skill");
+		if (rgSkill == null || rgSkill.getID() != "actives.reload_handgonne")
+			throw "reload_handgonne_skill failed to instantiate or unexpected ID";
+
+		// Verify all 16 Wuxia ranged active skills have MaxLevelDifference >= 4 & IsIgnoredAsAOO == true
+		foreach (rFile in [
+			"wx_bow_snipe", "wx_bow_jiuxing", "wx_bow_liuxing", "wx_bow_luori", "wx_bow_yanxing",
+			"wx_crossbow_liannu", "wx_crossbow_shenji", "wx_gun_huolong", "wx_gun_leihuo",
+			"wx_smoke_cast", "wx_throw_duzhen", "wx_throw_fan", "wx_throw_kongque",
+			"wx_throw_liuyedao", "wx_throw_pilidan", "wx_throwing_rain"
+		])
+		{
+			local rSk = ::new("scripts/skills/actives/" + rFile);
+			if (rSk.m.MaxLevelDifference < 4)
+				throw rFile + " has MaxLevelDifference=" + rSk.m.MaxLevelDifference + " (< 4)";
+			if (!rSk.m.IsIgnoredAsAOO)
+				throw rFile + " missing IsIgnoredAsAOO = true";
+		}
+
+		// Verify throwing ranged enemies (`wx_dartist`, `wx_wudu_blowgun`) have EngageRanged matching their skills
+		foreach (eScript in [
+			"scripts/entity/tactical/enemies/wx_dartist",
+			"scripts/entity/tactical/enemies/wx_wudu_blowgun",
+			"scripts/entity/tactical/enemies/wx_shenji_musketeer"
+		])
+		{
+			local en = ::new(eScript);
+			local ag = en.getAIAgent();
+			if (ag == null) throw eScript + " missing AIAgent";
+			local er = ag.getBehavior(::Const.AI.Behavior.ID.EngageRanged);
+			if (er == null || er.m.PossibleSkills.find("actives.throw_javelin") == null || er.m.PossibleSkills.find("actives.wx_gun_leihuo") == null)
+				throw eScript + " EngageRanged missing throwing/Wuxia ranged skills";
+		}
+
+		// 2. Verify previously overly long combat skill sounds are replaced by crisp short WAVs
+		local bannedLongSubstr = ["temple_bell", "perfect_focus", "miasma_spell", "fire_gonne_01", "aimed_shot", "rally_the_troops", "riposte_02"];
+		foreach (sFile in [
+			"wx_blood_burst", "wx_fist_xianglong", "wx_saber_ranmu", "wx_hammer_leiting",
+			"wx_gun_leihuo", "wx_gun_huolong", "wx_bow_snipe", "wx_bow_jiuxing",
+			"wx_bow_luori", "wx_bow_yanxing", "wx_rally_command", "wx_sword_combo"
+		])
+		{
+			local skS = ::new("scripts/skills/actives/" + sFile);
+			if (skS.m.SoundOnUse != null)
+			{
+				foreach (wav in skS.m.SoundOnUse)
+				{
+					foreach (bad in bannedLongSubstr)
+					{
+						if (wav.find(bad) != null)
+							throw sFile + " still references overly long sound: " + wav;
+					}
+				}
+			}
+		}
+
+		// 3. Verify left/right facing & mirrored `_L` brush sheets
+		if (::Wuxia.VFX.TacticalVfxTextures.find("gfx/wx_kinetic_7.png") == null
+			|| ::Wuxia.VFX.TacticalVfxTextures.find("gfx/wx_kinetic_8.png") == null)
+			throw "TacticalVfxTextures missing mirrored kinetic sheets wx_kinetic_7/8";
+
+		local mockAlly = { function isAlliedWithPlayer() { return true; } };
+		local mockEnemy = { function isAlliedWithPlayer() { return false; } };
+		local mockTile = { ID = 42 };
+		if (::Wuxia.VFX.getActorFacingSign(mockAlly) <= 0.0 || ::Wuxia.VFX.getActorFacingSign(mockEnemy) >= 0.0)
+			throw "getActorFacingSign polarity mismatch";
+		local dSelfEnemy = ::Wuxia.VFX.getDirVec(mockTile, mockTile, mockEnemy);
+		if (dSelfEnemy.X >= 0.0 || !::Wuxia.VFX.shouldFlipLeft(dSelfEnemy, mockEnemy))
+			throw "Self-cast enemy direction must face left (-X)";
+		if (!::Wuxia.VFX.shouldFlipLeft({ X = 0.0, Y = 1.0 }, mockEnemy) || ::Wuxia.VFX.shouldFlipLeft({ X = 0.0, Y = 1.0 }, mockAlly))
+			throw "Straight N/S cast should respect caster facing sign";
+		if (!::Wuxia.VFX.shouldFlipLeft({ X = -0.86, Y = 0.5 }, mockAlly) || ::Wuxia.VFX.shouldFlipLeft({ X = 0.86, Y = -0.5 }, mockEnemy))
+			throw "Diagonal target direction should override default side facing";
+
+		if ("doesBrushExist" in getroottable())
+		{
+			local dirSeqs = [
+				"wx_kin_sword_slash", "wx_kin_dragon_surge", "wx_kin_flame_cleave", "wx_kin_celestial_beam",
+				"wx_kin_blood_arc", "wx_kin_spear_drill", "wx_kin_whirl_cyclone", "wx_kin_claw_rend",
+				"wx_kin_whip_lash", "wx_kin_shadow_cross", "wx_kin_arrow_barrage", "wx_kin_qinggong_gust",
+				"wx_kin_soul_vortex", "wx_kin_fist_flurry", "wx_kin_giant_axe", "wx_kin_phoenix_spear",
+				"wx_kin_bamboo_bind", "wx_kin_flying_knives", "wx_kin_peacock_fan", "wx_kin_tidal_wave",
+				"wx_kin_snow_step", "wx_kin_sword_rain", "wx_kin_moon_crescent"
+			];
+			local missL = 0;
+			foreach (seq in dirSeqs)
+			{
+				if (!::doesBrushExist(seq + "_L_00")) missL += 1;
+			}
+			foreach (leg in ["wx_vfx_01_L", "wx_vfx_32_L", "wx_fx_dragon_head_L", "wx_fx_sword_phantom_L", "wx_fx_claw_slash_L"])
+			{
+				if (!::doesBrushExist(leg)) missL += 1;
+			}
+			if (missL > 0)
+				throw "Missing compiled left-facing (_L) VFX brushes: " + missL;
+		}
+
+		// 4. Verify Skill Cut-In & Screen Dim toggle defaults OFF and respects master VFX toggle
+		local origOpts = ::Wuxia.VFX.getOptions();
+		if (origOpts.showSkillCutIn != false || ::Wuxia.VFX.isCutInEnabled() != false)
+			throw "ShowSkillCutIn must default to false";
+		::Wuxia.VFX.setOptions(true, true, false, true);
+		if (!::Wuxia.VFX.isCutInEnabled())
+			throw "setOptions(..., true) failed to enable SkillCutIn";
+		::Wuxia.VFX.setOptions(false, true, false, true);
+		if (::Wuxia.VFX.isCutInEnabled())
+			throw "isCutInEnabled() must be false when master ShowSkillVfx is disabled";
+		::Wuxia.VFX.setOptions(origOpts.showSkillVfx, origOpts.enableActorMotion, false, origOpts.showSkillCutIn);
+
+		::logInfo("[WX-SELFTEST] Verified Ranged AI Engage/Reload + Crisp Audio + Left/Right Mirrored VFX + Skill Cut-In Option Toggle");
+	});
+
+	// ------------------------------------------------------------------------
+	// Post-Battle Portrait Offset Reset, Fist Rebalance & 1:1 Character-Accurate Corpse Verification
+	// ------------------------------------------------------------------------
+	check("Post-Battle Portrait Reset, Fist/Gauntlet Rebalance & 1:1 Character-Accurate Corpses", function()
+	{
+		// 1. Verify post-battle actor motion cleanup resets offsets, AlwaysApplySpriteOffset, render callback & Dirty flag
+		foreach (hl in ["helmet_bottom", "helmet_top", "helmet_vanity", "helmet_lower"])
+		{
+			if (::Wuxia.VFX.MotionHeadLayers.find(hl) == null)
+				throw "MotionHeadLayers missing " + hl;
+		}
+		local offsets = {
+			body = ::createVec(-72, -58),
+			head = ::createVec(-72, -58),
+			helmet = ::createVec(-72, -58),
+			helmet_top = ::createVec(-72, -58),
+			arms_icon = ::createVec(-88, -64)
+		};
+		local mkSpr = function( _name )
+		{
+			return {
+				Visible = true,
+				HasBrush = true,
+				Flipped = true,
+				function setHorizontalFlipping( _f ) { this.Flipped = _f; },
+				function isFlippedHorizontally() { return this.Flipped; },
+				function getBrush() { return { Name = _name }; }
+			};
+		};
+		local mockSprs = {
+			body = mkSpr("wx_char_armor_shanwen"),
+			head = mkSpr("wx_head_01"),
+			hair = mkSpr("wx_hair_01_tucked"),
+			helmet = mkSpr("wx_hat_01_front"),
+			helmet_top = mkSpr("wx_hat_01_front"),
+			arms_icon = mkSpr("arm_wx_sword_01")
+		};
+		local mockBro = {
+			m = {
+				WX_Motion = {
+					flippedTemp = true,
+					origFlip = false,
+					disableRenderOnEnd = true
+				},
+				WX_MotionTinted = false
+			},
+			AlwaysApply = true,
+			ResetRenderCalled = false,
+			RenderEnabled = true,
+			Dirty = false,
+			function isAlive() { return true; },
+			function hasSprite( _k ) { return _k in mockSprs; },
+			function getSprite( _k ) { return mockSprs[_k]; },
+			function setSpriteOffset( _k, _v ) { offsets[_k] <- _v; },
+			function setAlwaysApplySpriteOffset( _b ) { this.AlwaysApply = _b; },
+			function resetRenderEffects() { this.ResetRenderCalled = true; },
+			function setRenderCallbackEnabled( _b ) { this.RenderEnabled = _b; },
+			function setDirty( _b ) { this.Dirty = _b; }
+		};
+		local activeMotion = mockBro.m.WX_Motion;
+		::Wuxia.VFX.clearActorMotion(mockBro, true);
+		if (mockBro.m.WX_Motion != null)
+			throw "clearActorMotion did not clear WX_Motion";
+		if (mockBro.AlwaysApply != false || !mockBro.ResetRenderCalled || mockBro.RenderEnabled != false || !mockBro.Dirty)
+			throw "clearActorMotion failed to reset AlwaysApplySpriteOffset / RenderEffects / RenderCallback / Dirty";
+		if (mockSprs.body.Flipped != false)
+			throw "clearActorMotion failed to restore origFlip";
+		foreach (k, v in offsets)
+		{
+			if (v.X != 0 || v.Y != 0)
+				throw "clearActorMotion left non-zero offset on layer " + k;
+		}
+		delete mockBro.m.WX_Motion;
+		::Wuxia.VFX.clearActorMotion(mockBro, true);
+		if (mockBro.m.WX_Motion != null) throw "Old-save portrait reset retained a motion";
+		mockBro.m.WX_Motion = activeMotion;
+		mockBro.ResetRenderCalled = false;
+		::Wuxia.VFX.clearActorMotion(mockBro);
+		if (mockBro.ResetRenderCalled) throw "Normal motion cleanup reset native combat effects";
+
+		// 2. Verify Paired 2H Fist/Gauntlet weapon & skill rebalance bounds
+		local wWraps = ::new("scripts/items/weapons/wx_fist_wraps");
+		local wIron  = ::new("scripts/items/weapons/wx_fist_iron");
+		local wHeavy = ::new("scripts/items/weapons/wx_fist_heavy");
+		if (wWraps.m.RegularDamage != 20 || wWraps.m.RegularDamageMax != 28 || wWraps.m.DirectDamageMult > 0.33)
+			throw "wx_fist_wraps stats drifted from rebalanced targets";
+		if (wIron.m.RegularDamage != 28 || wIron.m.RegularDamageMax != 40 || wIron.m.DirectDamageMult > 0.37)
+			throw "wx_fist_iron stats drifted from rebalanced targets";
+		if (wHeavy.m.RegularDamage != 36 || wHeavy.m.RegularDamageMax != 50 || wHeavy.m.DirectDamageMult > 0.41)
+			throw "wx_fist_heavy stats drifted from rebalanced targets";
+		local bFist = ::Wuxia.Config.BeastGear.wx_beast_fist;
+		if (bFist.RegularDamage != 33 || bFist.RegularDamageMax != 46 || bFist.DirectDamageMult > 0.39)
+			throw "wx_beast_fist config drifted from rebalanced targets";
+
+		local skJab   = ::new("scripts/skills/actives/wx_fist_jab");
+		local skCanhe = ::new("scripts/skills/actives/wx_fist_canhezhi");
+		local skQish  = ::new("scripts/skills/actives/wx_fist_qishang");
+		local skXiang = ::new("scripts/skills/actives/wx_fist_xianglong");
+		local skYiy   = ::new("scripts/skills/actives/wx_fist_yiyang");
+		if (skJab.m.FatigueCost < 10)
+			throw "wx_fist_jab FatigueCost should be >= 10";
+		if (skCanhe.m.ActionPointCost < 5)
+			throw "wx_fist_canhezhi ActionPointCost must be >= 5 (no 4 AP 2-tile double cast)";
+		if (skQish.m.DirectDamageMult > 0.41 || skXiang.m.DirectDamageMult > 0.43 || skYiy.m.DirectDamageMult > 0.45)
+			throw "Rebalanced fist active skill DirectDamageMult exceeded ceiling";
+
+		// 3. Verify 1:1 corpse dual-sheet registration & `_injured` / `_damaged` -> `_dead` layer capture
+		if (::Wuxia.VFX.TacticalVfxTextures.find("gfx/wx_corpses_1.png") == null
+			|| ::Wuxia.VFX.TacticalBaseTextures.find("gfx/wx_corpses_1.png") == null)
+			throw "wx_corpses_1.png missing from TacticalVfxTextures / TacticalBaseTextures";
+
+		if ("doesBrushExist" in getroottable())
+		{
+			foreach (reqDead in [
+				"wx_char_armor_shanwen_dead", "wx_head_01_dead", "wx_hat_01_front_dead",
+				"wx_hair_01_tucked_dead", "wx_boss_taotie_dead", "wx_armor_qiongqi_dead",
+				"wx_enemy_bandit_lord_dead"
+			])
+			{
+				if (!::doesBrushExist(reqDead))
+					throw "Missing compiled 1:1 corpse brush: " + reqDead;
+			}
+		}
+
+		local injHumanSprs = {
+			body = mkSpr("wx_char_armor_shanwen_injured"),
+			head = mkSpr("wx_head_01_injured"),
+			hair = mkSpr("wx_hair_01_tucked"),
+			helmet = mkSpr("wx_hat_01_front_damaged")
+		};
+		local injHuman = {
+			m = {},
+			function hasSprite( _k ) { return _k in injHumanSprs; },
+			function getSprite( _k ) { return injHumanSprs[_k]; }
+		};
+		local snapHuman = ::Wuxia.Appearance.captureDeathLayers(injHuman);
+		if (snapHuman == null || snapHuman.isSingleBust
+			|| snapHuman.bodyDead != "wx_char_armor_shanwen_dead"
+			|| snapHuman.headDead != "wx_head_01_dead"
+			|| snapHuman.hairDead != "wx_hair_01_tucked_dead"
+			|| snapHuman.hatFrontDead != "wx_hat_01_front_dead")
+			throw "captureDeathLayers failed to resolve injured modular human brushes to *_dead";
+
+		local injBossSprs = { body = mkSpr("wx_boss_taotie_injured") };
+		local injBoss = {
+			m = { WX_CustomEnemyBust = "wx_boss_taotie" },
+			function hasSprite( _k ) { return _k in injBossSprs; },
+			function getSprite( _k ) { return injBossSprs[_k]; }
+		};
+		local snapBoss = ::Wuxia.Appearance.captureDeathLayers(injBoss);
+		if (snapBoss == null || !snapBoss.isSingleBust || snapBoss.bodyDead != "wx_boss_taotie_dead")
+			throw "captureDeathLayers failed to resolve injured Shan Hai boss brush to wx_boss_taotie_dead";
+
+		::logInfo("[WX-SELFTEST] Verified Post-Battle Portrait Reset + Fist/Gauntlet Rebalance + 1:1 Character-Accurate Corpses");
+	});
+
+	// ------------------------------------------------------------------------
+	// Whip/Flail Skill Fix & Global Active Skill CharacterProperties Audit
+	// ------------------------------------------------------------------------
+	check("Whip/Flail Skills & Global Active Skill CharacterProperties Audit", function()
+	{
+		// 1. Verify all 7 whip/flail skills bypass shields via m.IsShieldRelevant = false (never invalid _properties.IsIgnoringShieldBonus)
+		local whipSkills = [
+			"wx_whip_suohou", "wx_whip_xiangxi", "wx_flail_entangle",
+			"wx_flail_jinshe", "wx_flail_lash", "wx_flail_liuxing", "wx_flail_panlong"
+		];
+		foreach (ws in whipSkills)
+		{
+			local sk = ::new("scripts/skills/actives/" + ws);
+			if (sk.m.IsShieldRelevant != false)
+				throw ws + " must set m.IsShieldRelevant = false to bypass shield bonus";
+			if (sk.m.MaxRange >= 2 && (!sk.m.IsIgnoredAsAOO || sk.m.MaxLevelDifference < 2))
+				throw ws + " (range " + sk.m.MaxRange + ") must set IsIgnoredAsAOO=true and MaxLevelDifference>=2";
+		}
+
+		// 2. Verify berserker_chain & whips match "Flail" weapon family
+		foreach (wid in ["weapon.battle_whip", "weapon.named_battle_whip", "weapon.berserker_chain", "weapon.flail", "weapon.three_headed_flail"])
+		{
+			local mockW = { m = { Categories = "" }, function getID() { return wid; } };
+			if (!::Wuxia.CombatRules.matchesWeapon(mockW, ["Flail"]))
+				throw "matchesWeapon failed to match " + wid + " to Flail family";
+		}
+
+		// 3. Verify wx_move_base.wxApplyStatusToTarget stacks bleeding_effect cleanly
+		local addedBleeds = [];
+		local mockBleedSkills = {
+			function getSkillByID( _id ) { return addedBleeds.len() > 0 ? addedBleeds[0] : null; },
+			function add( _s ) { addedBleeds.push(_s); }
+		};
+		local mockLiving = {
+			function isAlive() { return true; },
+			function getSkills() { return mockBleedSkills; },
+			function getCurrentProperties() { return ::Const.CharacterProperties.getClone(); },
+			function getFlags() { return { function has( _k ) { return false; } }; }
+		};
+		local suohou = ::new("scripts/skills/actives/wx_whip_suohou");
+		suohou.wxApplyStatusToTarget(mockLiving, "effects.bleeding", "scripts/skills/effects/bleeding_effect");
+		suohou.wxApplyStatusToTarget(mockLiving, "effects.bleeding", "scripts/skills/effects/bleeding_effect");
+		if (addedBleeds.len() != 2)
+			throw "wxApplyStatusToTarget failed to stack effects.bleeding (count=" + addedBleeds.len() + ")";
+
+		// 4. Global sweep: execute onAnySkillUsed & onUpdate on EVERY active skill granted by ANY manual
+		// against real ::Const.CharacterProperties.getClone() so no invalid property index can ever exist!
+		local mockSkillsBox = {
+			function getSkillByID( _id ) { return null; },
+			function hasSkill( _id ) { return false; }
+		};
+		local mockActor = {
+			m = {},
+			function isAlive() { return true; },
+			function getInitiative() { return 110; },
+			function getHitpoints() { return 60; },
+			function getHitpointsMax() { return 100; },
+			function getFatigue() { return 20; },
+			function getFatigueMax() { return 100; },
+			function getActionPoints() { return 9; },
+			function getActionPointsMax() { return 9; },
+			function getSkills() { return mockSkillsBox; },
+			function getItems() { return { function getItemAtSlot( _s ) { return null; } }; },
+			function getCurrentProperties() { return ::Const.CharacterProperties.getClone(); },
+			function getFlags() { return { function has( _k ) { return false; } }; },
+			function isAlliedWith( _o ) { return false; },
+			function isArmedWithShield() { return false; },
+			function isPlacedOnMap() { return false; }
+		};
+		local mockTarget = {
+			m = {},
+			function isAlive() { return true; },
+			function getInitiative() { return 80; },
+			function getHitpoints() { return 50; },
+			function getHitpointsMax() { return 100; },
+			function getArmor( _bp ) { return 40; },
+			function getArmorMax( _bp ) { return 100; },
+			function getSkills() { return mockSkillsBox; },
+			function getItems() { return { function getItemAtSlot( _s ) { return null; } }; },
+			function getCurrentProperties() { return ::Const.CharacterProperties.getClone(); },
+			function getFlags() { return { function has( _k ) { return false; } }; },
+			function isArmedWithShield() { return true; }
+		};
+		local mockContainer = {
+			function getActor() { return mockActor; },
+			function getSkillByID( _id ) { return null; },
+			function hasSkill( _id ) { return false; }
+		};
+
+		local seenActives = {};
+		local auditedCount = 0;
+		foreach (mid, mdef in ::Wuxia.Config.Manuals)
+		{
+			if (mdef == null || !("Levels" in mdef) || mdef.Levels == null) continue;
+			foreach (lv in mdef.Levels)
+			{
+				if (!("GrantSkills" in lv) || lv.GrantSkills == null) continue;
+				foreach (sid in lv.GrantSkills)
+				{
+					if (sid.find("actives.wx_") != 0 || (sid in seenActives)) continue;
+					seenActives[sid] <- true;
+					local skPath = "scripts/skills/actives/" + sid.slice(8);
+					local skInst = ::new(skPath);
+					skInst.m.Container = mockContainer;
+					local p1 = ::Const.CharacterProperties.getClone();
+					if ("onAnySkillUsed" in skInst)
+						skInst.onAnySkillUsed(skInst, mockTarget, p1);
+					local p2 = ::Const.CharacterProperties.getClone();
+					if ("ActiveBuff" in skInst.m) skInst.m.ActiveBuff = true;
+					if ("Cooldown" in skInst.m && sid == "actives.wx_blood_burst") skInst.m.Cooldown = 3;
+					if ("onUpdate" in skInst)
+						skInst.onUpdate(p2);
+					auditedCount += 1;
+				}
+			}
+		}
+		if (auditedCount < 80)
+			throw "Expected >= 80 audited Wuxia active skills, got " + auditedCount;
+
+		::logInfo("[WX-SELFTEST] Verified all 7 Whip/Flail skills + global CharacterProperties audit across " + auditedCount + " active skills!");
+	});
+
+	check("Bug 1-9 修复与山海破招/十二招式玄机全链路回归校验", function() {
+		// 1. Bug 1: Decapitation keeps Wuxia head brush instead of European `bust_head_01`
+		local headSpr = {
+			Visible = true, HasBrush = true, BrushName = "wx_head_02",
+			function getBrush() { return { Name = this.BrushName }; },
+			function setBrush( _b ) { this.BrushName = _b; this.HasBrush = true; },
+			function resetBrush() { this.BrushName = ""; this.HasBrush = false; }
+		};
+		local bodySpr = {
+			Visible = true, HasBrush = true, BrushName = "wx_char_armor_shanwen",
+			function getBrush() { return { Name = this.BrushName }; },
+			function setBrush( _b ) { this.BrushName = _b; this.HasBrush = true; },
+			function resetBrush() { this.BrushName = ""; this.HasBrush = false; },
+			function isFlippedHorizontally() { return false; }
+		};
+		local mockApp = { HelmetCorpse = "bust_helmet_01_dead" };
+		local mockDecapActor = {
+			m = { WX_OrigBodyBrush = "bust_naked_body_01", WX_OrigHeadBrush = "bust_head_01" },
+			function hasSprite( _k ) { return _k == "head" || _k == "body"; },
+			function getSprite( _k ) { return _k == "head" ? headSpr : bodySpr; },
+			function getItems() { return { function getAppearance() { return mockApp; } }; }
+		};
+		local fakeSnap = {
+			isSingleBust = false, isFlipped = false,
+			bodyDead = "wx_char_armor_shanwen_dead", backDead = null,
+			hatBackDead = null, headDead = "wx_head_02_dead", scarDead = null,
+			beardDead = null, hairDead = null, hatFrontDead = "wx_hat_01_front_dead"
+		};
+		::Wuxia.Appearance.restoreVanillaBrushesForDeath(mockDecapActor, ::Const.FatalityType.Decapitated, fakeSnap);
+		if (headSpr.BrushName != "wx_head_02")
+			throw "Bug 1 regression: Decapitated head reverted to " + headSpr.BrushName;
+		if (mockApp.HelmetCorpse != "wx_hat_01_front_dead" && mockApp.HelmetCorpse != "")
+			throw "Bug 1 regression: HelmetCorpse left as vanilla " + mockApp.HelmetCorpse;
+
+		// 2. Bug 2: Kinetic ranged projectile brush resolver
+		local luori = ::new("scripts/skills/actives/wx_bow_luori");
+		local pBrush = ::Wuxia.KineticVFX.resolveKineticProjectileBrush(luori, ::Wuxia.KineticVFX.Profiles.wx_bow_luori);
+		if (pBrush == null || pBrush == "")
+			throw "Bug 2 regression: resolveKineticProjectileBrush returned empty";
+
+		// 3. Bug 7: Counter-stance balance & mutual exclusion
+		local swCounter = ::new("scripts/skills/actives/wx_sword_counter");
+		local dzSkill   = ::new("scripts/skills/actives/wx_neigong_douzhuan");
+		local cStance   = ::new("scripts/skills/effects/wx_status_counter_stance");
+		if (swCounter.m.ActionPointCost < 4 || swCounter.m.FatigueCost < 18)
+			throw "Bug 7 regression: wx_sword_counter cost too low";
+		if (dzSkill.m.ActionPointCost < 4)
+			throw "Bug 7 regression: wx_neigong_douzhuan AP cost too low";
+		if (cStance.m.QiCostPerCounter < 8 || cStance.resolveMaxCounters() != 1)
+			throw "Bug 7 regression: wx_status_counter_stance base cap/cost invalid";
+		cStance.setDouzhuanMode(true);
+		if (cStance.resolveMaxCounters() != 2)
+			throw "Bug 7 regression: Douzhuan mode should allow max 2 counters";
+
+		// 4. Issue 8: All 11 Wild ShanHai Beast Traits + 5 Boss Puzzle Archetypes & Cataclysm
+		foreach (fk in ["direwolf", "hyena", "spider", "ghoul", "unhold", "lindwurm", "schrat", "serpent", "alp", "hexe", "sand_golem"])
+		{
+			local wb = ::new("scripts/skills/special/wx_wild_beast_trait");
+			wb.initByFamily(fk);
+			if (wb.getDescription().find("【破招对策】") == null)
+				throw "Wild beast trait missing counterplay hint for " + fk;
+		}
+		local catSk = ::new("scripts/skills/actives/wx_boss_cataclysm");
+		if (catSk.getID() != "actives.wx_boss_cataclysm")
+			throw "wx_boss_cataclysm ID mismatch";
+
+		local seenPuzzles = {};
+		foreach (bk, _ in ::Wuxia.Config.ShanHaiBosses)
+		{
+			local shortBid = (bk.find("boss_") == 0) ? bk.slice(5) : bk;
+			local bt = ::new("scripts/skills/special/wx_shanhai_boss_trait");
+			bt.setBossID(shortBid);
+			seenPuzzles[bt.m.PuzzleType] <- true;
+			if (bt.getTooltip().len() < 2)
+				throw "Boss trait tooltip broken for " + shortBid;
+		}
+		if (seenPuzzles.len() < 5)
+			throw "Expected all 5 ShanHai Boss puzzle archetypes covered, got " + seenPuzzles.len();
+
+		// 5. Issue 9: Verify all mapped Martial Skill Mechanics resolve non-empty `[招式奇效]` tooltips
+		local mechCount = 0;
+		foreach (sid, tag in ::Wuxia.CombatRules.SkillMechanics)
+		{
+			local skObj = ::new("scripts/skills/actives/" + sid.slice(8));
+			local tipTxt = skObj.wxGetMechanicTooltipText();
+			if (tipTxt == "")
+				throw "SkillMechanics tag '" + tag + "' produced empty tooltip on " + sid;
+			mechCount += 1;
+		}
+		if (mechCount < 100)
+			throw "Expected >= 100 distinctive weapon skill mechanics mapped, got " + mechCount;
+
+		::logInfo("[WX-SELFTEST] Verified Bugs 1-7 + 11 Wild Beast Traits + 5 Boss Puzzles + " + mechCount + " Distinctive Skill Mechanics!");
+	});
+
+	check("百工丹坊城镇生成修复、大地图城镇/山门均衡与动态江湖强敌演进校验", function() {
+		// 1. Issue 3: Verify `WX_EnsureDisguisePavilion` places `building.taxidermist` (`百工丹坊`) into slot 4 (even on coastal towns where slot 3 is `port`) AND handles full-slot fallback!
+		local setProto = ::Hooks.BBClass["scripts/entity/world/settlement"].Prototype;
+		if (setProto == null || !("WX_EnsureDisguisePavilion" in setProto))
+			throw "settlement prototype missing WX_EnsureDisguisePavilion";
+
+		local makeMockBldg = function( _id )
+		{
+			return {
+				m = { ID = _id, Settlement = null },
+				function getID() { return this.m.ID; }
+			};
+		};
+		local makeMockTown = function( _size, _coastal, _mil, _bldgs )
+		{
+			return {
+				m = { IsCoastal = _coastal, Buildings = _bldgs },
+				function getSize() { return _size; },
+				function isMilitary() { return _mil; },
+				function addBuilding( _b, _slot )
+				{
+					_b.m.Settlement = this;
+					this.m.Buildings[_slot] = _b;
+				},
+				WX_EnsureDisguisePavilion = setProto.WX_EnsureDisguisePavilion
+			};
+		};
+
+		// Case A: Coastal Size-2 town where slots 0,1,2 are shops, slot 3 is `building.port`, slot 4 is `null`, slot 5 is `building.crowd`
+		// Previously `maxShopSlot = 3` skipped slot 4 completely!
+		local coastalTown = makeMockTown(2, true, false, [
+			makeMockBldg("building.marketplace"),
+			makeMockBldg("building.tavern"),
+			makeMockBldg("building.weaponsmith"),
+			makeMockBldg("building.port"),
+			null,
+			makeMockBldg("building.crowd")
+		]);
+		coastalTown.WX_EnsureDisguisePavilion();
+		if (coastalTown.m.Buildings[4] == null || coastalTown.m.Buildings[4].getID() != "building.taxidermist")
+			throw "Coastal Size-2 town failed to place 百工丹坊 into slot 4";
+		if (coastalTown.m.Buildings[3].getID() != "building.port" || coastalTown.m.Buildings[5].getID() != "building.crowd")
+			throw "Coastal town overwrote port (slot 3) or crowd (slot 5)!";
+
+		// Case B: Full-slot Size-3 civil city where all 5 shop slots 0..4 are filled (including `building.kennel`)
+		local fullCity = makeMockTown(3, false, false, [
+			makeMockBldg("building.marketplace"),
+			makeMockBldg("building.tavern"),
+			makeMockBldg("building.weaponsmith"),
+			makeMockBldg("building.armorsmith"),
+			makeMockBldg("building.kennel"),
+			makeMockBldg("building.crowd")
+		]);
+		fullCity.WX_EnsureDisguisePavilion();
+		if (fullCity.m.Buildings[4] == null || fullCity.m.Buildings[4].getID() != "building.taxidermist")
+			throw "Full-slot Size-3 city failed to swap kennel for 百工丹坊!";
+
+		// Case C: Size-1 village must NOT receive `百工丹坊`
+		local smallVillage = makeMockTown(1, false, false, [
+			makeMockBldg("building.marketplace"), null, null, null, null, makeMockBldg("building.crowd")
+		]);
+		smallVillage.WX_EnsureDisguisePavilion();
+		foreach (sb in smallVillage.m.Buildings)
+		{
+			if (sb != null && sb.getID() == "building.taxidermist")
+				throw "Size-1 village should not spawn 百工丹坊";
+		}
+
+		// 2. Issue 1: Verify `balanceWorldSettlementDistribution` & `ensureAllSettlementWorkshops` exist
+		if (!("balanceWorldSettlementDistribution" in ::Wuxia.WorldVisuals) || !("ensureAllSettlementWorkshops" in ::Wuxia.WorldVisuals))
+			throw "Missing WorldVisuals settlement distribution / workshop helpers";
+
+		// 3. Issue 2: Verify Dynamic Jianghu Threat Eras (`Era 0` vs `Era 3` vs `Era 4`) on Enemy Manuals & Monster Stats
+		::Wuxia.CombatRules.ForcedThreatEra = -1;
+		local t0 = ::Wuxia.CombatRules.getCampaignThreatProfile();
+		if (t0.era != 0)
+			throw "Default pre-campaign threat era expected 0, got " + t0.era;
+
+		local makeScaleHarness = function( _withWeapon )
+		{
+			local baseProps = ::Const.CharacterProperties.getClone();
+			baseProps.ActionPoints = 9;
+			baseProps.Hitpoints = 100;
+			baseProps.Stamina = 100;
+			baseProps.MeleeSkill = 65;
+			local curProps = baseProps.getClone();
+			local mainSword = _withWeapon ? ::new("scripts/items/weapons/arming_sword") : null;
+			local skContainer = ::new("scripts/skills/skill_container");
+			local act = {
+				m = {
+					Body = 2, Level = 6, Hitpoints = 100, ActionPoints = 9, Fatigue = 0,
+					BaseProperties = baseProps, CurrentProperties = curProps,
+					LevelActionPointCost = 1,
+					ActionPointCosts = [0, 2, 2, 2, 2, 2, 2, 2, 2],
+					FatigueCosts = [0, 4, 4, 4, 4, 4, 4, 4, 4]
+				},
+				ClassName = _withWeapon ? "bandit_leader" : "direwolf",
+				getID = function() { return 9981; },
+				getName = function() { return "历战试招敌"; },
+				getLevel = function() { return this.m.Level; },
+				isAlive = function() { return true; },
+				isDying = function() { return false; },
+				isPlayerControlled = function() { return false; },
+				isGuest = function() { return false; },
+				getFaction = function() { return 23; },
+				isAlliedWithPlayer = function() { return false; },
+				isAlliedWith = function( _other ) { return false; },
+				getSkills = function() { return skContainer; },
+				getAIAgent = function() { return null; },
+				getBaseProperties = function() { return this.m.BaseProperties; },
+				getCurrentProperties = function() { return this.m.CurrentProperties; },
+				setCurrentProperties = function( _p ) { this.m.CurrentProperties = _p; },
+				getHitpoints = function() { return this.m.Hitpoints; },
+				getHitpointsMax = function() { return this.m.CurrentProperties.Hitpoints; },
+				getHitpointsPct = function() { return 1.0; },
+				setHitpointsPct = function( _pct ) {},
+				setHitpoints = function( _v ) { this.m.Hitpoints = _v; },
+				getActionPoints = function() { return this.m.ActionPoints; },
+				getActionPointsMax = function() {
+					local c = skContainer.getSkillByID("special.wx_martial_container");
+					if (c == null) return this.m.CurrentProperties.ActionPoints;
+					return ::Math.min(11, this.m.CurrentProperties.ActionPoints + c.getPermanentAPBonus());
+				},
+				setActionPoints = function( _ap ) { this.m.ActionPoints = _ap; },
+				getFatigue = function() { return this.m.Fatigue; },
+				getFatigueMax = function() { return this.m.CurrentProperties.Stamina; },
+				setFatigue = function( _f ) { this.m.Fatigue = _f; },
+				getInitiative = function() { return 110; },
+				getBravery = function() { return 60; },
+				getArmor = function( _part ) { return 145; },
+				getArmorMax = function( _part ) { return 145; },
+				onSkillsUpdated = function() {},
+				updateOverlay = function() {},
+				setDirty = function( _d ) {},
+				onAppearanceChanged = function( _app, _dirty = true ) {},
+				isPlacedOnMap = function() { return false; },
+				hasSprite = function( _s ) { return false; },
+				getTile = function() { return null; },
+				getFlags = function() { return ::new("scripts/tools/tag_collection"); },
+				isArmedWithShield = function() { return false; },
+				getItems = function() {
+					return {
+						getItemAtSlot = function( _slot ) {
+							if (_slot == ::Const.ItemSlot.Mainhand) return mainSword;
+							return null;
+						},
+						hasBlockedSlot = function( _slot ) { return false; },
+						getStaminaModifier = function( _slots = null ) { return -15; }
+					};
+				}
+			};
+			skContainer.setActor(act);
+			return act;
+		};
+
+		try
+		{
+			// Era 0 baseline enemy (`bandit_thug`) keeps baseline slots
+			local thug0 = makeScaleHarness(true);
+			::Wuxia.Loot.applyLoadoutToEnemy(thug0, "bandit_thug");
+			local c0 = ::Wuxia.Slots.getContainer(thug0);
+			local slots0 = 0;
+			foreach (s in c0.m.Slots) if (s.ManualID != null && s.Tier > 0) slots0 += 1;
+
+			// Era 4 late-game enemy (`bandit_leader`) advances to Tier 3, unlocks extra slots (obeying <=2 Neigong, <=2 Qinggong, <=11 AP), and gains pill buff + veteran tempering!
+			::Wuxia.CombatRules.ForcedThreatEra = 4;
+			local leader4 = makeScaleHarness(true);
+			local baseLeaderHP = leader4.getHitpointsMax();
+			::Wuxia.Loot.applyLoadoutToEnemy(leader4, "bandit_leader");
+			::Wuxia.CombatRules.applyDynamicEnemyScaling(leader4);
+
+			local c4 = ::Wuxia.Slots.getContainer(leader4);
+			local slots4 = 0;
+			local ng4 = 0;
+			local qg4 = 0;
+			foreach (s4 in c4.m.Slots)
+			{
+				if (s4.ManualID != null && s4.Tier > 0)
+				{
+					slots4 += 1;
+					local d4 = ::Wuxia.Slots.getManualDef(s4.ManualID);
+					if (d4.Category == "neigong") ng4 += 1;
+					if (d4.Category == "qinggong") qg4 += 1;
+				}
+			}
+			if (slots4 <= slots0 || c4.m.Slots[0].Tier < 2)
+				throw "Era 4 bandit_leader failed to scale manual slots/tiers: slots=" + slots4;
+			if (ng4 > 2 || qg4 > 2 || leader4.getActionPointsMax() > 11)
+				throw "Era 4 enemy violated AGENTS.md slot/AP guardrails: ng=" + ng4 + ", qg=" + qg4 + ", AP=" + leader4.getActionPointsMax();
+			if (!leader4.getSkills().hasSkill("effects.wx_pill_battle_buff"))
+				throw "Era 4 boss expected pre-battle wx_pill_battle_buff";
+			if (leader4.getHitpointsMax() <= baseLeaderHP)
+				throw "Era 4 applyDynamicEnemyScaling failed to temper HP";
+
+			// Era 3 wild beast (`direwolf`) scales HP & MeleeSkill cleanly
+			::Wuxia.CombatRules.ForcedThreatEra = 3;
+			local wolf3 = makeScaleHarness(false);
+			local wolfBaseHP = wolf3.getHitpointsMax();
+			local wolfBaseMS = wolf3.m.BaseProperties.MeleeSkill;
+			::Wuxia.CombatRules.applyDynamicEnemyScaling(wolf3);
+			if (wolf3.getHitpointsMax() <= wolfBaseHP || wolf3.m.BaseProperties.MeleeSkill <= wolfBaseMS)
+				throw "Era 3 wild beast failed to scale HP/MeleeSkill";
+		}
+		catch (dynErr)
+		{
+			::Wuxia.CombatRules.ForcedThreatEra = -1;
+			throw dynErr;
+		}
+		::Wuxia.CombatRules.ForcedThreatEra = -1;
+
+		::logInfo("[WX-SELFTEST] Verified 百工丹坊 slot-4/coastal/fallback fix, World Settlement/Sanctum balancing & Era 0..4 Dynamic Enemy Scaling!");
+	});
+
+	check("名器器灵·山海破部铸造·腰包器械·文武控火丹鼎垂直切片验收", function() {
+		// 1. Verify CraftBridge global anti-inflation ceilings (`<= +25%` DirectDmg, `<= 60%` HP mitigation)
+		local capProps = ::Const.CharacterProperties.getClone();
+		capProps.DamageDirectAdd = 0.20;
+		local addedPen = ::Wuxia.CraftBridge.addCappedDirectDamage(capProps, 0.15);
+		if (::Math.abs(capProps.DamageDirectAdd - 0.25) > 0.001 || ::Math.abs(addedPen - 0.05) > 0.001)
+			throw "CraftBridge.addCappedDirectDamage failed <= 0.25 cap: got " + capProps.DamageDirectAdd;
+		capProps.DamageReceivedRegularMult = 0.50;
+		::Wuxia.CraftBridge.multCappedRegularDamageReceived(capProps, 0.50);
+		if (capProps.DamageReceivedRegularMult < 0.399)
+			throw "CraftBridge.multCappedRegularDamageReceived violated >= 0.40 floor: got " + capProps.DamageReceivedRegularMult;
+
+		// 2. Verify all 64 ShanHai Boss keys in `BossBonusLoot` map to valid `wx_pmat_*` Part-Break Essences
+		local bossCnt = 0;
+		foreach (bk, _bloot in ::Wuxia.Config.BossBonusLoot)
+		{
+			local pSpec = ::Wuxia.CraftBridge.resolveBossPartEssenceSpec(bk);
+			if (pSpec == null || !(pSpec.EssenceID in ::Wuxia.Config.BeastMaterials))
+				throw "Boss key '" + bk + "' failed to map to a valid wx_pmat_* essence";
+			local pItem = ::new("scripts/items/misc/" + pSpec.EssenceID);
+			if (pItem == null || pItem.getID() != ("misc." + pSpec.EssenceID))
+				throw "Failed to instantiate part-break essence item for " + pSpec.EssenceID;
+			bossCnt += 1;
+		}
+		if (bossCnt < 64)
+			throw "Expected >= 64 ShanHai Boss part-break mappings, got " + bossCnt;
+
+		// 3. Verify Historical Relic Weapons (`干将` + `莫邪` 雌雄双剑共鸣 & `承影` 暮色无影) + ShanHai `应龙剑` + Weapon Attachments
+		local ganjiang = ::new("scripts/items/weapons/named/wx_relic_ganjiang");
+		local moye     = ::new("scripts/items/weapons/named/wx_relic_moye");
+		local chengying = ::new("scripts/items/weapons/named/wx_relic_chengying");
+		local yinglong = ::new("scripts/items/weapons/named/wx_relic_yinglongjian");
+
+		if (ganjiang.m.WX_GearTraitID != "relic_ganjiang" || moye.m.WX_GearTraitID != "relic_moye"
+			|| chengying.m.WX_GearTraitID != "relic_chengying" || yinglong.m.WX_GearTraitID != "shanhai_yinglong")
+		{
+			throw "Relic/ShanHai weapon trait injection failed";
+		}
+
+		// Test Weapon Attachment inlaying + wrong-family rejection + swap refund
+		local mockStash = ::new("scripts/items/stash_container");
+		mockStash.setResizable(true);
+		mockStash.resize(20);
+		local badFit = ::Wuxia.Forge.applyWeaponAttachment(ganjiang, "wx_wmod_fist_cuff", mockStash);
+		if (badFit.Ok)
+			throw "wx_wmod_fist_cuff should reject Sword weapon ganjiang!";
+		local okFit = ::Wuxia.Forge.applyWeaponAttachment(ganjiang, "wx_wmod_sword_tassel", mockStash);
+		if (!okFit.Ok || ganjiang.m.WX_WeaponModID != "wx_wmod_sword_tassel")
+			throw "wx_wmod_sword_tassel failed to inlay onto ganjiang: " + okFit.Reason;
+
+		// Test Quench Catalyst + Stat-Lock Reforge math (`F1` lock + `flame` quench) via Forge system
+		local seedBefore = ::Wuxia.Forge.encodeVariantSeed(2, 18);
+		::Wuxia.Forge.applySeedToItem(moye, ::Wuxia.Forge.decodeVariantSeed(seedBefore), false);
+		local prevRegMin = moye.m.RegularDamage;
+		moye.m.WX_QuenchID <- "flame";
+		::Wuxia.Forge.saveExtendedMeta(moye);
+		if (moye.getTooltip().len() < 4)
+			throw "Reforged Moye tooltip generation failed";
+		if (moye.m.RegularDamage != prevRegMin)
+			throw "Seed application mutated locked baseline unexpectedly";
+
+		// Verify Ganjiang + Moye 4-tile squad resonance & Chengying shadow/smoke bonus via `wx_gear_spirit_trait`
+		local tileA = {
+			X = 5, Y = 5, Type = ::Const.Tactical.TerrainType.Swamp, Properties = { Effect = null },
+			IsOccupiedByActor = true,
+			getDistanceTo = function( _o ) { return 2; }
+		};
+		local tileB = {
+			X = 6, Y = 5, Type = ::Const.Tactical.TerrainType.Swamp, Properties = { Effect = { Type = "smoke" } },
+			IsOccupiedByActor = true,
+			getDistanceTo = function( _o ) { return 2; }
+		};
+		local makeGearBro = function( _id, _name, _wpn, _tile )
+		{
+			local bp = ::Const.CharacterProperties.getClone();
+			bp.Stamina = 100;
+			bp.Hitpoints = 100;
+			local cp = bp.getClone();
+			local skc = ::new("scripts/skills/skill_container");
+			local bro = null;
+			bro = {
+				m = { Fatigue = 30, Hitpoints = 100, BaseProperties = bp, CurrentProperties = cp },
+				getID = function() { return _id; },
+				getName = function() { return _name; },
+				isAlive = function() { return true; },
+				isPlacedOnMap = function() { return true; },
+				getTile = function() { return _tile; },
+				getFaction = function() { return ::Const.Faction.Player; },
+				isAlliedWith = function( _o ) { return _o != null && _o.getFaction() == ::Const.Faction.Player; },
+				getSkills = function() { return skc; },
+				isDying = function() { return false; },
+				isPlayerControlled = function() { return true; },
+				isAlliedWithPlayer = function() { return true; },
+				getBaseProperties = function() { return bp; },
+				getCurrentProperties = function() { return cp; },
+				setCurrentProperties = function( _p ) {},
+				setHitpointsPct = function( _p ) {},
+				getActionPoints = function() { return 9; },
+				getActionPointsMax = function() { return 9; },
+				setActionPoints = function( _v ) {},
+				updateOverlay = function() {},
+				onAppearanceChanged = function( _a, _d = true ) {},
+				hasSprite = function( _s ) { return false; },
+				getFatigue = function() { return this.m.Fatigue; },
+				getFatigueMax = function() { return cp.Stamina; },
+				setFatigue = function( _v ) { this.m.Fatigue = _v; },
+				getHitpoints = function() { return this.m.Hitpoints; },
+				getHitpointsMax = function() { return cp.Hitpoints; },
+				getHitpointsPct = function() { return 1.0; },
+				setHitpoints = function( _v ) { this.m.Hitpoints = _v; },
+				onSkillsUpdated = function() {},
+				setDirty = function( _d ) {},
+				getItems = function() {
+					return {
+						getItemAtSlot = function( _sl ) { return _sl == ::Const.ItemSlot.Mainhand ? _wpn : null; },
+						getActor = function() { return bro; },
+						getAllItemsAtSlot = function( _sl ) { return []; }
+					};
+				}
+			};
+			skc.setActor(bro);
+			local gt = ::new("scripts/skills/special/wx_gear_spirit_trait");
+			gt.setTrait(_wpn.m.WX_GearTraitID, _wpn.getName(), _wpn);
+			skc.add(gt);
+			return { Actor = bro, Trait = gt, Props = cp };
+		};
+		local gjBro = makeGearBro(701, "干将剑主", ganjiang, tileA);
+		local cyBro = makeGearBro(702, "承影刺客", chengying, tileB);
+		local ylBro = makeGearBro(703, "应龙剑客", yinglong, tileA);
+		local mockSlash = {
+			isAttack = function() { return true; },
+			isRanged = function() { return false; },
+			getID = function() { return "actives.wx_sword_pierce"; }
+		};
+		local cyP = ::Const.CharacterProperties.getClone();
+		cyBro.Trait.onAnySkillUsed(mockSlash, null, cyP);
+		if (cyP.MeleeSkill < 18)
+			throw "Chengying failed to grant +18 hit in smoke environment: got " + cyP.MeleeSkill;
+		local ylP = ::Const.CharacterProperties.getClone();
+		ylBro.Trait.onAnySkillUsed(mockSlash, null, ylP);
+		if (ylP.MeleeSkill < 6 || ylP.FatigueEffectMult > 0.86)
+			throw "Yinglong sword failed to grant swamp/wet +6 hit & -15% Qi cost";
+		local gjUp = ::Const.CharacterProperties.getClone();
+		gjBro.Trait.onUpdate(gjUp);
+		if (gjUp.MeleeSkill < 3)
+			throw "Inlaid wx_wmod_sword_tassel failed to grant +3 MeleeSkill via wx_gear_spirit_trait";
+
+		// 4. Verify Belt Tactical Gadgets + Tactical Powders HUD convergence & Boss Charge/Shell/Regen counterplay
+		local duanlong = ::new("scripts/items/misc/wx_gadget_duanlong");
+		local tiejili  = ::new("scripts/items/misc/wx_gadget_tiejili");
+		local xuanshuang = ::new("scripts/items/misc/wx_tact_xuanshuang");
+		local longhusan  = ::new("scripts/items/misc/wx_tact_longhusan");
+		local qinyuangao = ::new("scripts/items/misc/wx_tact_qinyuangao");
+		local danjiesan  = ::new("scripts/items/misc/wx_tact_danjiesan");
+		if (duanlong.m.MaxCharges < 1 || tiejili.m.MaxCharges < 1 || qinyuangao.m.MaxCharges < 1 || danjiesan.m.MaxCharges < 1)
+			throw "Belt gadget / tactical powder charges config mismatch";
+
+		local bagList = [duanlong, tiejili, xuanshuang, longhusan, qinyuangao];
+		local bagSkc = ::new("scripts/skills/skill_container");
+		local bagProps = ::Const.CharacterProperties.getClone();
+		bagProps.Stamina = 100;
+		bagProps.Hitpoints = 100;
+		local bagActor = {
+			m = { Fatigue = 45, Hitpoints = 80, CurrentProperties = bagProps, BaseProperties = bagProps },
+			getID = function() { return 710; },
+			getName = function() { return "奇门弟子"; },
+			isAlive = function() { return true; },
+			isPlacedOnMap = function() { return false; },
+			getFaction = function() { return ::Const.Faction.Player; },
+			isAlliedWith = function( _o ) { return false; },
+			getSkills = function() { return bagSkc; },
+			isDying = function() { return false; },
+			isPlayerControlled = function() { return true; },
+			isAlliedWithPlayer = function() { return true; },
+			getBaseProperties = function() { return bagProps; },
+			getCurrentProperties = function() { return bagProps; },
+			setCurrentProperties = function( _p ) {},
+			setHitpointsPct = function( _p ) {},
+			getActionPoints = function() { return 9; },
+			getActionPointsMax = function() { return 9; },
+			setActionPoints = function( _v ) {},
+			updateOverlay = function() {},
+			onAppearanceChanged = function( _a, _d = true ) {},
+			hasSprite = function( _s ) { return false; },
+			getFatigue = function() { return this.m.Fatigue; },
+			getFatigueMax = function() { return 100; },
+			setFatigue = function( _v ) { this.m.Fatigue = _v; },
+			getHitpoints = function() { return this.m.Hitpoints; },
+			getHitpointsMax = function() { return 100; },
+			getHitpointsPct = function() { return 0.8; },
+			setHitpoints = function( _v ) { this.m.Hitpoints = _v; },
+			onSkillsUpdated = function() {},
+			setDirty = function( _d ) {},
+			getItems = function() {
+				return {
+					getItemAtSlot = function( _sl ) { return _sl == ::Const.ItemSlot.Mainhand ? ganjiang : null; },
+					getActor = function() { return bagActor; },
+					getAllItemsAtSlot = function( _sl ) { return _sl == ::Const.ItemSlot.Bag ? bagList : []; }
+				};
+			}
+		};
+		bagSkc.setActor(bagActor);
+		::Wuxia.CraftBridge.syncBagTacticalSkills(bagActor);
+		local activeHudCnt = ::Wuxia.CraftBridge.countActiveHudSkills(bagActor);
+		if (activeHudCnt != 2 || !bagSkc.hasSkill("actives.wx_item_bag_gadget") || !bagSkc.hasSkill("actives.wx_item_tactical_powder"))
+			throw "5 bag gadgets/powders must converge into exactly 2 HUD skills, got " + activeHudCnt;
+
+		// Test `龙虎醒神破穴散` emergency CC cleanse + Qi restore + shared Dan-Toxin cap (2 safe, 3rd toxin, 4th blocked)
+		bagSkc.add(::new("scripts/skills/effects/wx_status_acupoint"));
+		local pSk = bagSkc.getSkillByID("actives.wx_item_tactical_powder");
+		local buffPre = ::new("scripts/skills/effects/wx_pill_battle_buff");
+		buffPre.addPillBuff("buff_qingxin");
+		buffPre.addPillBuff("buff_hugu");
+		bagSkc.add(buffPre);
+		bagList = [longhusan];
+		pSk.executeTacticalPowder(bagActor, null);
+		if (bagSkc.hasSkill("effects.wx_status_acupoint"))
+			throw "wx_tact_longhusan failed to cleanse wx_status_acupoint";
+		if (!buffPre.m.HasDanToxin)
+			throw "3rd oral dose (2 pre-battle pills + 1 mid-battle oral powder) must trigger HasDanToxin!";
+		local fourthChk = ::Wuxia.CraftBridge.tryConsumeBattleOralDose(bagActor, "wx_tact_longhusan");
+		if (fourthChk.Ok)
+			throw "4th oral dose must be blocked by Dan-Toxin ceiling!";
+
+		// Test `墨家断龙破障钉` breaking Boss charge & cracking Bastion shell + `断续封生印` clamping Boss turn-start HP regen
+		local bossSkc = ::new("scripts/skills/skill_container");
+		local bossProps = ::Const.CharacterProperties.getClone();
+		bossProps.Hitpoints = 500;
+		bossProps.Stamina = 200;
+		local mockBoss = {
+			m = { Hitpoints = 300, Fatigue = 20, BaseProperties = bossProps, CurrentProperties = bossProps },
+			ClassName = "wx_boss_xiangliu",
+			getID = function() { return 888; },
+			getName = function() { return "九首相柳"; },
+			isAlive = function() { return true; },
+			isDying = function() { return false; },
+			isPlacedOnMap = function() { return false; },
+			getTile = function() { return null; },
+			getFaction = function() { return 24; },
+			isAlliedWith = function( _o ) { return false; },
+			getSkills = function() { return bossSkc; },
+			isPlayerControlled = function() { return false; },
+			isAlliedWithPlayer = function() { return false; },
+			getBaseProperties = function() { return bossProps; },
+			getCurrentProperties = function() { return bossProps; },
+			setCurrentProperties = function( _p ) {},
+			setHitpointsPct = function( _p ) {},
+			getActionPoints = function() { return 9; },
+			getActionPointsMax = function() { return 9; },
+			setActionPoints = function( _v ) {},
+			updateOverlay = function() {},
+			onAppearanceChanged = function( _a, _d = true ) {},
+			hasSprite = function( _s ) { return false; },
+			getHitpoints = function() { return this.m.Hitpoints; },
+			getHitpointsMax = function() { return 500; },
+			getHitpointsPct = function() { return this.m.Hitpoints.tofloat() / 500.0; },
+			setHitpoints = function( _v ) { this.m.Hitpoints = _v; },
+			getFatigue = function() { return this.m.Fatigue; },
+			getFatigueMax = function() { return 200; },
+			setFatigue = function( _v ) { this.m.Fatigue = _v; },
+			getArmor = function( _p ) { return 200; },
+			getArmorMax = function( _p ) { return 200; },
+			getItems = function() { return null; },
+			onSkillsUpdated = function() {},
+			setDirty = function( _d ) {}
+		};
+		bossSkc.setActor(mockBoss);
+		local bTrait = ::new("scripts/skills/special/wx_shanhai_boss_trait");
+		bTrait.setBossID("xuangui"); // Bastion with ShellStacks + RegenHP
+		bTrait.m.ShellStacks = 3;
+		bTrait.m.IsCharging = true;
+		bTrait.m.BreakThreshold = 3;
+		bTrait.m.BreakProgress = 1;
+		bossSkc.add(bTrait);
+
+		local counterRes = ::Wuxia.CraftBridge.applyBossCounterHit(bagActor, mockBoss, {
+			BreakPts       = 2,
+			CorrodeShell   = 1,
+			SealRegenTurns = 2
+		});
+		if (!counterRes.BrokeCharge || bTrait.m.IsCharging || bTrait.m.ShellStacks != 2)
+			throw "wx_gadget_duanlong counter hit failed to break Boss charge or crack ShellStacks!";
+		if (!bossSkc.hasSkill("effects.wx_status_regen_seal"))
+			throw "SealRegenTurns failed to attach wx_status_regen_seal";
+
+		// Simulate Boss regenerating +40 HP on turn start, then `wx_status_regen_seal` (SkillOrder.Last) clamping it back to 300!
+		local sealEff = bossSkc.getSkillByID("effects.wx_status_regen_seal");
+		mockBoss.setHitpoints(340);
+		sealEff.onTurnStart();
+		if (mockBoss.getHitpoints() != 300)
+			throw "wx_status_regen_seal failed to clamp Boss turn-start HP regen back to 300: got " + mockBoss.getHitpoints();
+
+		// Test `玄霜净地辟秽散` purifying hazardous hex tiles
+		local mockHzTile = {
+			X = 3, Y = 3,
+			Properties = { Effect = { Type = "fire", Timeout = 3 } },
+			spawnDetail = function( _d ) {}
+		};
+		if (!::Wuxia.CraftBridge.isHazardousTileEffect(mockHzTile.Properties.Effect))
+			throw "Expected 'fire' tile effect to be recognized as purifiable hazard";
+		local purRes = ::Wuxia.CraftBridge.purifyHazardousTiles(mockHzTile, bagActor, 1);
+		if (purRes.ClearedTiles < 1 || mockHzTile.Properties.Effect != null)
+			throw "purifyHazardousTiles failed to clear fire tile effect";
+
+		// 5. Verify Bagua Cauldron 3-Stage Fire Control + Six-Meridian 生克 + Hidden `两仪逆命混元丹` + `烛阴昼夜轮转丹`
+		local synGen = ::Wuxia.Alchemy.evaluateSixMeridianSynergy(
+			{ Kind = "herb", Nature = "vital", Potency = 4 },
+			[{ Kind = "herb", Nature = "origin", Potency = 4 }, { Kind = "herb", Nature = "yang", Potency = 4 }],
+			"gentle",
+			0
+		);
+		if (synGen.GenCount < 2 || synGen.PotencyBonus < 2 || synGen.TribulationPct != 0)
+			throw "Six-meridian generating synergy (造化->生机->赤阳) failed: GenCount=" + synGen.GenCount;
+
+		local synClash = ::Wuxia.Alchemy.evaluateSixMeridianSynergy(
+			{ Kind = "herb", Nature = "yang", Potency = 3 },
+			[{ Kind = "herb", Nature = "yin", Potency = 3 }],
+			"fierce",
+			0
+		);
+		if (synClash.OvercomeCount < 1 || synClash.TribulationPct <= 0)
+			throw "Six-meridian overcoming clash under fierce fire expected >0 TribulationPct";
+
+		local synRev = ::Wuxia.Alchemy.evaluateSixMeridianSynergy(
+			{ Kind = "core", Nature = "origin", Potency = 5 },
+			[{ Kind = "herb", Nature = "yang", Potency = 3 }, { Kind = "herb", Nature = "yin", Potency = 3 }],
+			"fierce",
+			0
+		);
+		if (synRev.MutationPillID != "wx_pill_liangyi" || synRev.TribulationPct != 0)
+			throw "Core + Yang + Yin under fierce fire must activate wx_pill_liangyi with 0% tribulation!";
+
+		// Verify `f_zhuyin_lunzhuan` strictly requires `core:wx_core_zhuyin`
+		local fZhuyin = ::Wuxia.Alchemy.findFormula("f_zhuyin_lunzhuan");
+		if (fZhuyin == null)
+			throw "Missing formula f_zhuyin_lunzhuan";
+		local wrongCore = { Key = "core:wx_core_qiongqi", Kind = "core", IsRare = true, Nature = "yang", Potency = 5 };
+		local rightCore = { Key = "core:wx_core_zhuyin", Kind = "core", IsRare = true, Nature = "yang", Potency = 5 };
+		if (::Wuxia.Alchemy.doesJunMatchFormula(wrongCore, fZhuyin))
+			throw "f_zhuyin_lunzhuan must reject non-Zhuyin core!";
+		if (!::Wuxia.Alchemy.doesJunMatchFormula(rightCore, fZhuyin))
+			throw "f_zhuyin_lunzhuan must accept core:wx_core_zhuyin!";
+
+		// Verify ALL 59 Relic Weapons (37 Historical Famous Relics + 22 Shan-Hai Relics) instantiate & carry bespoke `WX_GearTraitID`
+		local relicTotal = 0;
+		foreach (rid, rcfg in ::Wuxia.Config.RelicWeapons)
+		{
+			local rInst = ::new(rcfg.Script);
+			if (rInst == null || !("WX_GearTraitID" in rInst.m) || rInst.m.WX_GearTraitID == null || rInst.m.WX_GearTraitID == "" || !(rInst.m.WX_GearTraitID in ::Wuxia.Config.GearTraits))
+				throw "Relic weapon '" + rid + "' missing valid WX_GearTraitID in GearTraits!";
+			relicTotal += 1;
+		}
+		if (relicTotal < 59)
+			throw "Expected >= 59 total Relic Weapons (37 Historical + 22 ShanHai), got " + relicTotal;
+
+		// Spot-check newly implemented Historical Relics (`鱼肠` <=25% capped pen, `宣花斧` 3-swing burst, `绿玉竹杖` miss Qi) & `帝江冠` PhaseShift >= 0.40 floor
+		local yuchang   = ::new("scripts/items/weapons/named/wx_relic_yuchang");
+		local xuanhuafu = ::new("scripts/items/weapons/named/wx_relic_xuanhuafu");
+		local lvzhuzhang = ::new("scripts/items/weapons/named/wx_relic_lvzhuzhang");
+		local ycBro = makeGearBro(704, "专诸刺客", yuchang, tileA);
+		local xhBro = makeGearBro(705, "混世魔王", xuanhuafu, tileA);
+		local lzBro = makeGearBro(706, "丐帮帮主", lvzhuzhang, tileA);
+
+		local ycProps = ::Const.CharacterProperties.getClone();
+		ycProps.DamageDirectAdd = 0.20;
+		ycBro.Trait.onAnySkillUsed(mockSlash, bagActor, ycProps); // `bagActor` had `acupoint` cleansed earlier; add `wx_status_opening` to test controlled bonus
+		bagSkc.add(::new("scripts/skills/effects/wx_status_opening"));
+		ycProps.DamageDirectAdd = 0.20;
+		ycBro.Trait.onAnySkillUsed(mockSlash, bagActor, ycProps);
+		if (ycProps.MeleeSkill < 10 || ::Math.abs(ycProps.DamageDirectAdd - 0.25) > 0.001)
+			throw "wx_relic_yuchang failed +10 hit or violated <=0.25 DirectDmg cap: DirectAdd=" + ycProps.DamageDirectAdd;
+
+		local xhProps = ::Const.CharacterProperties.getClone();
+		xhBro.Trait.onAnySkillUsed(mockSlash, bagActor, xhProps);
+		if (xhProps.MeleeSkill < 8 || xhProps.DamageArmorMult < 1.19)
+			throw "wx_relic_xuanhuafu failed 3-swing +8 hit / +20% ArmorDmg";
+
+		lzBro.Actor.setFatigue(30);
+		lzBro.Trait.onMissed(mockBoss, mockSlash);
+		if (lzBro.Actor.getFatigue() != 27)
+			throw "wx_relic_lvzhuzhang failed to restore 3 Qi on enemy melee miss";
+
+		local dijiangTrait = ::new("scripts/skills/special/wx_gear_spirit_trait");
+		dijiangTrait.setTraitID("shanhai_helm_dijiang");
+		local djProps = ::Const.CharacterProperties.getClone();
+		djProps.DamageReceivedRegularMult = 0.45;
+		dijiangTrait.onBeforeDamageReceived(mockBoss, mockSlash, { BodyPart = ::Const.BodyPart.Body, DamageRegular = 30 }, djProps);
+		if (djProps.DamageReceivedRegularMult < 0.399 || !dijiangTrait.m.PhaseUsedThisTurn)
+			throw "shanhai_helm_dijiang PhaseShiftPct failed or violated >=0.40 HP mitigation floor!";
+
+		// Verify ALL 13 Weapon Attachments (`wx_wmod_*`) + multi-family `wx_wmod_mech_spring`
+		if (::Wuxia.Config.WeaponAttachments.len() != 13)
+			throw "Expected 13 WeaponAttachments covering all 13 weapon families, got " + ::Wuxia.Config.WeaponAttachments.len();
+		foreach (wmid, _wmcfg in ::Wuxia.Config.WeaponAttachments)
+		{
+			local wmInst = ::new("scripts/items/misc/" + wmid);
+			if (wmInst == null || wmInst.getID() != ("misc." + wmid))
+				throw "Failed to instantiate weapon attachment: " + wmid;
+		}
+		local shenbinu = ::new("scripts/items/weapons/named/wx_relic_shenbinu");
+		local xunleichong = ::new("scripts/items/weapons/named/wx_relic_xunleichong");
+		local feidaonang = ::new("scripts/items/weapons/named/wx_relic_feidaonang");
+		if (!::Wuxia.Forge.applyWeaponAttachment(shenbinu, "wx_wmod_mech_spring", mockStash).Ok
+			|| !::Wuxia.Forge.applyWeaponAttachment(xunleichong, "wx_wmod_mech_spring", mockStash).Ok
+			|| !::Wuxia.Forge.applyWeaponAttachment(feidaonang, "wx_wmod_mech_spring", mockStash).Ok)
+		{
+			throw "wx_wmod_mech_spring must fit Crossbow, Firearm, and Throwing weapons!";
+		}
+
+		// Verify ALL 6 Belt Gadgets & ALL 9 Tactical Powders/Coatings + Child-Gu Death Contagion
+		if (::Wuxia.Config.BagGadgets.len() < 6 || ::Wuxia.Config.TacticalConsumables.len() < 9)
+			throw "Expected >=6 BagGadgets and >=9 TacticalConsumables";
+		foreach (gid2, _gcfg2 in ::Wuxia.Config.BagGadgets)
+		{
+			local gInst2 = ::new("scripts/items/misc/" + gid2);
+			if (gInst2 == null || gInst2.getID() != ("misc." + gid2))
+				throw "Failed to instantiate BagGadget: " + gid2;
+		}
+		foreach (tid2, _tcfg2 in ::Wuxia.Config.TacticalConsumables)
+		{
+			local tInst2 = ::new("scripts/items/misc/" + tid2);
+			if (tInst2 == null || tInst2.getID() != ("misc." + tid2))
+				throw "Failed to instantiate TacticalConsumable: " + tid2;
+		}
+
+		// Test `子母连环引蛊脂` (`wx_tact_zimuguzhi`) coating + `triggerChildGuContagion`
+		local guCoat = ::new("scripts/skills/effects/wx_status_blade_coating");
+		guCoat.applyCoating("wx_tact_zimuguzhi", 4, "子母连环引蛊脂");
+		bagSkc.add(guCoat);
+		guCoat.onTargetHit(mockSlash, mockBoss, ::Const.BodyPart.Body, 10, 10);
+		if (!("WX_GuHost" in mockBoss.m) || !mockBoss.m.WX_GuHost)
+			throw "wx_tact_zimuguzhi failed to mark target as WX_GuHost";
+
+		// Verify ALL 3 Hidden Reverse-Fate Mutations (`两仪 / 枯荣 / 神魔`) & ALL 5 Boss Neidan Signature Formulas (`烛阴 / 白泽 / 建木 / 饕餮 / 应龙`)
+		local synKurong = ::Wuxia.Alchemy.evaluateSixMeridianSynergy(
+			{ Kind = "core", Nature = "origin", Potency = 5 },
+			[{ Kind = "herb", Nature = "vital", Potency = 3 }, { Kind = "herb", Nature = "venom", Potency = 3 }],
+			"fierce",
+			0
+		);
+		local synShenmo = ::Wuxia.Alchemy.evaluateSixMeridianSynergy(
+			{ Kind = "core", Nature = "origin", Potency = 5 },
+			[{ Kind = "herb", Nature = "spirit", Potency = 3 }, { Kind = "herb", Nature = "venom", Potency = 3 }],
+			"fierce",
+			0
+		);
+		if (synKurong.MutationPillID != "wx_pill_kurong" || synShenmo.MutationPillID != "wx_pill_shenmo")
+			throw "Hidden reverse-fate mutations failed for kurong/shenmo: " + synKurong.MutationPillID + ", " + synShenmo.MutationPillID;
+
+		foreach (sigPair in [
+			["f_zhuyin_lunzhuan", "core:wx_core_zhuyin"],
+			["f_baize_kanpo", "core:wx_core_baize"],
+			["f_jianmu_fengchun", "core:wx_core_jumang"],
+			["f_taotie_tunyuan", "core:wx_core_taotie"],
+			["f_yinglong_xingyun", "core:wx_core_yinglong"],
+			["f_chiyou_baizhan", "core:wx_core_chiyou"],
+			["f_jinwu_chunyang", "core:wx_core_jinwu"],
+			["f_xiangliu_wangu", "core:wx_core_xiangliuwang"],
+			["f_xuangui_buhuai", "core:wx_core_xuangui"],
+			["f_dijiang_suodi", "core:wx_core_dijiang"],
+			["f_jiuwei_shehun", "core:wx_core_jiuwei"],
+			["f_xingtian_zhanhun", "core:wx_core_xingtian"]
+		])
+		{
+			local sigF = ::Wuxia.Alchemy.findFormula(sigPair[0]);
+			if (sigF == null) throw "Missing signature Neidan formula: " + sigPair[0];
+			local rightC = { Key = sigPair[1], Kind = "core", IsRare = true, Nature = sigF.JunNatures[0], Potency = 5 };
+			if (::Wuxia.Alchemy.doesJunMatchFormula(wrongCore, sigF) || !::Wuxia.Alchemy.doesJunMatchFormula(rightC, sigF))
+				throw "Signature Neidan formula CoreKey gate failed on " + sigPair[0];
+		}
+
+		// Verify 100% Full-Scale Coverage:
+		//   (a) All 37 Historical Relics have bespoke `RelicMode` / `*Mode` (including `xunleichong` 2-hit smoke + Qi!)
+		//   (b) All 40 Non-Weapon ShanHai Gear (`14` armors + `8` helmets + `6` shields + `12` `wx_acc_*` talismans) + `22` ShanHai Weapons = 62/62 have active GearTraits!
+		//   (c) All 16 Beast Craft items (`12` gear + `4` `wx_up_*`) instantiate & carry active mechanisms!
+		//   (d) All 64 Boss Neidan Cores (+32 Wild/Sovereign = 96/96 Cores) map to bespoke `CoreImprints` & 5-part pill serialization round-trips!
+		local histRelicCnt = 0;
+		foreach (ridH, rcfgH in ::Wuxia.Config.RelicWeapons)
+		{
+			local gtH = ::Wuxia.Config.GearTraits[rcfgH.TraitID];
+			if (gtH.Tier == "relic")
+			{
+				local hasBespoke = (("RelicMode" in gtH) && gtH.RelicMode != "")
+					|| ("ChengyingMode" in gtH) || ("GanjiangMode" in gtH) || ("MoyeMode" in gtH);
+				if (!hasBespoke)
+					throw "Historical relic '" + ridH + "' is missing bespoke RelicMode!";
+				histRelicCnt += 1;
+			}
+		}
+		if (histRelicCnt != 37)
+			throw "Expected 37 bespoke Historical Relics, got " + histRelicCnt;
+
+		// Test `五雷连珠铳` (`xunleichong`) 2-target blast smoke (+8 RDef & +4 Qi)
+		local xlBro = makeGearBro(707, "神机铳手", xunleichong, tileA);
+		local mockShot = { isAttack = function() { return true; }, isRanged = function() { return true; }, getID = function() { return "actives.fire_handgonne"; } };
+		xlBro.Actor.setFatigue(30);
+		local mockFoe2 = {
+			getID = function() { return 889; },
+			getName = function() { return "绿林悍匪"; },
+			isAlive = function() { return true; },
+			isPlacedOnMap = function() { return false; },
+			getFaction = function() { return 24; },
+			isAlliedWith = function( _o ) { return false; },
+			getSkills = function() { return null; },
+			getItems = function() { return null; }
+		};
+		xlBro.Trait.onTargetHit(mockShot, mockBoss, ::Const.BodyPart.Body, 15, 20);
+		xlBro.Trait.onTargetHit(mockShot, mockFoe2, ::Const.BodyPart.Body, 15, 20);
+		local xlProps = ::Const.CharacterProperties.getClone();
+		xlBro.Trait.onUpdate(xlProps);
+		if (!xlBro.Trait.m.XunleiSmokeActive || xlProps.RangedDefense < 8 || xlBro.Actor.getFatigue() != 26)
+			throw "wx_relic_xunleichong failed 2-target smoke (+8 RDef) & +4 Qi refund!";
+
+		// Verify all 40 non-weapon ShanHaiGear (including all 12 `wx_acc_*` talismans) carry valid `TraitID` -> total 62/62 ShanHai Gear!
+		local shGearCnt = 0;
+		local shAccCnt  = 0;
+		foreach (sgid, sgcfg in ::Wuxia.Config.ShanHaiGear)
+		{
+			if (!("TraitID" in sgcfg) || sgcfg.TraitID == null || !(sgcfg.TraitID in ::Wuxia.Config.GearTraits))
+				throw "ShanHaiGear '" + sgid + "' missing valid TraitID in GearTraits!";
+			shGearCnt += 1;
+			if (sgcfg.Kind == "accessory")
+			{
+				local accInst = ::new("scripts/items/accessory/" + sgid);
+				if (accInst == null || accInst.m.WX_GearTraitID != sgcfg.TraitID)
+					throw "ShanHai accessory '" + sgid + "' failed to bind WX_GearTraitID!";
+				shAccCnt += 1;
+			}
+		}
+		if (shGearCnt != 40 || shAccCnt != 12)
+			throw "Expected 40 non-weapon ShanHaiGear (with 12 accessories), got " + shGearCnt + " / " + shAccCnt;
+
+		// Verify all 64 Boss Neidan Cores & all 96 total ShanHaiCores resolve bespoke `CoreImprints`
+		local coreImpCnt = 0;
+		foreach (cidCheck, _ccfg in ::Wuxia.Config.ShanHaiCores)
+		{
+			if (!(cidCheck in ::Wuxia.Config.Alchemy.CoreImprints))
+				throw "ShanHaiCore '" + cidCheck + "' missing explicit bespoke entry in CoreImprints!";
+			local impPv = ::Wuxia.Alchemy.getCoreImprintPreview(cidCheck, "buff_hugu");
+			if (impPv == null || impPv.Title == "" || impPv.Desc == "")
+				throw "getCoreImprintPreview failed for " + cidCheck;
+			coreImpCnt += 1;
+		}
+		if (coreImpCnt < 96)
+			throw "Expected >=96 bespoke ShanHaiCore imprints (64 Boss + 32 Wild/Sovereign), got " + coreImpCnt;
+
+		// Test 5-part `wx_pill_item` CoreImprint variant (including empty `AuxNature` -> `"none"` safeguard!)
+		local impPill = ::new("scripts/items/misc/wx_pill_item");
+		impPill.initPillVariant("wx_pill_hugu", 2, 122, "", "wx_core_kui");
+		if (impPill.getCoreImprint() != "wx_core_kui" || impPill.getCoreImprintSpec() == null || impPill.getTooltip().len() < 4)
+			throw "wx_pill_item failed to initialize or render CoreImprint wx_core_kui!";
+
+		// Verify Dan-Wu resonance pills (`12` Boss signature + `3` Reverse-Fate + `10` upgraded baseline pills + `CoreImprintID`)
+		local lyBuff = ::new("scripts/skills/effects/wx_pill_battle_buff");
+		foreach (bkKind in [
+			"buff_liangyi", "buff_zhuyin", "buff_kurong", "buff_shenmo",
+			"buff_baize", "buff_jianmu", "buff_taotie", "buff_yinglong",
+			"buff_chiyou", "buff_jinwu", "buff_xiangliu", "buff_xuangui",
+			"buff_dijiang", "buff_jiuwei", "buff_xingtian",
+			"buff_qingxin", "buff_hugu", "buff_dingshen", "buff_zhuyu", "buff_duheng",
+			"buff_dixiu", "buff_bingxin", "buff_guiyuan", "buff_baishe", "buff_jinzun"
+		])
+		{
+			lyBuff.addPillBuff(bkKind);
+			if (!lyBuff.hasBuffKind(bkKind))
+				throw "wx_pill_battle_buff failed to register " + bkKind;
+		}
+		lyBuff.applyPillPotencyAndAux(125, "yang", false, true, "wx_core_feilian");
+		local lyProps = ::Const.CharacterProperties.getClone();
+		lyProps.DamageReceivedRegularMult = 0.44;
+		lyBuff.onUpdate(lyProps);
+		if (lyProps.DamageArmorMult <= 1.20 || lyProps.FatigueRecoveryRate < 3 || lyProps.MovementFatigueCostMult > 0.70 || lyProps.DamageReceivedRegularMult < 0.399)
+			throw "Full Dan-Wu pills + CoreImprint failed to apply resonance or violated >=0.40 HP mitigation floor!";
+
+		// Verify all 27 new crafting blueprints (13 wmod + 6 gadget + 8 tact) instantiate cleanly
+		foreach (bpScript in [
+			"scripts/crafting/blueprints/wx_bp_wmod_sword_tassel",
+			"scripts/crafting/blueprints/wx_bp_wmod_saber_guard",
+			"scripts/crafting/blueprints/wx_bp_wmod_cleaver_ring",
+			"scripts/crafting/blueprints/wx_bp_wmod_spear_tassel",
+			"scripts/crafting/blueprints/wx_bp_wmod_polearm_hook",
+			"scripts/crafting/blueprints/wx_bp_wmod_staff_ferrule",
+			"scripts/crafting/blueprints/wx_bp_wmod_fist_cuff",
+			"scripts/crafting/blueprints/wx_bp_wmod_hammer_stud",
+			"scripts/crafting/blueprints/wx_bp_wmod_axe_wedge",
+			"scripts/crafting/blueprints/wx_bp_wmod_flail_ring",
+			"scripts/crafting/blueprints/wx_bp_wmod_dagger_groove",
+			"scripts/crafting/blueprints/wx_bp_wmod_bow_string",
+			"scripts/crafting/blueprints/wx_bp_wmod_mech_spring",
+			"scripts/crafting/blueprints/wx_bp_gadget_duanlong",
+			"scripts/crafting/blueprints/wx_bp_gadget_tiejili",
+			"scripts/crafting/blueprints/wx_bp_gadget_zimuxia",
+			"scripts/crafting/blueprints/wx_bp_gadget_zhentianlei",
+			"scripts/crafting/blueprints/wx_bp_gadget_zhangqiweng",
+			"scripts/crafting/blueprints/wx_bp_gadget_modouwang",
+			"scripts/crafting/blueprints/wx_bp_tact_xuanshuang",
+			"scripts/crafting/blueprints/wx_bp_tact_longhusan",
+			"scripts/crafting/blueprints/wx_bp_tact_qingfenglu",
+			"scripts/crafting/blueprints/wx_bp_tact_pohuanxiang",
+			"scripts/crafting/blueprints/wx_bp_tact_qinyuangao",
+			"scripts/crafting/blueprints/wx_bp_tact_huaxuegao",
+			"scripts/crafting/blueprints/wx_bp_tact_chunyangyou",
+			"scripts/crafting/blueprints/wx_bp_tact_zimuguzhi"
+		])
+		{
+			local bpObj = ::new(bpScript);
+			if (bpObj == null || bpObj.getID() == "")
+				throw "Failed to instantiate blueprint: " + bpScript;
+		}
+
+		::logInfo("[WX-SELFTEST] Verified ALL 59 Relic Spirits, 64-Boss Part Essences, 13 Weapon Mods, 6 Belt Gadgets, 9 Tactical Powders/Coatings, 3 Reverse-Fate Mutations & 5 Boss Neidan Formulas!");
+	});
+
+	// ------------------------------------------------------------------------
+	// Step 1 Overhaul Verification: Multi-Tile Shan Hai Bosses (Zhuyin / Xiangliu / Nvchou),
+	// Dynamic Tile Alchemy (`::Wuxia.TileField`) & 3 Deep Wuxia Martial Streams (`::Wuxia.Streams`)
+	// ------------------------------------------------------------------------
+	check("山海三标杆大妖（烛九阴/相柳/女丑）与武侠三大深度流派全链路闭环校验", function()
+	{
+		::Wuxia.TileField.clearAll();
+		::Wuxia.ShanHaiMultiBody.clearAll();
+
+		local mkMockSkills = function()
+		{
+			local arr = [];
+			return {
+				List = arr,
+				function add( _s )
+				{
+					if ("setContainer" in _s) _s.setContainer(this);
+					else _s.m.Container = this;
+					arr.push(_s);
+				},
+				function getSkillByID( _id )
+				{
+					foreach (s in arr) if (s.getID() == _id) return s;
+					return null;
+				},
+				function hasSkill( _id )
+				{
+					return this.getSkillByID(_id) != null;
+				},
+				function removeByID( _id )
+				{
+					for (local i = arr.len() - 1; i >= 0; i = --i)
+					{
+						if (arr[i].getID() == _id) arr.remove(i);
+					}
+				},
+				function update() {},
+				ActorRef = null,
+				function getActor() { return this.ActorRef; }
+			};
+		};
+
+		local mkMockUnit = function( _id, _faction, _hp, _bodyArm, _tile = null, _mainWpn = null, _offWpn = null )
+		{
+			local skBox = mkMockSkills();
+			local bp = ::Const.CharacterProperties.getClone();
+			bp.Hitpoints = _hp;
+			bp.Stamina = 100;
+			bp.DamageRegularMin = 40;
+			bp.DamageRegularMax = 60;
+			local unit = {
+				ID = _id,
+				Faction = _faction,
+				HP = _hp,
+				MaxHP = _hp,
+				Fat = 30,
+				MaxFat = 100,
+				Tile = _tile,
+				m = { IsMiniboss = false, Hitpoints = _hp, BaseProperties = bp, CurrentProperties = bp.getClone() },
+				BodyItem = _bodyArm > 0 ? {
+					Arm = _bodyArm,
+					function getArmor() { return this.Arm; },
+					function setArmor( _v ) { this.Arm = _v; },
+					function getStaminaModifier() { return -12; }
+				} : null,
+				MainItem = _mainWpn,
+				OffItem = _offWpn,
+				function getID() { return this.ID; },
+				function getName() { return "Unit#" + this.ID; },
+				function setName( _n ) {},
+				function isAlive() { return this.HP > 0; },
+				function isPlayerControlled() { return this.Faction == 1; },
+				function getFaction() { return this.Faction; },
+				function isAlliedWith( _o ) { return _o != null && _o.getFaction() == this.Faction; },
+				function getHitpoints() { return this.HP; },
+				function getHitpointsMax() { return this.MaxHP; },
+				function setHitpoints( _v ) { this.HP = _v; this.m.Hitpoints = _v; },
+				function getFatigue() { return this.Fat; },
+				function getFatigueMax() { return this.MaxFat; },
+				function setFatigue( _f ) { this.Fat = _f; },
+				function getSkills() { return skBox; },
+				function getCurrentProperties() { return this.m.CurrentProperties; },
+				function isPlacedOnMap() { return this.Tile != null; },
+				function getTile() { return this.Tile; },
+				function hasSprite( _s ) { return false; },
+				function checkMorale( _c, _d, _t = 0 ) { return false; },
+				function getFlags() { return { function has( _k ) { return false; }, function set( _k, _v ) {} }; },
+				function getItems()
+				{
+					local self = this;
+					return {
+						function getItemAtSlot( _sl )
+						{
+							if (_sl == ::Const.ItemSlot.Body) return self.BodyItem;
+							if (_sl == ::Const.ItemSlot.Mainhand) return self.MainItem;
+							if (_sl == ::Const.ItemSlot.Offhand) return self.OffItem;
+							return null;
+						},
+						function hasBlockedSlot( _sl ) { return false; }
+					};
+				}
+			};
+			skBox.ActorRef = unit;
+			if (_tile != null)
+			{
+				_tile.IsOccupiedByActor = true;
+				_tile.Occupant = unit;
+			}
+			return unit;
+		};
+
+		local mkHexLine = function( _len )
+		{
+			local tiles = [];
+			for (local i = 0; i < _len; i = ++i)
+			{
+				tiles.push({
+					ID = 500 + i,
+					Idx = i,
+					Level = 0,
+					IsEmpty = true,
+					IsVisibleForPlayer = false,
+					IsOccupiedByActor = false,
+					Occupant = null,
+					NextMap = {},
+					function getEntity() { return this.Occupant; },
+					function hasNextTile( _d ) { return _d in this.NextMap; },
+					function getNextTile( _d ) { return (_d in this.NextMap) ? this.NextMap[_d] : null; },
+					function getDirectionTo( _other )
+					{
+						if (_other == null) return -1;
+						return (_other.Idx >= this.Idx) ? 0 : 3;
+					},
+					function getDistanceTo( _other )
+					{
+						if (_other == null) return 99;
+						return ::Math.abs(this.Idx - _other.Idx);
+					}
+				});
+			}
+			for (local j = 0; j < _len; j = ++j)
+			{
+				if (j + 1 < _len) tiles[j].NextMap[0] <- tiles[j + 1];
+				if (j - 1 >= 0)   tiles[j].NextMap[3] <- tiles[j - 1];
+			}
+			return tiles;
+		};
+
+		// 1. TileField Elemental Alchemy: Frost + Boss Scorch -> Steam Explosion!
+		local line = mkHexLine(5);
+		local victim = mkMockUnit(1001, 1, 100, 120, line[2]);
+		local bossDummy = mkMockUnit(2001, 2, 400, 200, line[0]);
+		::Wuxia.TileField.setField(line[2], "abyss_frost", 3, bossDummy);
+		local steamRes = ::Wuxia.TileField.setField(line[2], "drought_scorch", 3, bossDummy);
+		if (steamRes.outcome != "steam_burst" || victim.getHitpoints() >= 100 || !victim.getSkills().hasSkill("effects.wx_status_offbalance"))
+			throw "TileField Frost + Scorch failed to trigger steam_burst shockwave!";
+		if (::Wuxia.TileField.hasField(line[2]))
+			throw "steam_burst failed to consume colliding field!";
+
+		// Bitter Mire + Fire -> Cauterized; Mirage Mist -> Dispelled by Sonic!
+		::Wuxia.TileField.setField(line[1], "bitter_mire", 4, bossDummy);
+		local cautRes = ::Wuxia.TileField.setField(line[1], "drought_scorch", 2, victim);
+		if (cautRes.outcome != "cauterized" || ::Wuxia.TileField.hasField(line[1], "bitter_mire"))
+			throw "Fire failed to cauterize bitter_mire!";
+		::Wuxia.TileField.setField(line[3], "mirage_mist", 3, bossDummy);
+		if (::Wuxia.TileField.dispelFieldsInRadius(line[2], 3, ["mirage_mist"]) != 1)
+			throw "dispelFieldsInRadius failed to clear mirage_mist!";
+
+		// 2. Verify all 3 Flagship Shan Hai Bosses mount ONLY bespoke traits & bespoke skills (0 generic cataclysm!)
+		foreach (bKey in ["boss_zhuyin", "boss_xiangliuwang", "boss_nvchou"])
+		{
+			local bUnit = mkMockUnit(3000, 2, 300, 200);
+			::Wuxia.ShanHai.initBossEntity(bUnit, bKey);
+			local bsk = bUnit.getSkills();
+			if (bsk.hasSkill("special.wx_shanhai_boss_trait") || bsk.hasSkill("actives.wx_boss_cataclysm"))
+				throw bKey + " still mounted legacy generic boss trait or wx_boss_cataclysm!";
+			local spec = ::Wuxia.ShanHai.BespokeBossSpecs[bKey];
+			if (!bsk.hasSkill(spec.TraitID))
+				throw bKey + " missing bespoke trait " + spec.TraitID;
+			foreach (sPath in spec.Skills)
+			{
+				local tmpS = ::new(sPath);
+				if (!bsk.hasSkill(tmpS.getID()))
+					throw bKey + " missing bespoke active skill " + tmpS.getID();
+				local probeP = ::Const.CharacterProperties.getClone();
+				if ("onAnySkillUsed" in tmpS) tmpS.onAnySkillUsed(tmpS, victim, probeP);
+			}
+		}
+
+		// 2a. Zhuyin: Segment armor break locks `千里盘山绞` & Night Inhale break cancels `息为风`!
+		local zhuyin = mkMockUnit(3101, 2, 500, 260, line[0]);
+		::Wuxia.ShanHai.initBossEntity(zhuyin, "boss_zhuyin");
+		local zyTrait = zhuyin.getSkills().getSkillByID("special.wx_boss_trait_zhuyin");
+		::Wuxia.ShanHaiMultiBody.getOrCreateRecord(zhuyin, "segments");
+		::Wuxia.ShanHaiMultiBody.onSegmentArmorBroken(zhuyin, "body_seg", "烛九阴·赤鳞龙躯");
+		if (!zyTrait.m.BodyBroken || ::Wuxia.ShanHaiMultiBody.isSkillLocked(zhuyin, "actives.wx_boss_zhuyin_coil_crush") != true)
+			throw "Breaking Zhuyin body_seg failed to lock wx_boss_zhuyin_coil_crush!";
+		zyTrait.m.IsDayPhase = false;
+		zyTrait.m.IsInhalingWind = true;
+		zyTrait.m.WindCharged = true;
+		local duguSk = ::new("scripts/skills/actives/wx_sword_dugu");
+		zyTrait.onBeforeDamageReceived(victim, duguSk, { DamageRegular = 20, DamageArmor = 10 }, ::Const.CharacterProperties.getClone());
+		zyTrait.onBeforeDamageReceived(victim, duguSk, { DamageRegular = 20, DamageArmor = 10 }, ::Const.CharacterProperties.getClone());
+		if (zyTrait.m.IsInhalingWind || zyTrait.m.WindCharged || !zhuyin.getSkills().hasSkill("effects.wx_status_offbalance"))
+			throw "Zhuyin Night Wind Inhale break failed to cancel wind charge!";
+
+		// 2b. Xiangliu: Severing heads locks exact corresponding skills & Fire cauterization blocks regrowth!
+		local xiangliu = mkMockUnit(3102, 2, 600, 240, line[0]);
+		::Wuxia.ShanHai.initBossEntity(xiangliu, "boss_xiangliuwang");
+		local mockVenomHead = {
+			m = { WX_Master = xiangliu, WX_PartKey = "venom", WX_LockedSkillID = "actives.wx_boss_xiangliu_poison_deluge" },
+			function getName() { return "相柳·苦毒瘴首"; },
+			function isAlive() { return false; }
+		};
+		local mockCrusherHead = {
+			m = { WX_Master = xiangliu, WX_PartKey = "crusher", WX_LockedSkillID = "actives.wx_boss_xiangliu_mire_ram" },
+			function getName() { return "相柳·噬山铁首"; },
+			function isAlive() { return false; }
+		};
+		::Wuxia.ShanHaiMultiBody.registerMockAppendage(xiangliu, "venom", "actives.wx_boss_xiangliu_poison_deluge", mockVenomHead);
+		::Wuxia.ShanHaiMultiBody.registerMockAppendage(xiangliu, "crusher", "actives.wx_boss_xiangliu_mire_ram", mockCrusherHead);
+
+		local normSword = ::new("scripts/skills/actives/wx_sword_combo");
+		::Wuxia.ShanHaiMultiBody.onAppendageSevered(mockVenomHead, victim, normSword, line[3]);
+		if (!::Wuxia.ShanHaiMultiBody.isSkillLocked(xiangliu, "actives.wx_boss_xiangliu_poison_deluge"))
+			throw "Severing Xiangliu venom head failed to lock wx_boss_xiangliu_poison_deluge!";
+		if (!::Wuxia.TileField.hasField(line[3], "bitter_mire"))
+			throw "Uncauterized Xiangliu severed head failed to spill bitter_mire!";
+
+		local fireSaber = ::new("scripts/skills/actives/wx_saber_ranmu");
+		::Wuxia.ShanHaiMultiBody.onAppendageSevered(mockCrusherHead, victim, fireSaber, line[4]);
+		if (::Wuxia.ShanHaiMultiBody.tryRegrowAppendage(xiangliu, { Key = "crusher", LockedSkillID = "actives.wx_boss_xiangliu_mire_ram" }))
+			throw "Cauterized Xiangliu head illegally regrew!";
+		if (!::Wuxia.ShanHaiMultiBody.tryRegrowAppendage(xiangliu, { Key = "venom", LockedSkillID = "actives.wx_boss_xiangliu_poison_deluge" }))
+			throw "Uncauterized Xiangliu head should be able to regrow while regen head lives!";
+
+		// 2c. Nvchou: Shooting down a sun totem weakens solar shield & interrupts `十日同炙咒`!
+		local nvchou = mkMockUnit(3103, 2, 420, 140, line[0]);
+		::Wuxia.ShanHai.initBossEntity(nvchou, "boss_nvchou");
+		local ncTrait = nvchou.getSkills().getSkillByID("special.wx_boss_trait_nvchou");
+		local pBeforeSun = ::Const.CharacterProperties.getClone();
+		ncTrait.onUpdate(pBeforeSun);
+		ncTrait.m.IsChargingApocalypse = true;
+		local mockSun = { m = { WX_Master = nvchou, WX_PartKey = "sun_1" } };
+		::Wuxia.ShanHaiMultiBody.onTotemDestroyed(mockSun, victim, ::new("scripts/skills/actives/wx_bow_luori"), line[4]);
+		local pAfterSun = ::Const.CharacterProperties.getClone();
+		ncTrait.onUpdate(pAfterSun);
+		if (ncTrait.m.IsChargingApocalypse || pAfterSun.DamageReceivedRegularMult <= pBeforeSun.DamageReceivedRegularMult)
+			throw "Shooting down Nvchou sun totem failed to weaken solar barrier or interrupt apocalypse!";
+
+		// 3. Wuxia Martial Stream 1: Sword Same-Slot 3-Stage Progression, `气剑` Recall & Dugu 6-Class Inspection
+		local swordHero = mkMockUnit(4001, 1, 100, 150, line[0], ::new("scripts/items/weapons/arming_sword"));
+		local swCombo = ::new("scripts/skills/actives/wx_sword_combo");
+		swordHero.getSkills().add(swCombo);
+		if (swCombo.getActionPointCost() != 3 || swCombo.getName().find("一式") == null)
+			throw "wx_sword_combo Stage 0 expected 3 AP 一式!";
+		::Wuxia.Streams.advanceComboStage(swordHero, swCombo.getID(), 3, false);
+		if (swCombo.getActionPointCost() != 4 || swCombo.getName().find("二式") == null)
+			throw "wx_sword_combo Stage 1 expected 4 AP 二式!";
+		::Wuxia.Streams.advanceComboStage(swordHero, swCombo.getID(), 3, false);
+		if (swCombo.getName().find("三式") == null)
+			throw "wx_sword_combo Stage 2 expected 三式!";
+
+		local recallFoe = mkMockUnit(4002, 2, 120, 100, line[3]);
+		swordHero.setFatigue(50);
+		::Wuxia.TileField.setField(line[1], "sword_node", 3, swordHero);
+		::Wuxia.TileField.setField(line[2], "sword_node", 3, swordHero);
+		::Wuxia.TileField.setField(line[4], "sword_node", 3, swordHero);
+		local recOut = ::Wuxia.Streams.recallSwordNodes(swordHero, line[3]);
+		if (recOut.recalled != 3 || recallFoe.getHitpoints() >= 120 || swordHero.getFatigue() != 38)
+			throw "recallSwordNodes failed to converge 3 swords, damage foe, and restore 12 Qi!";
+
+		local shieldFoe = mkMockUnit(4010, 2, 100, 100, null, ::new("scripts/items/weapons/arming_sword"), ::new("scripts/items/shields/wooden_shield"));
+		local spearFoe  = mkMockUnit(4011, 2, 100, 100, null, ::new("scripts/items/weapons/boar_spear"));
+		local bowFoe    = mkMockUnit(4012, 2, 100, 100, null, ::new("scripts/items/weapons/hunting_bow"));
+		local whipFoe   = mkMockUnit(4013, 2, 100, 100, null, ::new("scripts/items/weapons/flail"));
+		local bladeFoe  = mkMockUnit(4014, 2, 100, 100, null, ::new("scripts/items/weapons/scimitar"));
+		local beastFoe  = mkMockUnit(4015, 2, 200, 100, null, null, null);
+		if (::Wuxia.Streams.inspectDuguTarget(shieldFoe).FormKey != "shield"
+			|| ::Wuxia.Streams.inspectDuguTarget(spearFoe).FormKey != "polearm"
+			|| ::Wuxia.Streams.inspectDuguTarget(bowFoe).FormKey != "ranged"
+			|| ::Wuxia.Streams.inspectDuguTarget(whipFoe).FormKey != "whip_fist"
+			|| ::Wuxia.Streams.inspectDuguTarget(bladeFoe).FormKey != "blade"
+			|| ::Wuxia.Streams.inspectDuguTarget(beastFoe).FormKey != "qi_beast")
+			throw "Dugu 6-category weapon inspector misclassified one of the 6 target archetypes!";
+		local cappedP = ::Const.CharacterProperties.getClone();
+		cappedP.DamageDirectAdd = 0.22;
+		duguSk.onAnySkillUsed(duguSk, beastFoe, cappedP);
+		if (cappedP.DamageDirectAdd > 0.2501)
+			throw "Dugu qi_beast violated AGENTS.md +25% extra armor pen hard ceiling: " + cappedP.DamageDirectAdd;
+
+		// 4. Wuxia Martial Stream 2: Taiji / Douzhuan True Adjacent-Enemy Melee Deflection!
+		local hex3 = mkHexLine(4);
+		local taijiMaster = mkMockUnit(4101, 1, 100, 120, hex3[0]);
+		local attackerA   = mkMockUnit(4102, 2, 100, 120, hex3[1]);
+		local bystanderB  = mkMockUnit(4103, 2, 100, 120, hex3[2]);
+		local defl = ::Wuxia.Streams.tryDeflectMeleeAttack(taijiMaster, attackerA, true);
+		if (defl.mode != "redirect_enemy" || defl.redirectedTo != bystanderB || bystanderB.getHitpoints() >= 100 || attackerA.getHitpoints() != 100)
+			throw "Taiji/Douzhuan deflection failed to redirect attackerA's blow onto adjacent bystanderB!";
+
+		// 5. Wuxia Martial Stream 3: Shaolin `隔山打牛` Through-Tank Shockwave, `寸劲伏脉` 3-Stack Organ Burst & `亢龙三叠浪`!
+		local hexPalm = mkHexLine(4);
+		local monk     = mkMockUnit(4201, 1, 110, 140, hexPalm[0]);
+		local frontShd = mkMockUnit(4202, 2, 150, 220, hexPalm[1]);
+		local rearMage = mkMockUnit(4203, 2, 90,  40,  hexPalm[2]);
+		local geshan = ::Wuxia.Streams.transmitThroughForce(monk, frontShd, hexPalm[1]);
+		if (geshan.rearHits != 1 || rearMage.getHitpoints() >= 90 || frontShd.getHitpoints() != 150)
+			throw "Shaolin 隔山打牛 failed to bypass front tank and blast rear target!";
+
+		local hpPreBurst = frontShd.getHitpoints();
+		::Wuxia.Streams.applyHiddenForce(frontShd, 1, monk);
+		::Wuxia.Streams.applyHiddenForce(frontShd, 1, monk);
+		if (!frontShd.getSkills().hasSkill("effects.wx_status_hidden_force"))
+			throw "wx_status_hidden_force missing at 2 stacks!";
+		local detDmg = ::Wuxia.Streams.applyHiddenForce(frontShd, 1, monk);
+		if (detDmg != 28 || frontShd.getHitpoints() != hpPreBurst - 28
+			|| frontShd.getSkills().hasSkill("effects.wx_status_hidden_force")
+			|| !frontShd.getSkills().hasSkill("effects.wx_internal_injury"))
+			throw "wx_status_hidden_force 3-stack organ rupture detonation failed!";
+
+		local xianglongSk = ::new("scripts/skills/actives/wx_fist_xianglong");
+		monk.getSkills().add(xianglongSk);
+		local monkSt = ::Wuxia.Streams.getOrCreateState(monk);
+		monkSt.addDragonWave(2, 2);
+		if (xianglongSk.getName() != "亢龙有悔·三叠浪")
+			throw "wx_fist_xianglong failed to upgrade in-slot to 亢龙有悔·三叠浪 at 2 DragonWaves!";
+
+		::Wuxia.TileField.clearAll();
+		::Wuxia.ShanHaiMultiBody.clearAll();
+		::logInfo("[WX-SELFTEST] Verified 3 Flagship Shan Hai Bosses (Zhuyin/Xiangliu/Nvchou) + TileField Alchemy + 3 Deep Martial Streams!");
+	});
+
+	check("Stage 25: v0.8.16 Tactical AI, Wuxia SFX, Meridian Traits, Presets, Settings, Caches & Events", function() {
+		// 1. Tactical AI Combo & Immunity Target Evaluator
+		local aiAttacker = {
+			function isPlacedOnMap() { return false; },
+			function getTile() { return null; }
+		};
+		local undeadTarget = {
+			function isPlacedOnMap() { return false; },
+			function getFlags() { return { function has( _k ) { return _k == "undead"; } }; },
+			function getSkills() { return { function hasSkill( _id ) { return false; } }; },
+			function getCurrentProperties() { return { IsImmuneToPoison = true, IsAffectedByInjuries = false }; },
+			function isArmedWithShield() { return false; },
+			function getArmor( _p ) { return 120; }
+		};
+		local openingTarget = {
+			function isPlacedOnMap() { return false; },
+			function getFlags() { return { function has( _k ) { return false; } }; },
+			function getSkills() { return { function hasSkill( _id ) { return _id == "effects.wx_status_opening"; } }; },
+			function getCurrentProperties() { return ::Const.CharacterProperties.getClone(); },
+			function isArmedWithShield() { return false; },
+			function getArmor( _p ) { return 80; }
+		};
+		local acupointSk = ::new("scripts/skills/actives/wx_fist_acupoint");
+		local qinggangSk = ::new("scripts/skills/actives/wx_sword_qinggang");
+		local acuVsUndead = ::Wuxia.CombatRules.evaluateAISkillTargetMult(aiAttacker, undeadTarget, acupointSk);
+		local detVsOpening = ::Wuxia.CombatRules.evaluateAISkillTargetMult(aiAttacker, openingTarget, qinggangSk);
+		if (acuVsUndead >= 0.70)
+			throw "Expected AI acupoint vs undead penalty < 0.70, got " + acuVsUndead;
+		if (detVsOpening <= 1.20)
+			throw "Expected AI detonate_opening vs Opening bonus > 1.20, got " + detVsOpening;
+
+		// 2. Wuxia Combat & Ritual SFX Bank + Toggle
+		local xianglong = ::new("scripts/skills/actives/wx_fist_xianglong");
+		local sBank = ::Wuxia.VFX.resolveMoveSoundBank(xianglong);
+		if (sBank == null || sBank.use.len() == 0 || sBank.use[0].find("wx_palm_dragon") == null)
+			throw "wx_fist_xianglong SFX bank mismatch";
+		local swCombo = ::new("scripts/skills/actives/wx_sword_combo");
+		::Wuxia.VFX.Config.EnableWuxiaSfx = true;
+		swCombo.wxSyncAuthenticSounds();
+		if (swCombo.m.SoundOnUse.len() == 0 || swCombo.m.SoundOnUse[0].find("sounds/wx_combat/wx_sword_qi") == null)
+			throw "wx_sword_combo failed to bind Wuxia sword Qi SFX";
+		::Wuxia.VFX.Config.EnableWuxiaSfx = false;
+		swCombo.wxSyncAuthenticSounds();
+		if (swCombo.m.SoundOnUse.len() > 0 && swCombo.m.SoundOnUse[0].find("sounds/wx_combat/") != null)
+			throw "wx_sword_combo failed to restore vanilla sounds when EnableWuxiaSfx=false";
+		::Wuxia.VFX.Config.EnableWuxiaSfx = true;
+
+		// 3. Vanilla Trait Remap (58) + 10 Congenital Meridian Traits & Gameplay Synergies
+		local brave = ::new("scripts/skills/traits/brave_trait");
+		if (brave.getName() != "侠肝义胆")
+			throw "Vanilla brave_trait Wuxia remap failed: " + brave.getName();
+
+		local meridianScripts = [
+			"wx_trait_qijing", "wx_trait_wuxing", "wx_trait_jiangu", "wx_trait_daochi", "wx_trait_quanyi",
+			"wx_trait_baidu", "wx_trait_qingling", "wx_trait_tonggu", "wx_trait_shenmu", "wx_trait_zaolie"
+		];
+		foreach (ms in meridianScripts)
+		{
+			local tr = ::new("scripts/skills/traits/" + ms);
+			local tt = tr.getTooltip();
+			if (tr.getID().find("trait.wx_") != 0 || tt == null || tt.len() < 2)
+				throw "Meridian trait invalid: " + ms;
+		}
+
+		// Build mock brother for Trait synergies & 3-slot Loadout Presets
+		local flags = ::new("scripts/tools/tag_collection");
+		local baseP = ::Const.CharacterProperties.getClone();
+		baseP.Bravery = 55;
+		local skList = [];
+		local skMap = {};
+		local mockSkills = null;
+		local mockActor = null;
+		mockSkills = {
+			function getActor() { return mockActor; },
+			function getSkillByID( _id ) { return (_id in skMap) ? skMap[_id] : null; },
+			function hasSkill( _id ) { return (_id in skMap); },
+			function add( _sk )
+			{
+				if (_sk == null) return;
+				if (::Wuxia.hasMember(_sk, "setContainer")) _sk.setContainer(this);
+				local id = ("getID" in _sk) ? _sk.getID() : _sk.m.ID;
+				skMap[id] <- _sk;
+				skList.push(_sk);
+			},
+			function remove( _sk )
+			{
+				if (_sk == null) return;
+				local id = ("getID" in _sk) ? _sk.getID() : _sk.m.ID;
+				if (id in skMap) delete skMap[id];
+			},
+			function removeByID( _id )
+			{
+				if (_id in skMap) delete skMap[_id];
+			},
+			function update() {}
+		};
+		mockActor = {
+			m = {},
+			function getID() { return 9527; },
+			function getName() { return "试剑侠客"; },
+			function isAlive() { return true; },
+			function isPlacedOnMap() { return false; },
+			function getTile() { return null; },
+			function setDirty( _d ) {},
+			function onSkillsUpdated() {},
+			function getLevel() { return 9; },
+			function getFlags() { return flags; },
+			function getSkills() { return mockSkills; },
+			function getBaseProperties() { return baseP; },
+			function getCurrentProperties() { return baseP; },
+			function getHitpointsPct() { return 1.0; },
+			function getItems()
+			{
+				local testSw = ::new("scripts/items/weapons/arming_sword");
+				return {
+					function getItemAtSlot( _sl ) { return _sl == ::Const.ItemSlot.Mainhand ? testSw : null; },
+					function hasBlockedSlot( _sl ) { return false; }
+				};
+			}
+		};
+
+		local mc = ::new("scripts/skills/special/wx_martial_container");
+		mockSkills.add(mc);
+
+		local washBase = ::Wuxia.MarrowWash.getPrepBonus(mockActor, false);
+		mockSkills.add(::new("scripts/skills/traits/wx_trait_qijing"));
+		if (::Wuxia.MarrowWash.getPrepBonus(mockActor, false) != washBase + 8)
+			throw "wx_trait_qijing failed to grant +8% MarrowWash prep bonus!";
+
+		mockSkills.add(::new("scripts/skills/traits/wx_trait_wuxing"));
+		mockSkills.add(::new("scripts/skills/traits/wx_trait_jiangu"));
+		local qfDef = ::Wuxia.Slots.getManualDef("wx_manual_qingfeng");
+		if (::Wuxia.Traits.getMasteryBonusMult(mockActor, qfDef) < 0.24)
+			throw "wx_trait_wuxing + wx_trait_jiangu sword XP bonus failed!";
+
+		mockSkills.add(swCombo);
+		local baseSwFat = swCombo.m.FatigueCost;
+		local discSwFat = swCombo.getFatigueCost();
+		if (discSwFat >= baseSwFat)
+			throw "wx_trait_jiangu failed to discount Sword skill Qi cost!";
+
+		local pBuff = ::new("scripts/skills/effects/wx_pill_battle_buff");
+		pBuff.addPillBuff("buff_qingxin");
+		pBuff.addPillBuff("buff_hugu");
+		mockSkills.add(pBuff);
+		local preBaidu = pBuff.canAcceptBattlePill("buff_duheng", "试剑侠客");
+		if (!preBaidu.Ok || !preBaidu.WillTriggerToxin)
+			throw "Expected 3rd battle pill without wx_trait_baidu to flag WillTriggerToxin=true";
+		mockSkills.add(::new("scripts/skills/traits/wx_trait_baidu"));
+		local postBaidu = pBuff.canAcceptBattlePill("buff_duheng", "试剑侠客");
+		if (!postBaidu.Ok || postBaidu.WillTriggerToxin)
+			throw "wx_trait_baidu failed to exempt 3rd battle pill DanToxin!";
+
+		// 4. 3-Slot Loadout Presets + Wangchen Zero-Scatter Switch + Global Mod Settings
+		mc.m.LearnedManuals["wx_manual_songtao"] <- { Tier = 2, Exp = 20, IsFragment = false };
+		mc.m.LearnedManuals["wx_manual_guiyuan"] <- { Tier = 2, Exp = 15, IsFragment = false };
+		mc.m.LearnedManuals["wx_manual_qingfeng"] <- { Tier = 2, Exp = 10, IsFragment = false };
+		mc.m.LearnedManuals["wx_manual_heifeng"] <- { Tier = 1, Exp = 0, IsFragment = false };
+
+		::Wuxia.Slots.equipManual(mockActor, 0, "wx_manual_songtao");
+		::Wuxia.Slots.equipManual(mockActor, 1, "wx_manual_qingfeng");
+		if (!::Wuxia.Slots.saveLoadoutPreset(mockActor, 0, "正气快剑").Ok)
+			throw "Failed to save Loadout Preset 0";
+
+		mockSkills.add(::new("scripts/skills/effects/wx_wangchen_grace"));
+		::Wuxia.Slots.equipManual(mockActor, 0, "wx_manual_guiyuan");
+		mockSkills.add(::new("scripts/skills/effects/wx_wangchen_grace"));
+		::Wuxia.Slots.equipManual(mockActor, 1, "wx_manual_heifeng");
+		if (!::Wuxia.Slots.saveLoadoutPreset(mockActor, 1, "阴柔狂刀").Ok)
+			throw "Failed to save Loadout Preset 1";
+
+		local promptRes = ::Wuxia.Slots.applyLoadoutPreset(mockActor, 0, false);
+		if (promptRes.Ok || !promptRes.NeedsConfirm)
+			throw "applyLoadoutPreset without Wangchen or confirm must return NeedsConfirm=true!";
+
+		mockSkills.add(::new("scripts/skills/effects/wx_wangchen_grace"));
+		local applyRes = ::Wuxia.Slots.applyLoadoutPreset(mockActor, 0, false);
+		if (!applyRes.Ok || !applyRes.UsedWangchen || mc.m.Slots[0].ManualID != "wx_manual_songtao" || mc.m.Slots[1].ManualID != "wx_manual_qingfeng")
+			throw "applyLoadoutPreset(0) failed to restore saved manuals!";
+		if (mockSkills.hasSkill("effects.wx_scatter_weakness") || mockSkills.hasSkill("effects.wx_wangchen_grace"))
+			throw "applyLoadoutPreset failed to consume wx_wangchen_grace for zero-scatter switch!";
+
+		::Wuxia.Settings.updateSetting("enableWuxiaSfx", false);
+		if (::Wuxia.Settings.getPayload().enableWuxiaSfx)
+			throw "::Wuxia.Settings.updateSetting(enableWuxiaSfx=false) failed!";
+		::Wuxia.Settings.updateSetting("enableWuxiaSfx", true);
+		if (!::Wuxia.Settings.getPayload().enableWuxiaSfx)
+			throw "::Wuxia.Settings.updateSetting(enableWuxiaSfx=true) failed!";
+
+		// 5. Purify & Contracts Bounded Dictionary Caches
+		::Wuxia.Purify.clearTermCache();
+		local p1 = ::Wuxia.Purify.rewriteCurrencyAndSupplyTerms("花费 300 克朗添置维修工具与医疗物资");
+		local hitsBefore = ::Wuxia.Purify.TermCacheHits;
+		local p2 = ::Wuxia.Purify.rewriteCurrencyAndSupplyTerms("花费 300 克朗添置维修工具与医疗物资");
+		if (p1 != p2 || p1.find("两纹银") == null || p1.find("修械铁料") == null || ::Wuxia.Purify.TermCacheHits <= hitsBefore)
+			throw "Purify.rewriteCurrencyAndSupplyTerms cache miss or output mismatch: " + p1;
+		local c1 = ::Wuxia.Contracts.rewriteText("雇佣兵团受命讨伐兽人与亡灵巫师");
+		local c2 = ::Wuxia.Contracts.rewriteText("雇佣兵团受命讨伐兽人与亡灵巫师");
+		if (c1 != c2 || c1.find("江湖义社") == null || c1.find("湘西控魂妖道") == null)
+			throw "Contracts.rewriteText output mismatch: " + c1;
+
+		// 6. Late-Game Crisis Sanctum Aid & Camp Veteran Mentorship Events
+		local evAid = ::new("scripts/events/events/wx_event_crisis_sanctum_aid");
+		local evMentor = ::new("scripts/events/events/wx_event_camp_veteran_mentorship");
+		if (evAid.getID() != "event.wx_crisis_sanctum_aid" || evAid.m.Screens.len() != 4)
+			throw "wx_event_crisis_sanctum_aid invalid";
+		if (evMentor.getID() != "event.wx_camp_veteran_mentorship" || evMentor.m.Screens.len() != 4)
+			throw "wx_event_crisis_sanctum_aid / mentorship invalid";
+	});
+
+	// ------------------------------------------------------------------------
+	// Stage 26: Full 64/64 Bespoke《山海经》Bosses (Zero Generic Template/Cataclysm!)
+	// & Full 13-Weapon-Family Deep Wuxia Martial Streams Live Verification
+	// ------------------------------------------------------------------------
+	check("Stage 26: 64尊山海大妖零公用模板全闭环与13系深度武学流派实机验收", function()
+	{
+		::Wuxia.TileField.clearAll();
+		::Wuxia.ShanHaiMultiBody.clearAll();
+
+		if (::Wuxia.Config.ShanHaiBosses.len() != 64)
+			throw "Expected 64 ShanHaiBosses, got " + ::Wuxia.Config.ShanHaiBosses.len();
+		if (::Wuxia.ShanHai.BespokeBossSpecs.len() != 64)
+			throw "Expected 64 BespokeBossSpecs (100% de-homogenized!), got " + ::Wuxia.ShanHai.BespokeBossSpecs.len();
+		if (::Wuxia.KineticVFX.Profiles.len() != 171)
+			throw "Player KineticVFX.Profiles must remain 171, got " + ::Wuxia.KineticVFX.Profiles.len();
+
+		local mkSkBox = function()
+		{
+			local arr = [];
+			return {
+				List = arr,
+				ActorRef = null,
+				function getActor() { return this.ActorRef; },
+				function add( _s )
+				{
+					if (::Wuxia.hasMember(_s, "setContainer")) _s.setContainer(this);
+					else _s.m.Container = this;
+					arr.push(_s);
+				},
+				function getSkillByID( _id )
+				{
+					foreach (s in arr) if (s.getID() == _id) return s;
+					return null;
+				},
+				function hasSkill( _id ) { return this.getSkillByID(_id) != null; },
+				function removeByID( _id )
+				{
+					for (local i = arr.len() - 1; i >= 0; i = --i)
+						if (arr[i].getID() == _id) arr.remove(i);
+				},
+				function update() {}
+			};
+		};
+
+		local mkUnit = function( _id, _fac, _hp, _arm = 140, _tile = null, _main = null )
+		{
+			local sb = mkSkBox();
+			local bp = ::Const.CharacterProperties.getClone();
+			bp.Hitpoints = _hp;
+			bp.Stamina = 100;
+			bp.DamageRegularMin = 45;
+			bp.DamageRegularMax = 65;
+			local u = {
+				ID = _id, Faction = _fac, HP = _hp, MaxHP = _hp, Fat = 25, MaxFat = 100, AP = 9, Tile = _tile,
+				m = { IsMiniboss = false, Hitpoints = _hp, BaseProperties = bp, CurrentProperties = bp.getClone() },
+				BodyArm = _arm > 0 ? {
+					Val = _arm,
+					function getArmor() { return this.Val; },
+					function setArmor( _v ) { this.Val = _v; },
+					function getStaminaModifier() { return -12; }
+				} : null,
+				MainWpn = _main,
+				function getID() { return this.ID; },
+				function getName() { return "TestUnit#" + this.ID; },
+				function setName( _n ) {},
+				function isAlive() { return this.HP > 0; },
+				function isPlayerControlled() { return this.Faction == 1; },
+				function getFaction() { return this.Faction; },
+				function isAlliedWith( _o ) { return _o != null && _o.getFaction() == this.Faction; },
+				function getHitpoints() { return this.HP; },
+				function getHitpointsMax() { return this.MaxHP; },
+				function getHitpointsPct() { return this.MaxHP > 0 ? (this.HP.tofloat() / this.MaxHP.tofloat()) : 1.0; },
+				function setHitpoints( _v ) { this.HP = _v; this.m.Hitpoints = _v; },
+				function getFatigue() { return this.Fat; },
+				function getFatigueMax() { return this.MaxFat; },
+				function setFatigue( _f ) { this.Fat = _f; },
+				function getActionPoints() { return this.AP; },
+				function getActionPointsMax() { return 9; },
+				function setActionPoints( _a ) { this.AP = _a; },
+				function getInitiative() { return 110; },
+				function getArmor( _p ) { return this.BodyArm != null ? this.BodyArm.Val : 0; },
+				function getSkills() { return sb; },
+				function getCurrentProperties() { return this.m.CurrentProperties; },
+				function isPlacedOnMap() { return this.Tile != null; },
+				function getTile() { return this.Tile; },
+				function hasSprite( _s ) { return false; },
+				function checkMorale( _c, _d, _t = 0 ) { return false; },
+				function getFlags() { return { function has( _k ) { return false; }, function set( _k, _v ) {} }; },
+				function getItems()
+				{
+					local self = this;
+					return {
+						function getItemAtSlot( _sl )
+						{
+							if (_sl == ::Const.ItemSlot.Body) return self.BodyArm;
+							if (_sl == ::Const.ItemSlot.Mainhand) return self.MainWpn;
+							return null;
+						},
+						function hasBlockedSlot( _sl ) { return false; }
+					};
+				}
+			};
+			sb.ActorRef = u;
+			if (_tile != null)
+			{
+				_tile.IsOccupiedByActor = true;
+				_tile.Occupant = u;
+			}
+			return u;
+		};
+
+		// 1. Exhaustive 64/64 Shan Hai Boss Instantiation, Zero-Legacy-Trait/Cataclysm & KineticVFX Audit!
+		local dummyFoe = mkUnit(8001, 1, 120, 140);
+		local uniqueTraits = {};
+		local totalBossMoves = 0;
+		foreach (bossID, _bcfg in ::Wuxia.Config.ShanHaiBosses)
+		{
+			if (!(bossID in ::Wuxia.ShanHai.BespokeBossSpecs))
+				throw "Boss " + bossID + " missing from BespokeBossSpecs!";
+			local bUnit = mkUnit(8100, 2, 400, 200);
+			::Wuxia.ShanHai.initBossEntity(bUnit, bossID);
+			local bsk = bUnit.getSkills();
+			if (bsk.hasSkill("special.wx_shanhai_boss_trait") || bsk.hasSkill("actives.wx_boss_cataclysm"))
+				throw bossID + " illegally mounted legacy wx_shanhai_boss_trait or wx_boss_cataclysm!";
+
+			local spec = ::Wuxia.ShanHai.BespokeBossSpecs[bossID];
+			if (!bsk.hasSkill(spec.TraitID))
+				throw bossID + " failed to mount bespoke trait " + spec.TraitID;
+			if (spec.TraitID in uniqueTraits)
+				throw "Duplicate Boss TraitID shared across Bosses: " + spec.TraitID;
+			uniqueTraits[spec.TraitID] <- bossID;
+
+			local trInst = bsk.getSkillByID(spec.TraitID);
+			local trProps = ::Const.CharacterProperties.getClone();
+			trInst.onUpdate(trProps);
+			if (trInst.getTooltip().len() < 2 || ::Wuxia.ShanHai.getBossCounterHint(bossID) == "")
+				throw bossID + " trait tooltip or counterplay hint empty!";
+
+			if (spec.Skills.len() < 3)
+				throw bossID + " expected >= 3 bespoke active moves, got " + spec.Skills.len();
+			foreach (sPath in spec.Skills)
+			{
+				local mv = ::new(sPath);
+				if (!bsk.hasSkill(mv.getID()))
+					throw bossID + " missing bespoke skill " + mv.getID();
+				local shortKey = mv.getID().slice(8);
+				if (::Wuxia.KineticVFX.getProfile(shortKey) == null)
+					throw "Missing KineticVFX.BossProfiles entry for " + shortKey;
+				local mvProps = ::Const.CharacterProperties.getClone();
+				if (::Wuxia.hasMember(mv, "onAnySkillUsed"))
+					mv.onAnySkillUsed(mv, dummyFoe, mvProps);
+				if (mv.getTooltip().len() < 2)
+					throw shortKey + " tooltip broken!";
+				totalBossMoves += 1;
+			}
+		}
+		if (uniqueTraits.len() != 64 || totalBossMoves < 192)
+			throw "Expected 64 unique Boss traits and >= 192 bespoke Boss moves, got " + uniqueTraits.len() + " / " + totalBossMoves;
+
+		// 2. Original-Text《山海经》Mythic Laws Verification (`浑沌七窍` / `白泽识破复读` / `玄龟唯锤` / `建木唯斧` / `饕餮毒饵反噬`)
+		// 2a. Hundun《日凿七窍，七日浑沌死》
+		local hundun = mkUnit(8201, 2, 500, 200);
+		::Wuxia.ShanHai.initBossEntity(hundun, "boss_hundun");
+		local hdTrait = hundun.getSkills().getSkillByID("special.wx_boss_trait_hundun");
+		local slashP = ::Const.CharacterProperties.getClone();
+		hdTrait.onBeforeDamageReceived(dummyFoe, ::new("scripts/skills/actives/wx_saber_cleave"), { DamageRegular = 30, DamageArmor = 20 }, slashP);
+		if (slashP.DamageReceivedRegularMult > 0.60 || hdTrait.m.OrificeStacks != 0)
+			throw "Hundun failed to resist non-chisel slash!";
+		local yiyangSk = ::new("scripts/skills/actives/wx_fist_yiyang");
+		for (local c = 0; c < 7; c = ++c)
+		{
+			hdTrait.onBeforeDamageReceived(dummyFoe, yiyangSk, { DamageRegular = 20, DamageArmor = 10 }, ::Const.CharacterProperties.getClone());
+		}
+		if (!hdTrait.m.OrificeRuptured || hundun.getHitpoints() >= 450 || !hundun.getSkills().hasSkill("effects.wx_status_opening"))
+			throw "Hundun 7-orifice rupture failed to detonate!";
+
+		// 2b. Baize《通万物情·识破复读旧招》
+		local baize = mkUnit(8202, 2, 420, 180);
+		::Wuxia.ShanHai.initBossEntity(baize, "boss_baize");
+		local bzTrait = baize.getSkills().getSkillByID("special.wx_boss_trait_baize");
+		local sw1 = ::new("scripts/skills/actives/wx_sword_combo");
+		local sw2 = ::new("scripts/skills/actives/wx_sword_dugu");
+		local bzP1 = ::Const.CharacterProperties.getClone();
+		bzTrait.onBeforeDamageReceived(dummyFoe, sw1, { DamageRegular = 25, DamageArmor = 15 }, bzP1);
+		local bzRepeat = ::Const.CharacterProperties.getClone();
+		bzTrait.onBeforeDamageReceived(dummyFoe, sw1, { DamageRegular = 25, DamageArmor = 15 }, bzRepeat);
+		local bzRotate = ::Const.CharacterProperties.getClone();
+		bzTrait.onBeforeDamageReceived(dummyFoe, sw2, { DamageRegular = 25, DamageArmor = 15 }, bzRotate);
+		if (bzP1.DamageReceivedRegularMult < 0.99 || bzRepeat.DamageReceivedRegularMult > 0.50 || bzRotate.DamageReceivedRegularMult < 0.99 || !dummyFoe.getSkills().hasSkill("effects.wx_status_opening"))
+			throw "Baize anti-repeat skill memory parry failed!";
+
+		// 2c. Xuangui (Blunt 1.30x vs Blade 0.55x) & Jumang (Axe 1.30x vs Non-Axe Thorns)
+		local xuangui = mkUnit(8203, 2, 480, 260);
+		::Wuxia.ShanHai.initBossEntity(xuangui, "boss_xuangui");
+		local xgTrait = xuangui.getSkills().getSkillByID("special.wx_boss_trait_xuangui");
+		local xgSwordP = ::Const.CharacterProperties.getClone();
+		local xgHamP   = ::Const.CharacterProperties.getClone();
+		xgTrait.onBeforeDamageReceived(dummyFoe, sw1, { DamageRegular = 25, DamageArmor = 15 }, xgSwordP);
+		xgTrait.onBeforeDamageReceived(dummyFoe, ::new("scripts/skills/actives/wx_hammer_leiting"), { DamageRegular = 25, DamageArmor = 40 }, xgHamP);
+		if (xgSwordP.DamageReceivedRegularMult > 0.60 || xgHamP.DamageReceivedRegularMult < 1.25)
+			throw "Xuangui shell blunt-only law failed!";
+
+		local jumang = mkUnit(8204, 2, 460, 200);
+		::Wuxia.ShanHai.initBossEntity(jumang, "boss_jumang");
+		local jmTrait = jumang.getSkills().getSkillByID("special.wx_boss_trait_jumang");
+		local armPreThorn = dummyFoe.getArmor(::Const.BodyPart.Body);
+		local jmSwordP = ::Const.CharacterProperties.getClone();
+		local jmAxeP   = ::Const.CharacterProperties.getClone();
+		jmTrait.onBeforeDamageReceived(dummyFoe, sw1, { DamageRegular = 20, DamageArmor = 15 }, jmSwordP);
+		if (dummyFoe.getArmor(::Const.BodyPart.Body) >= armPreThorn)
+			throw "Jumang iron thorns failed to punish non-axe melee!";
+		local armPreAxe = dummyFoe.getArmor(::Const.BodyPart.Body);
+		jmTrait.onBeforeDamageReceived(dummyFoe, ::new("scripts/skills/actives/wx_axe_kaitian"), { DamageRegular = 35, DamageArmor = 35 }, jmAxeP);
+		if (jmAxeP.DamageReceivedRegularMult < 1.25 || dummyFoe.getArmor(::Const.BodyPart.Body) != armPreAxe)
+			throw "Jumang axe wood-cutter bonus or thorn exemption failed!";
+
+		// 2d. Taotie《毒饵裂腹》backlash on devouring poisoned prey!
+		local taotie = mkUnit(8205, 2, 400, 180);
+		::Wuxia.ShanHai.initBossEntity(taotie, "boss_taotie");
+		taotie.setHitpoints(300);
+		local devourSk = taotie.getSkills().getSkillByID("actives.wx_boss_taotie_glutton_devour");
+		local poisonedBait = mkUnit(8206, 1, 100, 100);
+		poisonedBait.getSkills().add(::new("scripts/skills/effects/wx_status_poison_dart"));
+		devourSk.wxInflictPostEffects(taotie, poisonedBait, null);
+		if (taotie.getHitpoints() != 265 || !taotie.getSkills().hasSkill("effects.wx_internal_injury"))
+			throw "Taotie poison-bait stomach rupture backlash failed!";
+
+		// 2e. Strict 64-Boss Anatomical Discipline & 100% Dedicated Brush Existence Audit!
+		local cntSeg = 1, cntApp = 1, cntTot = 1, cntLaw = 0; // Flagships: zhuyin=seg, xiangliuwang=app, nvchou=tot
+		foreach (fBrush in ["wx_part_zhuyin_body", "wx_tail_zhuyin", "wx_part_xiangliu_iron", "wx_part_xiangliu_mire", "wx_part_xiangliu_charm", "wx_part_xiangliu_blood", "wx_totem_sun_corona"])
+		{
+			if (!::Wuxia.Appearance.brushExists(fBrush) || !::Wuxia.Appearance.brushExists(fBrush + "_injured"))
+				throw "Missing compiled flagship subpart/totem brush: " + fBrush;
+		}
+		foreach (sKey, sp in ::Wuxia.ShanHaiBossSpecs)
+		{
+			local sm = sp.StructureMode;
+			if (sm == "segments") cntSeg += 1;
+			else if (sm == "appendages") cntApp += 1;
+			else if (sm == "totems") cntTot += 1;
+			else if (sm == "mythic_law") cntLaw += 1;
+			else throw "Unexpected StructureMode on " + sKey + ": " + sm;
+
+			if (sm == "mythic_law" && ("Parts" in sp) && sp.Parts.len() > 0)
+				throw "1-Hex Boss " + sKey + " must NOT spawn extra hex Parts!";
+			if (sm != "mythic_law")
+			{
+				if (!("Parts" in sp) || sp.Parts.len() == 0)
+					throw "Multi-entity Boss " + sKey + " missing Parts!";
+				foreach (pt in sp.Parts)
+				{
+					if (!("Brush" in pt) || pt.Brush == "" || pt.Brush.find("wx_boss_") == 0)
+						throw "Boss " + sKey + " part " + pt.Key + " has invalid or Boss-portrait placeholder Brush: " + (("Brush" in pt) ? pt.Brush : "null");
+					if (!::Wuxia.Appearance.brushExists(pt.Brush) || !::Wuxia.Appearance.brushExists(pt.Brush + "_injured"))
+						throw "Boss " + sKey + " part brush missing in wx_beasts_0.brush: " + pt.Brush;
+				}
+			}
+		}
+		if (cntSeg != 8 || cntApp != 6 || cntTot != 10 || cntLaw != 40)
+			throw "Expected 8 segments / 6 appendages / 10 totems / 40 1-hex mythic_law (=64), got " + cntSeg + "/" + cntApp + "/" + cntTot + "/" + cntLaw;
+
+		// 2f. Verify Single-Hex Bespoke Laws (`祸斗食火唯冰克` / `凿齿斧破铁盾后羿射杀` / `猼訑射瞎背目` / `陆吾四时轮转`)
+		local huodou = mkUnit(8210, 2, 400, 160);
+		::Wuxia.ShanHai.initBossEntity(huodou, "boss_huodou");
+		huodou.setHitpoints(300);
+		local hdTr = huodou.getSkills().getSkillByID("special.wx_boss_trait_huodou");
+		local hdFireP = ::Const.CharacterProperties.getClone();
+		local hdIceP  = ::Const.CharacterProperties.getClone();
+		hdTr.onBeforeDamageReceived(dummyFoe, ::new("scripts/skills/actives/wx_saber_ranmu"), { DamageRegular = 30, DamageArmor = 20 }, hdFireP);
+		hdTr.onBeforeDamageReceived(dummyFoe, ::new("scripts/skills/actives/wx_sword_xuanbing"), { DamageRegular = 30, DamageArmor = 20 }, hdIceP);
+		if (huodou.getHitpoints() <= 300 || hdFireP.DamageReceivedRegularMult > 0.20 || hdIceP.DamageReceivedRegularMult < 1.35)
+			throw "Huodou fire-heal vs frost-vulnerability law failed!";
+
+		local zaochi = mkUnit(8211, 2, 420, 220);
+		::Wuxia.ShanHai.initBossEntity(zaochi, "boss_zaochi");
+		local zcTr = zaochi.getSkills().getSkillByID("special.wx_boss_trait_zaochi");
+		local bowSk = ::new("scripts/skills/actives/wx_bow_luori");
+		local zcBowPre = ::Const.CharacterProperties.getClone();
+		zcTr.onBeforeDamageReceived(dummyFoe, bowSk, { DamageRegular = 25, DamageArmor = 15 }, zcBowPre);
+		zcTr.onBeforeDamageReceived(dummyFoe, ::new("scripts/skills/actives/wx_axe_kaitian"), { DamageRegular = 35, DamageArmor = 40 }, ::Const.CharacterProperties.getClone());
+		local zcBowPost = ::Const.CharacterProperties.getClone();
+		zcTr.onBeforeDamageReceived(dummyFoe, bowSk, { DamageRegular = 25, DamageArmor = 15 }, zcBowPost);
+		if (!zcTr.m.InternalBroken || zcBowPre.DamageReceivedRegularMult > 0.35 || zcBowPost.DamageReceivedRegularMult < 1.45 || !::Wuxia.ShanHaiMultiBody.isSkillLocked(zaochi, "actives.wx_boss_zaochi_shield_phalanx"))
+			throw "Zaochi axe shield-break -> Houyi +50% ranged counterplay failed!";
+
+		local boshi = mkUnit(8212, 2, 400, 180);
+		::Wuxia.ShanHai.initBossEntity(boshi, "boss_boshi");
+		local bsTr = boshi.getSkills().getSkillByID("special.wx_boss_trait_boshi");
+		bsTr.onBeforeDamageReceived(dummyFoe, yiyangSk, { DamageRegular = 20, DamageArmor = 10 }, ::Const.CharacterProperties.getClone());
+		bsTr.onBeforeDamageReceived(dummyFoe, yiyangSk, { DamageRegular = 20, DamageArmor = 10 }, ::Const.CharacterProperties.getClone());
+		local bsBlindedP = ::Const.CharacterProperties.getClone();
+		bsTr.onUpdate(bsBlindedP);
+		if (!bsTr.m.InternalBroken || bsBlindedP.MeleeDefense >= 0 || !::Wuxia.ShanHaiMultiBody.isSkillLocked(boshi, "actives.wx_boss_boshi_dorsal_glare"))
+			throw "Boshi dorsal-eye blinding counterplay failed!";
+
+		local luwu = mkUnit(8213, 2, 450, 200);
+		::Wuxia.ShanHai.initBossEntity(luwu, "boss_luwu");
+		local lwTr = luwu.getSkills().getSkillByID("special.wx_boss_trait_luwu");
+		lwTr.onTurnStart(); // Round 1 -> Spring (0)
+		lwTr.onTurnStart(); // Round 2 -> Summer (1)
+		lwTr.onTurnStart(); // Round 3 -> Autumn (2)
+		lwTr.onTurnStart(); // Round 4 -> Winter (3)
+		local lwWinP = ::Const.CharacterProperties.getClone();
+		lwTr.onUpdate(lwWinP);
+		if (lwTr.m.SeasonIdx != 3 || lwWinP.DamageReceivedRegularMult > 0.75)
+			throw "Luwu 4-season rotation law failed!";
+
+		// 3. Deep 13-Family Martial Streams Verification
+		local mkLine3 = function()
+		{
+			local ts = [];
+			for (local i = 0; i < 4; i = ++i)
+			{
+				ts.push({
+					ID = 900 + i, Idx = i, Level = 0, IsEmpty = true, IsVisibleForPlayer = false, IsOccupiedByActor = false, Occupant = null, NextMap = {},
+					function getEntity() { return this.Occupant; },
+					function hasNextTile( _d ) { return _d in this.NextMap; },
+					function getNextTile( _d ) { return (_d in this.NextMap) ? this.NextMap[_d] : null; },
+					function getDirectionTo( _o ) { return (_o != null && _o.Idx >= this.Idx) ? 0 : 3; },
+					function getDistanceTo( _o ) { return _o != null ? ::Math.abs(this.Idx - _o.Idx) : 99; }
+				});
+			}
+			for (local j = 0; j < 4; j = ++j)
+			{
+				if (j + 1 < 4) ts[j].NextMap[0] <- ts[j + 1];
+				if (j - 1 >= 0) ts[j].NextMap[3] <- ts[j - 1];
+			}
+			return ts;
+		};
+
+		// 3a. Blade Stream: Iaido Sheathe -> `拔刀·孤月一闪` -> Kill `残心归鞘` refresh + `狂风快刀` 3-stage + `血海刀煞` >= 0.40 floor
+		local saberHero = mkUnit(8301, 1, 100, 140, null, ::new("scripts/items/weapons/scimitar"));
+		local xinyueSk = ::new("scripts/skills/actives/wx_saber_xinyue");
+		saberHero.getSkills().add(xinyueSk);
+		::Wuxia.Streams.triggerIaidoSheathe(saberHero);
+		if (xinyueSk.getName() != "拔刀·孤月一闪")
+			throw "wx_saber_xinyue failed to morph into 拔刀·孤月一闪 when sheathed!";
+		local iaidoP = ::Const.CharacterProperties.getClone();
+		iaidoP.DamageDirectAdd = 0.20;
+		xinyueSk.onAnySkillUsed(xinyueSk, dummyFoe, iaidoP);
+		if (iaidoP.DamageDirectAdd > 0.2501)
+			throw "Iaido draw breached AGENTS.md +25% armor pen cap!";
+		local slainFoe = mkUnit(8302, 2, 0, 0);
+		if (!::Wuxia.Streams.consumeIaidoPostHit(saberHero, slainFoe, true) || !::Wuxia.Streams.isIaidoReady(saberHero))
+			throw "Iaido kill failed to trigger once-per-turn 残心归鞘 re-sheathe!";
+		if (::Wuxia.Streams.consumeIaidoPostHit(saberHero, slainFoe, true))
+			throw "Iaido 残心归鞘 illegally refreshed more than once in the same turn!";
+
+		local kfSk = ::new("scripts/skills/actives/wx_saber_kuangfeng");
+		saberHero.getSkills().add(kfSk);
+		if (kfSk.getName().find("一式") == null) throw "wx_saber_kuangfeng Stage 0 name mismatch";
+		::Wuxia.Streams.advanceComboStage(saberHero, kfSk.getID(), 3, true);
+		if (kfSk.getName().find("二式") == null) throw "wx_saber_kuangfeng Stage 1 name mismatch";
+		::Wuxia.Streams.advanceComboStage(saberHero, kfSk.getID(), 3, true);
+		if (kfSk.getName().find("三式") == null) throw "wx_saber_kuangfeng Stage 2 name mismatch";
+
+		local bbState = ::Wuxia.Streams.getOrCreateState(saberHero);
+		bbState.addBloodBlade(3);
+		local bbProps = ::Const.CharacterProperties.getClone();
+		bbProps.DamageReceivedRegularMult = 0.42;
+		bbState.onUpdate(bbProps);
+		if (bbProps.DamageReceivedRegularMult < 0.3999)
+			throw "BloodBladeStacks breached AGENTS.md >= 0.40 regular damage floor!";
+
+		// 3b. Spear `挑飞过肩换位` & Beggar `打狗棒三字诀`
+		local spLine = mkLine3();
+		local spearHero = mkUnit(8310, 1, 100, 150, spLine[1], ::new("scripts/items/weapons/boar_spear"));
+		local frontOrc  = mkUnit(8311, 2, 120, 150, spLine[2]);
+		if (!::Wuxia.Streams.vaultFlipOverShoulder(spearHero, frontOrc) || frontOrc.getTile() != spLine[0] || !frontOrc.getSkills().hasSkill("effects.wx_status_offbalance"))
+			throw "Spear vaultFlipOverShoulder failed to flip adjacent enemy into empty hex behind spearman!";
+
+		local dagouSk = ::new("scripts/skills/actives/wx_staff_dagou");
+		spearHero.getSkills().add(dagouSk);
+		if (dagouSk.getName() != "打狗棒·绊字诀") throw "wx_staff_dagou Stage 0 mismatch";
+		::Wuxia.Streams.advanceComboStage(spearHero, dagouSk.getID(), 3, true);
+		if (dagouSk.getName() != "打狗棒·缠字诀") throw "wx_staff_dagou Stage 1 mismatch";
+		::Wuxia.Streams.advanceComboStage(spearHero, dagouSk.getID(), 3, true);
+		if (dagouSk.getName() != "打狗棒·天下无狗" || dagouSk.getActionPointCost() != 5)
+			throw "wx_staff_dagou Stage 2 天下无狗 mismatch!";
+
+		// 3c. White-Camel Toad `金蟾蓄劲` & Tangmen `子母钉驻地收镖`
+		local toadHero = mkUnit(8320, 1, 120, 160, spLine[1]);
+		local hamaSk = ::new("scripts/skills/actives/wx_hama_push");
+		toadHero.getSkills().add(hamaSk);
+		local toadSt = ::Wuxia.Streams.getOrCreateState(toadHero);
+		toadSt.onDamageReceived(frontOrc, 12, 10);
+		toadSt.onDamageReceived(frontOrc, 12, 10);
+		toadSt.onDamageReceived(frontOrc, 12, 10);
+		if (::Wuxia.Streams.peekToadForce(toadHero) != 3)
+			throw "ToadForceStacks failed to accumulate to 3 on taking hits!";
+		local hamaP = ::Const.CharacterProperties.getClone();
+		hamaSk.onAnySkillUsed(hamaSk, frontOrc, hamaP);
+		if (hamaP.DamageTotalMult < 1.65 || ::Wuxia.Streams.consumeToadForce(toadHero) != 3 || ::Wuxia.Streams.peekToadForce(toadHero) != 0)
+			throw "wx_hama_push ToadForce burst multiplier or consumption failed!";
+
+		local mockThrowWpn = {
+			Ammo = 2,
+			function getID() { return "weapon.throwing_axes"; },
+			function getAmmo() { return this.Ammo; },
+			function getAmmoMax() { return 5; },
+			function setAmmo( _v ) { this.Ammo = _v; }
+		};
+		local tangHero = mkUnit(8330, 1, 90, 100, spLine[1], mockThrowWpn);
+		local tangFoe  = mkUnit(8331, 2, 100, 100, spLine[3]);
+		::Wuxia.Streams.plantTangmenCaltrop(tangHero, spLine[2]);
+		local recTang = ::Wuxia.Streams.recallTangmenCaltrops(tangHero, spLine[3]);
+		if (recTang.recalled != 1 || tangFoe.getHitpoints() >= 100 || mockThrowWpn.Ammo != 3)
+			throw "Tangmen trap_caltrop recall failed to slice target and recover +1 ammo!";
+
+		::Wuxia.TileField.clearAll();
+		::Wuxia.ShanHaiMultiBody.clearAll();
+		::logInfo("[WX-SELFTEST] Verified Stage 26: ALL 64/64 Bespoke Shan Hai Bosses (" + totalBossMoves + " bespoke moves, 0 generic cataclysm) + ALL 13-Family Deep Martial Streams!");
 	});
 
 	::logInfo("[WX-SELFTEST] ================= Result: " + passed + " PASSED, " + failed + " FAILED =================");

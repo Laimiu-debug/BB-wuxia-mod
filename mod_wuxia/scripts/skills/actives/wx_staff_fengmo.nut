@@ -27,7 +27,13 @@ this.wx_staff_fengmo <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		if (_skill == this)
 		{
-			_properties.MeleeSkill += 8; _properties.DamageTotalMult *= 1.22; _properties.DamageArmorMult *= 1.32;
+			this.wxApplyTagPreHitProps(_targetEntity, _properties);
+			local actor = this.getContainer().getActor();
+			local st = (actor != null && "Streams" in ::Wuxia) ? ::Wuxia.Streams.getState(actor) : null;
+			local fm = st != null ? st.m.FengmoStacks : 0;
+			_properties.MeleeSkill += (8 + fm * 3);
+			_properties.DamageTotalMult *= (1.22 + fm * 0.04);
+			_properties.DamageArmorMult *= (1.32 + fm * 0.08);
 		}
 	}
 
@@ -36,10 +42,19 @@ this.wx_staff_fengmo <- this.inherit("scripts/skills/actives/wx_move_base", {
 		local target = _targetTile.getEntity();
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, this.m.WX_VfxBrush);
 		local hit = this.attackEntity(_user, target);
-		if (hit && target != null && target.isAlive())
+		if (hit)
 		{
-			this.wxApplyStatusToTarget(target, "effects.wx_internal_injury", "scripts/skills/effects/wx_internal_injury");
+			if ("Streams" in ::Wuxia)
+			{
+				local st = ::Wuxia.Streams.getOrCreateState(_user);
+				if (st != null) st.addFengmo(1);
+				if (target != null && target.isAlive())
+					::Wuxia.Streams.interruptEnemyCharge(_user, target, 2);
+			}
+			if (target != null && target.isAlive())
+				this.wxApplyStatusToTarget(target, "effects.wx_internal_injury", "scripts/skills/effects/wx_internal_injury");
 		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

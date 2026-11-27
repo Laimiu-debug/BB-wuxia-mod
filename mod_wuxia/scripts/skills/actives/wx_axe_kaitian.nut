@@ -36,10 +36,31 @@ this.wx_axe_kaitian <- this.inherit("scripts/skills/actives/wx_move_base", {
 		local target = _targetTile.getEntity();
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, this.m.WX_VfxBrush);
 		local hit = this.attackEntity(_user, target);
-		if (hit && target != null && target.isAlive())
+		if (hit)
 		{
-			this.wxTryKnockback(_user, target);
+			if (target != null && target.isAlive())
+			{
+				if ("Streams" in ::Wuxia) ::Wuxia.Streams.interruptEnemyCharge(_user, target, 2);
+				this.wxTryKnockback(_user, target);
+			}
+			local crushed = (target == null || !target.isAlive() || (::Wuxia.hasMember(target, "getArmor") && target.getArmor(::Const.BodyPart.Body) <= 0));
+			if (crushed && _targetTile != null && ::Wuxia.hasMember(_targetTile, "hasNextTile"))
+			{
+				for (local d = 0; d < 6; d = ++d)
+				{
+					if (!_targetTile.hasNextTile(d)) continue;
+					local adj = _targetTile.getNextTile(d);
+					if (adj != null && adj.IsOccupiedByActor && adj.getEntity() != null && adj.getEntity().isAlive() && !_user.isAlliedWith(adj.getEntity()))
+					{
+						local ae = adj.getEntity();
+						if (ae.getHitpoints() > 17) ae.setHitpoints(ae.getHitpoints() - 16);
+						else ae.setHitpoints(1);
+						break;
+					}
+				}
+			}
 		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

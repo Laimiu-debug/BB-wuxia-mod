@@ -1,0 +1,331 @@
+/* ============================================================================
+ * BB Wuxia Mod — Non-Blocking Tactical Combat Theater Overlay (All 10 Themes)
+ * CoherentUI WebKit-compatible (strictly pointer-events: none; zero input block!)
+ * ============================================================================ */
+
+.wx-cvfx-root
+{
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 420;
+	pointer-events: none;
+	overflow: hidden;
+}
+
+/* 1. Radial Battlefield Spotlight Vignette (boosts OpenGL VFX glow contrast!) */
+.wx-cvfx-vignette
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	opacity: 0;
+	pointer-events: none;
+	background: radial-gradient(ellipse at 50% 50%,
+		rgba(0, 0, 0, 0) 28%,
+		rgba(6, 7, 10, 0.30) 70%,
+		rgba(3, 4, 7, 0.62) 100%);
+	-webkit-transition: opacity 0.16s ease-out;
+	transition: opacity 0.16s ease-out;
+}
+
+.wx-cvfx-vignette.is-on { opacity: 1; }
+.wx-cvfx-vignette.is-theme-violet.is-on
+{
+	background: radial-gradient(ellipse at 50% 48%,
+		rgba(18, 8, 36, 0.04) 24%,
+		rgba(12, 6, 28, 0.42) 66%,
+		rgba(6, 3, 16, 0.74) 100%);
+}
+.wx-cvfx-vignette.is-theme-fire.is-on
+{
+	background: radial-gradient(ellipse at 50% 50%,
+		rgba(36, 10, 4, 0.02) 26%,
+		rgba(22, 6, 3, 0.36) 68%,
+		rgba(10, 3, 2, 0.70) 100%);
+}
+.wx-cvfx-vignette.is-theme-celestial.is-on
+{
+	background: radial-gradient(ellipse at 50% 50%,
+		rgba(4, 10, 18, 0.05) 24%,
+		rgba(6, 12, 22, 0.42) 66%,
+		rgba(2, 5, 12, 0.74) 100%);
+}
+.wx-cvfx-vignette.is-theme-crimson.is-on
+{
+	background: radial-gradient(ellipse at 50% 50%,
+		rgba(30, 4, 8, 0.03) 25%,
+		rgba(24, 4, 8, 0.40) 68%,
+		rgba(12, 2, 4, 0.74) 100%);
+}
+.wx-cvfx-vignette.is-theme-frost.is-on
+{
+	background: radial-gradient(ellipse at 50% 50%,
+		rgba(6, 20, 34, 0.03) 26%,
+		rgba(6, 18, 32, 0.36) 68%,
+		rgba(3, 10, 22, 0.70) 100%);
+}
+.wx-cvfx-vignette.is-theme-venom.is-on
+{
+	background: radial-gradient(ellipse at 50% 50%,
+		rgba(8, 22, 12, 0.03) 26%,
+		rgba(10, 20, 12, 0.38) 68%,
+		rgba(5, 12, 8, 0.72) 100%);
+}
+.wx-cvfx-vignette.is-theme-jade.is-on
+{
+	background: radial-gradient(ellipse at 50% 50%,
+		rgba(4, 20, 16, 0.02) 28%,
+		rgba(4, 16, 14, 0.32) 70%,
+		rgba(2, 10, 10, 0.64) 100%);
+}
+.wx-cvfx-vignette.is-theme-ink.is-on
+{
+	background: radial-gradient(ellipse at 50% 50%,
+		rgba(6, 6, 12, 0.05) 24%,
+		rgba(8, 8, 16, 0.44) 66%,
+		rgba(2, 2, 6, 0.76) 100%);
+}
+
+/* 2. Fullscreen 60fps Canvas for Impact Flashes & Ink Speed-Lines */
+.wx-cvfx-canvas
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+/* 3. Sleek Upper-Left Wuxia Ink-Calligraphy Cut-In Ribbon (never obscures center hexes!) */
+.wx-cvfx-banner
+{
+	position: absolute;
+	top: 10.5%;
+	left: 3.2%;
+	min-width: 30.0rem;
+	max-width: 46.0rem;
+	height: 7.2rem;
+	pointer-events: none;
+	opacity: 0;
+	-webkit-transform: translateX(-6.0rem) skewX(-9deg);
+	transform: translateX(-6.0rem) skewX(-9deg);
+	background: linear-gradient(90deg,
+		rgba(10, 12, 15, 0.94) 0%,
+		rgba(16, 18, 22, 0.88) 72%,
+		rgba(16, 18, 22, 0) 100%);
+	border-left: 0.45rem solid #52e4ff;
+	border-top: 0.12rem solid rgba(140, 232, 255, 0.55);
+	border-bottom: 0.12rem solid rgba(140, 232, 255, 0.32);
+	box-shadow:
+		0 0.8rem 2.8rem rgba(0, 0, 0, 0.72),
+		-0.4rem 0 2.0rem rgba(76, 220, 255, 0.36);
+}
+
+.wx-cvfx-banner.is-theme-gold
+{
+	border-left-color: #ffca42;
+	border-top-color: rgba(255, 214, 102, 0.65);
+	border-bottom-color: rgba(255, 186, 56, 0.36);
+	box-shadow: 0 0.8rem 2.8rem rgba(0, 0, 0, 0.74), -0.4rem 0 2.2rem rgba(255, 188, 48, 0.42);
+}
+.wx-cvfx-banner.is-theme-fire
+{
+	border-left-color: #ff5d28;
+	border-top-color: rgba(255, 134, 62, 0.65);
+	border-bottom-color: rgba(255, 76, 28, 0.38);
+	box-shadow: 0 0.8rem 2.8rem rgba(0, 0, 0, 0.74), -0.4rem 0 2.2rem rgba(255, 86, 28, 0.46);
+}
+.wx-cvfx-banner.is-theme-violet
+{
+	border-left-color: #b478ff;
+	border-top-color: rgba(196, 148, 255, 0.65);
+	border-bottom-color: rgba(146, 86, 255, 0.40);
+	box-shadow: 0 0.8rem 2.8rem rgba(0, 0, 0, 0.76), -0.4rem 0 2.4rem rgba(154, 88, 255, 0.48);
+}
+.wx-cvfx-banner.is-theme-celestial
+{
+	border-left-color: #ffe88a;
+	border-top-color: rgba(164, 232, 255, 0.68);
+	border-bottom-color: rgba(255, 224, 120, 0.40);
+	box-shadow: 0 0.8rem 2.8rem rgba(0, 0, 0, 0.76), -0.4rem 0 2.4rem rgba(132, 218, 255, 0.44);
+}
+.wx-cvfx-banner.is-theme-crimson
+{
+	border-left-color: #ff2e46;
+	border-top-color: rgba(255, 92, 108, 0.65);
+	border-bottom-color: rgba(210, 32, 54, 0.40);
+	box-shadow: 0 0.8rem 2.8rem rgba(0, 0, 0, 0.76), -0.4rem 0 2.4rem rgba(235, 36, 62, 0.46);
+}
+.wx-cvfx-banner.is-theme-jade
+{
+	border-left-color: #2ce89a;
+	border-top-color: rgba(108, 245, 186, 0.62);
+	border-bottom-color: rgba(34, 195, 132, 0.36);
+	box-shadow: 0 0.8rem 2.8rem rgba(0, 0, 0, 0.72), -0.4rem 0 2.2rem rgba(44, 232, 154, 0.40);
+}
+.wx-cvfx-banner.is-theme-frost
+{
+	border-left-color: #66dcff;
+	border-top-color: rgba(176, 242, 255, 0.68);
+	border-bottom-color: rgba(74, 198, 245, 0.38);
+	box-shadow: 0 0.8rem 2.8rem rgba(0, 0, 0, 0.74), -0.4rem 0 2.4rem rgba(90, 214, 255, 0.44);
+}
+.wx-cvfx-banner.is-theme-venom
+{
+	border-left-color: #54e842;
+	border-top-color: rgba(140, 245, 108, 0.62);
+	border-bottom-color: rgba(112, 48, 195, 0.40);
+	box-shadow: 0 0.8rem 2.8rem rgba(0, 0, 0, 0.76), -0.4rem 0 2.4rem rgba(72, 224, 58, 0.42);
+}
+.wx-cvfx-banner.is-theme-ink
+{
+	border-left-color: #a6b4e6;
+	border-top-color: rgba(196, 206, 240, 0.56);
+	border-bottom-color: rgba(120, 132, 172, 0.36);
+	box-shadow: 0 0.8rem 2.8rem rgba(0, 0, 0, 0.78), -0.4rem 0 2.2rem rgba(140, 154, 210, 0.38);
+}
+
+.wx-cvfx-banner.is-in
+{
+	-webkit-animation: wx-cvfx-banner-in 0.20s cubic-bezier(0.16, 1.0, 0.30, 1.0) forwards;
+	animation: wx-cvfx-banner-in 0.20s cubic-bezier(0.16, 1.0, 0.30, 1.0) forwards;
+}
+
+.wx-cvfx-banner.is-out
+{
+	-webkit-animation: wx-cvfx-banner-out 0.24s ease-in forwards;
+	animation: wx-cvfx-banner-out 0.24s ease-in forwards;
+}
+
+.wx-cvfx-banner-inner
+{
+	position: relative;
+	height: 100%;
+	padding: 0.6rem 3.2rem 0.6rem 1.0rem;
+	box-sizing: border-box;
+	-webkit-transform: skewX(9deg);
+	transform: skewX(9deg);
+	white-space: nowrap;
+}
+
+.wx-cvfx-portrait-box
+{
+	position: relative;
+	display: inline-block;
+	vertical-align: middle;
+	width: 5.8rem;
+	height: 5.8rem;
+	margin-right: 1.2rem;
+	overflow: hidden;
+	border: 0.14rem solid rgba(255, 224, 152, 0.62);
+	border-radius: 0.3rem;
+	background: radial-gradient(circle at 50% 42%, rgba(72, 60, 42, 0.85) 0%, rgba(14, 12, 10, 0.96) 78%);
+	box-shadow: 0 0 1.2rem rgba(0, 0, 0, 0.85) inset;
+}
+
+.wx-cvfx-portrait-box img
+{
+	position: absolute;
+	top: -0.6rem;
+	left: -0.9rem;
+	width: 7.6rem;
+	height: auto;
+}
+
+.wx-cvfx-text-col
+{
+	display: inline-block;
+	vertical-align: middle;
+	text-align: left;
+}
+
+.wx-cvfx-title
+{
+	font-family: 'WX_MingSerif', 'FreeUniversal-Bold', serif;
+	font-size: 2.5rem;
+	line-height: 3.0rem;
+	letter-spacing: 0.30rem;
+	color: #f4fbff;
+	text-shadow: 0 0.2rem 0.6rem #000000, 0 0 1.4rem rgba(88, 224, 255, 0.72);
+}
+
+.wx-cvfx-banner.is-theme-gold .wx-cvfx-title { color: #fff3c4; text-shadow: 0 0.2rem 0.6rem #000000, 0 0 1.5rem rgba(255, 196, 56, 0.78); }
+.wx-cvfx-banner.is-theme-fire .wx-cvfx-title { color: #ffe6c4; text-shadow: 0 0.2rem 0.6rem #000000, 0 0 1.5rem rgba(255, 92, 32, 0.84); }
+.wx-cvfx-banner.is-theme-violet .wx-cvfx-title { color: #f2e8ff; text-shadow: 0 0.2rem 0.6rem #000000, 0 0 1.6rem rgba(164, 96, 255, 0.88); }
+.wx-cvfx-banner.is-theme-celestial .wx-cvfx-title { color: #fff8dc; text-shadow: 0 0.2rem 0.6rem #000000, 0 0 1.6rem rgba(132, 224, 255, 0.84); }
+.wx-cvfx-banner.is-theme-crimson .wx-cvfx-title { color: #ffe2e6; text-shadow: 0 0.2rem 0.6rem #000000, 0 0 1.6rem rgba(255, 42, 68, 0.86); }
+.wx-cvfx-banner.is-theme-jade .wx-cvfx-title { color: #dcfff0; text-shadow: 0 0.2rem 0.6rem #000000, 0 0 1.5rem rgba(44, 232, 154, 0.80); }
+.wx-cvfx-banner.is-theme-frost .wx-cvfx-title { color: #eefbff; text-shadow: 0 0.2rem 0.6rem #000000, 0 0 1.6rem rgba(102, 220, 255, 0.86); }
+.wx-cvfx-banner.is-theme-venom .wx-cvfx-title { color: #e8ffd8; text-shadow: 0 0.2rem 0.6rem #000000, 0 0 1.6rem rgba(84, 232, 66, 0.82); }
+.wx-cvfx-banner.is-theme-ink .wx-cvfx-title { color: #eef2ff; text-shadow: 0 0.2rem 0.6rem #000000, 0 0 1.5rem rgba(160, 176, 235, 0.78); }
+
+.wx-cvfx-sub
+{
+	margin-top: 0.14rem;
+	font-size: 1.22rem;
+	letter-spacing: 0.14rem;
+	color: #c8bfa8;
+	text-shadow: 0 0.12rem 0.3rem #000000;
+}
+
+/* Vermilion Calligraphy Chop Seal (朱文印章) */
+.wx-cvfx-seal
+{
+	display: inline-block;
+	vertical-align: middle;
+	margin-left: 1.2rem;
+	padding: 0.26rem 0.50rem;
+	border: 0.16rem solid #d93626;
+	border-radius: 0.22rem;
+	background: rgba(124, 16, 12, 0.78);
+	color: #ffe3d8;
+	font-family: 'WX_MingSerif', serif;
+	font-size: 1.30rem;
+	font-weight: bold;
+	line-height: 1.45rem;
+	letter-spacing: 0.08rem;
+	box-shadow: 0 0 1.0rem rgba(217, 54, 38, 0.55);
+	-webkit-animation: wx-cvfx-seal-pop 0.26s cubic-bezier(0.18, 1.45, 0.32, 1.0) 0.06s both;
+	animation: wx-cvfx-seal-pop 0.26s cubic-bezier(0.18, 1.45, 0.32, 1.0) 0.06s both;
+}
+
+@-webkit-keyframes wx-cvfx-banner-in
+{
+	0%   { opacity: 0; -webkit-transform: translateX(-7.5rem) skewX(-9deg); }
+	100% { opacity: 1; -webkit-transform: translateX(0) skewX(-9deg); }
+}
+@keyframes wx-cvfx-banner-in
+{
+	0%   { opacity: 0; transform: translateX(-7.5rem) skewX(-9deg); }
+	100% { opacity: 1; transform: translateX(0) skewX(-9deg); }
+}
+
+@-webkit-keyframes wx-cvfx-banner-out
+{
+	0%   { opacity: 1; -webkit-transform: translateX(0) skewX(-9deg); }
+	100% { opacity: 0; -webkit-transform: translateX(3.8rem) skewX(-9deg); }
+}
+@keyframes wx-cvfx-banner-out
+{
+	0%   { opacity: 1; transform: translateX(0) skewX(-9deg); }
+	100% { opacity: 0; transform: translateX(3.8rem) skewX(-9deg); }
+}
+
+@-webkit-keyframes wx-cvfx-seal-pop
+{
+	0%   { opacity: 0; -webkit-transform: scale(1.9) rotate(-14deg); }
+	70%  { opacity: 1; -webkit-transform: scale(0.92) rotate(3deg); }
+	100% { opacity: 1; -webkit-transform: scale(1.0) rotate(-3deg); }
+}
+@keyframes wx-cvfx-seal-pop
+{
+	0%   { opacity: 0; transform: scale(1.9) rotate(-14deg); }
+	70%  { opacity: 1; transform: scale(0.92) rotate(3deg); }
+	100% { opacity: 1; transform: scale(1.0) rotate(-3deg); }
+}

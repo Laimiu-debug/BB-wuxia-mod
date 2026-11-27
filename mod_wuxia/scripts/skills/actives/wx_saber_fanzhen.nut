@@ -29,7 +29,28 @@ this.wx_saber_fanzhen <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		if (_skill == this)
 		{
-			local u = this.getContainer().getActor(); if (u != null && u.isPlacedOnMap() && u.getTile().hasNextTile(::Const.Direction.N)) { _properties.MeleeSkill += 10; _properties.DamageDirectAdd += 0.14; }
+			this.wxApplyTagPreHitProps(_targetEntity, _properties);
+			local u = this.getContainer().getActor();
+			if (u != null && ::Wuxia.isOnMap(u) && u.getTile() != null)
+			{
+				local ut = u.getTile();
+				local hasAlly = false;
+				for (local d = 0; d < 6; d = ++d)
+				{
+					if (!ut.hasNextTile(d)) continue;
+					local nt = ut.getNextTile(d);
+					if (nt != null && nt.IsOccupiedByActor && nt.getEntity() != null && nt.getEntity().isAlive() && u.isAlliedWith(nt.getEntity()))
+					{
+						hasAlly = true;
+						break;
+					}
+				}
+				if (hasAlly)
+				{
+					_properties.MeleeSkill += 12;
+					if ("Streams" in ::Wuxia) ::Wuxia.Streams.addCappedPen(_properties, 0.14);
+				}
+			}
 		}
 	}
 
@@ -38,6 +59,17 @@ this.wx_saber_fanzhen <- this.inherit("scripts/skills/actives/wx_move_base", {
 		local target = _targetTile.getEntity();
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, this.m.WX_VfxBrush);
 		local hit = this.attackEntity(_user, target);
+		if (hit && _targetTile != null && ("TileField" in ::Wuxia))
+		{
+			if (::Wuxia.TileField.hasField(_targetTile, "abyss_frost") || ::Wuxia.TileField.hasField(_targetTile, "drought_scorch"))
+			{
+				::Wuxia.TileField.removeField(_targetTile);
+				if (target != null && target.isAlive() && target.getHitpoints() > 13)
+					target.setHitpoints(target.getHitpoints() - 12);
+				::Wuxia.CombatRules.restoreQi(_user, 6);
+			}
+		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

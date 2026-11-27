@@ -56,9 +56,51 @@
 		});
 	};
 
-	// 2. Clean AP Micro-Label on Tactical Skill Slots (Qi cost & lineage shown in tooltip)
+	// 2. Clean AP·Qi Micro-Label, Lineage Accent & Hotkey/Wheel Paging on Tactical Skill Slots
 	var skillsPerPage = 9;
+	var activeTurnBarRef = null;
+	var keybound = false;
+
+	function ensurePagerInputBindings(bar) {
+		activeTurnBarRef = bar;
+		if (bar && bar.mSkillsContainer && !bar.mWXWheelBound) {
+			bar.mWXWheelBound = true;
+			bar.mSkillsContainer.on('mousewheel DOMMouseScroll', function (_evt) {
+				var slots = bar.mSkillsContainer.children('.l-skill');
+				var pages = Math.ceil(slots.length / skillsPerPage);
+				if (pages <= 1) return;
+				var oe = _evt.originalEvent;
+				var delta = oe ? (oe.wheelDelta || -oe.detail || 0) : 0;
+				var dir = delta < 0 ? 1 : -1;
+				showSkillPage(bar, ((bar.mWXSkillPage || 0) + dir + pages) % pages);
+				_evt.preventDefault();
+				_evt.stopPropagation();
+				return false;
+			});
+		}
+		if (!keybound) {
+			keybound = true;
+			$(document).on('keydown.wxSkillPager', function (_e) {
+				if (!activeTurnBarRef || !activeTurnBarRef.mSkillsContainer || !activeTurnBarRef.mSkillsContainer.is(':visible')) return;
+				var tag = (_e.target && _e.target.tagName) ? _e.target.tagName.toUpperCase() : '';
+				if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+				// Backtick (`) or [ / ] cycles active martial skill bar pages!
+				if (_e.keyCode === 192 || _e.keyCode === 219 || _e.keyCode === 221) {
+					var slots = activeTurnBarRef.mSkillsContainer.children('.l-skill');
+					var pages = Math.ceil(slots.length / skillsPerPage);
+					if (pages > 1) {
+						var step = (_e.keyCode === 219) ? -1 : 1;
+						showSkillPage(activeTurnBarRef, ((activeTurnBarRef.mWXSkillPage || 0) + step + pages) % pages);
+						_e.stopPropagation();
+						return false;
+					}
+				}
+			});
+		}
+	}
+
 	function showSkillPage(bar, page) {
+		ensurePagerInputBindings(bar);
 		var slots = bar.mSkillsContainer.children('.l-skill');
 		var pages = Math.ceil(slots.length / skillsPerPage);
 		var pager = bar.mSkillsContainer.children('.wx-skill-page');
@@ -71,10 +113,10 @@
 			return;
 		}
 		if (!pager.length) {
-			pager = $('<button type="button" class="wx-skill-page" title="切换招式页"></button>').appendTo(bar.mSkillsContainer);
+			pager = $('<button type="button" class="wx-skill-page" title="切换招式页（快捷键 ` 或 [ ]，亦可在技能栏滚轮翻页）"></button>').appendTo(bar.mSkillsContainer);
 			pager.on('click', function () { showSkillPage(bar, (bar.mWXSkillPage + 1) % pages); });
 		}
-		pager.text('换页 ' + (bar.mWXSkillPage + 1) + '/' + pages);
+		pager.text('换页[`] ' + (bar.mWXSkillPage + 1) + '/' + pages);
 	}
 
 	if (TacticalScreenTurnSequenceBarModule.prototype.addSkillToList) {
@@ -94,10 +136,20 @@
 				skillLayout.css({ left: pos.left, bottom: pos.bottom });
 			}
 
-			if (typeof _skill.wxAp === 'number' && _skill.wxAp > 0) {
-				var skillBox = skillLayout.children('.skill:first');
-				if (skillBox.length && !skillBox.children('.wx-tac-skill-cost').length) {
-					skillBox.append('<div class="wx-tac-skill-cost">' + String(_skill.wxAp) + '</div>');
+			var skillBox = skillLayout.children('.skill:first');
+			if (skillBox.length) {
+				if (_skill.wxLineage && _skill.wxLineage !== 'basic') {
+					skillBox.addClass('wx-lin-' + _skill.wxLineage);
+				}
+				if (typeof _skill.wxAp === 'number' && _skill.wxAp > 0 && !skillBox.children('.wx-tac-skill-cost').length) {
+					var lackAp = (typeof _skill.wxAvailAp === 'number') && (_skill.wxAvailAp < _skill.wxAp);
+					var lackQi = (typeof _skill.wxQi === 'number' && _skill.wxQi > 0 && typeof _skill.wxAvailQi === 'number') && (_skill.wxAvailQi < _skill.wxQi);
+					var apCls = lackAp ? ' is-lack' : '';
+					var qiHtml = '';
+					if (_skill.wxLineage && _skill.wxLineage !== 'basic' && typeof _skill.wxQi === 'number' && _skill.wxQi > 0) {
+						qiHtml = '<span class="wx-qi-sub' + (lackQi ? ' is-lack' : '') + '">·' + String(_skill.wxQi) + '</span>';
+					}
+					skillBox.append('<div class="wx-tac-skill-cost' + apCls + '">' + String(_skill.wxAp) + qiHtml + '</div>');
 				}
 			}
 		};

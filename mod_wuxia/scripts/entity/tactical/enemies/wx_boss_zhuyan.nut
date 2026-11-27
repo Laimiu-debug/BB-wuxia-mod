@@ -11,6 +11,8 @@ this.wx_boss_zhuyan <- this.inherit("scripts/entity/tactical/enemies/unhold_fros
 
 	function onDeath( _killer, _skill, _tile, _fatalityType )
 	{
+		if ("ShanHaiMultiBody" in ::Wuxia)
+			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.unhold_frost_armored.onDeath(_killer, _skill, _tile, _fatalityType);
 		::Wuxia.ShanHai.dropBossCore("boss_zhuyan", _tile);
 	}

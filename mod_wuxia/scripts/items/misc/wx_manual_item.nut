@@ -62,15 +62,15 @@ this.wx_manual_item <- this.inherit("scripts/items/item", {
 			local ownStatus = "";
 			if (own.bookCount <= 0 && own.learnedCount <= 0)
 			{
-				ownStatus = "[color=" + ::Const.UI.Color.PositiveValue + "]【未收录新篇】藏经阁暂无存书 · 队内尚无人领悟[/color]";
+				ownStatus = "[color=#0b4a1e][b]【未收录新篇】[/b][/color]藏经阁暂无存书 · 队内尚无人领悟";
 			}
 			else
 			{
-				ownStatus = "藏经阁存书：" + own.bookCount + " 册｜队内已领悟：" + own.learnedCount + " 人";
+				ownStatus = "[color=#5e2c00][b]藏经阁存书：" + own.bookCount + " 册[/b][/color]｜队内已领悟：[color=#0b4a1e][b]" + own.learnedCount + "[/b][/color] 人";
 			}
 			if (own.pageCount > 0 && own.fragmentsNeeded > 0)
 			{
-				ownStatus += "（另存残页 " + own.pageCount + "/" + own.fragmentsNeeded + " 张）";
+				ownStatus += "（另存残页 [color=#153e6e][b]" + own.pageCount + "/" + own.fragmentsNeeded + "[/b][/color] 张）";
 			}
 			ret.push({
 				id = 17,
@@ -92,23 +92,25 @@ this.wx_manual_item <- this.inherit("scripts/items/item", {
 					id = 18,
 					type = "text",
 					icon = "ui/icons/melee_skill.png",
-					text = "适配兵刃：" + wStr
+					text = "[color=#3a3052][b]适配兵刃：[/b][/color][color=#6e3400][b]" + wStr + "[/b][/color]"
 				});
 			}
+			local tierCols = ["#3a3052", "#0b4a1e", "#7c1414"];
 			for (local i = 0; i < def.Levels.len(); i = ++i)
 			{
+				local tCol = (i < tierCols.len()) ? tierCols[i] : "#5e2c00";
 				ret.push({
 					id = 20 + i,
 					type = "text",
 					icon = "ui/icons/special.png",
-					text = ::Wuxia.Text.TierNames[i + 1] + "：" + def.Levels[i].Summary
+					text = "[color=" + tCol + "][b]" + ::Wuxia.Text.TierNames[i + 1] + "：[/b][/color]" + def.Levels[i].Summary
 				});
 			}
 			ret.push({
 				id = 30,
 				type = "text",
 				icon = "ui/icons/xp_received.png",
-				text = "[color=" + ::Const.UI.Color.PositiveValue + "]用法：右键直接消耗并让当前角色领悟此武学，在「武学修为」页选装入槽；亦可归入「藏经阁」不占仓库格存放。[/color]"
+				text = "[color=#094a44][b]用法：[/b][/color]右键直接消耗并让当前角色领悟此武学，在「武学修为」页选装入槽；亦可归入「藏经阁」不占仓库格存放。"
 			});
 		}
 		return ret;

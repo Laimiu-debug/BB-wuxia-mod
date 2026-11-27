@@ -15,11 +15,15 @@ this.wx_flail_liuxing <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.WX_AnimID <- "wx_anim_136";
 		this.m.WX_AnimMode <- "flurry_liuxing";
 		this.m.WX_ChoreoID <- "wx_flail_liuxing";
-		this.m.SoundOnUse = ["sounds/combat/slash_01.wav", "sounds/combat/slash_02.wav"];
+		this.m.SoundOnUse = ["sounds/combat/flail_01.wav", "sounds/combat/flail_02.wav"];
+		this.m.SoundOnHit = ["sounds/combat/flail_hit_01.wav", "sounds/combat/flail_hit_02.wav"];
+		this.m.IsShieldRelevant = false;
 		this.m.ActionPointCost = 5;
 		this.m.FatigueCost = 20;
 		this.m.MinRange = 1;
 		this.m.MaxRange = 1;
+		this.m.InjuriesOnBody = this.Const.Injury.BluntBody;
+		this.m.InjuriesOnHead = this.Const.Injury.BluntHead;
 		this.m.RequiredWeaponTypes = ["Flail"];
 		this.m.DirectDamageMult = 0.32;
 	}
@@ -27,7 +31,9 @@ this.wx_flail_liuxing <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		if (_skill == this)
 		{
-			_properties.MeleeSkill += 6; _properties.DamageTotalMult *= 1.18; _properties.DamageArmorMult *= 1.22; _properties.IsIgnoringShieldBonus = true;
+			_properties.MeleeSkill += 6;
+			_properties.DamageTotalMult *= 1.18;
+			_properties.DamageArmorMult *= 1.22;
 		}
 	}
 

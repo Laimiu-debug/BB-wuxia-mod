@@ -16,6 +16,7 @@ this.wx_rally_command <- this.inherit("scripts/skills/actives/rally_the_troops",
 		this.m.Icon = "skills/wx_rally_command.png";
 		this.m.IconDisabled = "skills/wx_rally_command_sw.png";
 		this.m.Overlay = "wx_ov_wx_rally_command";
+		this.m.SoundOnUse = ["sounds/combat/spearwall_02.wav", "sounds/combat/shield_hit_metal_01.wav"];
 		this.m.ActionPointCost = 5;
 		this.m.FatigueCost = 25;
 	}
@@ -28,6 +29,8 @@ this.wx_rally_command <- this.inherit("scripts/skills/actives/rally_the_troops",
 	function onUse( _user, _targetTile )
 	{
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
+		if (::Wuxia.isOnMap(_user) && ("TileField" in ::Wuxia))
+			::Wuxia.TileField.dispelFieldsInRadius(_user.getTile(), 3, ["mirage_mist"]);
 		local c = _user.getSkills().getSkillByID("special.wx_martial_container");
 		local bonus = (c != null && c.m.CachedAggFlags != null) ? c.m.CachedAggFlags.RallyBonus : 0;
 		if (bonus <= 0)

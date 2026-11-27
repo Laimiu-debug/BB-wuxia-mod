@@ -31,6 +31,8 @@ this.wx_tactics_shihou <- this.inherit("scripts/skills/skill", {
 		this.m.Cooldown = 2;
 		local myTile = _user.getTile();
 		::Wuxia.VFX.playSkillVfx(this, _user, myTile, this.m.WX_VfxBrush);
+		if (myTile != null && ("TileField" in ::Wuxia))
+			::Wuxia.TileField.dispelFieldsInRadius(myTile, 3, ["mirage_mist"]);
 		local pen = -8 - ::Math.floor(_user.getBravery() * 0.12);
 		foreach (ent in ::Tactical.Entities.getAllInstancesAsArray())
 		{

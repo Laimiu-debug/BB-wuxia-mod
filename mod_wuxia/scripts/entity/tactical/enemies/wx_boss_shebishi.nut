@@ -11,6 +11,8 @@ this.wx_boss_shebishi <- this.inherit("scripts/entity/tactical/enemies/zombie_bo
 
 	function onDeath( _killer, _skill, _tile, _fatalityType )
 	{
+		if ("ShanHaiMultiBody" in ::Wuxia)
+			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.zombie_boss.onDeath(_killer, _skill, _tile, _fatalityType);
 		::Wuxia.ShanHai.dropBossCore("boss_shebishi", _tile);
 	}

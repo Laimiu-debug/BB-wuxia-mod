@@ -63,6 +63,7 @@ this.wx_page_item <- this.inherit("scripts/items/item", {
 		{
 			local qName = (def.Quality in ::Wuxia.Text.Qualities) ? ::Wuxia.Text.Qualities[def.Quality] : def.Quality;
 			local cName = (def.Category in ::Wuxia.Text.Categories) ? ::Wuxia.Text.Categories[def.Category] : def.Category;
+			local qCol = ("UI" in ::Wuxia && "getQualityTooltipColor" in ::Wuxia.UI) ? ::Wuxia.UI.getQualityTooltipColor(def.Quality) : "#5e2c00";
 			local req = ::Math.max(1, def.FragmentsNeeded);
 			local own = ::Wuxia.Library.getOwnershipSummary(this.m.ManualID);
 			local combinedPages = own.pageCount + this.m.PageCount;
@@ -70,31 +71,31 @@ this.wx_page_item <- this.inherit("scripts/items/item", {
 				id = 15,
 				type = "text",
 				icon = "ui/icons/relations.png",
-				text = "藏经阁现存：整本 " + own.bookCount + " 册 · 同名残页 " + own.pageCount + "/" + req + " 张（入阁后共 " + combinedPages + "/" + req + " 张）｜队内已习 " + own.learnedCount + " 人"
+				text = "[color=#3a3052][b]藏经阁现存：[/b][/color]整本 [color=#5e2c00][b]" + own.bookCount + "[/b][/color] 册 · 同名残页 [color=#153e6e][b]" + own.pageCount + "/" + req + "[/b][/color] 张（入阁后共 [color=#0b4a1e][b]" + combinedPages + "/" + req + "[/b][/color] 张）｜队内已习 [color=#0b4a1e][b]" + own.learnedCount + "[/b][/color] 人"
 			});
 			ret.push({
 				id = 16,
 				type = "text",
 				icon = "ui/icons/special.png",
-				text = "所属典籍：【" + qName + " · " + cName + "】《" + def.Name + "》（本叠 " + this.m.PageCount + " / 成书需 " + req + " 张）"
+				text = "[color=#3a3052][b]所属典籍：[/b][/color][color=" + qCol + "][b]【" + qName + " · " + cName + "】《" + def.Name + "》[/b][/color]（本叠 [color=#153e6e][b]" + this.m.PageCount + " / " + req + "[/b][/color] 张）"
 			});
 			ret.push({
 				id = 17,
 				type = "text",
 				icon = "ui/icons/xp_received.png",
-				text = "参悟化功：拖入未满重插槽可注入 +" + ::Wuxia.Mastery.getPageBaseExp(def.Quality) + " 火候（同脉 +25%，同名 +50%）"
+				text = "[color=#5e2c00][b]参悟化功：[/b][/color]拖入未满重插槽可注入 [color=#0b4a1e][b]+" + ::Wuxia.Mastery.getPageBaseExp(def.Quality) + "[/b][/color] 火候（同脉 [color=#0b4a1e]+25%[/color]，同名 [color=#5e2c00]+50%[/color]）"
 			});
 			ret.push({
 				id = 20,
 				type = "text",
 				icon = "ui/icons/regular_damage.png",
-				text = "一重预览：" + def.Levels[0].Summary
+				text = "[color=#3a3052][b]一重预览：[/b][/color]" + def.Levels[0].Summary
 			});
 			ret.push({
 				id = 21,
 				type = "text",
 				icon = "ui/icons/direct_damage.png",
-				text = "大成预览：" + def.Levels[def.Levels.len() - 1].Summary
+				text = "[color=#7c1414][b]大成预览：[/b][/color]" + def.Levels[def.Levels.len() - 1].Summary
 			});
 		}
 		return ret;

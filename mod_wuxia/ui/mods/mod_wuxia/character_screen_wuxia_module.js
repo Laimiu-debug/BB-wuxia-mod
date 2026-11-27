@@ -37,6 +37,15 @@
 	var wxGlobalToastTimer = null;
 	function wxShowGlobalToast(_msg, _isError) {
 		if (!_msg) return;
+		if (window.WX_Showcase && window.WX_Showcase.plaque) {
+			window.WX_Showcase.plaque({
+				title: _isError ? '未能成行' : '武学传讯',
+				message: _msg,
+				icon: _isError ? 'ui/wx_icons/wx_seal_cinnabar.png' : 'ui/wx_icons/wx_icon_qi.png',
+				isError: !!_isError
+			});
+			return;
+		}
 		var host = $('.character-screen-container:first');
 		if (!host.length) return;
 		var box = host.children('.wx-global-toast');
@@ -151,6 +160,7 @@
 			}
 		});
 		$(document).on('keydown.wxScreenModal', function (_e) {
+			if ($('.wx-fx-backdrop').length > 0) return;
 			if (_e.keyCode === 27) {
 				wxCloseScreenModal();
 				_e.stopPropagation();
@@ -190,7 +200,11 @@
 				_callback(_data);
 			}
 			if (_data && typeof _data === 'object' && ('wxManualNotice' in _data) && _data.wxManualNotice) {
-				wxShowGlobalToast(_data.wxManualNotice.message, !_data.wxManualNotice.ok);
+				if (_data.wxManualNotice.wxShowcase && window.WX_Showcase) {
+					window.WX_Showcase.play(_data.wxManualNotice.wxShowcase, { sqHandle: ds.mSQHandle });
+				} else {
+					wxShowGlobalToast(_data.wxManualNotice.message, !_data.wxManualNotice.ok);
+				}
 				if (ds.mWXOnExternalStateChanged) {
 					ds.mWXOnExternalStateChanged();
 				}
@@ -360,6 +374,18 @@
 	CharacterScreenDatasource.prototype.notifyBackendWXGetSectRelations = function (_callback) {
 		if (this.mSQHandle !== null) {
 			SQ.call(this.mSQHandle, 'onWXGetSectRelations', null, _callback);
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXSavePreset = function (_entityId, _presetIdx, _label, _callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXSavePreset', [_entityId, _presetIdx, _label || ''], _callback);
+		}
+	};
+
+	CharacterScreenDatasource.prototype.notifyBackendWXApplyPreset = function (_entityId, _presetIdx, _confirmed, _callback) {
+		if (this.mSQHandle !== null) {
+			SQ.call(this.mSQHandle, 'onWXApplyPreset', [_entityId, _presetIdx, _confirmed ? true : false], _callback);
 		}
 	};
 
@@ -632,8 +658,8 @@
 				'<input type="text" class="wx-vinput" data-lib="search" placeholder="搜秘籍" />' +
 				'<span class="wx-r">' +
 					'<span class="wx-vb wx-vb2 is-dis" data-lib="craft-all" style="width:9.0rem;margin-right:0.25rem;" title="一键拼合已凑齐残页">拼合</span>' +
-					'<span class="wx-vb wx-vb3" data-lib="open-alc" style="margin-right:0.25rem;" title="丹经与药柜录（只读查阅；开炉炼丹、神兵重锻与存取奇材请赴城镇百工丹坊）"><img src="coui://gfx/ui/wx_icons/wx_glyph_herb_cabinet.png" alt=""/></span>' +
-					'<span class="wx-vb wx-vb3" data-lib="open-sects" title="江湖宗门名刺录（只读查阅；结交请教请赴迎客酒肆茶座或独立山门）"><img src="coui://gfx/ui/wx_icons/wx_glyph_sect_token.png" alt=""/></span>' +
+					'<span class="wx-vb wx-vb3" data-lib="open-alc" style="margin-right:0.25rem;" title="丹经与药柜录（随身翻阅；开炉炼丹、神兵重锻与存取奇材请赴城镇百工丹坊）"><img src="coui://gfx/ui/wx_icons/wx_glyph_herb_cabinet.png" alt=""/></span>' +
+					'<span class="wx-vb wx-vb3" data-lib="open-sects" title="江湖宗门名刺录（随身翻阅；结交请教请赴迎客酒肆茶座或独立山门）"><img src="coui://gfx/ui/wx_icons/wx_glyph_sect_token.png" alt=""/></span>' +
 				'</span>' +
 			'</div>'
 		);
@@ -1476,7 +1502,17 @@
 	};
 
 	CharacterScreenPerksModule.prototype.wxShowToast = function (_msg, _isError) {
-		if (!this.mWXToast || !_msg) return;
+		if (!_msg) return;
+		if (window.WX_Showcase && window.WX_Showcase.plaque) {
+			window.WX_Showcase.plaque({
+				title: _isError ? '武学提示' : '武学修为',
+				message: _msg,
+				icon: _isError ? 'ui/wx_icons/wx_seal_cinnabar.png' : 'ui/wx_icons/wx_icon_qi.png',
+				isError: !!_isError
+			});
+			return;
+		}
+		if (!this.mWXToast) return;
 		var toast = this.mWXToast;
 		if (this.mWXToastTimer) clearTimeout(this.mWXToastTimer);
 		toast.removeClass('is-error is-ok').addClass(_isError ? 'is-error' : 'is-ok');
@@ -1650,6 +1686,120 @@
 		return cnt;
 	};
 
+	CharacterScreenPerksModule.prototype.wxDispatchShowcase = function (_sc) {
+		if (!_sc || !window.WX_Showcase) return false;
+		var sqH = (this.mDataSource && this.mDataSource.mSQHandle) ? this.mDataSource.mSQHandle : null;
+		var k = _sc.kind || '';
+
+		if (k === 'infuse') {
+			var targetCol = (this.mWXMeridian && typeof _sc.slotIndex === 'number')
+				? this.mWXMeridian.find('[data-slot-idx="' + _sc.slotIndex + '"] .wx-disc')
+				: null;
+			var rawRes = _sc.resonance ? String(_sc.resonance) : '';
+			if (rawRes.length >= 1 && (rawRes.charAt(0) === '（' || rawRes.charAt(0) === '(')) {
+				rawRes = rawRes.substring(1);
+			}
+			if (rawRes.length >= 1 && (rawRes.charAt(rawRes.length - 1) === '）' || rawRes.charAt(rawRes.length - 1) === ')')) {
+				rawRes = rawRes.substring(0, rawRes.length - 1);
+			}
+			var subChip = rawRes || (_sc.blockedByReq ? '火候已满 · 待破门槛' : '');
+			if (targetCol && targetCol.length && window.WX_Showcase.infuseSlotFx) {
+				window.WX_Showcase.infuseSlotFx(targetCol, {
+					theme: 'gold',
+					sourceIcon: _sc.sourceIcon || 'ui/wx_icons/wx_icon_qi.png',
+					expAmount: _sc.expAmount || 0,
+					floatText: '+' + (_sc.expAmount || 0) + ' 火候',
+					subChip: subChip,
+					sqHandle: sqH,
+					soundCue: 'cultivate_infuse'
+				});
+			} else {
+				window.WX_Showcase.plaque({
+					title: '灌注火候 · 《' + (_sc.manualName || '武学') + '》',
+					message: _sc.message || ('火候 +' + (_sc.expAmount || 0)),
+					icon: _sc.sourceIcon || 'ui/wx_icons/wx_icon_qi.png',
+					theme: 'gold'
+				});
+			}
+			return true;
+		}
+		if (k === 'consume_pill') {
+			var pillTarget = $('.character-screen-container .l-portrait-container:first');
+			if (!pillTarget.length) pillTarget = this.mWXHeader || this.mWXRoot;
+			var pillChips = ['服食「' + (_sc.pillName || '灵丹') + '」'];
+			if (_sc.effectLabel) {
+				pillChips.push(_sc.effectLabel);
+			} else if (_sc.message) {
+				var shortM = String(_sc.message);
+				if (shortM.length > 26) shortM = shortM.substring(0, 25) + '…';
+				pillChips.push(shortM);
+			}
+			if (window.WX_Showcase.flyPillToTarget) {
+				window.WX_Showcase.flyPillToTarget(pillTarget, {
+					theme: 'jade',
+					pillIcon: _sc.pillIcon || 'ui/wx_icons/wx_asset_medicine.png',
+					chips: pillChips,
+					sqHandle: sqH,
+					soundCue: 'pill_drink'
+				});
+			} else {
+				window.WX_Showcase.pulseElement(pillTarget, {
+					theme: 'jade',
+					icon: _sc.pillIcon || 'ui/wx_icons/wx_asset_medicine.png',
+					floatText: pillChips[0],
+					sqHandle: sqH,
+					soundCue: 'pill_drink'
+				});
+			}
+			return true;
+		}
+		if (k === 'sweep_vault') {
+			var vaultBtn = this.mWXRoot ? this.mWXRoot.find('[data-wx-act="store-all"], .wx-tab-btn.is-active').first() : this.mWXHeader;
+			if (window.WX_Showcase.sweepFx) {
+				window.WX_Showcase.sweepFx(vaultBtn && vaultBtn.length ? vaultBtn : (this.mWXHeader || this.mWXRoot), {
+					theme: 'gold',
+					icon: 'ui/items/misc/wx_book_waigong_sect.png',
+					floatText: _sc.floatText || '典籍已归入藏经阁',
+					sqHandle: sqH,
+					soundCue: 'sweep_whoosh'
+				});
+				return true;
+			}
+			return false;
+		}
+		if (k === 'slot_change' || k === 'slot_unequip') {
+			var isUn = (k === 'slot_unequip');
+			var sDisc = (this.mWXMeridian && typeof _sc.slotIndex === 'number')
+				? this.mWXMeridian.find('[data-slot-idx="' + _sc.slotIndex + '"] .wx-disc')
+				: null;
+			if (sDisc && sDisc.length && window.WX_Showcase.sweepFx) {
+				window.WX_Showcase.sweepFx(sDisc, {
+					theme: isUn ? 'crimson' : 'gold',
+					icon: _sc.icon || 'ui/wx_icons/wx_icon_qi.png',
+					floatText: isUn ? '卸功调息' : (_sc.isOverwrite ? '换功入槽' : '功法入槽'),
+					sqHandle: sqH,
+					soundCue: 'manual_learn'
+				});
+			} else {
+				window.WX_Showcase.plaque({
+					title: isUn ? '卸下武学' : '运转武学穴位',
+					message: _sc.message || '',
+					icon: _sc.icon || 'ui/wx_icons/wx_icon_qi.png',
+					isError: isUn
+				});
+			}
+			return true;
+		}
+
+		// Tier-1 Full Ritual & Item Reveal (`breakthrough`, `wash`, `craft_manual`, `learn_manual`, etc.)
+		if (typeof _sc.slotIndex === 'number' && _sc.slotIndex >= 0 && this.mWXMeridian) {
+			window.WX_Showcase.pulseElement(this.mWXMeridian.find('[data-slot-idx="' + _sc.slotIndex + '"] .wx-disc'), {
+				theme: 'gold'
+			});
+		}
+		return window.WX_Showcase.play(_sc, { sqHandle: sqH });
+	};
+
 	CharacterScreenPerksModule.prototype.wxApplyBackendState = function (_res) {
 		if (!_res) return;
 		if (_res.ok) {
@@ -1660,6 +1810,9 @@
 				this.mParent.mHeaderModule.wxUpdateTabLabels(_res.brother, _res.library ? _res.library.summary : null);
 			}
 			this.wxRenderAll();
+			if (_res.wxShowcase && this.wxDispatchShowcase(_res.wxShowcase)) {
+				return;
+			}
 			if (_res.actionMessage) {
 				this.wxShowToast(_res.actionMessage, !!(_res.washResult && !_res.washResult.Succeeded));
 			}
@@ -1722,12 +1875,24 @@
 		}
 
 		h += '<span class="wx-r">' +
-				'<span class="wx-vb wx-vb3" data-wx="open-alc" style="margin-right:0.25rem;" title="丹经与药柜录（只读查阅；开炉炼丹、神兵重锻与存取奇材请赴城镇百工丹坊）"><img src="coui://gfx/ui/wx_icons/wx_glyph_herb_cabinet.png" alt=""/></span>' +
-				'<span class="wx-vb wx-vb3" data-wx="open-sects" style="margin-right:0.3rem;" title="江湖宗门名刺录（只读查阅；结交请教请赴迎客酒肆茶座或独立山门）"><img src="coui://gfx/ui/wx_icons/wx_glyph_sect_token.png" alt=""/></span>' +
+				'<span class="wx-vb wx-vb2" data-wx="open-presets" style="width:5.4rem;margin-right:0.25rem;" title="保存或一键切换该侠客的三套武学配槽方案（常规 / 诛邪 / 猎妖）">配槽</span>' +
+				'<span class="wx-vb wx-vb3" data-wx="open-alc" style="margin-right:0.22rem;" title="丹经与药柜录（随身翻阅；开炉炼丹、神兵重锻与存取奇材请赴城镇百工丹坊）"><img src="coui://gfx/ui/wx_icons/wx_glyph_herb_cabinet.png" alt=""/></span>' +
+				'<span class="wx-vb wx-vb3" data-wx="open-sects" style="margin-right:0.22rem;" title="江湖宗门名刺录（随身翻阅；结交请教请赴迎客酒肆茶座或独立山门）"><img src="coui://gfx/ui/wx_icons/wx_glyph_sect_token.png" alt=""/></span>' +
+				'<span class="wx-vb wx-vb3" data-wx="open-cfg" style="margin-right:0.26rem;" title="江湖机枢设置（开关气芒特效、武侠音效、特写演出、快速结算与动态江湖演进）"><img class="is-flat" src="coui://gfx/ui/icons/unlocked_small.png" alt=""/></span>' +
 				'<span class="wx-vb wx-vb1" data-wx="open-wash">洗经伐髓' + (totalWash > 0 ? ('<span class="wx-cnt">' + totalWash + '</span>') : '') + '</span>' +
 			'</span>';
 
 		this.mWXHeader.html(h);
+
+		this.mWXHeader.find('[data-wx="open-presets"]').on('click', function () {
+			self.wxOpenPresetsModal();
+		});
+
+		this.mWXHeader.find('[data-wx="open-cfg"]').on('click', function () {
+			if (window.WX_OpenModSettings && self.mDataSource && self.mDataSource.mSQHandle !== null) {
+				window.WX_OpenModSettings(self.mDataSource.mSQHandle, self.mDataSource);
+			}
+		});
 
 		this.mWXHeader.find('[data-wx="heal-int"]').on('click', function () {
 			var huxin = self.wxFindQuickHealPill(['heal_internal']);
@@ -1854,7 +2019,7 @@
 				}
 
 				var col = $(
-					'<div class="' + cls + '" style="left:' + (_idx * (colW + gap)).toFixed(2) + 'rem;">' +
+					'<div class="' + cls + '" data-slot-idx="' + _idx + '" style="left:' + (_idx * (colW + gap)).toFixed(2) + 'rem;">' +
 						'<div class="wx-role">' + (shortLabels[_idx] || _s.slotLabel) + '</div>' +
 						'<div class="wx-disc">' + discHtml + '</div>' +
 						'<div class="wx-tier">' + tierHtml + '</div>' +
@@ -2834,8 +2999,12 @@
 						self.mDataSource.wxApplyVanillaSync(_res);
 						self.mWXState = _res;
 						self.wxRenderAll();
-						var okRoll = _res.washResult && _res.washResult.Succeeded;
-						self.wxShowToast(_res.actionMessage, !okRoll);
+						if (_res.wxShowcase && window.WX_Showcase) {
+							window.WX_Showcase.play(_res.wxShowcase, { sqHandle: self.mDataSource.mSQHandle });
+						} else {
+							var okRoll = _res.washResult && _res.washResult.Succeeded;
+							self.wxShowToast(_res.actionMessage, !okRoll);
+						}
 					} else {
 						self.wxShowToast((_res && _res.reason) ? _res.reason : '洗经伐髓未能执行。', true);
 					}
@@ -2885,5 +3054,78 @@
 				execBtn.toggleClass('is-dis', !hasCost);
 			}
 		);
+	};
+
+	CharacterScreenPerksModule.prototype.wxOpenPresetsModal = function () {
+		if (!this.mWXState || !this.mWXState.brother) return;
+		var self = this;
+		var bro = this.mWXState.brother;
+		var presets = bro.loadoutPresets || [];
+		var cnIdx = ['壹', '贰', '叁'];
+		var hasGrace = !!bro.hasWangchenGrace;
+
+		var rowsHtml = '';
+		for (var i = 0; i < 3; i++) {
+			var p = presets[i] || { index: i, label: '方案' + cnIdx[i], saved: false, count: 0, manualNames: [] };
+			var summary = p.saved && p.manualNames && p.manualNames.length > 0
+				? ('已存 ' + p.count + ' 门：《' + wxEscapeHtml(p.manualNames.join('》《')) + '》')
+				: '尚未存入配槽记录（点击右侧「存入当前」即可记录 7 穴功法）';
+			rowsHtml +=
+				'<div class="wx-pick" style="height:auto;min-height:6.4rem;padding:0.85rem 16.2rem 0.85rem 1.4rem;cursor:default;">' +
+					'<div style="color:#dda21f;font-size:1.55rem;">【方案' + cnIdx[i] + ' · ' + wxEscapeHtml(p.label) + '】</div>' +
+					'<div style="color:#bd9d71;font-size:1.26rem;line-height:1.75rem;margin-top:0.2rem;">' + summary + '</div>' +
+					'<div style="position:absolute;right:1.0rem;top:1.25rem;white-space:nowrap;">' +
+						'<span class="wx-vb wx-vb2" data-preset-save="' + i + '" style="width:6.8rem;margin-right:0.3rem;">存入当前</span>' +
+						'<span class="wx-vb wx-vb1' + (p.saved ? '' : ' is-dis') + '" data-preset-apply="' + i + '" style="width:6.8rem;">一键换装</span>' +
+					'</div>' +
+				'</div>';
+		}
+
+		var graceNote = hasGrace
+			? '<div style="color:#66d6cc;font-size:1.28rem;margin-bottom:0.65rem;">✦ 当前身怀【归元护脉】药力，本次切换整套配槽可免除散功调息期！</div>'
+			: '<div style="color:#a08860;font-size:1.25rem;margin-bottom:0.65rem;">提示：切换方案仅从角色「已习武学」库中调配，所有卸下功法的重数与火候 100% 保留；提前服食《忘尘归元散》可零虚弱换装。</div>';
+
+		var box = $(
+			'<div class="wx-popup" style="width:58.0rem;margin-top:13.5rem;">' +
+				'<div class="wx-ph">武学配槽方案 · ' + wxEscapeHtml(bro.name) + '</div>' +
+				'<div class="wx-pb">' + graceNote + rowsHtml + '<div data-wx="preset-confirm" style="margin-top:0.6rem;"></div></div>' +
+				'<div class="wx-pf"><span class="wx-vb wx-vb2" data-wx-close="1" style="width:10.0rem;">关闭</span></div>' +
+			'</div>'
+		);
+
+		box.find('[data-preset-save]').on('click', function () {
+			var idx = parseInt($(this).attr('data-preset-save'), 10);
+			self.mDataSource.notifyBackendWXSavePreset(self.mWXCurrentEntityId, idx, '', function (_res) {
+				self.wxCloseModal();
+				self.wxApplyBackendState(_res);
+			});
+		});
+
+		box.find('[data-preset-apply]').on('click', function () {
+			if ($(this).hasClass('is-dis')) return;
+			var idx = parseInt($(this).attr('data-preset-apply'), 10);
+			self.mDataSource.notifyBackendWXApplyPreset(self.mWXCurrentEntityId, idx, false, function (_res) {
+				if (_res && _res.needsConfirm) {
+					var cf = box.find('[data-wx="preset-confirm"]');
+					cf.html(
+						'<div style="padding:0.75rem 1.0rem;background:rgba(120,32,20,0.45);border:0.1rem solid #c9583b;">' +
+							'切换至【' + wxEscapeHtml(_res.presetLabel) + '】将调整 ' + _res.changedCount + ' 处穴位，原功法重数完整保留，但角色将进入 <b style="color:#ffd08a;">' + _res.penaltyDays + ' 天</b>散功调息。是否确认？' +
+							'<span class="wx-vb wx-vb1" data-preset-confirm-yes="' + idx + '" style="width:7.6rem;margin-left:0.8rem;">确认换装</span>' +
+						'</div>'
+					);
+					cf.find('[data-preset-confirm-yes]').on('click', function () {
+						self.mDataSource.notifyBackendWXApplyPreset(self.mWXCurrentEntityId, idx, true, function (_res2) {
+							self.wxCloseModal();
+							self.wxApplyBackendState(_res2);
+						});
+					});
+					return;
+				}
+				self.wxCloseModal();
+				self.wxApplyBackendState(_res);
+			});
+		});
+
+		this.wxOpenModal(box);
 	};
 })();

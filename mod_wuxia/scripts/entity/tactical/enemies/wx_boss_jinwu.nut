@@ -8,6 +8,8 @@ this.wx_boss_jinwu <- this.inherit("scripts/entity/tactical/enemies/vampire", {
 	}
 	function onDeath( _killer, _skill, _tile, _fatalityType )
 	{
+		if ("ShanHaiMultiBody" in ::Wuxia)
+			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.vampire.onDeath(_killer, _skill, _tile, _fatalityType);
 		::Wuxia.ShanHai.dropBossCore("boss_jinwu", _tile);
 	}

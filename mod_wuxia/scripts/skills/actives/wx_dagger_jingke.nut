@@ -27,7 +27,23 @@ this.wx_dagger_jingke <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		if (_skill == this)
 		{
-			_properties.MeleeSkill += 15; _properties.DamageDirectAdd += 0.25; _properties.DamageTotalMult *= 1.22;
+			this.wxApplyTagPreHitProps(_targetEntity, _properties);
+			_properties.MeleeSkill += 15;
+			if ("Streams" in ::Wuxia) ::Wuxia.Streams.addCappedPen(_properties, 0.25);
+			_properties.DamageTotalMult *= 1.22;
+			local cont = this.getContainer();
+			local actor = cont != null ? cont.getActor() : null;
+			local ambush = ("CraftBridge" in ::Wuxia && ::Wuxia.CraftBridge.isShadowOrSmokeEnv(actor, _targetEntity));
+			if (!ambush && _targetEntity != null && ::Wuxia.hasMember(_targetEntity, "getSkills") && _targetEntity.getSkills() != null)
+			{
+				local tsk = _targetEntity.getSkills();
+				ambush = tsk.hasSkill("effects.wx_status_opening") || tsk.hasSkill("effects.wx_status_offbalance");
+			}
+			if (ambush)
+			{
+				_properties.MeleeSkill += 8;
+				_properties.DamageTotalMult *= 1.15;
+			}
 		}
 	}
 

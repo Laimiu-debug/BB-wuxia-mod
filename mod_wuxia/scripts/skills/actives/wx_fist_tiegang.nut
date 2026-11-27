@@ -27,7 +27,10 @@ this.wx_fist_tiegang <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		if (_skill == this)
 		{
-			_properties.MeleeSkill += 6; _properties.DamageArmorMult *= 1.26; _properties.DamageDirectAdd += 0.10;
+			this.wxApplyTagPreHitProps(_targetEntity, _properties);
+			_properties.MeleeSkill += 6;
+			_properties.DamageArmorMult *= 1.26;
+			if ("Streams" in ::Wuxia) ::Wuxia.Streams.addCappedPen(_properties, 0.10);
 		}
 	}
 
@@ -36,10 +39,11 @@ this.wx_fist_tiegang <- this.inherit("scripts/skills/actives/wx_move_base", {
 		local target = _targetTile.getEntity();
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, this.m.WX_VfxBrush);
 		local hit = this.attackEntity(_user, target);
-		if (hit && target != null && target.isAlive())
+		if (hit && target != null && target.isAlive() && ("Streams" in ::Wuxia))
 		{
-			
+			::Wuxia.Streams.applyHiddenForce(target, 1, _user);
 		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

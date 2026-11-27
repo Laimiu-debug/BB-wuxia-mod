@@ -1,4 +1,4 @@
-// Paired Fist Basic Move 1: 冲拳 (4 AP, 9 Qi, blunt strike)
+// Paired Fist Basic Move 1: 冲拳 (4 AP, 10 Qi, blunt strike)
 
 this.wx_fist_jab <- this.inherit("scripts/skills/actives/wx_move_base", {
 	m = {},
@@ -28,7 +28,7 @@ this.wx_fist_jab <- this.inherit("scripts/skills/actives/wx_move_base", {
 			"sounds/combat/hand_hit_03.wav"
 		];
 		this.m.ActionPointCost = 4;
-		this.m.FatigueCost = 9;
+		this.m.FatigueCost = 10;
 		this.m.MinRange = 1;
 		this.m.MaxRange = 1;
 		this.m.InjuriesOnBody = this.Const.Injury.BluntBody;

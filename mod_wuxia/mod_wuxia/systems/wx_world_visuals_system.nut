@@ -781,6 +781,8 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 				this.updateLook(-1);
 			}
 			::Wuxia.WorldVisuals.bindMapLabelsBridge();
+			if ("ensureAllSettlementWorkshops" in ::Wuxia.WorldVisuals)
+				::Wuxia.WorldVisuals.ensureAllSettlementWorkshops();
 			if ("SectRelations" in ::Wuxia && "ensureWorldSectSanctums" in ::Wuxia.SectRelations)
 				::Wuxia.SectRelations.ensureWorldSectSanctums();
 		};
@@ -793,12 +795,17 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			q.startNewCampaign = @(__original) function( ... )
 			{
 				::Wuxia.WorldVisuals.initGlobals();
+				if ("tuneWorldGenSpacing" in ::Wuxia.WorldVisuals)
+					::Wuxia.WorldVisuals.tuneWorldGenSpacing();
+				::Wuxia.WorldVisuals.LastBalancedSeed <- -1;
 				::Wuxia.WorldVisuals.RegionLabelCache = {};
 				local callArgs = [this];
 				for (local a = 0; a < vargv.len(); a = ++a)
 					callArgs.push(vargv[a]);
 				__original.acall(callArgs);
 				::Wuxia.WorldVisuals.bindMapLabelsBridge();
+				if ("ensureAllSettlementWorkshops" in ::Wuxia.WorldVisuals)
+					::Wuxia.WorldVisuals.ensureAllSettlementWorkshops();
 				if ("SectRelations" in ::Wuxia && "ensureWorldSectSanctums" in ::Wuxia.SectRelations)
 					::Wuxia.SectRelations.ensureWorldSectSanctums();
 
@@ -1260,13 +1267,29 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 
 		q.WX_EnsureDisguisePavilion <- function()
 		{
-			if (this.isMilitary() || this.m.Buildings == null)
+			if (this.m.Buildings == null)
 				return;
 
-			local maxShopSlot = this.m.IsCoastal ? ::Math.min(3, this.m.Buildings.len()) : ::Math.min(4, this.m.Buildings.len());
+			while (this.m.Buildings.len() < 6)
+				this.m.Buildings.push(null);
 
-			// Size >= 2 civil county/prefecture towns prioritize `百工丹坊` (`taxidermist_building`) if a shop slot is free
-			if (this.getSize() >= 2)
+			// Town screen has 6 slots: 0..4 are shop/facility slots (slot 3 is port on coastal towns), slot 5 is `招贤茶摊` (`building.crowd`).
+			local validShopSlots = [];
+			foreach (candIdx in [4, 3, 1, 0, 2])
+			{
+				if (candIdx >= this.m.Buildings.len()) continue;
+				if (candIdx == 3 && (this.m.IsCoastal || (this.m.Buildings[3] != null && this.m.Buildings[3].getID() == "building.port")))
+					continue;
+				if (this.m.Buildings[candIdx] != null && this.m.Buildings[candIdx].getID() == "building.crowd")
+					continue;
+				validShopSlots.push(candIdx);
+			}
+
+			local sz = this.getSize();
+			local isMil = this.isMilitary();
+
+			// Guarantee `百工丹坊` (`taxidermist_building`) in all Size >= 2 civil/southern towns, plus Size 3 military capitals when a slot is free!
+			if ((!isMil && sz >= 2) || (isMil && sz >= 3))
 			{
 				local hasWorkshop = false;
 				foreach (b2 in this.m.Buildings)
@@ -1279,19 +1302,43 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 				}
 				if (!hasWorkshop)
 				{
-					for (local j = 0; j < maxShopSlot; j = ++j)
+					local placed = false;
+					foreach (slotIdx in validShopSlots)
 					{
-						if (this.m.Buildings[j] == null)
+						if (this.m.Buildings[slotIdx] == null)
 						{
-							this.addBuilding(::new("scripts/entity/world/settlements/buildings/taxidermist_building"), j);
+							this.addBuilding(::new("scripts/entity/world/settlements/buildings/taxidermist_building"), slotIdx);
+							placed = true;
 							break;
+						}
+					}
+					// Fallback if a civil town filled all 5 shop slots (e.g. with wardog kennel): swap a non-core auxiliary slot cleanly
+					if (!placed && !isMil)
+					{
+						local replacePriority = ["building.kennel", "building.fletcher", "building.training_hall"];
+						foreach (repID in replacePriority)
+						{
+							if (placed) break;
+							foreach (slotIdx in validShopSlots)
+							{
+								local curB = this.m.Buildings[slotIdx];
+								if (curB != null && curB.getID() == repID)
+								{
+									if (::Wuxia.hasMember(curB, "m") && "Settlement" in curB.m)
+										curB.m.Settlement = null;
+									this.m.Buildings[slotIdx] = null;
+									this.addBuilding(::new("scripts/entity/world/settlements/buildings/taxidermist_building"), slotIdx);
+									placed = true;
+									break;
+								}
+							}
 						}
 					}
 				}
 			}
 
-			// Size 3 civil cities also host the Disguise Pavilion (`铜镜江湖易容阁`) if a shop slot remains free
-			if (this.getSize() >= 3)
+			// Size 3 civil/southern cities also host the Disguise Pavilion (`铜镜江湖易容阁`) if a shop slot remains free
+			if (!isMil && sz >= 3)
 			{
 				local hasBarber = false;
 				foreach (b in this.m.Buildings)
@@ -1304,11 +1351,11 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 				}
 				if (!hasBarber)
 				{
-					for (local i = 0; i < maxShopSlot; i = ++i)
+					foreach (slotIdx in validShopSlots)
 					{
-						if (this.m.Buildings[i] == null)
+						if (this.m.Buildings[slotIdx] == null)
 						{
-							this.addBuilding(::new("scripts/entity/world/settlements/buildings/barber_building"), i);
+							this.addBuilding(::new("scripts/entity/world/settlements/buildings/barber_building"), slotIdx);
 							break;
 						}
 					}
@@ -1349,6 +1396,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 
 		q.getUIInformation = @(__original) function()
 		{
+			this.WX_EnsureDisguisePavilion();
 			local prof = this.WX_ComputeArchProfile();
 			this.WX_ApplyArchVisuals(false);
 			local ret = __original();
@@ -1362,29 +1410,41 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			q.getTooltip = @(__original) function()
 			{
 				local ret = __original();
-				if (ret != null && typeof ret == "array" && this.m.IsActive && ("SectRelations" in ::Wuxia) && ("getSettlementSects" in ::Wuxia.SectRelations))
+				if (ret != null && typeof ret == "array" && this.m.IsActive)
 				{
-					local sects = ::Wuxia.SectRelations.getSettlementSects(this);
-					if (sects.len() > 0 && (sects[0] in ::Wuxia.Config.Sects))
+					if (::Wuxia.hasMember(this, "hasBuilding") && this.hasBuilding("building.taxidermist"))
 					{
-						local pSect = ::Wuxia.Config.Sects[sects[0]];
-						local rel = ::Wuxia.SectRelations.getRelation(sects[0]);
-						local relStr = (rel > 0 ? ("+" + rel) : ("" + rel));
-						local extra = "";
-						if (sects.len() > 1)
-						{
-							local subNames = [];
-							for (local k = 1; k < sects.len(); ++k)
-								if (sects[k] in ::Wuxia.Config.Sects) subNames.push(::Wuxia.Config.Sects[sects[k]].Name);
-							if (subNames.len() > 0)
-								extra = "；同城堂口：" + subNames[0] + (subNames.len() > 1 ? ("、" + subNames[1]) : "");
-						}
 						ret.push({
-							id   = 77,
+							id   = 76,
 							type = "text",
-							icon = "ui/wx_icons/wx_glyph_sect_token.png",
-							text = "驻地宗门：[color=#5e2c00]【" + pSect.Name + "】[/color]（交情 " + relStr + "）" + extra + "。入城点击「江湖茶肆」可设席论交或请教本门真传秘籍"
+							icon = "ui/icons/asset_supplies.png",
+							text = "丹炉重镇：[color=#0b4a1e]城内设有【百工丹坊】（可开炉炼丹、存取百草药柜与重锻神兵）[/color]"
 						});
+					}
+					if (("SectRelations" in ::Wuxia) && ("getSettlementSects" in ::Wuxia.SectRelations))
+					{
+						local sects = ::Wuxia.SectRelations.getSettlementSects(this);
+						if (sects.len() > 0 && (sects[0] in ::Wuxia.Config.Sects))
+						{
+							local pSect = ::Wuxia.Config.Sects[sects[0]];
+							local rel = ::Wuxia.SectRelations.getRelation(sects[0]);
+							local relStr = (rel > 0 ? ("+" + rel) : ("" + rel));
+							local extra = "";
+							if (sects.len() > 1)
+							{
+								local subNames = [];
+								for (local k = 1; k < sects.len(); ++k)
+									if (sects[k] in ::Wuxia.Config.Sects) subNames.push(::Wuxia.Config.Sects[sects[k]].Name);
+								if (subNames.len() > 0)
+									extra = "；同城堂口：" + subNames[0] + (subNames.len() > 1 ? ("、" + subNames[1]) : "");
+							}
+							ret.push({
+								id   = 77,
+								type = "text",
+								icon = "ui/wx_icons/wx_glyph_sect_token.png",
+								text = "驻地宗门：[color=#5e2c00]【" + pSect.Name + "】[/color]（交情 " + relStr + "）" + extra + "。入城点击「江湖茶肆」可设席论交或请教本门真传秘籍"
+							});
+						}
 					}
 				}
 				return ret;
@@ -1404,6 +1464,322 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 				}
 			}
 		};
+	});
+
+	// Hook all concrete settlement subclasses (`large_farming_village`, `medium_steppe_village`, `city_state`, etc.)
+	// because vanilla subclasses override `build()` without calling `this.settlement.build()`!
+	::Wuxia.HooksMod.hookTree("scripts/entity/world/settlement", function( q )
+	{
+		if (::Wuxia.qHas(q, "build", false))
+		{
+			q.build = @(__original) function()
+			{
+				__original();
+				if (::Wuxia.hasMember(this, "WX_EnsureDisguisePavilion"))
+					this.WX_EnsureDisguisePavilion();
+				if (::Wuxia.hasMember(this, "WX_ApplyArchVisuals"))
+					this.WX_ApplyArchVisuals(true);
+			};
+		}
+	});
+
+	::Wuxia.WorldVisuals.LastBalancedSeed <- -1;
+
+	::Wuxia.WorldVisuals.ensureAllSettlementWorkshops <- function()
+	{
+		if (!("World" in getroottable()) || ::World == null || !("EntityManager" in ::World) || ::World.EntityManager == null)
+			return;
+		foreach (s in ::World.EntityManager.getSettlements())
+		{
+			if (s != null && s.isAlive())
+			{
+				if (::Wuxia.hasMember(s, "WX_EnsureDisguisePavilion"))
+					s.WX_EnsureDisguisePavilion();
+				if (::Wuxia.hasMember(s, "WX_ApplyArchVisuals"))
+					s.WX_ApplyArchVisuals(false);
+			}
+		}
+	};
+
+	::Wuxia.WorldVisuals.tuneWorldGenSpacing <- function()
+	{
+		if (!("World" in ::Const) || !("Settings" in ::Const.World) || ::Const.World.Settings == null)
+			return;
+		local ws = ::Const.World.Settings;
+		if ("MinDistanceToSettlements" in ws && ws.MinDistanceToSettlements < 11)
+			ws.MinDistanceToSettlements = 11;
+		if ("LandMassPercentage" in ws && ws.LandMassPercentage < 66)
+			ws.LandMassPercentage = 66;
+	};
+
+	::Wuxia.WorldVisuals.paveFrontierRoad <- function( _fromTown, _toTown, _navSettings )
+	{
+		if (_fromTown == null || _toTown == null || _fromTown.getTile() == null || _toTown.getTile() == null)
+			return false;
+		local nav = ::World.getNavigator();
+		local path = nav.findPath(_fromTown.getTile(), _toTown.getTile(), _navSettings, 0);
+		if (path == null || path.isEmpty())
+			return false;
+
+		local tiles = [_fromTown.getTile()];
+		while (!path.isEmpty())
+		{
+			local pt = path.getCurrent();
+			path.pop();
+			if (pt != null)
+				tiles.push(::World.getTile(pt));
+		}
+		if (tiles.top() != _toTown.getTile())
+			tiles.push(_toTown.getTile());
+
+		local hasNotCompat = ("DetailType" in ::Const.World) && ("NotCompatibleWithRoad" in ::Const.World.DetailType);
+		for (local i = 0; i < tiles.len(); ++i)
+		{
+			local cur = tiles[i];
+			if (cur == null) continue;
+			local wasRoad = cur.HasRoad;
+			cur.HasRoad = true;
+			if (hasNotCompat && ::Wuxia.hasMember(cur, "clear"))
+			{
+				try { cur.clear(::Const.World.DetailType.NotCompatibleWithRoad); } catch (_eClr) {}
+			}
+			local prevT = (i > 0) ? tiles[i - 1] : null;
+			local nextT = (i + 1 < tiles.len()) ? tiles[i + 1] : null;
+			if ("RoadDirections" in cur)
+			{
+				if (prevT != null && cur.getDistanceTo(prevT) == 1)
+					cur.RoadDirections = cur.RoadDirections | (1 << cur.getDirectionTo(prevT));
+				if (nextT != null && cur.getDistanceTo(nextT) == 1)
+					cur.RoadDirections = cur.RoadDirections | (1 << cur.getDirectionTo(nextT));
+			}
+			// Merge smoothly once we reach an already paved main highway (after leaving origin town)
+			if (i >= 2 && wasRoad)
+				break;
+		}
+
+		// Mirror vanilla road-link bookkeeping safely by inspecting existing element type
+		if ("ConnectedToByRoads" in _fromTown.m && typeof _fromTown.m.ConnectedToByRoads == "array"
+			&& "ConnectedToByRoads" in _toTown.m && typeof _toTown.m.ConnectedToByRoads == "array")
+		{
+			local sample = null;
+			foreach (st in ::World.EntityManager.getSettlements())
+			{
+				if (st != null && ("ConnectedToByRoads" in st.m) && st.m.ConnectedToByRoads.len() > 0)
+				{
+					sample = st.m.ConnectedToByRoads[0];
+					break;
+				}
+			}
+			if (sample != null)
+			{
+				if (typeof sample == "instance")
+				{
+					_fromTown.m.ConnectedToByRoads.push(::WeakTableRef(_toTown));
+					_toTown.m.ConnectedToByRoads.push(::WeakTableRef(_fromTown));
+				}
+				else if (typeof sample == "integer")
+				{
+					_fromTown.m.ConnectedToByRoads.push(_toTown.getID());
+					_toTown.m.ConnectedToByRoads.push(_fromTown.getID());
+				}
+			}
+		}
+		return true;
+	};
+
+	// Fill vanilla's huge Eastern / Interior uninhabited settlement gaps BEFORE FactionManager assigns town owners!
+	::Wuxia.WorldVisuals.balanceWorldSettlementDistribution <- function( _withFallbackRoads = true )
+	{
+		if (!("World" in getroottable()) || ::World == null || !("EntityManager" in ::World) || ::World.EntityManager == null)
+			return 0;
+		local towns = ::World.EntityManager.getSettlements();
+		if (towns == null || towns.len() < 6)
+			return 0;
+
+		local size = ::World.getMapSize();
+		local t0 = towns[0].getTile();
+		local mapSeed = (t0 != null ? (t0.SquareCoords.X * 197 + t0.SquareCoords.Y * 89) : 53) + size.X * 13;
+		if (::Wuxia.WorldVisuals.LastBalancedSeed == mapSeed)
+			return 0;
+		::Wuxia.WorldVisuals.LastBalancedSeed = mapSeed;
+
+		local allScripts = ::IO.enumerateFiles("scripts/entity/world/settlements");
+		if (allScripts == null || allScripts.len() == 0)
+			return 0;
+
+		local pickBySubstr = function( _subs, _fallback )
+		{
+			foreach (sub in _subs)
+			{
+				foreach (sp in allScripts)
+				{
+					if (sp.find("/buildings/") != null || sp.find("/situations/") != null) continue;
+					if (sp.find(sub) != null) return sp;
+				}
+			}
+			return _fallback;
+		};
+
+		local defaultFarming = pickBySubstr(["medium_farming_village", "large_farming_village", "small_farming_village"], null);
+		if (defaultFarming == null) return 0;
+		local pools = {
+			plains  = [
+				pickBySubstr(["large_farming_village"], defaultFarming),
+				pickBySubstr(["medium_farming_village"], defaultFarming),
+				pickBySubstr(["medium_steppe_village"], defaultFarming)
+			],
+			forest  = [
+				pickBySubstr(["large_lumber_village", "medium_lumber_village"], defaultFarming),
+				pickBySubstr(["medium_lumber_village", "medium_farming_village"], defaultFarming)
+			],
+			hills   = [
+				pickBySubstr(["medium_mining_village", "large_mining_village"], defaultFarming),
+				pickBySubstr(["small_stone_watchtower", "medium_stone_watchtower", "stone_watchtower"], defaultFarming)
+			],
+			steppe  = [
+				pickBySubstr(["large_steppe_village", "medium_steppe_village"], defaultFarming),
+				pickBySubstr(["medium_steppe_village"], defaultFarming)
+			],
+			snow    = [
+				pickBySubstr(["medium_tundra_village", "large_tundra_village"], defaultFarming),
+				pickBySubstr(["medium_lumber_village", "small_tundra_village"], defaultFarming)
+			]
+		};
+
+		local tt = ::Const.World.TerrainType;
+		local nav = ::World.getNavigator().createSettings();
+		nav.ActionPointCosts = ::Const.World.TerrainTypeNavCost_Flat;
+		local locs = ::World.EntityManager.getLocations();
+
+		local spawnedCount = 0;
+		local maxAdditions = 5;
+
+		for (local pass = 0; pass < maxAdditions; ++pass)
+		{
+			towns = ::World.EntityManager.getSettlements();
+			local bestTile = null;
+			local bestNearTown = null;
+			local bestGapScore = -999999;
+
+			for (local tx = 14; tx <= size.X - 14; tx += 4)
+			{
+				for (local ty = 16; ty <= size.Y - 16; ty += 4)
+				{
+					local tile = ::World.getTileSquare(tx, ty);
+					if (tile == null || tile.IsOccupied || tile.HasRoad) continue;
+					if (tile.Type == tt.Ocean || tile.Type == tt.Shore || tile.Type == tt.Mountains
+						|| tile.Type == tt.Impassable || tile.Type == tt.Urban || tile.Type == tt.Swamp)
+						continue;
+					if ("Desert" in tt && tile.Type == tt.Desert)
+						continue;
+
+					// Require at least 4 open neighbor tiles for Chinese courtyard houses & attached workshops
+					local openAdj = 0;
+					for (local d = 0; d < 6; ++d)
+					{
+						if (!tile.hasNextTile(d)) continue;
+						local nt = tile.getNextTile(d);
+						if (!nt.IsOccupied && nt.Type != tt.Ocean && nt.Type != tt.Shore && nt.Type != tt.Mountains && nt.Type != tt.Impassable)
+							openAdj += 1;
+					}
+					if (openAdj < 4) continue;
+
+					local minTownD = 9999;
+					local nearTown = null;
+					foreach (tw in towns)
+					{
+						if (tw == null || !tw.isAlive() || tw.getTile() == null) continue;
+						local td = tile.getDistanceTo(tw.getTile());
+						if (td < minTownD)
+						{
+							minTownD = td;
+							nearTown = tw;
+						}
+					}
+					// Only fill genuine uninhabited regional gaps (>= 19 hexes from any existing town, <= 40 so reachable)
+					if (minTownD < 19 || minTownD > 40 || nearTown == null)
+						continue;
+
+					local nearSite = false;
+					foreach (lc in locs)
+					{
+						if (lc != null && lc.isAlive() && lc.getTile() != null && tile.getDistanceTo(lc.getTile()) < 6)
+						{
+							nearSite = true;
+							break;
+						}
+					}
+					if (nearSite) continue;
+
+					local gapScore = ::Math.min(34, minTownD) * 12 + openAdj * 8;
+					if (tile.Type == tt.Plains || ("Steppe" in tt && tile.Type == tt.Steppe) || ("Oasis" in tt && tile.Type == tt.Oasis))
+						gapScore += 25;
+					if (tx >= (size.X * 52) / 100)
+						gapScore += 20; // Gently prioritize underserved central-east & eastern regions
+
+					if (gapScore > bestGapScore)
+					{
+						// Verify land navigation path exists to nearest town (rejects isolated islands/mountain pockets)
+						local pCheck = ::World.getNavigator().findPath(tile, nearTown.getTile(), nav, 0);
+						if (pCheck != null && !pCheck.isEmpty() && pCheck.getSize() <= 46)
+						{
+							bestGapScore = gapScore;
+							bestTile = tile;
+							bestNearTown = nearTown;
+						}
+					}
+				}
+			}
+
+			if (bestTile == null || bestNearTown == null)
+				break;
+
+			local biomeKey = "plains";
+			if (bestTile.Type == tt.Snow || ("Tundra" in tt && bestTile.Type == tt.Tundra) || ("SnowyForest" in tt && bestTile.Type == tt.SnowyForest))
+				biomeKey = "snow";
+			else if (("Steppe" in tt && bestTile.Type == tt.Steppe) || ("Oasis" in tt && bestTile.Type == tt.Oasis))
+				biomeKey = "steppe";
+			else if (bestTile.Type == tt.Hills)
+				biomeKey = "hills";
+			else if (bestTile.Type == tt.Forest || bestTile.Type == tt.LeaveForest || ("AutumnForest" in tt && bestTile.Type == tt.AutumnForest))
+				biomeKey = "forest";
+
+			local pList = pools[biomeKey];
+			local chosenScript = pList[(pass + ::Math.abs(mapSeed)) % pList.len()];
+			local newTown = null;
+			try
+			{
+				newTown = ::World.spawnLocation(chosenScript, bestTile.Coords);
+				if (newTown != null)
+				{
+					newTown.build();
+					if (_withFallbackRoads)
+						::Wuxia.WorldVisuals.paveFrontierRoad(newTown, bestNearTown, nav);
+					spawnedCount += 1;
+				}
+			}
+			catch (_eSp)
+			{
+				::logWarning("[mod_wuxia] Frontier settlement spawn skipped at (" + bestTile.SquareCoords.X + "," + bestTile.SquareCoords.Y + "): " + _eSp);
+				break;
+			}
+		}
+
+		if (spawnedCount > 0)
+			::logInfo("[mod_wuxia] Balanced world settlement distribution: added " + spawnedCount + " regional hub towns into underserved map sectors.");
+		return spawnedCount;
+	};
+
+	::Wuxia.HooksMod.hook("scripts/mapgen/templates/world/worldmap_generator", function( q )
+	{
+		if (::Wuxia.qHas(q, "buildRoads", false))
+		{
+			q.buildRoads = @(__original) function( _rect, _addRoad = true )
+			{
+				try { ::Wuxia.WorldVisuals.balanceWorldSettlementDistribution(false); } catch (_eB) {}
+				return __original(_rect, _addRoad);
+			};
+		}
 	});
 
 	::Wuxia.WorldVisuals.refreshAllSettlementSectLabels <- function()
@@ -1608,6 +1984,20 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 		{
 			q.onSpawned = @(__original) function()
 			{
+				// Dynamic late-game garrison scaling for wilderness hostile camps (Era 2..4)
+				if (!("WX_EraBoosted" in this.m) && ::Wuxia.hasMember(this.m, "Resources") && this.m.Resources > 0
+					&& !(::Wuxia.hasMember(this, "isLocationType") && "LocationType" in ::Const.World && this.isLocationType(::Const.World.LocationType.Settlement))
+					&& !::Wuxia.hasMember(this, "getSize"))
+				{
+					this.m.WX_EraBoosted <- true;
+					local threat = ("CombatRules" in ::Wuxia && "getCampaignThreatProfile" in ::Wuxia.CombatRules)
+						? ::Wuxia.CombatRules.getCampaignThreatProfile() : { era = 0 };
+					if (threat.era >= 2)
+					{
+						local mult = 1.0 + 0.12 * (threat.era - 1); // +12% / +24% / +36% camp garrison budget
+						this.m.Resources = ::Math.min(560, ::Math.round(this.m.Resources * mult).tointeger());
+					}
+				}
 				__original();
 				this.WX_ApplyWildLocationName();
 			};

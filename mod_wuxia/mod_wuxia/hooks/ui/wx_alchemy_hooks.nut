@@ -55,12 +55,36 @@ if (!("UI" in ::Wuxia))
 	q.m.HasBaoming        <- false; // 天王吊命保心丹: Temporary Nine Lives lethal save + cleanse + 12 HP & 10 Qi
 	q.m.HasZhenmo         <- false; // 太清镇魔定脉丹: Suppress Neigong conflict & Fragment backlash, +6 hit per miss
 	q.m.HasTihu           <- false; // 紫芝醍醐悟道丹: +35% XP gain & +50% post-battle martial slot mastery exp
+	q.m.HasLiangyi        <- false; // 两仪逆命混元丹: Harmonize dual-Neigong clash + Dan-Wu Yang/Yin resonance
+	q.m.HasZhuyin         <- false; // 烛阴昼夜轮转丹: Odd-round 瞑夜双防回气 / Even-round 赤昼增伤灼甲
+	q.m.HasKurong         <- false; // 枯荣生死涅槃丸: +4 MDef/RDef & +4 Qi rec while bleed/poison + 1x <35% HP Nirvana heal
+	q.m.HasShenmo         <- false; // 神魔一念辟邪丹: Suppress evil/fragment clash, +8 hit vs wavering/charmed, +6 Qi on kill
+	q.m.HasBaize          <- false; // 白泽通玄勘破丹: First AoO/counter +12 hit & opening, +25% post-battle martial mastery
+	q.m.HasJianmu         <- false; // 建木枯木逢春丹: +6 HP & +6 body armor/turn (+10 armor with Henglian manual)
+	q.m.HasTaotie         <- false; // 饕餮吞元化气丸: Heavy melee hit devours 5 Qi from living foe (2/turn)
+	q.m.HasYinglong       <- false; // 应龙行云御雷丹: -35% move fatigue, +3 Qi refund on step_through / pierce_line (2/turn)
+	q.m.HasChiyou         <- false; // 蚩尤兵主百战丹: +15% ArmorDmg, +10 shield break, +5 Qi & adj morale check on kill
+	q.m.HasJinwu          <- false; // 金乌十日纯阳丹: Cleanse chill, +10 melee armor burn, +16% dmg vs undead/construct
+	q.m.HasXiangliu       <- false; // 相柳九首万蛊丹: Poison immune, 55% poison on hit & spread to adj enemy
+	q.m.HasXuangui        <- false; // 玄龟镇海不坏丹: -18% ranged dmg, stun/kb immune, 1x/turn -12% heavy HP dmg (capped >=0.40)
+	q.m.HasDijiang        <- false; // 帝江幻空缩地丹: +16 Init, 1x/turn 22% phase shift vs ranged/heavy hit (capped >=0.40)
+	q.m.HasJiuwei         <- false; // 九尾青丘摄魂丹: +14 Bravery, charm/sleep cleanse, -10 morale check on hit
+	q.m.HasXingtian       <- false; // 刑天常羊战魂丹: Stun immune, <60% HP +14% dmg & +4 Qi rec
+	q.m.CoreImprintID     <- "";    // 本命妖丹丹韵 ID (`wx_core_*`, covering all 64 Boss Cores + 32 Wild/Sovereign Cores!)
 	q.m.HasDanToxin       <- false; // 丹毒郁结: Triggered when consuming a 3rd non-Danxia battle pill (-15 Stamina, -3 Qi rec, 3d post-battle light injury)
 	q.m.FengmoNoInjury    <- false; // 丹霞极品疯魔燃血丸免除战后 2 日内伤反噬
 	q.m.PotencyScalePct   <- 100;   // 成丹/灵纹/丹霞药效倍率 (92..155)
 	q.m.AuxMask           <- 0;     // 药引丹韵位掩码: 1=生机, 2=赤阳, 4=玄阴, 8=镇魂, 16=奇毒, 32=造化
 	q.m.PillKillsThisTurn <- 0;
 	q.m.PillAdaptStacks   <- 0;
+	q.m.KurongNirvanaUsed <- false;
+	q.m.BaizeUsedTurn     <- false;
+	q.m.TaotieQiTurn      <- 0;
+	q.m.YinglongQiTurn    <- 0;
+	q.m.DuhengStanceTurn  <- false;
+	q.m.PhasePillUsedTurn <- false;
+	q.m.AuxAdaptReady     <- false;
+	q.m.CoreQiTurn        <- 0;
 	q.m.PrevLevelAPCost   <- -1;
 	q.m.WX_BattleStarted  <- false;
 
@@ -83,8 +107,32 @@ if (!("UI" in ::Wuxia))
 		{ Bit = 15, Field = "HasHufu",     Kind = "buff_hufu",     Short = "虎符", Summary = "聚义虎符(昂扬结阵)" },
 		{ Bit = 16, Field = "HasBaoming",  Kind = "buff_baoming",  Short = "吊命", Summary = "天王吊命(九命锁血)" },
 		{ Bit = 17, Field = "HasZhenmo",   Kind = "buff_zhenmo",   Short = "镇魔", Summary = "太清镇魔(镇逆冲叠命中)" },
-		{ Bit = 18, Field = "HasTihu",     Kind = "buff_tihu",     Short = "醍醐", Summary = "紫芝醍醐(+35%历练+50%火候)" }
+		{ Bit = 18, Field = "HasTihu",     Kind = "buff_tihu",     Short = "醍醐", Summary = "紫芝醍醐(+35%历练+50%火候)" },
+		{ Bit = 19, Field = "HasLiangyi",  Kind = "buff_liangyi",  Short = "两仪", Summary = "两仪逆命(丹武混元调频)" },
+		{ Bit = 20, Field = "HasZhuyin",   Kind = "buff_zhuyin",   Short = "轮转", Summary = "烛阴轮转(昼夜催功)" },
+		{ Bit = 21, Field = "HasKurong",   Kind = "buff_kurong",   Short = "枯荣", Summary = "枯荣涅槃(带创提气回生)" },
+		{ Bit = 22, Field = "HasShenmo",   Kind = "buff_shenmo",   Short = "辟邪", Summary = "神魔辟邪(镇邪斩回气)" },
+		{ Bit = 23, Field = "HasBaize",    Kind = "buff_baize",    Short = "勘破", Summary = "白泽勘破(反击破绽悟功)" },
+		{ Bit = 24, Field = "HasJianmu",   Kind = "buff_jianmu",   Short = "逢春", Summary = "建木逢春(横练回血修甲)" },
+		{ Bit = 25, Field = "HasTaotie",   Kind = "buff_taotie",   Short = "吞元", Summary = "饕餮吞元(重击鲸吞敌气)" },
+		{ Bit = 26, Field = "HasYinglong", Kind = "buff_yinglong", Short = "行云", Summary = "应龙行云(轻功穿刺返气)" },
+		{ Bit = 27, Field = "HasChiyou",   Kind = "buff_chiyou",   Short = "兵主", Summary = "蚩尤兵主(破甲斩慑)" },
+		{ Bit = 28, Field = "HasJinwu",    Kind = "buff_jinwu",    Short = "十日", Summary = "金乌纯阳(焚甲诛邪)" },
+		{ Bit = 29, Field = "HasXiangliu", Kind = "buff_xiangliu", Short = "万蛊", Summary = "相柳万蛊(免毒传蛊)" }
 	];
+	local extBuffSpecs2 = [
+		{ Bit = 0, Field = "HasXuangui",  Kind = "buff_xuangui",  Short = "镇海", Summary = "玄龟不坏(抗远卸伤)" },
+		{ Bit = 1, Field = "HasDijiang",  Kind = "buff_dijiang",  Short = "缩地", Summary = "帝江缩地(幻空折跃)" },
+		{ Bit = 2, Field = "HasJiuwei",   Kind = "buff_jiuwei",   Short = "摄魂", Summary = "九尾摄魂(免惑摇魄)" },
+		{ Bit = 3, Field = "HasXingtian", Kind = "buff_xingtian", Short = "战魂", Summary = "刑天战魂(残血狂战)" }
+	];
+
+	q.wxGetCoreImprintSpec <- function()
+	{
+		if (this.m.CoreImprintID != "" && "Alchemy" in ::Wuxia && "getCoreImprintPreview" in ::Wuxia.Alchemy)
+			return ::Wuxia.Alchemy.getCoreImprintPreview(this.m.CoreImprintID, "buff_");
+		return null;
+	};
 
 	q.wxCurrentRound <- function()
 	{
@@ -107,7 +155,7 @@ if (!("UI" in ::Wuxia))
 		cont.add(nl);
 	};
 
-	q.applyPillPotencyAndAux <- function( _potencyPct, _auxNature = "", _waiveFengmoInjury = false, _firstBattleEffect = false )
+	q.applyPillPotencyAndAux <- function( _potencyPct, _auxNature = "", _waiveFengmoInjury = false, _firstBattleEffect = false, _coreImprint = "" )
 	{
 		if (_potencyPct != null && (_firstBattleEffect || _potencyPct > this.m.PotencyScalePct))
 			this.m.PotencyScalePct = ::Math.max(80, ::Math.min(160, _potencyPct));
@@ -117,6 +165,8 @@ if (!("UI" in ::Wuxia))
 		{
 			this.m.AuxMask = this.m.AuxMask | ::Wuxia.Config.Alchemy.AuxInfusions[_auxNature].Bit;
 		}
+		if (_coreImprint != null && _coreImprint != "")
+			this.m.CoreImprintID = _coreImprint;
 		this.updateLabel();
 	};
 
@@ -135,6 +185,10 @@ if (!("UI" in ::Wuxia))
 		{
 			if (this.m[sp.Field]) n += 1;
 		}
+		foreach (sp2 in extBuffSpecs2)
+		{
+			if (this.m[sp2.Field]) n += 1;
+		}
 		return n;
 	};
 
@@ -145,9 +199,11 @@ if (!("UI" in ::Wuxia))
 		local cur = this.countActiveBuffs();
 		if (cur >= 3)
 			return { Ok = false, Reason = _actorName + " 体内已有 3 道备战药力，无法再服用备战丹药或奇草。" };
+		local cont = this.getContainer();
+		local hasBaidu = (cont != null && cont.hasSkill("trait.wx_baidu"));
 		return {
 			Ok               = true,
-			WillTriggerToxin = (cur >= 2)
+			WillTriggerToxin = (cur >= 2 && !hasBaidu)
 		};
 	};
 
@@ -170,6 +226,10 @@ if (!("UI" in ::Wuxia))
 			{
 				if (_kind == sp.Kind) { this.m[sp.Field] = true; break; }
 			}
+			foreach (sp2 in extBuffSpecs2)
+			{
+				if (_kind == sp2.Kind) { this.m[sp2.Field] = true; break; }
+			}
 		}
 		__original(_kind, _herbCalmBravery);
 		if (this.m.HasBaoming)
@@ -186,6 +246,10 @@ if (!("UI" in ::Wuxia))
 		{
 			if (_kind == sp.Kind) return this.m[sp.Field];
 		}
+		foreach (sp2 in extBuffSpecs2)
+		{
+			if (_kind == sp2.Kind) return this.m[sp2.Field];
+		}
 		return __original(_kind);
 	};
 
@@ -200,6 +264,10 @@ if (!("UI" in ::Wuxia))
 		foreach (sp in extBuffSpecs)
 		{
 			if (this.m[sp.Field]) extra.push(sp.Short);
+		}
+		foreach (sp2 in extBuffSpecs2)
+		{
+			if (this.m[sp2.Field]) extra.push(sp2.Short);
 		}
 		if (extra.len() > 0)
 		{
@@ -224,6 +292,12 @@ if (!("UI" in ::Wuxia))
 		{
 			if (this.m[sp.Field]) list.push(sp.Summary);
 		}
+		foreach (sp2 in extBuffSpecs2)
+		{
+			if (this.m[sp2.Field]) list.push(sp2.Summary);
+		}
+		local cImpS = this.wxGetCoreImprintSpec();
+		if (cImpS != null) list.push(cImpS.Title);
 		if (this.m.PotencyScalePct >= 135) list.push("丹霞药力(" + this.m.PotencyScalePct + "%)");
 		else if (this.m.PotencyScalePct >= 112) list.push("灵纹药力(" + this.m.PotencyScalePct + "%)");
 		if ((this.m.AuxMask & 1) != 0)  list.push("生机丹韵(+3回血)");
@@ -293,18 +367,51 @@ if (!("UI" in ::Wuxia))
 			ret.push({ id = 50, type = "text", icon = "ui/icons/melee_skill.png", text = "【太清镇魔定脉丹】镇压内功相克与残本散气反噬，落空叠下次命中 [color=" + pos + "]+" + ::Math.round(6 * sc) + "[/color]" + (this.m.PillAdaptStacks > 0 ? ("（当前 +" + (this.m.PillAdaptStacks * ::Math.round(6 * sc)) + "）") : "") });
 		if (this.m.HasTihu)
 			ret.push({ id = 51, type = "text", icon = "ui/icons/xp_received.png", text = "【紫芝醍醐悟道丹】人物历练经验 [color=" + pos + "]+35%[/color]，战后武学参战火候 [color=" + pos + "]+" + ::Math.round(50 * sc) + "%[/color]" });
+		if (this.m.HasLiangyi)
+			ret.push({ id = 52, type = "text", icon = "ui/icons/special.png", text = "【两仪逆命混元丹】镇压双内功逆冲并化混元破甲 [color=" + pos + "]+" + ::Math.round(12 * sc) + "%[/color]、回气 [color=" + pos + "]+3[/color]，且催化阳刚灼甲/阴柔凝霜共振！" });
+		if (this.m.HasZhuyin)
+			ret.push({ id = 53, type = "text", icon = "ui/icons/special.png", text = "【烛阴昼夜轮转丹】奇数轮【瞑夜】双防 [color=" + pos + "]+5[/color]、回气 [color=" + pos + "]+4[/color]；偶数轮【赤昼】总伤 [color=" + pos + "]+10%[/color]、近战灼甲 [color=" + pos + "]+10[/color]！" });
+		if (this.m.HasKurong)
+			ret.push({ id = 54, type = "text", icon = "ui/icons/health.png", text = "【枯荣生死涅槃丸】身负流血或中毒时双防 [color=" + pos + "]+4[/color]、回气 [color=" + pos + "]+4[/color]，首次残血触发枯荣涅槃涤毒回血 [color=" + pos + "]+" + ::Math.round(22 * sc) + "[/color]！" });
+		if (this.m.HasShenmo)
+			ret.push({ id = 55, type = "text", icon = "ui/icons/bravery.png", text = "【神魔一念辟邪丹】镇压邪功与残本反噬，对动摇/崩溃敌命中 [color=" + pos + "]+8[/color]，斩敌额外回气 [color=" + pos + "]+6[/color]（每轮2次）！" });
+		if (this.m.HasBaize)
+			ret.push({ id = 56, type = "text", icon = "ui/icons/melee_skill.png", text = "【白泽通玄勘破丹】每轮首次借机拦击或反击命中 [color=" + pos + "]+12[/color] 且必露【破绽】，战后武学参战火候 [color=" + pos + "]+25%[/color]！" });
+		if (this.m.HasJianmu)
+			ret.push({ id = 57, type = "text", icon = "ui/icons/armor_body.png", text = "【建木枯木逢春丹】每回合初自愈 [color=" + pos + "]+" + ::Math.round(6 * sc) + "[/color] 气血并修复 [color=" + pos + "]+6~10[/color] 点身甲（横练武学共振翻倍增益）！" });
+		if (this.m.HasTaotie)
+			ret.push({ id = 58, type = "text", icon = "ui/icons/fatigue.png", text = "【饕餮吞元化气丸】近战重创活物（伤血≥12）时鲸吞敌方 [color=" + pos + "]5[/color] 点内息化归丹田（每轮限2次）！" });
+		if (this.m.HasYinglong)
+			ret.push({ id = 59, type = "text", icon = "ui/icons/initiative.png", text = "【应龙行云御雷丹】移动行气消耗 [color=" + pos + "]-35%[/color]，施展【穿步/贯线刺】命中返还 [color=" + pos + "]+3[/color] 内息（每轮限2次）！" });
+		if (this.m.HasChiyou)
+			ret.push({ id = 60, type = "text", icon = "ui/icons/armor_damage.png", text = "【蚩尤兵主百战丹】破甲效能 [color=" + pos + "]+15%[/color]、碎盾 [color=" + pos + "]+10[/color]，斩敌立回 [color=" + pos + "]+5[/color] 内息并震慑邻敌检定 [color=" + pos + "]-8[/color] 定力！" });
+		if (this.m.HasJinwu)
+			ret.push({ id = 61, type = "text", icon = "ui/icons/armor_damage.png", text = "【金乌十日纯阳丹】每轮自涤寒霜迟缓，近战灼毁 [color=" + pos + "]10[/color] 身甲，迎战尸傀机关总伤 [color=" + pos + "]+16%[/color]！" });
+		if (this.m.HasXiangliu)
+			ret.push({ id = 62, type = "text", icon = "ui/icons/special.png", text = "【相柳九首万蛊丹】百毒不侵，攻击 [color=" + pos + "]55%[/color] 注入奇毒且击中已中毒目标时毒雾传染相邻敌军！" });
+		if (this.m.HasXuangui)
+			ret.push({ id = 63, type = "text", icon = "ui/icons/armor_body.png", text = "【玄龟镇海不坏丹】远伤 [color=" + pos + "]-18%[/color]、免晕免退，每轮首次受重击额外减免 [color=" + pos + "]12%[/color] 实伤（严守60%上限）！" });
+		if (this.m.HasDijiang)
+			ret.push({ id = 64, type = "text", icon = "ui/icons/initiative.png", text = "【帝江幻空缩地丹】身法 [color=" + pos + "]+16[/color]，每轮首次受远程或重击触发幻空折跃偏折 [color=" + pos + "]22%[/color] 实伤（严守60%上限）！" });
+		if (this.m.HasJiuwei)
+			ret.push({ id = 65, type = "text", icon = "ui/icons/bravery.png", text = "【九尾青丘摄魂丹】定力 [color=" + pos + "]+14[/color]、免魅惑梦魇，攻击伤血迫使敌手执行 [color=" + pos + "]-10[/color] 定力检定！" });
+		if (this.m.HasXingtian)
+			ret.push({ id = 66, type = "text", icon = "ui/icons/health.png", text = "【刑天常羊战魂丹】免疫击晕，气血低于 60% 时战魂沸腾令总伤 [color=" + pos + "]+14%[/color]、每轮回气 [color=" + pos + "]+4[/color]！" });
 		if ((this.m.AuxMask & 1) != 0)
-			ret.push({ id = 26, type = "text", icon = "ui/icons/health.png", text = "【生机丹韵】每回合初额外温养自愈 [color=" + pos + "]+3[/color] 气血" });
+			ret.push({ id = 26, type = "text", icon = "ui/icons/health.png", text = "【生机丹韵】每轮初自愈 [color=" + pos + "]+3[/color] 气血（装配横练功法额外修甲 [color=" + pos + "]+4[/color]）" });
 		if ((this.m.AuxMask & 2) != 0)
-			ret.push({ id = 27, type = "text", icon = "ui/icons/armor_damage.png", text = "【赤阳丹韵】纯阳药引催劲，攻击破甲效能 [color=" + pos + "]+8%[/color]" });
+			ret.push({ id = 27, type = "text", icon = "ui/icons/armor_damage.png", text = "【赤阳丹韵】攻击破甲效能 [color=" + pos + "]+8%[/color]（主修阳刚内功近战额外灼损 [color=" + pos + "]5[/color] 身甲）" });
 		if ((this.m.AuxMask & 4) != 0)
-			ret.push({ id = 28, type = "text", icon = "ui/icons/fatigue.png", text = "【玄阴丹韵】寒髓润脉，每回合额外回气 [color=" + pos + "]+2[/color]" });
+			ret.push({ id = 28, type = "text", icon = "ui/icons/fatigue.png", text = "【玄阴丹韵】每轮额外回气 [color=" + pos + "]+2[/color]（主修阴柔内功受近战反散来敌 [color=" + pos + "]4[/color] 内息）" });
 		if ((this.m.AuxMask & 8) != 0)
-			ret.push({ id = 30, type = "text", icon = "ui/icons/bravery.png", text = "【镇魂丹韵】定力 [color=" + pos + "]+6[/color]，抗惊骇检定额外 [color=" + pos + "]+8[/color]" });
+			ret.push({ id = 30, type = "text", icon = "ui/icons/bravery.png", text = "【镇魂丹韵】定力 [color=" + pos + "]+6[/color]、抗惊骇 [color=" + pos + "]+8[/color]，攻击落空自动补下次命中 [color=" + pos + "]+5[/color]" });
 		if ((this.m.AuxMask & 16) != 0)
-			ret.push({ id = 31, type = "text", icon = "ui/icons/special.png", text = "【奇毒丹韵】伤血 ≥5 时有 [color=" + pos + "]25%[/color] 概率附着【暗器奇毒】" });
+			ret.push({ id = 31, type = "text", icon = "ui/icons/special.png", text = "【奇毒丹韵】伤血 ≥5 时 [color=" + pos + "]25%[/color] 附【暗器奇毒】，攻击中毒敌破甲 [color=" + pos + "]+10%[/color]" });
 		if ((this.m.AuxMask & 32) != 0)
-			ret.push({ id = 32, type = "text", icon = "ui/icons/health.png", text = "【造化丹韵】临时气血上限 [color=" + pos + "]+8[/color]、内息上限 [color=" + pos + "]+6[/color]" });
+			ret.push({ id = 32, type = "text", icon = "ui/icons/health.png", text = "【造化丹韵】临时气血 [color=" + pos + "]+8[/color]、内息 [color=" + pos + "]+6[/color]，战后武学参战火候 [color=" + pos + "]+15%[/color]" });
+		local cImpTT = this.wxGetCoreImprintSpec();
+		if (cImpTT != null)
+			ret.push({ id = 67, type = "text", icon = "ui/icons/special.png", text = "【本命丹韵 · " + cImpTT.Title + "】" + cImpTT.Desc });
 		if (this.m.HasDanToxin)
 			ret.push({ id = 29, type = "text", icon = "ui/icons/warning.png", text = "[color=" + neg + "]【丹毒郁结】超量混服第 3 枚备战丹：内息上限 -15、回气 -3，战后必染 3 日内伤！[/color]" });
 		return ret;
@@ -320,6 +427,14 @@ if (!("UI" in ::Wuxia))
 	{
 		this.m.PillKillsThisTurn = 0;
 		this.m.PillAdaptStacks   = 0;
+		this.m.KurongNirvanaUsed = false;
+		this.m.BaizeUsedTurn     = false;
+		this.m.TaotieQiTurn      = 0;
+		this.m.YinglongQiTurn    = 0;
+		this.m.DuhengStanceTurn  = false;
+		this.m.PhasePillUsedTurn = false;
+		this.m.AuxAdaptReady     = false;
+		this.m.CoreQiTurn        = 0;
 		if (this.m.HasBaoming)
 			this.syncBaomingNineLives();
 
@@ -338,19 +453,72 @@ if (!("UI" in ::Wuxia))
 		{
 			actor.setMoraleState(::Const.MoraleState.Confident);
 		}
-		if (this.m.HasTihu)
+		local cImpStart = this.wxGetCoreImprintSpec();
+		local hasOracleImp = (cImpStart != null && cImpStart.Mode == "oracle_sight");
+		if (this.m.HasTihu || this.m.HasBaize || (this.m.AuxMask & 32) != 0 || hasOracleImp)
 		{
-			actor.m.WX_TihuMasteryMult <- (1.0 + 0.50 * (this.m.PotencyScalePct / 100.0));
+			local tihuAdd   = this.m.HasTihu ? (0.50 * (this.m.PotencyScalePct / 100.0)) : 0.0;
+			local baizeAdd  = this.m.HasBaize ? 0.25 : 0.0;
+			local auxOrig   = ((this.m.AuxMask & 32) != 0) ? 0.15 : 0.0;
+			local coreOrig  = hasOracleImp ? 0.15 : 0.0;
+			local curMult   = ("WX_TihuMasteryMult" in actor.m) ? actor.m.WX_TihuMasteryMult : 1.0;
+			actor.m.WX_TihuMasteryMult <- ::Math.maxf(curMult, 1.0 + tihuAdd + baizeAdd + auxOrig + coreOrig);
 		}
 	};
 
 	q.onTurnStart <- function()
 	{
 		this.m.PillKillsThisTurn = 0;
+		this.m.BaizeUsedTurn     = false;
+		this.m.TaotieQiTurn      = 0;
+		this.m.YinglongQiTurn    = 0;
+		this.m.DuhengStanceTurn  = false;
+		this.m.PhasePillUsedTurn = false;
+		this.m.CoreQiTurn        = 0;
 		local container = this.getContainer();
 		local actor = container != null ? container.getActor() : null;
 		if (actor == null || !actor.isAlive()) return;
 		local sc = this.m.PotencyScalePct / 100.0;
+		local mp = ("CraftBridge" in ::Wuxia) ? ::Wuxia.CraftBridge.getActorMartialProfile(actor) : null;
+		local cImp = this.wxGetCoreImprintSpec();
+
+		if (this.m.HasQingxin && ("CraftBridge" in ::Wuxia) && ::Wuxia.CraftBridge.isActorInMiasmaOrSwamp(actor))
+		{
+			::Wuxia.CombatRules.restoreQi(actor, 3);
+		}
+		if (this.m.HasGuiyuan && mp != null && mp.SubElement != "none")
+		{
+			if (actor.getHitpoints() < actor.getHitpointsMax())
+				actor.setHitpoints(::Math.min(actor.getHitpointsMax(), actor.getHitpoints() + 4));
+			::Wuxia.CombatRules.restoreQi(actor, 2);
+		}
+		if (this.m.HasJinwu && container != null)
+		{
+			if (container.hasSkill("effects.wx_status_frost_chill")) container.removeByID("effects.wx_status_frost_chill");
+			if (container.hasSkill("effects.chilled")) container.removeByID("effects.chilled");
+		}
+		if (this.m.HasJiuwei && container != null)
+		{
+			if (container.hasSkill("effects.charmed")) container.removeByID("effects.charmed");
+			if (container.hasSkill("effects.sleeping")) container.removeByID("effects.sleeping");
+		}
+		if ((this.m.AuxMask & 1) != 0 && mp != null && mp.HasHenglian && ::Wuxia.hasMember(actor, "getItems") && actor.getItems() != null)
+		{
+			local auxB = actor.getItems().getItemAtSlot(::Const.ItemSlot.Body);
+			if (auxB != null && ::Wuxia.hasMember(auxB, "getArmor") && auxB.getArmor() < auxB.getArmorMax())
+				auxB.setArmor(::Math.min(auxB.getArmorMax(), auxB.getArmor() + 4));
+		}
+		if (cImp != null && cImp.Mode == "sacred_wood")
+		{
+			if (actor.getHitpoints() < actor.getHitpointsMax())
+				actor.setHitpoints(::Math.min(actor.getHitpointsMax(), actor.getHitpoints() + 3));
+			if (::Wuxia.hasMember(actor, "getItems") && actor.getItems() != null)
+			{
+				local swB = actor.getItems().getItemAtSlot(::Const.ItemSlot.Body);
+				if (swB != null && ::Wuxia.hasMember(swB, "getArmor") && swB.getArmor() < swB.getArmorMax())
+					swB.setArmor(::Math.min(swB.getArmorMax(), swB.getArmor() + 4));
+			}
+		}
 
 		if (this.m.HasYuji)
 		{
@@ -358,6 +526,39 @@ if (!("UI" in ::Wuxia))
 				container.removeByID("effects.bleeding");
 			if (actor.getHitpoints() < actor.getHitpointsMax())
 				actor.setHitpoints(::Math.min(actor.getHitpointsMax(), actor.getHitpoints() + ::Math.round(5 * sc)));
+		}
+		if (this.m.HasJianmu)
+		{
+			if (actor.getHitpoints() < actor.getHitpointsMax())
+				actor.setHitpoints(::Math.min(actor.getHitpointsMax(), actor.getHitpoints() + ::Math.round(6 * sc)));
+			if (::Wuxia.hasMember(actor, "getItems") && actor.getItems() != null)
+			{
+				local jmBody = actor.getItems().getItemAtSlot(::Const.ItemSlot.Body);
+				if (jmBody != null && ::Wuxia.hasMember(jmBody, "getArmor") && jmBody.getArmor() < jmBody.getArmorMax())
+				{
+					local mcJ = container.getSkillByID("special.wx_martial_container");
+					local hasHenglian = false;
+					if (mcJ != null && "Slots" in mcJ.m)
+					{
+						foreach (sl in mcJ.m.Slots)
+						{
+							if (sl.ManualID != null && sl.Tier > 0)
+							{
+								local mdef = ::Wuxia.Slots.getManualDef(sl.ManualID);
+								if (mdef != null && mdef.Category == "henglian") { hasHenglian = true; break; }
+							}
+						}
+					}
+					local armRep = hasHenglian ? 10 : 6;
+					jmBody.setArmor(::Math.min(jmBody.getArmorMax(), jmBody.getArmor() + armRep));
+				}
+			}
+		}
+		if (this.m.HasKurong)
+		{
+			local hasAff = container.hasSkill("effects.bleeding") || container.hasSkill("effects.wx_status_poison_dart") || container.hasSkill("effects.spider_poison") || container.hasSkill("effects.goblin_poison");
+			if (hasAff)
+				::Wuxia.CombatRules.restoreQi(actor, 4);
 		}
 		if ((this.m.AuxMask & 1) != 0 && actor.getHitpoints() < actor.getHitpointsMax())
 		{
@@ -379,6 +580,20 @@ if (!("UI" in ::Wuxia))
 		local actor = container != null ? container.getActor() : null;
 		local sc = this.m.PotencyScalePct / 100.0;
 
+		if (this.m.HasKurong && !this.m.KurongNirvanaUsed && actor != null && container != null && actor.getHitpointsMax() > 0)
+		{
+			local estDmg = (_hitInfo != null && ("DamageRegular" in _hitInfo)) ? _hitInfo.DamageRegular : 0;
+			if ((actor.getHitpoints() - estDmg).tofloat() / actor.getHitpointsMax().tofloat() < 0.35)
+			{
+				this.m.KurongNirvanaUsed = true;
+				foreach (clID in ["effects.bleeding", "effects.wx_status_poison_dart", "effects.spider_poison", "effects.goblin_poison"])
+				{
+					if (container.hasSkill(clID)) container.removeByID(clID);
+				}
+				actor.setHitpoints(::Math.min(actor.getHitpointsMax(), actor.getHitpoints() + ::Math.round(22 * sc)));
+			}
+		}
+
 		if (this.m.HasTiee && _hitInfo != null && ("BodyPart" in _hitInfo) && _hitInfo.BodyPart == ::Const.BodyPart.Head)
 		{
 			if (("BodyDamageMult" in _hitInfo) && _hitInfo.BodyDamageMult > 1.0)
@@ -397,6 +612,72 @@ if (!("UI" in ::Wuxia))
 			if (!::Wuxia.CombatRules.isUndeadOrConstruct(_attacker) && (::Wuxia.hasMember(_attacker, "getFatigue")))
 			{
 				_attacker.setFatigue(::Math.min(_attacker.getFatigueMax(), _attacker.getFatigue() + ::Math.round(4 * sc)));
+			}
+		}
+
+		local mpDef = ("CraftBridge" in ::Wuxia) ? ::Wuxia.CraftBridge.getActorMartialProfile(actor) : null;
+		local cImpDef = this.wxGetCoreImprintSpec();
+
+		if ((this.m.HasXuangui || this.m.HasDijiang) && !this.m.PhasePillUsedTurn && _hitInfo != null && ("CraftBridge" in ::Wuxia))
+		{
+			local isRangedP = (_skill != null && _skill.isRanged());
+			local isHeavyP  = (("DamageRegular" in _hitInfo) && _hitInfo.DamageRegular >= 20);
+			if (this.m.HasDijiang && (isRangedP || isHeavyP))
+			{
+				this.m.PhasePillUsedTurn = true;
+				::Wuxia.CraftBridge.multCappedRegularDamageReceived(_properties, 0.78);
+			}
+			else if (this.m.HasXuangui && isHeavyP)
+			{
+				this.m.PhasePillUsedTurn = true;
+				::Wuxia.CraftBridge.multCappedRegularDamageReceived(_properties, 0.88);
+			}
+		}
+
+		if (this.m.HasQingxin && actor != null && _skill != null && _skill.getID().find("poison") != null)
+		{
+			::Wuxia.CombatRules.restoreQi(actor, 3);
+		}
+
+		if (_attacker != null && actor != null && _attacker.getID() != actor.getID() && _attacker.isAlive() && _skill != null && !_skill.isRanged())
+		{
+			if (this.m.HasBingxin && mpDef != null && (mpDef.MainElement == "yin" || mpDef.SubElement == "yin"))
+			{
+				if (_attacker.getSkills() != null && !_attacker.getSkills().hasSkill("effects.wx_status_frost_chill"))
+					_attacker.getSkills().add(::new("scripts/skills/effects/wx_status_frost_chill"));
+				if (!::Wuxia.CombatRules.isUndeadOrConstruct(_attacker) && ::Wuxia.hasMember(_attacker, "getFatigue"))
+					_attacker.setFatigue(::Math.min(_attacker.getFatigueMax(), _attacker.getFatigue() + 3));
+			}
+			if (this.m.HasBaishe && !::Wuxia.CombatRules.isImmuneToMeridianAndPoison(_attacker)
+				&& _attacker.getSkills() != null && ::Math.rand(1, 100) <= 30)
+			{
+				if (!_attacker.getSkills().hasSkill("effects.wx_status_poison_dart"))
+					_attacker.getSkills().add(::new("scripts/skills/effects/wx_status_poison_dart"));
+			}
+			if (this.m.HasJinzun && mpDef != null && mpDef.HasHenglian && ::Wuxia.hasMember(_attacker, "getItems") && _attacker.getItems() != null)
+			{
+				local jzB = _attacker.getItems().getItemAtSlot(::Const.ItemSlot.Body);
+				if (jzB != null && jzB.getArmor() > 0)
+					jzB.setArmor(::Math.max(0, jzB.getArmor() - 6));
+			}
+			if ((this.m.AuxMask & 4) != 0 && mpDef != null && (mpDef.MainElement == "yin" || mpDef.SubElement == "yin")
+				&& !::Wuxia.CombatRules.isUndeadOrConstruct(_attacker) && ::Wuxia.hasMember(_attacker, "getFatigue"))
+			{
+				_attacker.setFatigue(::Math.min(_attacker.getFatigueMax(), _attacker.getFatigue() + 4));
+			}
+			if (cImpDef != null && cImpDef.Mode == "abyssal_frost" && _attacker.getSkills() != null)
+			{
+				if (!_attacker.getSkills().hasSkill("effects.wx_status_frost_chill"))
+					_attacker.getSkills().add(::new("scripts/skills/effects/wx_status_frost_chill"));
+			}
+		}
+
+		if (this.m.HasLiangyi && _attacker != null && actor != null && _attacker.getID() != actor.getID() && _attacker.isAlive() && _skill != null && !_skill.isRanged() && ("CraftBridge" in ::Wuxia))
+		{
+			local ngp = ::Wuxia.CraftBridge.getActorNeigongProfile(actor);
+			if ((ngp.MainElement == "yin" || ngp.SubElement == "yin") && !::Wuxia.CombatRules.isUndeadOrConstruct(_attacker) && ::Wuxia.hasMember(_attacker, "getFatigue"))
+			{
+				_attacker.setFatigue(::Math.min(_attacker.getFatigueMax(), _attacker.getFatigue() + 5));
 			}
 		}
 
@@ -436,9 +717,60 @@ if (!("UI" in ::Wuxia))
 		local actor = container != null ? container.getActor() : null;
 		local sc = this.m.PotencyScalePct / 100.0;
 
+		local mpAtk = ("CraftBridge" in ::Wuxia) ? ::Wuxia.CraftBridge.getActorMartialProfile(actor) : null;
+		local cImpAtk = this.wxGetCoreImprintSpec();
+
+		if (this.m.HasDingshen && ("CraftBridge" in ::Wuxia) && ::Wuxia.CraftBridge.isShadowOrSmokeEnv(actor, _targetEntity))
+		{
+			if (_skill.isRanged()) _properties.RangedSkill += 6;
+			else _properties.MeleeSkill += 6;
+		}
+		if (cImpAtk != null && cImpAtk.Mode == "oracle_sight" && ("CraftBridge" in ::Wuxia) && ::Wuxia.CraftBridge.isShadowOrSmokeEnv(actor, _targetEntity))
+		{
+			if (_skill.isRanged()) _properties.RangedSkill += 5;
+			else _properties.MeleeSkill += 5;
+		}
+		if (this.m.HasZhuyu && actor != null && ::Wuxia.hasMember(actor, "getFatigue") && ::Wuxia.hasMember(actor, "getFatigueMax")
+			&& actor.getFatigueMax() > 0 && actor.getFatigue() * 2 >= actor.getFatigueMax())
+		{
+			if ("FatigueEffectMult" in _properties) _properties.FatigueEffectMult *= 0.90;
+		}
+		if ((this.m.AuxMask & 8) != 0 && this.m.AuxAdaptReady)
+		{
+			if (_skill.isRanged()) _properties.RangedSkill += 5;
+			else _properties.MeleeSkill += 5;
+		}
+		if (_targetEntity != null)
+		{
+			local tskA = (::Wuxia.hasMember(_targetEntity, "getSkills")) ? _targetEntity.getSkills() : null;
+			local targetPoisoned = tskA != null && (tskA.hasSkill("effects.wx_status_poison_dart") || tskA.hasSkill("effects.spider_poison") || tskA.hasSkill("effects.goblin_poison"));
+			if ((this.m.AuxMask & 16) != 0 && targetPoisoned)
+				_properties.DamageArmorMult += 0.10;
+			if (cImpAtk != null && cImpAtk.Mode == "bitter_venom" && targetPoisoned)
+			{
+				if (_skill.isRanged()) _properties.RangedSkill += 4;
+				else _properties.MeleeSkill += 4;
+			}
+			if (this.m.HasJinwu && ::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity))
+				_properties.DamageTotalMult *= 1.16;
+			else if (cImpAtk != null && cImpAtk.Mode == "solar_scorch" && ::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity))
+				_properties.DamageTotalMult *= 1.08;
+		}
+
 		if (this.m.HasJiugong && !_skill.isRanged() && actor != null && ::Wuxia.hasMember(actor, "m") && actor.m != null && ("WX_IsIntercepting" in actor.m) && actor.m.WX_IsIntercepting)
 		{
 			_properties.MeleeSkill += ::Math.round(10 * sc);
+		}
+		if (this.m.HasBaize && !this.m.BaizeUsedTurn && !_skill.isRanged() && actor != null
+			&& ((::Wuxia.hasMember(actor, "m") && actor.m != null && ("WX_IsIntercepting" in actor.m) && actor.m.WX_IsIntercepting)
+				|| (container != null && container.hasSkill("effects.wx_status_counter_stance"))))
+		{
+			_properties.MeleeSkill += 12;
+		}
+		if (this.m.HasShenmo && _targetEntity != null && ::Wuxia.hasMember(_targetEntity, "getMoraleState") && _targetEntity.getMoraleState() <= ::Const.MoraleState.Wavering)
+		{
+			if (_skill.isRanged()) _properties.RangedSkill += 8;
+			else _properties.MeleeSkill += 8;
 		}
 		if (this.m.HasZuixian && !_skill.isRanged())
 		{
@@ -510,14 +842,18 @@ if (!("UI" in ::Wuxia))
 
 	q.onTargetMissed <- function( _skill, _targetEntity )
 	{
-		if (this.m.HasZhenmo && _skill != null && _skill.isAttack())
+		if (_skill == null || !_skill.isAttack()) return;
+		if (this.m.HasZhenmo)
 			this.m.PillAdaptStacks = ::Math.min(5, this.m.PillAdaptStacks + 1);
+		if ((this.m.AuxMask & 8) != 0)
+			this.m.AuxAdaptReady = true;
 	};
 
 	q.onTargetHit <- function( _skill, _targetEntity, _bodyPart, _damageInflictedHitpoints, _damageInflictedArmor )
 	{
 		if (_skill == null || !_skill.isAttack()) return;
 		this.m.PillAdaptStacks = 0;
+		this.m.AuxAdaptReady   = false;
 
 		local container = this.getContainer();
 		local actor = container != null ? container.getActor() : null;
@@ -528,6 +864,97 @@ if (!("UI" in ::Wuxia))
 		local tsk = (::Wuxia.hasMember(_targetEntity, "getSkills")) ? _targetEntity.getSkills() : null;
 		local tItems = (::Wuxia.hasMember(_targetEntity, "getItems")) ? _targetEntity.getItems() : null;
 		local poisonImmune = ::Wuxia.CombatRules.isImmuneToMeridianAndPoison(_targetEntity);
+
+		local mpHit = ("CraftBridge" in ::Wuxia) ? ::Wuxia.CraftBridge.getActorMartialProfile(actor) : null;
+		local cImpHit = this.wxGetCoreImprintSpec();
+
+		// Legacy Pre-Battle Pills + 6 AuxInfusions + 7 New Boss Signature Pills + 64-Boss CoreImprints on-hit catalysts!
+		if (this.m.HasHugu && !_skill.isRanged() && tItems != null)
+		{
+			local isYangOrHeavy = (mpHit != null && (mpHit.MainElement == "yang" || mpHit.SubElement == "yang"))
+				|| (("CraftBridge" in ::Wuxia) && ::Wuxia.CraftBridge.hasSkillMechanic(_skill, "concuss_armor"));
+			if (isYangOrHeavy)
+			{
+				local hgB = tItems.getItemAtSlot(::Const.ItemSlot.Body);
+				if (hgB != null && hgB.getArmor() > 0) hgB.setArmor(::Math.max(0, hgB.getArmor() - 6));
+			}
+		}
+		if (this.m.HasDuheng && mpHit != null && mpHit.HasQinggong && ("CraftBridge" in ::Wuxia)
+			&& (::Wuxia.CraftBridge.hasSkillMechanic(_skill, "step_through") || ::Wuxia.CraftBridge.hasSkillMechanic(_skill, "push_advance")))
+		{
+			this.m.DuhengStanceTurn = true;
+		}
+		if ((this.m.AuxMask & 2) != 0 && !_skill.isRanged() && tItems != null && mpHit != null && (mpHit.MainElement == "yang" || mpHit.SubElement == "yang"))
+		{
+			local ayB = tItems.getItemAtSlot(::Const.ItemSlot.Body);
+			if (ayB != null && ayB.getArmor() > 0) ayB.setArmor(::Math.max(0, ayB.getArmor() - 5));
+		}
+		if (this.m.HasChiyou && !_skill.isRanged() && tItems != null && ::Wuxia.hasMember(_targetEntity, "isArmedWithShield") && _targetEntity.isArmedWithShield())
+		{
+			local cySh = tItems.getItemAtSlot(::Const.ItemSlot.Offhand);
+			if (cySh != null && ::Wuxia.hasMember(cySh, "applyShieldDamage")) cySh.applyShieldDamage(10);
+		}
+		if (this.m.HasJinwu && !_skill.isRanged() && tItems != null)
+		{
+			local jwB = tItems.getItemAtSlot(::Const.ItemSlot.Body);
+			if (jwB != null && jwB.getArmor() > 0) jwB.setArmor(::Math.max(0, jwB.getArmor() - 10));
+		}
+		if (this.m.HasXiangliu && tsk != null && !poisonImmune)
+		{
+			local alreadyP = tsk.hasSkill("effects.wx_status_poison_dart") || tsk.hasSkill("effects.spider_poison") || tsk.hasSkill("effects.goblin_poison");
+			if (::Math.rand(1, 100) <= 55 && !tsk.hasSkill("effects.wx_status_poison_dart"))
+				tsk.add(::new("scripts/skills/effects/wx_status_poison_dart"));
+			if (alreadyP && ::Wuxia.hasMember(_targetEntity, "isPlacedOnMap") && _targetEntity.isPlacedOnMap() && _targetEntity.getTile() != null)
+			{
+				local xlT = _targetEntity.getTile();
+				for (local dx = 0; dx < 6; dx = ++dx)
+				{
+					if (!xlT.hasNextTile(dx)) continue;
+					local nxt = xlT.getNextTile(dx);
+					if (nxt.IsOccupiedByActor && nxt.getEntity() != null && nxt.getEntity().isAlive() && !actor.isAlliedWith(nxt.getEntity()) && !::Wuxia.CombatRules.isImmuneToMeridianAndPoison(nxt.getEntity()))
+					{
+						if (nxt.getEntity().getSkills() != null && !nxt.getEntity().getSkills().hasSkill("effects.wx_status_poison_dart"))
+							nxt.getEntity().getSkills().add(::new("scripts/skills/effects/wx_status_poison_dart"));
+						break;
+					}
+				}
+			}
+		}
+		if (this.m.HasJiuwei && _damageInflictedHitpoints >= 4 && !::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity) && ::Wuxia.hasMember(_targetEntity, "checkMorale"))
+		{
+			_targetEntity.checkMorale(-1, -10);
+		}
+		if (cImpHit != null)
+		{
+			if ((cImpHit.Mode == "feral_might" || cImpHit.Mode == "solar_scorch") && !_skill.isRanged() && tItems != null)
+			{
+				local ciB = tItems.getItemAtSlot(::Const.ItemSlot.Body);
+				if (ciB != null && ciB.getArmor() > 0) ciB.setArmor(::Math.max(0, ciB.getArmor() - 6));
+				if (cImpHit.Mode == "feral_might" && (_damageInflictedHitpoints >= 12 || _damageInflictedArmor >= 20) && ("CraftBridge" in ::Wuxia))
+					::Wuxia.CraftBridge.applyBossCounterHit(actor, _targetEntity, { BreakPts = 1 });
+			}
+			else if (cImpHit.Mode == "bitter_venom" && _damageInflictedHitpoints >= 4 && !poisonImmune && tsk != null && ::Math.rand(1, 100) <= 30)
+			{
+				if (!tsk.hasSkill("effects.wx_status_poison_dart"))
+					tsk.add(::new("scripts/skills/effects/wx_status_poison_dart"));
+			}
+			else if (cImpHit.Mode == "thunder_shock" && !_skill.isRanged() && (_damageInflictedHitpoints >= 10 || _damageInflictedArmor >= 18)
+				&& !::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity) && ::Wuxia.hasMember(_targetEntity, "getFatigue"))
+			{
+				_targetEntity.setFatigue(::Math.min(_targetEntity.getFatigueMax(), _targetEntity.getFatigue() + 5));
+			}
+			else if (cImpHit.Mode == "devour_qi" && !_skill.isRanged() && _damageInflictedHitpoints >= 12 && this.m.CoreQiTurn < 2 && !::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity))
+			{
+				this.m.CoreQiTurn += 1;
+				::Wuxia.CombatRules.restoreQi(actor, 3);
+			}
+			else if (cImpHit.Mode == "sonic_rattle" && _damageInflictedHitpoints >= 8 && !::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity))
+			{
+				if (::Wuxia.hasMember(_targetEntity, "checkMorale")) _targetEntity.checkMorale(-1, -6);
+				if (::Wuxia.hasMember(_targetEntity, "getFatigue"))
+					_targetEntity.setFatigue(::Math.min(_targetEntity.getFatigueMax(), _targetEntity.getFatigue() + 3));
+			}
+		}
 
 		if (((this.m.AuxMask & 16) != 0 && _damageInflictedHitpoints >= 5 && !poisonImmune && ::Math.rand(1, 100) <= 25)
 			|| (this.m.HasKongque && _damageInflictedHitpoints >= 4 && !poisonImmune && ::Math.rand(1, 100) <= ::Math.min(75, ::Math.round(55 * sc))))
@@ -558,6 +985,49 @@ if (!("UI" in ::Wuxia))
 			local uBody = tItems.getItemAtSlot(::Const.ItemSlot.Body);
 			if (uBody != null && (::Wuxia.hasMember(uBody, "getArmor")) && uBody.getArmor() > 0)
 				uBody.setArmor(::Math.max(0, uBody.getArmor() - ::Math.round(8 * sc)));
+		}
+
+		if (this.m.HasLiangyi && !_skill.isRanged() && tItems != null && ("CraftBridge" in ::Wuxia))
+		{
+			local ngAtk = ::Wuxia.CraftBridge.getActorNeigongProfile(actor);
+			if (ngAtk.MainElement == "yang" || ngAtk.SubElement == "yang" || ngAtk.HasConflict)
+			{
+				local lyBody = tItems.getItemAtSlot(::Const.ItemSlot.Body);
+				if (lyBody != null && lyBody.getArmor() > 0)
+					lyBody.setArmor(::Math.max(0, lyBody.getArmor() - 6));
+			}
+		}
+
+		if (this.m.HasZhuyin && !_skill.isRanged() && tItems != null && (this.wxCurrentRound() % 2) == 0)
+		{
+			local zyBody = tItems.getItemAtSlot(::Const.ItemSlot.Body);
+			if (zyBody != null && zyBody.getArmor() > 0)
+				zyBody.setArmor(::Math.max(0, zyBody.getArmor() - 10));
+		}
+
+		if (this.m.HasBaize && !this.m.BaizeUsedTurn && !_skill.isRanged() && tsk != null
+			&& ((::Wuxia.hasMember(actor, "m") && actor.m != null && ("WX_IsIntercepting" in actor.m) && actor.m.WX_IsIntercepting)
+				|| (container != null && container.hasSkill("effects.wx_status_counter_stance"))))
+		{
+			this.m.BaizeUsedTurn = true;
+			if (!tsk.hasSkill("effects.wx_status_opening"))
+				tsk.add(::new("scripts/skills/effects/wx_status_opening"));
+		}
+
+		if (this.m.HasTaotie && !_skill.isRanged() && this.m.TaotieQiTurn < 2 && _damageInflictedHitpoints >= 12
+			&& !::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity))
+		{
+			this.m.TaotieQiTurn += 1;
+			if (::Wuxia.hasMember(_targetEntity, "getFatigue"))
+				_targetEntity.setFatigue(::Math.min(_targetEntity.getFatigueMax(), _targetEntity.getFatigue() + 5));
+			::Wuxia.CombatRules.restoreQi(actor, 5);
+		}
+
+		if (this.m.HasYinglong && this.m.YinglongQiTurn < 2 && ("CraftBridge" in ::Wuxia)
+			&& (::Wuxia.CraftBridge.hasSkillMechanic(_skill, "step_through") || ::Wuxia.CraftBridge.hasSkillMechanic(_skill, "pierce_line")))
+		{
+			this.m.YinglongQiTurn += 1;
+			::Wuxia.CombatRules.restoreQi(actor, 3);
 		}
 
 		if (this.m.HasSuoxue && tsk != null)
@@ -597,10 +1067,47 @@ if (!("UI" in ::Wuxia))
 
 	q.onTargetKilled <- function( _targetEntity, _skill )
 	{
-		if (!this.m.HasShixue || this.m.PillKillsThisTurn >= 2) return;
 		local container = this.getContainer();
 		local actor = container != null ? container.getActor() : null;
 		if (actor == null || !actor.isAlive()) return;
+
+		local cImpKill = this.wxGetCoreImprintSpec();
+		if (cImpKill != null && cImpKill.Mode == "devour_qi" && this.m.CoreQiTurn < 2 && (_targetEntity == null || !::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity)))
+		{
+			this.m.CoreQiTurn += 1;
+			::Wuxia.CombatRules.restoreQi(actor, 3);
+		}
+		if (this.m.HasChiyou)
+		{
+			::Wuxia.CombatRules.restoreQi(actor, 5);
+			if (_targetEntity != null && ::Wuxia.hasMember(_targetEntity, "isPlacedOnMap") && _targetEntity.isPlacedOnMap() && _targetEntity.getTile() != null)
+			{
+				local cyT = _targetEntity.getTile();
+				for (local dk = 0; dk < 6; dk = ++dk)
+				{
+					if (!cyT.hasNextTile(dk)) continue;
+					local nk = cyT.getNextTile(dk);
+					if (nk.IsOccupiedByActor && nk.getEntity() != null && nk.getEntity().isAlive() && !actor.isAlliedWith(nk.getEntity())
+						&& !::Wuxia.CombatRules.isUndeadOrConstruct(nk.getEntity()) && ::Wuxia.hasMember(nk.getEntity(), "checkMorale"))
+					{
+						nk.getEntity().checkMorale(-1, -8);
+						break;
+					}
+				}
+			}
+		}
+
+		if (this.m.HasShenmo && this.m.PillKillsThisTurn < 2)
+		{
+			::Wuxia.CombatRules.restoreQi(actor, 6);
+		}
+
+		if (!this.m.HasShixue || this.m.PillKillsThisTurn >= 2)
+		{
+			if (this.m.HasShenmo && this.m.PillKillsThisTurn < 2)
+				this.m.PillKillsThisTurn += 1;
+			return;
+		}
 		if (_targetEntity != null && ::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity)) return;
 
 		this.m.PillKillsThisTurn += 1;
@@ -757,6 +1264,110 @@ if (!("UI" in ::Wuxia))
 			if (actor != null && ::Wuxia.hasMember(actor, "m") && actor.m != null)
 				actor.m.WX_TihuMasteryMult <- (1.0 + 0.50 * sc);
 		}
+		if (this.m.HasLiangyi)
+		{
+			_properties.DamageArmorMult += (0.12 * sc);
+			_properties.FatigueRecoveryRate += 3;
+			if (actor != null && ::Wuxia.hasMember(actor, "m") && actor.m != null)
+				actor.m.WX_SuppressNeigongConflict <- true;
+		}
+		if (this.m.HasZhuyin)
+		{
+			if ((this.wxCurrentRound() % 2) == 1)
+			{
+				_properties.MeleeDefense += 5;
+				_properties.RangedDefense += 5;
+				_properties.FatigueRecoveryRate += 4;
+			}
+			else
+			{
+				_properties.DamageTotalMult *= 1.10;
+			}
+		}
+		if (this.m.HasKurong && container != null)
+		{
+			local hasAffK = container.hasSkill("effects.bleeding") || container.hasSkill("effects.wx_status_poison_dart") || container.hasSkill("effects.spider_poison") || container.hasSkill("effects.goblin_poison");
+			if (hasAffK)
+			{
+				_properties.MeleeDefense += 4;
+				_properties.RangedDefense += 4;
+				_properties.FatigueRecoveryRate += 4;
+			}
+		}
+		if (this.m.HasShenmo && actor != null && ::Wuxia.hasMember(actor, "m") && actor.m != null)
+		{
+			actor.m.WX_SuppressNeigongConflict <- true;
+		}
+		if (this.m.HasYinglong && ("MovementFatigueCostMult" in _properties))
+		{
+			_properties.MovementFatigueCostMult *= 0.65;
+		}
+		local mpUp = ("CraftBridge" in ::Wuxia) ? ::Wuxia.CraftBridge.getActorMartialProfile(actor) : null;
+		if (this.m.HasDuheng && this.m.DuhengStanceTurn)
+		{
+			_properties.MeleeDefense += 3;
+			_properties.RangedDefense += 3;
+		}
+		if (this.m.HasDixiu && mpUp != null && mpUp.HasHenglian)
+		{
+			_properties.DamageReceivedArmorMult *= 0.88;
+		}
+		if (this.m.HasChiyou)
+		{
+			_properties.DamageArmorMult += (0.15 * sc);
+		}
+		if (this.m.HasXiangliu)
+		{
+			_properties.IsImmuneToPoison = true;
+		}
+		if (this.m.HasXuangui)
+		{
+			_properties.DamageReceivedRangedMult *= 0.82;
+			_properties.IsImmuneToKnockBackAndGrab = true;
+			_properties.IsImmuneToStun = true;
+		}
+		if (this.m.HasDijiang)
+		{
+			_properties.Initiative += ::Math.round(16 * sc);
+		}
+		if (this.m.HasJiuwei)
+		{
+			_properties.Bravery += ::Math.round(14 * sc);
+		}
+		if (this.m.HasXingtian)
+		{
+			_properties.IsImmuneToStun = true;
+			if (actor != null && ::Wuxia.hasMember(actor, "getHitpointsMax") && actor.getHitpointsMax() > 0
+				&& (actor.getHitpoints().tofloat() / actor.getHitpointsMax().tofloat()) < 0.60)
+			{
+				_properties.DamageTotalMult *= 1.14;
+				_properties.FatigueRecoveryRate += 4;
+			}
+		}
+
+		// Apply 64-Boss Inner-Core Imprint (`本命妖丹丹韵`) passive updates
+		local cImpUp = this.wxGetCoreImprintSpec();
+		if (cImpUp != null)
+		{
+			if (cImpUp.Mode == "abyssal_frost")
+				_properties.FatigueRecoveryRate += 2;
+			else if (cImpUp.Mode == "gale_stride")
+			{
+				_properties.Initiative += 8;
+				if (this.wxCurrentRound() <= 1) _properties.Initiative += 6;
+			}
+			else if (cImpUp.Mode == "bastion_shell")
+			{
+				_properties.DamageReceivedArmorMult *= 0.90;
+				_properties.Bravery += 6;
+			}
+			else if (cImpUp.Mode == "war_spirit" && actor != null && ::Wuxia.hasMember(actor, "getHitpointsMax") && actor.getHitpointsMax() > 0
+				&& (actor.getHitpoints().tofloat() / actor.getHitpointsMax().tofloat()) < 0.60)
+			{
+				_properties.DamageTotalMult *= 1.08;
+				_properties.Bravery += 8;
+			}
+		}
 
 		// Apply Auxiliary Herb Nature Side-Effects (`药引丹韵`)
 		if ((this.m.AuxMask & 2) != 0)
@@ -882,6 +1493,15 @@ if (!("UI" in ::Wuxia))
 			if (this.m[sp.Field])
 				extPillMask = extPillMask | (1 << sp.Bit);
 		}
+		local extPillMask2 = 0;
+		foreach (sp2 in extBuffSpecs2)
+		{
+			if (this.m[sp2.Field])
+				extPillMask2 = extPillMask2 | (1 << sp2.Bit);
+		}
+		local hasExt2 = (extPillMask2 != 0 || this.m.CoreImprintID != "");
+		if (hasExt2)
+			extPillMask = extPillMask | (1 << 30);
 
 		local hasExt = (this.m.AuxMask != 0 || this.m.PotencyScalePct != 100 || extPillMask != 0);
 
@@ -894,6 +1514,11 @@ if (!("UI" in ::Wuxia))
 			_out.writeU8(::Math.max(80, ::Math.min(200, this.m.PotencyScalePct)));
 			if (extPillMask != 0)
 				_out.writeU32(extPillMask);
+			if (hasExt2)
+			{
+				_out.writeU32(extPillMask2);
+				_out.writeString(this.m.CoreImprintID);
+			}
 		}
 		else if (mask3 != 0)
 		{
@@ -943,13 +1568,22 @@ if (!("UI" in ::Wuxia))
 		this.m.HerbCalmBravery = (mask3 & 16) != 0 ? 8 : 6;
 
 		local extPillMask = 0;
+		local extPillMask2 = 0;
+		this.m.CoreImprintID = "";
 		if (hasExt)
 		{
 			local rawAux           = _in.readU8();
 			this.m.AuxMask         = rawAux & 63;
 			this.m.PotencyScalePct = _in.readU8();
 			if ((rawAux & 128) != 0)
+			{
 				extPillMask = _in.readU32();
+				if ((extPillMask & (1 << 30)) != 0)
+				{
+					extPillMask2 = _in.readU32();
+					this.m.CoreImprintID = _in.readString();
+				}
+			}
 		}
 		else
 		{
@@ -959,6 +1593,10 @@ if (!("UI" in ::Wuxia))
 		foreach (sp in extBuffSpecs)
 		{
 			this.m[sp.Field] = (extPillMask & (1 << sp.Bit)) != 0;
+		}
+		foreach (sp2 in extBuffSpecs2)
+		{
+			this.m[sp2.Field] = (extPillMask2 & (1 << sp2.Bit)) != 0;
 		}
 		this.updateLabel();
 	};
@@ -1290,6 +1928,7 @@ if ("buildStashPillsData" in ::Wuxia.UI)
 	}
 
 	local mastery = ::Wuxia.Alchemy.getAlchemistMastery();
+	local preViews = ::Wuxia.Alchemy.buildAutoPickSortedViews(ingList);
 	local uiFormulas = [];
 	local uiFreeRules = [];
 	local totalFormulaCount = ::Wuxia.Config.Alchemy.Formulas.len();
@@ -1306,6 +1945,8 @@ if ("buildStashPillsData" in ::Wuxia.UI)
 			junNatures          = f.JunNatures,
 			minJunPotency       = f.MinJunPotency,
 			requireRareJun      = f.RequireRareJun,
+			requiredCoreKey     = ("RequiredCoreKey" in f) ? f.RequiredCoreKey : "",
+			isHiddenMutation    = ("IsHiddenMutation" in f) && f.IsHiddenMutation,
 			minAuxCount         = f.MinAuxCount,
 			targetPotency       = f.TargetPotency,
 			preferredAuxNatures = ("PreferredAuxNatures" in f) ? f.PreferredAuxNatures : [],
@@ -1325,34 +1966,36 @@ if ("buildStashPillsData" in ::Wuxia.UI)
 				natShorts.push(::Wuxia.Config.Alchemy.Natures[nk].Short);
 		}
 
-		local autoPick = ::Wuxia.Alchemy.autoPickIngredients(f.ID, ingList);
-		local autoPv = ::Wuxia.Alchemy.previewBrew(f.ID, autoPick, ingMap);
+		local autoPick = ::Wuxia.Alchemy.autoPickIngredients(f.ID, ingList, preViews);
+		local autoPv = ::Wuxia.Alchemy.previewBrew(f.ID, autoPick, ingMap, mastery, money);
 
 		uiFormulas.push({
-			id             = f.ID,
-			category       = f.Category,
-			pillID         = f.PillID,
-			pillKind       = pdef.Kind,
-			name           = pdef.Name,
-			subLabel       = ("SubLabel" in pdef) ? pdef.SubLabel : "江湖灵丹",
-			quality        = pdef.Quality,
-			qualityLabel   = qLabel,
-			icon           = "ui/items/" + pdef.Icon,
-			description    = pdef.Description,
-			formulaNote    = f.FormulaNote,
-			baseYield      = f.BaseYield,
-			junNatures     = f.JunNatures,
-			junNatureText  = ::Wuxia.UI.wxJoinStrings(natShorts, "/"),
-			minJunPotency  = f.MinJunPotency,
-			requireRareJun = f.RequireRareJun,
-			minAuxCount    = f.MinAuxCount,
-			targetPotency  = f.TargetPotency,
-			silverCost     = ::Math.max(50, ::Math.floor(f.SilverCost * mastery.CostMult)),
-			ownedCount     = (f.PillID in ownedPills) ? ownedPills[f.PillID] : 0,
+			id               = f.ID,
+			category         = f.Category,
+			pillID           = f.PillID,
+			pillKind         = pdef.Kind,
+			name             = pdef.Name,
+			subLabel         = ("SubLabel" in pdef) ? pdef.SubLabel : "江湖灵丹",
+			quality          = pdef.Quality,
+			qualityLabel     = qLabel,
+			icon             = "ui/items/" + pdef.Icon,
+			description      = pdef.Description,
+			formulaNote      = f.FormulaNote,
+			baseYield        = f.BaseYield,
+			junNatures       = f.JunNatures,
+			junNatureText    = ::Wuxia.UI.wxJoinStrings(natShorts, "/"),
+			minJunPotency    = f.MinJunPotency,
+			requireRareJun   = f.RequireRareJun,
+			requiredCoreKey  = ("RequiredCoreKey" in f) ? f.RequiredCoreKey : "",
+			isHiddenMutation = ("IsHiddenMutation" in f) && f.IsHiddenMutation,
+			minAuxCount      = f.MinAuxCount,
+			targetPotency    = f.TargetPotency,
+			silverCost       = ::Math.max(50, ::Math.floor(f.SilverCost * mastery.CostMult)),
+			ownedCount       = (f.PillID in ownedPills) ? ownedPills[f.PillID] : 0,
 			hasAutoIngredients = ("IngredientsReady" in autoPv) && autoPv.IngredientsReady,
-			canAutoBrew    = autoPv.Ok,
-			autoPick       = autoPick,
-			autoPreview    = autoPv
+			canAutoBrew      = autoPv.Ok,
+			autoPick         = autoPick,
+			autoPreview      = autoPv
 		});
 	}
 
@@ -1388,17 +2031,59 @@ if ("buildStashPillsData" in ::Wuxia.UI)
 	{
 		local sm = ::Wuxia.Forge.getSmithMastery();
 		local cat = ::Wuxia.Forge.findReforgeCatalyst(stash);
+		local uiQuenches = [];
+		if ("QuenchCatalysts" in ::Wuxia.Forge)
+		{
+			foreach (qk in ["none", "frost", "flame", "thunder", "blood"])
+			{
+				if (!(qk in ::Wuxia.Forge.QuenchCatalysts)) continue;
+				local qc = ::Wuxia.Forge.QuenchCatalysts[qk];
+				local qf = ::Wuxia.Forge.findQuenchIngredient(qk, stash);
+				uiQuenches.push({
+					id         = qc.ID,
+					name       = qc.Name,
+					short      = qc.Short,
+					color      = qc.Color,
+					affixTitle = qc.AffixTitle,
+					affixDesc  = qc.AffixDesc,
+					available  = qf.Found,
+					matName    = qf.Name
+				});
+			}
+		}
 		forgePayload = {
-			smithLabel    = sm.SmithLabel,
-			bonusHighPct  = sm.BonusHighPct,
-			hasDiscount   = (sm.CostMult < 0.99),
-			chances       = sm.Chances,
-			pity          = ::Wuxia.Forge.getPity(),
-			catalystFound = cat.Found,
-			catalystName  = cat.Name,
-			catalystTotal = ::Wuxia.Forge.countTotalBeastMats(stash),
-			items         = ::Wuxia.Forge.collectReforgeableList(stash)
+			smithLabel      = sm.SmithLabel,
+			bonusHighPct    = sm.BonusHighPct,
+			hasDiscount     = (sm.CostMult < 0.99),
+			chances         = sm.Chances,
+			pity            = ::Wuxia.Forge.getPity(),
+			catalystFound   = cat.Found,
+			catalystName    = cat.Name,
+			catalystTotal   = ::Wuxia.Forge.countTotalBeastMats(stash),
+			quenchCatalysts = uiQuenches,
+			items           = ::Wuxia.Forge.collectReforgeableList(stash, sm)
 		};
+	}
+
+	local uiFireModes = [];
+	if ("FireModes" in ::Wuxia.Config.Alchemy)
+	{
+		foreach (fmk in ["gentle", "balanced", "fierce"])
+		{
+			if (!(fmk in ::Wuxia.Config.Alchemy.FireModes)) continue;
+			local fm = ::Wuxia.Config.Alchemy.FireModes[fmk];
+			uiFireModes.push({
+				id          = fm.ID,
+				title       = fm.Title,
+				short       = fm.Short,
+				color       = fm.Color,
+				costMult    = fm.CostMult,
+				grade2Bonus = fm.Grade2Bonus,
+				grade3Bonus = fm.Grade3Bonus,
+				doubleBonus = fm.DoubleBonus,
+				desc        = fm.Desc
+			});
+		}
 	}
 
 	local uiHerbCodex = [];
@@ -1449,6 +2134,23 @@ if ("buildStashPillsData" in ::Wuxia.UI)
 		});
 	}
 
+	local uiCoreImprints = {};
+	if ("CoreImprints" in ::Wuxia.Config.Alchemy && "CoreImprintModes" in ::Wuxia.Config.Alchemy)
+	{
+		foreach (cidI, cimpI in ::Wuxia.Config.Alchemy.CoreImprints)
+		{
+			local msI = (cimpI.Mode in ::Wuxia.Config.Alchemy.CoreImprintModes)
+				? ::Wuxia.Config.Alchemy.CoreImprintModes[cimpI.Mode]
+				: { Color = "#f0bc42", PrepDesc = "" };
+			uiCoreImprints[cidI] <- {
+				title    = cimpI.Title,
+				mode     = cimpI.Mode,
+				color    = msI.Color,
+				prepDesc = msI.PrepDesc
+			};
+		}
+	}
+
 	return {
 		ok             = true,
 		inWorkshop     = (_inWorkshop ? true : false),
@@ -1462,9 +2164,11 @@ if ("buildStashPillsData" in ::Wuxia.UI)
 			bonusDoublePct = mastery.BonusDoublePct,
 			hasDiscount    = (mastery.CostMult < 0.99)
 		},
-		summary        = ::Wuxia.Alchemy.getCabinetSummaryCounts(stash),
+		summary        = ::Wuxia.Alchemy.getCabinetSummaryCounts(stash, ingList),
+		fireModes      = uiFireModes,
 		natures        = uiNatures,
 		auxInfusions   = uiAuxInfusions,
+		coreImprints   = uiCoreImprints,
 		ingredients            = uiIngredients,
 		herbCodex              = uiHerbCodex,
 		formulas               = uiFormulas,
@@ -1476,8 +2180,68 @@ if ("buildStashPillsData" in ::Wuxia.UI)
 	};
 };
 
+::Wuxia.UI.buildWashShowcase <- function( _bro, _res )
+{
+	if (_res == null) return null;
+	local statIcons = [
+		"ui/wx_icons/wx_icon_health.png",
+		"ui/wx_icons/wx_icon_qi.png",
+		"ui/wx_icons/wx_icon_bravery.png",
+		"ui/wx_icons/wx_icon_initiative.png",
+		"ui/wx_icons/wx_icon_melee_skill.png",
+		"ui/wx_icons/wx_icon_ranged_skill.png",
+		"ui/wx_icons/wx_icon_melee_def.png",
+		"ui/wx_icons/wx_icon_ranged_def.png"
+	];
+	local pillIcons = {
+		pending             = "ui/wx_icons/wx_icon_ap.png",
+		wx_pill_zijin_xisui = "ui/items/consumables/wx_pill_zijin_xisui.png",
+		wx_pill_xisui       = "ui/items/consumables/wx_pill_xisui.png",
+		wx_pill_yijin_wan   = "ui/items/consumables/wx_pill_yijin_wan.png"
+	};
+	local pid = ("WashPillID" in _res && _res.WashPillID != null) ? _res.WashPillID : "wx_pill_xisui";
+	local pIco = (pid in pillIcons) ? pillIcons[pid] : "ui/items/consumables/wx_pill_xisui.png";
+	local aIdx = ("TargetAttrIdx" in _res && _res.TargetAttrIdx != null) ? _res.TargetAttrIdx : 0;
+	local aIco = (aIdx >= 0 && aIdx < statIcons.len()) ? statIcons[aIdx] : statIcons[0];
+	local okRoll = ("Succeeded" in _res) && _res.Succeeded;
+	local avoidAll = ("AvoidAllShock" in _res) && _res.AvoidAllShock;
+	local gotPerm = ("GotPermanentInjury" in _res) && _res.GotPermanentInjury;
+	local outcome = okRoll ? "success" : (avoidAll ? "warded" : "fail");
+	local title = okRoll
+		? "洗经伐髓 · 脱胎换骨"
+		: (avoidAll ? "造化护脉 · 经脉无恙" : (gotPerm ? "真气逆冲 · 经脉暗疾" : "洗髓冲关未成"));
+
+	return {
+		kind            = "wash",
+		outcome         = outcome,
+		title           = title,
+		subtitle        = (_bro != null ? _bro.getName() : "侠客") + " · 服用「" + (("WashPillName" in _res) ? _res.WashPillName : "洗髓丹") + "」",
+		broName         = _bro != null ? _bro.getName() : "",
+		pillName        = ("WashPillName" in _res) ? _res.WashPillName : "洗髓丹",
+		pillIcon        = pIco,
+		targetAttrName  = ("TargetAttrName" in _res) ? _res.TargetAttrName : "根骨",
+		targetAttrIcon  = aIco,
+		oldStars        = ("OldStars" in _res) ? _res.OldStars : 0,
+		newStars        = ("NextStar" in _res) ? _res.NextStar : 1,
+		isReplaceMode   = ("IsReplaceMode" in _res) ? _res.IsReplaceMode : false,
+		replaceAttrName = ("ReplaceAttrName" in _res) ? _res.ReplaceAttrName : "",
+		gotPerm         = gotPerm,
+		avoidedAll      = avoidAll,
+		message         = ("Message" in _res) ? _res.Message : ""
+	};
+};
+
 ::Wuxia.UI.attachAlchemyRPCs <- function( _q, _isWorkshop = false )
 {
+	if (!::Wuxia.qHas(_q, "onWXShowcaseSound"))
+	{
+		_q.onWXShowcaseSound <- function( _cue )
+		{
+			local key = (typeof _cue == "array" && _cue.len() > 0) ? _cue[0] : _cue;
+			::Wuxia.UI.playShowcaseSound(key);
+			return { ok = true };
+		};
+	}
 	_q.WX_wrapAlchemyResponse <- function( _payload, _entityId = null, _syncStash = false )
 	{
 		if (("WX_attachVanillaSync" in this) && _payload != null && typeof _payload == "table")
@@ -1520,10 +2284,12 @@ if ("buildStashPillsData" in ::Wuxia.UI)
 		else
 		{
 			local parts = [];
-			if (moved.herbsMoved > 0)    parts.push(moved.herbsMoved + " 株奇草");
-			if (moved.coresMoved > 0)    parts.push(moved.coresMoved + " 枚内丹");
-			if (moved.trophiesMoved > 0) parts.push(moved.trophiesMoved + " 份异兽奇材");
+			local shortParts = [];
+			if (moved.herbsMoved > 0)    { parts.push(moved.herbsMoved + " 株奇草"); shortParts.push("奇草×" + moved.herbsMoved); }
+			if (moved.coresMoved > 0)    { parts.push(moved.coresMoved + " 枚内丹"); shortParts.push("内丹×" + moved.coresMoved); }
+			if (moved.trophiesMoved > 0) { parts.push(moved.trophiesMoved + " 份异兽奇材"); shortParts.push("奇材×" + moved.trophiesMoved); }
 			payload.actionMessage <- "收纳完毕！已将 " + ::Wuxia.UI.wxJoinStrings(parts, "、") + " 归入【百草药柜】，腾出 " + moved.slotsCleared + " 格仓库空间！";
+			payload.sweepSummary  <- ::Wuxia.UI.wxJoinStrings(shortParts, " · ") + " 归入药柜";
 		}
 		return payload;
 	};
@@ -1587,7 +2353,8 @@ if ("buildStashPillsData" in ::Wuxia.UI)
 			_data.len() >= 3 ? _data[2] : "",
 			_data.len() >= 4 ? _data[3] : ""
 		];
-		return ::Wuxia.Alchemy.previewBrew(formulaID, slots);
+		local fireMode = (_data.len() >= 5 && _data[4] != null && _data[4] != "") ? _data[4] : "balanced";
+		return ::Wuxia.Alchemy.previewBrew(formulaID, slots, null, null, -1, fireMode);
 	};
 
 	_q.onWXAlchemyBrew <- function( _data )
@@ -1601,17 +2368,18 @@ if ("buildStashPillsData" in ::Wuxia.UI)
 			_data.len() >= 4 ? _data[3] : ""
 		];
 		local entityId = (_data.len() >= 5) ? _data[4] : null;
+		local fireMode = (_data.len() >= 6 && _data[5] != null && _data[5] != "") ? _data[5] : "balanced";
 
 		local res = null;
 		if (formulaID == null || formulaID == "" || formulaID == "free")
 		{
-			res = ::Wuxia.Alchemy.executeFreeBrew(slots);
+			res = ::Wuxia.Alchemy.executeFreeBrew(slots, fireMode);
 		}
 		else
 		{
 			if (!::Wuxia.Alchemy.isFormulaDiscovered(formulaID))
 				return { ok = false, reason = "尚未参悟收录该道古丹方，请先通过「自由试丹」开炉参悟。" };
-			res = ::Wuxia.Alchemy.executeBrew(formulaID, slots);
+			res = ::Wuxia.Alchemy.executeBrew(formulaID, slots, fireMode);
 		}
 		if (!res.Ok)
 			return { ok = false, reason = res.Reason };
@@ -1620,6 +2388,41 @@ if ("buildStashPillsData" in ::Wuxia.UI)
 		this.WX_wrapAlchemyResponse(payload, entityId, true);
 		payload.brewResult    <- res;
 		payload.actionMessage <- res.Message;
+
+		local isTrial = ("IsTrialFallback" in res) && res.IsTrialFallback;
+		local isCrit  = ("IsCrit" in res) && res.IsCrit;
+		local discNm  = ("DiscoveredFormulaName" in res && res.DiscoveredFormulaName != null) ? res.DiscoveredFormulaName : "";
+		local items   = ("Items" in res && res.Items != null) ? res.Items : [];
+		local maxG    = 1;
+		foreach (itc in items)
+		{
+			if (itc != null && ("grade" in itc) && itc.grade > maxG) maxG = itc.grade;
+		}
+		local outc = isTrial ? "trial" : ((isCrit || discNm != "" || maxG >= 3) ? "crit" : (maxG >= 2 ? "great" : "success"));
+		local title = isTrial
+			? "试炉未成古方 · 凝得药散"
+			: (discNm != ""
+				? "炉生瑞霭 · 新悟古丹方！"
+				: (isCrit
+					? "紫气东来 · 丹韵双成！"
+					: (maxG >= 3 ? "丹霞天成 · 极品灵丹" : "八卦丹炉 · 开炉成丹")));
+		local subtitle = isTrial
+			? ("配伍尚未契合未录古方，炉中余药仍化作常备药散入囊（耗银 " + (("SilverCost" in res) ? res.SilverCost : 0) + " 两）")
+			: ("耗纹银 " + (("SilverCost" in res) ? res.SilverCost : 0) + " 两，新成灵丹已收入战团行囊");
+
+		payload.wxShowcase <- {
+			kind                  = "alchemy",
+			outcome               = outc,
+			title                 = title,
+			subtitle              = subtitle,
+			inputs                = ("Inputs" in res && res.Inputs != null) ? res.Inputs : [],
+			items                 = items,
+			insight               = ("Insight" in res && res.Insight != null) ? res.Insight : "",
+			discoveredFormulaName = discNm,
+			isCrit                = isCrit,
+			isTrial               = isTrial,
+			message               = res.Message
+		};
 		return payload;
 	};
 
@@ -1629,10 +2432,12 @@ if ("buildStashPillsData" in ::Wuxia.UI)
 			return { ok = false, reason = "行军途中无百炼铁砧与地火炉膛——此处仅可查阅词条，欲重锻神兵请亲赴城镇【百工丹坊】操作！" };
 		local uid      = _data[0];
 		local entityId = (_data.len() >= 2) ? _data[1] : null;
+		local quenchID = (_data.len() >= 3 && _data[2] != null) ? _data[2] : "none";
+		local lockSlot = (_data.len() >= 4 && _data[3] != null) ? _data[3] : "";
 		if (!("Forge" in ::Wuxia))
 			return { ok = false, reason = "百工重锻系统尚未就绪。" };
 
-		local res = ::Wuxia.Forge.executeReforge(uid);
+		local res = ::Wuxia.Forge.executeReforge(uid, quenchID, lockSlot);
 		if (!res.Ok)
 			return { ok = false, reason = res.Reason };
 
@@ -1640,6 +2445,30 @@ if ("buildStashPillsData" in ::Wuxia.UI)
 		this.WX_wrapAlchemyResponse(payload, entityId, true);
 		payload.reforgeResult <- res;
 		payload.actionMessage <- res.Message;
+
+		local g = ("Grade" in res) ? res.Grade : 1;
+		local outc = (g >= 3) ? "crit" : (g >= 2 ? "great" : "success");
+		local title = (g >= 3)
+			? "神工天成 · 炉吐金霞！"
+			: (g >= 2 ? "百炼锋成 · 重淬大进" : "重锤淬火 · 词条重塑");
+		local sub = ("UsedPity" in res && res.UsedPity)
+			? ("【五锤炉温保底激发】耗「" + res.SpentMatName + "」与 " + res.SilverCost + " 两重铸并修满耐久")
+			: ("耗「" + (("SpentMatName" in res) ? res.SpentMatName : "奇材") + "」与 " + (("SilverCost" in res) ? res.SilverCost : 0) + " 两重铸并修满耐久");
+		payload.wxShowcase <- {
+			kind             = "reforge",
+			outcome          = outc,
+			title            = title,
+			subtitle         = sub,
+			items            = ("ItemCard" in res && res.ItemCard != null) ? [res.ItemCard] : [],
+			oldGradeTitle    = ("OldGradeTitle" in res) ? res.OldGradeTitle : "良工",
+			oldGradeColor    = ("OldGradeColor" in res) ? res.OldGradeColor : "#5ec47a",
+			oldPerfectionPct = ("OldPerfectionPct" in res) ? res.OldPerfectionPct : 50,
+			newGradeTitle    = ("GradeTitle" in res) ? res.GradeTitle : "良工",
+			newGradeColor    = ("GradeColor" in res) ? res.GradeColor : "#5ec47a",
+			newPerfectionPct = ("PerfectionPct" in res) ? res.PerfectionPct : 50,
+			usedPity         = ("UsedPity" in res) && res.UsedPity,
+			message          = res.Message
+		};
 		return payload;
 	};
 };
@@ -1664,17 +2493,31 @@ if ("buildStashPillsData" in ::Wuxia.UI)
 		q.queryBlueprints = @(__original) function()
 		{
 			local autoBanner = "";
-			if (::Wuxia.Alchemy.Cabinet.isAutoStoreEnabled() && ::Wuxia.hasWorldField("Assets"))
+			local stash = ::Wuxia.hasWorldField("Assets") ? ::World.Assets.getStash() : null;
+			local skipSweep = ("BeastCraft" in ::Wuxia) && ::Wuxia.BeastCraft.SkipAutoStoreInQuery;
+			if (!skipSweep && stash != null && ::Wuxia.Alchemy.Cabinet.isAutoStoreEnabled())
 			{
-				local stash = ::World.Assets.getStash();
-				if (stash != null)
-				{
-					local moved = ::Wuxia.Alchemy.Cabinet.storeFromStash(stash, false, ::Wuxia.Alchemy.Cabinet.isAutoTrophyEnabled());
-					if (moved.slotsCleared > 0)
-						autoBanner = "百工掌柜已将行囊新获的 " + moved.slotsCleared + " 份奇草/内丹清点归入【百草药柜】（零仓库占格）！";
-				}
+				local moved = ::Wuxia.Alchemy.Cabinet.storeFromStash(stash, false, ::Wuxia.Alchemy.Cabinet.isAutoTrophyEnabled());
+				if (moved.slotsCleared > 0)
+					autoBanner = "百工掌柜已将行囊新获的 " + moved.slotsCleared + " 份奇草/内丹清点归入【百草药柜】（零仓库占格）！";
 			}
-			local ret = __original();
+			// Build one O(stash) itemID->count hash map for the entire 170-blueprint queryBlueprints pass!
+			local hasBC = ("BeastCraft" in ::Wuxia) && ("buildStashCountMap" in ::Wuxia.BeastCraft);
+			local prevCounts = hasBC ? ::Wuxia.BeastCraft.QueryStashCounts : null;
+			if (hasBC && stash != null)
+				::Wuxia.BeastCraft.QueryStashCounts = ::Wuxia.BeastCraft.buildStashCountMap(stash.getItems());
+			local ret = null;
+			try
+			{
+				ret = __original();
+			}
+			catch (_qErr)
+			{
+				if (hasBC) ::Wuxia.BeastCraft.QueryStashCounts = prevCounts;
+				throw _qErr;
+			}
+			if (hasBC) ::Wuxia.BeastCraft.QueryStashCounts = prevCounts;
+
 			if (autoBanner != "" && ret != null && typeof ret == "table")
 			{
 				ret.wxCraftBanner <- ("wxCraftBanner" in ret && ret.wxCraftBanner != "")
@@ -1776,33 +2619,11 @@ if ("buildStashPillsData" in ::Wuxia.UI)
 		this.WX_attachVanillaSync(state, bro, true, true);
 		state.washResult    <- res;
 		state.actionMessage <- res.Message;
+		state.wxShowcase    <- ::Wuxia.UI.buildWashShowcase(bro, res);
 		return state;
 	};
 });
 
 // High-tier Alchemy Elixirs (`忘尘归元散 / 玄冰辟火丸 / 疯魔燃血丸 / 易筋洗髓丸` etc.) are strictly crafted
 // in the Eight-Trigrams Furnace (`八卦丹炉`) using Boss Neidan Cores & Spirit Herbs — never sold in ordinary town shops!
-
-// 6. Unlock Town 百工丹坊 Blueprints even when the required Core / Exotic Herb was auto-swept directly into 百草药柜!
-::Wuxia.HooksMod.hook("scripts/crafting/blueprint", function( q )
-{
-	if (::Wuxia.qHas(q, "isQualified"))
-	{
-		q.isQualified = @(__original) function()
-		{
-			if (__original()) return true;
-			local bpID = (::Wuxia.hasMember(this.m, "ID") && this.m.ID != null) ? this.m.ID : "";
-			if (bpID.find("blueprint.wx_") != 0 || this.m.PreviewCraftable == null) return false;
-			local comps = (::Wuxia.hasMember(this.m, "PreviewComponents")) ? this.m.PreviewComponents : ((::Wuxia.hasMember(this.m, "Ingredients")) ? this.m.Ingredients : null);
-			if (comps == null) return false;
-			foreach (ing in comps)
-			{
-				if (ing == null || !("Instance" in ing) || ing.Instance == null) continue;
-				local meta = ::Wuxia.Alchemy.classifyItem(ing.Instance);
-				if (meta != null && ::Wuxia.Alchemy.Cabinet.getCount(meta.Key) > 0)
-					return true;
-			}
-			return false;
-		};
-	}
-});
+// (Cabinet-backed `scripts/crafting/blueprint.isQualified` is handled directly in `wx_beast_craft_system.nut` with O(1) caching.)

@@ -5,7 +5,39 @@
 //   - Unlocks Wuxia crafting blueprints in 百工丹坊 immediately as soon as ANY primary material/core is held or identified!
 
 ::Wuxia.BeastCraft <- {
-	EntityTypeToKey = null
+	EntityTypeToKey      = null,
+	QueryStashCounts     = null,
+	SkipAutoStoreInQuery = false,
+	LastDyingBossSnap    = null
+};
+
+::Wuxia.BeastCraft.buildStashCountMap <- function( _stashItems )
+{
+	local counts = {};
+	if (_stashItems == null) return counts;
+	foreach (it in _stashItems)
+	{
+		if (it == null) continue;
+		local id = it.getID();
+		counts[id] <- (id in counts) ? (counts[id] + 1) : 1;
+	}
+	return counts;
+};
+
+::Wuxia.BeastCraft.getCachedIngredientCabKey <- function( _ing )
+{
+	if (_ing == null) return "";
+	if ("WX_CabKey" in _ing) return _ing.WX_CabKey;
+	local key = "";
+	if (("Instance" in _ing) && _ing.Instance != null
+		&& ("Alchemy" in ::Wuxia) && ("classifyItem" in ::Wuxia.Alchemy))
+	{
+		local meta = ::Wuxia.Alchemy.classifyItem(_ing.Instance);
+		if (meta != null && ("Key" in meta) && meta.Key != null)
+			key = meta.Key;
+	}
+	_ing.WX_CabKey <- key;
+	return key;
 };
 
 ::Wuxia.BeastCraft.getEntityKey <- function( _typeIdx )
@@ -29,12 +61,21 @@
 {
 	if (_actor == null || !(::Wuxia.hasMember(_actor, "getItems")) || _actor.getItems() == null) return false;
 	local body = _actor.getItems().getItemAtSlot(::Const.ItemSlot.Body);
-	if (body != null && ("m" in body) && ("WX_GearTraitID" in body.m) && body.m.WX_GearTraitID != null)
+	if (body != null && ("m" in body))
 	{
-		if ("GearTraits" in ::Wuxia.Config && (body.m.WX_GearTraitID in ::Wuxia.Config.GearTraits))
+		if (("WX_GearTraitID" in body.m) && body.m.WX_GearTraitID != null)
 		{
-			local tcfg = ::Wuxia.Config.GearTraits[body.m.WX_GearTraitID];
-			if (("ImmuneAcidAndFireAura" in tcfg) && tcfg.ImmuneAcidAndFireAura)
+			if ("GearTraits" in ::Wuxia.Config && (body.m.WX_GearTraitID in ::Wuxia.Config.GearTraits))
+			{
+				local tcfg = ::Wuxia.Config.GearTraits[body.m.WX_GearTraitID];
+				if (("ImmuneAcidAndFireAura" in tcfg) && tcfg.ImmuneAcidAndFireAura)
+					return true;
+			}
+		}
+		if (::Wuxia.hasMember(body, "getUpgrade") && body.getUpgrade() != null)
+		{
+			local upg = body.getUpgrade();
+			if (("m" in upg) && ("WX_UpgCfgID" in upg.m) && upg.m.WX_UpgCfgID == "wx_up_xuanlin")
 				return true;
 		}
 	}
@@ -186,7 +227,8 @@
 	if (_actor == null || _tile == null || _killer == null) return;
 	if (!(::Wuxia.hasMember(_killer, "isPlayerControlled")) || !_killer.isPlayerControlled() || _actor.isAlliedWith(_killer)) return;
 	local sk = (::Wuxia.hasMember(_actor, "getSkills")) ? _actor.getSkills() : null;
-	if (sk != null && sk.hasSkill("special.wx_shanhai_boss_trait")) return; // Handled by dropBossCore!
+	if (sk != null && ((("ShanHai" in ::Wuxia) && ("findBossTrait" in ::Wuxia.ShanHai) && ::Wuxia.ShanHai.findBossTrait(sk) != null) || sk.hasSkill("special.wx_shanhai_boss_trait")))
+		return; // Handled by dropBossCore!
 	if (!(::Wuxia.hasMember(_actor, "getType")) || !("WildBeastDrops" in ::Wuxia.Config)) return;
 
 	local eKey = ::Wuxia.BeastCraft.getEntityKey(_actor.getType());
@@ -211,7 +253,7 @@
 	}
 };
 
-::Wuxia.BeastCraft.dropBossCompanionMaterials <- function( _bossKey, _tile )
+::Wuxia.BeastCraft.dropBossCompanionMaterials <- function( _bossKey, _tile, _bossActor = null, _fatalityType = 0 )
 {
 	if (_tile == null || !("BossBonusLoot" in ::Wuxia.Config)) return;
 	local bonus = (_bossKey in ::Wuxia.Config.BossBonusLoot)
@@ -229,6 +271,35 @@
 		local tr = ::new("scripts/items/misc/" + bonus.Trophy);
 		tr.drop(_tile);
 	}
+
+	// Monster-Hunter Part-Break Essence Loot (`破部位定向必掉奇材` via `::Wuxia.CraftBridge`)
+	if ("CraftBridge" in ::Wuxia)
+	{
+		local spec = ::Wuxia.CraftBridge.resolveBossPartEssenceSpec(_bossKey);
+		if (spec != null && ("EssenceID" in spec))
+		{
+			local partBroken = false;
+			if (_bossActor != null)
+			{
+				partBroken = ::Wuxia.CraftBridge.detectBrokenBossParts(_bossActor, _fatalityType).Broken;
+			}
+			else if (::Wuxia.BeastCraft.LastDyingBossSnap != null && ::Wuxia.BeastCraft.LastDyingBossSnap.Broken)
+			{
+				partBroken = true;
+			}
+			local dropChance = partBroken ? 100 : 20;
+			if (::Math.rand(1, 100) <= dropChance)
+			{
+				try
+				{
+					local pItem = ::new("scripts/items/misc/" + spec.EssenceID);
+					if (pItem != null) pItem.drop(_tile);
+				}
+				catch (_pErr) {}
+			}
+		}
+	}
+	::Wuxia.BeastCraft.LastDyingBossSnap = null;
 };
 
 ::Wuxia.BeastCraft.getBlueprintComponents <- function( _bp )
@@ -246,7 +317,12 @@
 	local out = { Stash = 0, Cabinet = 0, Total = 0, Meta = null };
 	if (_ing == null || !("Instance" in _ing) || _ing.Instance == null) return out;
 	local itemID = _ing.Instance.getID();
-	if (_stashItems != null)
+	if (::Wuxia.BeastCraft.QueryStashCounts != null)
+	{
+		local qsc = ::Wuxia.BeastCraft.QueryStashCounts;
+		if (itemID in qsc) out.Stash = qsc[itemID];
+	}
+	else if (_stashItems != null)
 	{
 		foreach (it in _stashItems)
 		{
@@ -254,14 +330,11 @@
 				out.Stash += 1;
 		}
 	}
-	if (("Alchemy" in ::Wuxia) && ("Cabinet" in ::Wuxia.Alchemy) && ("classifyItem" in ::Wuxia.Alchemy))
+	if (("Alchemy" in ::Wuxia) && ("Cabinet" in ::Wuxia.Alchemy))
 	{
-		local meta = ::Wuxia.Alchemy.classifyItem(_ing.Instance);
-		if (meta != null)
-		{
-			out.Meta = meta;
-			out.Cabinet = ::Wuxia.Alchemy.Cabinet.getCount(meta.Key);
-		}
+		local cabKey = ::Wuxia.BeastCraft.getCachedIngredientCabKey(_ing);
+		if (cabKey != "")
+			out.Cabinet = ::Wuxia.Alchemy.Cabinet.getCount(cabKey);
 	}
 	out.Total = out.Stash + out.Cabinet;
 	return out;
@@ -410,21 +483,37 @@
 
 ::Wuxia.BeastCraft.injectTraitSkill <- function( _item )
 {
-	if (_item == null || !("m" in _item) || !("WX_GearTraitID" in _item.m) || _item.m.WX_GearTraitID == null)
+	if (_item == null || !("m" in _item))
 		return;
-	local tid = _item.m.WX_GearTraitID;
-	if (!("GearTraits" in ::Wuxia.Config) || !(tid in ::Wuxia.Config.GearTraits))
+	if ("Forge" in ::Wuxia && "syncExtendedMeta" in ::Wuxia.Forge)
+		::Wuxia.Forge.syncExtendedMeta(_item);
+
+	local tid = ("WX_GearTraitID" in _item.m && _item.m.WX_GearTraitID != null) ? _item.m.WX_GearTraitID : "";
+	local hasTraitCfg = (tid != "" && "GearTraits" in ::Wuxia.Config && (tid in ::Wuxia.Config.GearTraits));
+	local hasWMod = ("WX_WeaponModID" in _item.m && _item.m.WX_WeaponModID != null && _item.m.WX_WeaponModID != "");
+	local hasQuench = ("WX_QuenchID" in _item.m && _item.m.WX_QuenchID != null && _item.m.WX_QuenchID != "" && _item.m.WX_QuenchID != "none");
+	local hasBeastUpg = (::Wuxia.hasMember(_item, "getUpgrade") && _item.getUpgrade() != null && ("m" in _item.getUpgrade()) && ("WX_UpgCfgID" in _item.getUpgrade().m) && _item.getUpgrade().m.WX_UpgCfgID != null);
+
+	if (!hasTraitCfg && !hasWMod && !hasQuench && !hasBeastUpg)
 		return;
+
 	if (::Wuxia.hasMember(_item.m, "SkillPtrs") && _item.m.SkillPtrs != null)
 	{
 		foreach (sk in _item.m.SkillPtrs)
 		{
-			if (sk != null && ("m" in sk) && (::Wuxia.hasMember(sk.m, "TraitID")) && sk.m.TraitID == tid)
+			if (sk != null && sk.getID() == "special.wx_gear_spirit_trait")
+			{
+				sk.setTraitID(hasTraitCfg ? tid : "");
 				return;
+			}
 		}
 	}
+	local itemCont = (::Wuxia.hasMember(_item, "getContainer")) ? _item.getContainer() : null;
+	if (itemCont == null || !::Wuxia.hasMember(itemCont, "getActor") || itemCont.getActor() == null)
+		return;
+
 	local traitSk = ::new("scripts/skills/special/wx_gear_spirit_trait");
-	traitSk.setTraitID(tid);
+	traitSk.setTraitID(hasTraitCfg ? tid : "");
 	_item.addSkill(traitSk);
 };
 
@@ -432,29 +521,61 @@
 {
 	if (_ret == null || typeof _ret != "array" || _item == null || !("m" in _item))
 		return _ret;
-	if (!("WX_GearTraitID" in _item.m) || _item.m.WX_GearTraitID == null)
-		return _ret;
-	local tid = _item.m.WX_GearTraitID;
-	if (!("GearTraits" in ::Wuxia.Config) || !(tid in ::Wuxia.Config.GearTraits))
-		return _ret;
-	foreach (row in _ret)
+	if ("Forge" in ::Wuxia && "syncExtendedMeta" in ::Wuxia.Forge)
+		::Wuxia.Forge.syncExtendedMeta(_item);
+
+	local tid = ("WX_GearTraitID" in _item.m && _item.m.WX_GearTraitID != null) ? _item.m.WX_GearTraitID : "";
+	if (tid != "" && "GearTraits" in ::Wuxia.Config && (tid in ::Wuxia.Config.GearTraits))
 	{
-		if (row != null && typeof row == "table" && ("id" in row) && row.id == 968)
-			return _ret;
+		local already968 = false;
+		foreach (row in _ret)
+		{
+			if (row != null && typeof row == "table" && ("id" in row) && row.id == 968)
+			{
+				already968 = true;
+				break;
+			}
+		}
+		if (!already968)
+		{
+			local tcfg = ::Wuxia.Config.GearTraits[tid];
+			local tagPrefix = (tcfg.Tier == "relic")
+				? ("[color=#721010]【名器器灵 · " + tcfg.Title + "】[/color]")
+				: ((tcfg.Tier == "shanhai")
+					? ("[color=#5e2c00]【山海神通 · " + tcfg.Title + "】[/color]")
+					: ("[color=#094039]【百工兽魄 · " + tcfg.Title + "】[/color]"));
+			local mwSuffix = (("WX_ForgeGrade" in _item.m) && _item.m.WX_ForgeGrade >= 3)
+				? " [color=#6c1f04]（神工共鸣：触发率/效能额外精进！）[/color]"
+				: "";
+			_ret.push({
+				id = 968,
+				type = "text",
+				icon = tcfg.Icon,
+				text = tagPrefix + tcfg.Text + mwSuffix
+			});
+		}
 	}
-	local tcfg = ::Wuxia.Config.GearTraits[tid];
-	local tagPrefix = (tcfg.Tier == "shanhai")
-		? ("[color=#5e2c00]【山海神通 · " + tcfg.Title + "】[/color]")
-		: ("[color=#094039]【百工兽魄 · " + tcfg.Title + "】[/color]");
-	local mwSuffix = (("WX_ForgeGrade" in _item.m) && _item.m.WX_ForgeGrade >= 3)
-		? " [color=#6c1f04]（神工共鸣：触发率/效能额外精进！）[/color]"
-		: "";
-	_ret.push({
-		id = 968,
-		type = "text",
-		icon = tcfg.Icon,
-		text = tagPrefix + tcfg.Text + mwSuffix
-	});
+
+	if ("WX_WeaponModID" in _item.m && _item.m.WX_WeaponModID != null && _item.m.WX_WeaponModID != ""
+		&& "WeaponAttachments" in ::Wuxia.Config && (_item.m.WX_WeaponModID in ::Wuxia.Config.WeaponAttachments))
+	{
+		local already967 = false;
+		foreach (rMod in _ret)
+		{
+			if (rMod != null && typeof rMod == "table" && ("id" in rMod) && rMod.id == 967) { already967 = true; break; }
+		}
+		if (!already967)
+		{
+			local mcfg = ::Wuxia.Config.WeaponAttachments[_item.m.WX_WeaponModID];
+			_ret.push({
+				id = 967,
+				type = "text",
+				icon = "ui/icons/special.png",
+				text = "[color=#0e3969]【兵刃铭配 · " + mcfg.Name + "】[/color]" + mcfg.BonusText
+			});
+		}
+	}
+
 	if ("Forge" in ::Wuxia && "injectForgeTooltip" in ::Wuxia.Forge)
 		_ret = ::Wuxia.Forge.injectForgeTooltip(_item, _ret);
 	if ("ShanHaiSets" in ::Wuxia && "injectSetTooltip" in ::Wuxia.ShanHaiSets)
@@ -470,7 +591,8 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 		"scripts/items/weapons/weapon",
 		"scripts/items/shields/shield",
 		"scripts/items/armor/armor",
-		"scripts/items/helmets/helmet"
+		"scripts/items/helmets/helmet",
+		"scripts/items/accessory/accessory"
 	])
 	{
 		::Wuxia.HooksMod.hook(clsPath, function( q )
@@ -492,6 +614,16 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 					return ::Wuxia.BeastCraft.injectTraitTooltip(this, ret);
 				};
 			}
+
+			if (clsPath == "scripts/items/shields/shield" && ::Wuxia.qHas(q, "applyShieldDamage"))
+			{
+				q.applyShieldDamage = @(__original) function( _damage, _playHitSound = true )
+				{
+					if (("WX_GearTraitID" in this.m) && this.m.WX_GearTraitID == "shanhai_shd_fangfeng" && _damage > 1)
+						_damage = ::Math.max(1, ::Math.round(_damage * 0.70).tointeger());
+					return __original(_damage, _playHitSound);
+				};
+			}
 		});
 	}
 
@@ -499,6 +631,14 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 	{
 		q.isCraftable = @(__original) function()
 		{
+			if (this.getID().find("blueprint.wx_") == 0 && ::Wuxia.BeastCraft.QueryStashCounts != null)
+			{
+				local comps = this.m.PreviewComponents;
+				if (comps == null || comps.len() == 0) return false;
+				foreach (c in comps)
+					if (::Wuxia.BeastCraft.countIngredient(c, null).Total < c.Num) return false;
+				return true;
+			}
 			if (__original()) return true;
 			if (this.getID().find("blueprint.wx_") != 0) return false;
 			local items = ::World.Assets.getStash().getItems();
@@ -509,17 +649,41 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 
 		q.isQualified = @(__original) function()
 		{
+			if (this.getID().find("blueprint.wx_") == 0 && ::Wuxia.BeastCraft.QueryStashCounts != null)
+			{
+				if (this.m.TimesCrafted > 0) return true;
+				local flags = ::World.Statistics.getFlags();
+				foreach (c in this.m.PreviewComponents)
+					if (flags.get(c.Instance.getID() + "_identified")
+						|| ::Wuxia.BeastCraft.countIngredient(c, null).Total > 0) return true;
+				return false;
+			}
 			if (__original()) return true;
 			if (this.getID().find("blueprint.wx_") != 0) return false;
 			local items = ::World.Assets.getStash().getItems();
+			local flags = ::World.Statistics.getFlags();
 			foreach (c in this.m.PreviewComponents)
-				if (::World.Statistics.getFlags().get(c.Instance.getID() + "_identified")
+				if (flags.get(c.Instance.getID() + "_identified")
 					|| ::Wuxia.BeastCraft.countIngredient(c, items).Total > 0) return true;
 			return false;
 		};
 
 		q.getIngredients = @(__original) function()
 		{
+			if (this.getID().find("blueprint.wx_") == 0 && ::Wuxia.BeastCraft.QueryStashCounts != null)
+			{
+				local fastRows = [];
+				local comps = this.m.PreviewComponents;
+				for (local i = 0; i < comps.len(); i = ++i)
+				{
+					local c = comps[i];
+					local total = ::Wuxia.BeastCraft.countIngredient(c, null).Total;
+					local img = c.Instance.getIcon();
+					for (local k = 0; k < c.Num; k = ++k)
+						fastRows.push({ InstanceID = i, ImagePath = img, IsMissing = (k + 1 > total) });
+				}
+				return fastRows;
+			}
 			local rows = __original();
 			if (this.getID().find("blueprint.wx_") != 0) return rows;
 			local items = ::World.Assets.getStash().getItems();

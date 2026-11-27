@@ -11,6 +11,8 @@ this.wx_boss_yuanchu <- this.inherit("scripts/entity/tactical/enemies/skeleton_p
 
 	function onDeath( _killer, _skill, _tile, _fatalityType )
 	{
+		if ("ShanHaiMultiBody" in ::Wuxia)
+			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.skeleton_priest.onDeath(_killer, _skill, _tile, _fatalityType);
 		::Wuxia.ShanHai.dropBossCore("boss_yuanchu", _tile);
 	}

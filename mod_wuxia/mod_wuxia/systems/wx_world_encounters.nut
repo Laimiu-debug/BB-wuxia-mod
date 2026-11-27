@@ -161,7 +161,12 @@
 			  Early = ["shadow_dagger", "shadow_dagger", "dartist"], Late = ["shadow_dagger", "shadow_dagger", "dartist", "tangmen_killer"] }
 		];
 
-		for (local slot = 1; slot <= 6; slot = ++slot)
+		local threat = ("CombatRules" in ::Wuxia && "getCampaignThreatProfile" in ::Wuxia.CombatRules)
+			? ::Wuxia.CombatRules.getCampaignThreatProfile() : { era = (_day >= 60 ? 3 : (_day >= 34 ? 2 : (_day >= 17 ? 1 : 0))) };
+		local pEra = threat.era;
+		local totalPatrolSlots = 6 + (pEra >= 3 ? 2 : (pEra >= 2 ? 1 : 0));
+
+		for (local slot = 1; slot <= totalPatrolSlots; slot = ++slot)
 		{
 			local fKey = "wx_sect_patrol_" + slot;
 			local prevID = ::World.Flags.getAsInt(fKey + "_id");
@@ -170,7 +175,7 @@
 
 			if (party != null && party.isAlive() && party.getFlags().get("wx_sect_patrol_slot") == slot)
 			{
-				if (!party.isInCombat() && (_day - prevDay >= 12))
+				if (!party.isInCombat() && (_day - prevDay >= 10))
 					party.fadeOutAndDie();
 				else
 					continue;
@@ -195,9 +200,12 @@
 					local nearSet = null;
 					foreach (st in ::World.EntityManager.getSettlements())
 					{
-						if (st == null || !st.isAlive() || st.getTile() == null) continue;
-						local d = refTile != null ? refTile.getDistanceTo(st.getTile()) : 10;
-						if (d < bestD) { bestD = d; nearSet = st; }
+						if (st == null || !st.isAlive() || st.getTile() != null)
+						{
+							if (st == null || !st.isAlive() || st.getTile() == null) continue;
+							local d = refTile != null ? refTile.getDistanceTo(st.getTile()) : 10;
+							if (d < bestD) { bestD = d; nearSet = st; }
+						}
 					}
 					if (nearSet != null && ::Wuxia.hasMember(nearSet, "getFactions"))
 					{
@@ -218,11 +226,27 @@
 			}
 			if (spawnTile == null || spawnFac == null) continue;
 
-			party = spawnFac.spawnEntity(spawnTile, def.Title, false, ::Const.World.Spawn.BanditRaiders, 45, 0);
+			party = spawnFac.spawnEntity(spawnTile, def.Title, false, ::Const.World.Spawn.BanditRaiders, 45 + pEra * 18, 0);
 			if (party == null) continue;
 
 			party.clearTroops();
-			local roster = (_day >= 20) ? def.Late : def.Early;
+			local baseRoster = (pEra >= 1 || _day >= 18) ? def.Late : def.Early;
+			local roster = clone baseRoster;
+			if (pEra >= 2 && baseRoster.len() > 0)
+			{
+				roster.push(baseRoster[0]);
+				roster.push(baseRoster[baseRoster.len() > 2 ? 2 : 0]);
+			}
+			if (pEra >= 3 && def.Late.len() > 0)
+			{
+				roster.push(def.Late[0]);
+				roster.push(def.Late.top()); // Extra Sect Elder / Killer
+			}
+			if (pEra >= 4 && def.Late.len() > 0)
+			{
+				roster.push(def.Late[def.Late.len() > 1 ? 1 : 0]);
+				roster.push(def.Late.top());
+			}
 			this.addTroops(party, roster);
 			party.setDescription(def.Desc);
 			party.getFlags().set("wx_sect_patrol", def.SectID);
@@ -416,7 +440,12 @@
 			});
 		}
 
-		for (local slot = 1; slot <= 5; slot = ++slot)
+		local bThreat = ("CombatRules" in ::Wuxia && "getCampaignThreatProfile" in ::Wuxia.CombatRules)
+			? ::Wuxia.CombatRules.getCampaignThreatProfile() : { era = (_day >= 60 ? 3 : (_day >= 34 ? 2 : (_day >= 17 ? 1 : 0))) };
+		local bEra = bThreat.era;
+		local maxBeastSlots = 5 + ::Math.min(3, bEra >= 2 ? (bEra - 1) : 0);
+
+		for (local slot = 1; slot <= maxBeastSlots; slot = ++slot)
 		{
 			local flagKey = "wx_roam_beast_" + slot;
 			local prevID = ::World.Flags.getAsInt(flagKey + "_id");
@@ -425,8 +454,8 @@
 
 			if (pack != null && pack.isAlive() && pack.getFlags().get("wx_shanhai_roam") == slot)
 			{
-				// Recycle packs that wandered far off-screen (> 32 tiles) after 10+ days so players actually meet them!
-				if (!pack.isInCombat() && (_day - prevDay >= 10) && pack.getTile() != null && pTile.getDistanceTo(pack.getTile()) > 32)
+				// Recycle packs that wandered far off-screen (> 32 tiles) after 9+ days so players meet era-scaled packs!
+				if (!pack.isInCombat() && (_day - prevDay >= 9) && pack.getTile() != null && pTile.getDistanceTo(pack.getTile()) > 32)
 				{
 					pack.fadeOutAndDie();
 				}
@@ -441,11 +470,22 @@
 			if (tile == null) continue;
 
 			local tpl = templates[::Math.rand(0, templates.len() - 1)];
-			pack = beastFaction.spawnEntity(tile, tpl.Name, false, ::Const.World.Spawn.Direwolves, 45, 0);
+			pack = beastFaction.spawnEntity(tile, tpl.Name, false, ::Const.World.Spawn.Direwolves, 45 + bEra * 16, 0);
 			if (pack == null) continue;
 
 			pack.clearTroops();
-			this.addTroops(pack, tpl.Troops);
+			local beastRoster = clone tpl.Troops;
+			if (bEra >= 2 && beastRoster.len() > 0)
+				beastRoster.push(beastRoster.top());
+			if (bEra >= 3 && beastRoster.len() > 0)
+			{
+				beastRoster.push(beastRoster[0]);
+				if (beastRoster.len() < 7)
+					beastRoster.push(beastRoster.top());
+			}
+			if (bEra >= 4 && beastRoster.len() > 0)
+				beastRoster.push(beastRoster[0]);
+			this.addTroops(pack, beastRoster);
 			pack.setDescription(tpl.Desc);
 			pack.getFlags().set("wx_shanhai_roam", slot);
 			if (pack.hasSprite("body") && ::Wuxia.Appearance.brushExists(tpl.Fig))
@@ -480,14 +520,26 @@
 			if ((!hostile || _day - last >= 7) && !squad.isInCombat()) squad.fadeOutAndDie();
 			return;
 		}
-		if (!hostile || _day < 14 || (last > 0 && _day - last < 14) || ::World.Flags.getAsInt("wx_last_hunt") == _day) return;
+		local vThreat = ("CombatRules" in ::Wuxia && "getCampaignThreatProfile" in ::Wuxia.CombatRules)
+			? ::Wuxia.CombatRules.getCampaignThreatProfile() : { era = 1 };
+		local vEra = vThreat.era;
+		local huntCooldown = (vEra >= 3) ? 10 : 14;
+		if (!hostile || _day < 14 || (last > 0 && _day - last < huntCooldown) || ::World.Flags.getAsInt("wx_last_hunt") == _day) return;
 		local tile = this.findTile(true);
 		if (tile == null) return;
 		local spec = ::Wuxia.Config.Vendettas[_sect.VendettaParty];
-		squad = _faction.spawnEntity(tile, spec.Name, false, ::Const.World.Spawn.BanditRaiders, 40, 0);
+		squad = _faction.spawnEntity(tile, spec.Name, false, ::Const.World.Spawn.BanditRaiders, 40 + vEra * 20, 0);
 		if (squad == null) return;
 		squad.clearTroops();
-		this.addTroops(squad, spec.Troops);
+		local vRoster = clone spec.Troops;
+		if (vEra >= 2 && spec.Troops.len() > 0)
+		{
+			for (local vx = 0; vx < vEra - 1; ++vx)
+				vRoster.push(spec.Troops[vx % spec.Troops.len()]);
+			if (vEra >= 3)
+				vRoster.push(spec.Troops.top());
+		}
+		this.addTroops(squad, vRoster);
 		squad.setDescription(_sect.Name + "派出的寻仇人马，正沿路追查你的行踪。");
 		squad.getFlags().set("wx_vendetta", _sect.ID);
 		if (::Wuxia.hasMember(squad, "WX_RefreshPartyVisuals"))

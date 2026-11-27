@@ -44,10 +44,12 @@ this.wx_spear_guard <- this.inherit("scripts/skills/actives/wx_move_base", {
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local target = _targetTile.getEntity();
 		local hit = this.attackEntity(_user, target);
+		if ("Streams" in ::Wuxia) ::Wuxia.Streams.activateSpearWallStance(_user, 2);
 		if (hit && target != null && target.isAlive())
 		{
 			this.wxApplyStatusToTarget(target, "effects.wx_status_offbalance", "scripts/skills/effects/wx_status_offbalance", "InflictOffBalancePct");
 		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

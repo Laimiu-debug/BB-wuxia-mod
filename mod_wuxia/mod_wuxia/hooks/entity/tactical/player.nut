@@ -20,6 +20,7 @@
 		::Wuxia.Slots.getContainer(this);
 		if ("ShanHaiSets" in ::Wuxia) ::Wuxia.ShanHaiSets.ensureActorResonanceSkill(this);
 		::Wuxia.Backgrounds.assignStarterManuals(this);
+		if (_addTraits && ("Traits" in ::Wuxia)) ::Wuxia.Traits.tryAssignCongenitalTrait(this);
 		::Wuxia.Appearance.syncHeroineNameIfNeeded(this);
 		::Wuxia.Armory.syncActorHandheldAndArmor(this);
 		this.m.PerkPoints = 0;
@@ -33,6 +34,8 @@
 		::Wuxia.Slots.getContainer(this).syncGrantedSkills();
 		if ("ShanHaiSets" in ::Wuxia) ::Wuxia.ShanHaiSets.ensureActorResonanceSkill(this);
 		::Wuxia.Armory.syncActorHandheldAndArmor(this);
+		if ("VFX" in ::Wuxia && "clearActorMotion" in ::Wuxia.VFX)
+			::Wuxia.VFX.clearActorMotion(this, true);
 		this.m.PerkPoints = 0;
 	};
 
@@ -46,6 +49,10 @@
 	// again for the whole company, including the reserves.
 	q.onBeforeCombatResult = @(__original) function()
 	{
+		if ("VFX" in ::Wuxia && "clearActorMotion" in ::Wuxia.VFX)
+			::Wuxia.VFX.clearActorMotion(this, true);
+		if ("KineticVFX" in ::Wuxia && "releaseActorBusy" in ::Wuxia.KineticVFX)
+			::Wuxia.KineticVFX.releaseActorBusy(this);
 		if (this.getSkills() != null && this.getSkills().hasSkill("effects.trained"))
 			this.m.WX_HadTrainedThisBattle <- true;
 		__original();
@@ -56,8 +63,25 @@
 		}
 	};
 
+	if (::Wuxia.qHas(q, "onCombatFinished"))
+	{
+		q.onCombatFinished = @(__original) function()
+		{
+			if ("VFX" in ::Wuxia && "clearActorMotion" in ::Wuxia.VFX)
+				::Wuxia.VFX.clearActorMotion(this, true);
+			if ("KineticVFX" in ::Wuxia && "releaseActorBusy" in ::Wuxia.KineticVFX)
+				::Wuxia.KineticVFX.releaseActorBusy(this);
+			local ret = __original();
+			if ("VFX" in ::Wuxia && "clearActorMotion" in ::Wuxia.VFX)
+				::Wuxia.VFX.clearActorMotion(this, true);
+			return ret;
+		};
+	}
+
 	q.onCombatStart = @(__original) function()
 	{
+		if ("VFX" in ::Wuxia && "clearActorMotion" in ::Wuxia.VFX)
+			::Wuxia.VFX.clearActorMotion(this, true);
 		__original();
 		this.m.WX_HadTrainedThisBattle <- (this.getSkills() != null && this.getSkills().hasSkill("effects.trained"));
 		if ("Mastery" in ::Wuxia && "resetBattleSkillUses" in ::Wuxia.Mastery)

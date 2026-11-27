@@ -17,7 +17,7 @@ this.wx_sword_tianwai <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.IconDisabled = "skills/wx_sword_tianwai_sw.png";
 		this.m.Overlay = "wx_ov_wx_sword_tianwai";
 		this.m.SoundOnUse = [
-			"sounds/combat/slash_03.wav"
+			"sounds/combat/riposte_03.wav"
 		];
 		this.m.SoundOnHit = [
 			"sounds/combat/slash_hit_03.wav"
@@ -26,6 +26,7 @@ this.wx_sword_tianwai <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.FatigueCost = 36;
 		this.m.MinRange = 1;
 		this.m.MaxRange = 2;
+		this.m.IsDoingForwardMove = false;
 		this.m.RequiredWeaponTypes = ["Sword"];
 		this.m.DirectDamageMult = 0.45;
 	}

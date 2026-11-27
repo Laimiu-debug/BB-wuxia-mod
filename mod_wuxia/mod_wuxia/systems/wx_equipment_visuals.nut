@@ -618,7 +618,12 @@ if ("Appearance" in ::Wuxia.Config)
 	if (id == null || id == "") return; // Still inside base create() before child assigns ID
 
 	local curIcon = (::Wuxia.Appearance.hasMember(_item.m, "Icon") && _item.m.Icon != null) ? _item.m.Icon : "";
-	if (!_force && ("WX_MappedID" in _item.m) && _item.m.WX_MappedID == id && ("WX_ExpectedIcon" in _item.m) && curIcon == _item.m.WX_ExpectedIcon)
+	local slotType = ::Wuxia.Appearance.hasMember(_item, "getSlotType") ? _item.getSlotType() : -1;
+	local isHeadSlot = ("Const" in getroottable()) && ("ItemSlot" in ::Const) && (slotType == ::Const.ItemSlot.Head);
+	local isBodySlot = ("Const" in getroottable()) && ("ItemSlot" in ::Const) && (slotType == ::Const.ItemSlot.Body);
+	local hasMappedBrush = (!isHeadSlot || (("WX_HatFrontBrush" in _item.m) && _item.m.WX_HatFrontBrush != null))
+		&& (!isBodySlot || (("WX_BodyBrush" in _item.m) && _item.m.WX_BodyBrush != null));
+	if (!_force && hasMappedBrush && ("WX_MappedID" in _item.m) && _item.m.WX_MappedID == id && ("WX_ExpectedIcon" in _item.m) && curIcon == _item.m.WX_ExpectedIcon)
 		return;
 
 	// Never overwrite our custom Wuxia relics, fists, named fists, pills, manuals, Shan Hai gear, or War Banners (`wx_world_visuals_system.nut`)!
@@ -744,7 +749,7 @@ if ("Appearance" in ::Wuxia.Config)
 		_item.m.WX_ExpectedIcon <- aIcon;
 		return;
 	}
-	if (id.find("armor.body.") == 0 && curIcon != "" && !::Wuxia.Armory.isNaturalMonsterAttack(id))
+	if ((id.find("armor.body.") == 0 || isBodySlot) && !::Wuxia.Armory.isNaturalMonsterAttack(id))
 	{
 		local cMax = ::Wuxia.Appearance.hasMember(_item.m, "ConditionMax") ? _item.m.ConditionMax : 80;
 		local pool = cMax <= 55 ? ::Wuxia.Armory.FallbackCivBodies
@@ -761,7 +766,7 @@ if ("Appearance" in ::Wuxia.Config)
 		return;
 	}
 
-	// 5. Hats, Crowns, Masks & Helmets (`armor.head.*`)
+	// 5. Hats, Crowns, Masks & Helmets (`armor.head.*` or any Head-slot item including DLC/layered/named helmets!)
 	if (id in ::Wuxia.Armory.HelmetMap)
 	{
 		local hEntry = ::Wuxia.Armory.HelmetMap[id];
@@ -777,7 +782,7 @@ if ("Appearance" in ::Wuxia.Config)
 		_item.m.WX_ExpectedIcon <- hIcon;
 		return;
 	}
-	if (id.find("armor.head.") == 0 && curIcon != "" && !::Wuxia.Armory.isNaturalMonsterAttack(id))
+	if ((id.find("armor.head.") == 0 || isHeadSlot) && !::Wuxia.Armory.isNaturalMonsterAttack(id))
 	{
 		local hcMax = ::Wuxia.Appearance.hasMember(_item.m, "ConditionMax") ? _item.m.ConditionMax : 70;
 		local hPool = hcMax <= 65 ? ::Wuxia.Armory.FallbackLightHats
@@ -866,6 +871,7 @@ if ("Appearance" in ::Wuxia.Config)
 ::Wuxia.Armory.syncActorHandheldAndArmor <- function( _actor )
 {
 	if (_actor == null || !::Wuxia.Appearance.hasMember(_actor, "m")) return;
+	if ("WX_InBatchEquip" in _actor.m && _actor.m.WX_InBatchEquip) return;
 	if ("WX_SyncingAppearance" in _actor.m && _actor.m.WX_SyncingAppearance) return;
 	if (!::Wuxia.Appearance.hasMember(_actor, "hasSprite") || !::Wuxia.Appearance.hasMember(_actor, "getItems")) return;
 	if (::Wuxia.Appearance.hasMember(_actor, "isAlive") && !_actor.isAlive()) return;
@@ -923,7 +929,7 @@ if ("Appearance" in ::Wuxia.Config)
 			local sprArm = _actor.getSprite("arms_icon");
 			local armBrush = (mainItem != null && ("WX_ArmBrush" in mainItem.m)) ? mainItem.m.WX_ArmBrush : null;
 			local showArm = (mainItem != null && armBrush != null && (!::Wuxia.Appearance.hasMember(mainItem.m, "ShowArmamentIcon") || mainItem.m.ShowArmamentIcon));
-			if (showArm && (!("doesBrushExist" in getroottable()) || ::doesBrushExist(armBrush)))
+			if (showArm && ::Wuxia.Appearance.brushExists(armBrush))
 			{
 				if (::Wuxia.Appearance.applySpriteIfChanged(sprArm, armBrush, white)) changed = true;
 				if (hasTacFlip && ::Wuxia.Appearance.setFlipIfChanged(sprArm, tacFlip)) changed = true;
@@ -943,7 +949,7 @@ if ("Appearance" in ::Wuxia.Config)
 			local offCond = (offItem != null)
 				? (::Wuxia.Appearance.hasMember(offItem, "getCondition") ? offItem.getCondition() : (::Wuxia.Appearance.hasMember(offItem.m, "Condition") ? offItem.m.Condition : 1))
 				: 0;
-			if (shdBrush != null && offCond > 0 && (!("doesBrushExist" in getroottable()) || ::doesBrushExist(shdBrush)))
+			if (shdBrush != null && offCond > 0 && ::Wuxia.Appearance.brushExists(shdBrush))
 			{
 				if (::Wuxia.Appearance.applySpriteIfChanged(sprShd, shdBrush, white)) changed = true;
 				if (hasTacFlip && ::Wuxia.Appearance.setFlipIfChanged(sprShd, tacFlip)) changed = true;
@@ -1080,6 +1086,51 @@ if ("Appearance" in ::Wuxia.Config)
 		__original();
 		::Wuxia.Armory.syncItemOwnerActor(this);
 	};
+});
+
+// Cover DLC / named helmet & armor subclasses that override `updateVariant` or `updateAppearance` without calling base
+::Wuxia.HooksMod.hookTree("scripts/items/helmets/helmet", function( q )
+{
+	if (::Wuxia.qHas(q, "updateVariant", false))
+	{
+		q.updateVariant = @(__original) function()
+		{
+			__original();
+			::Wuxia.Armory.ensureItemMapped(this, true);
+		};
+	}
+
+	if (::Wuxia.qHas(q, "updateAppearance", false))
+	{
+		q.updateAppearance = @(__original) function()
+		{
+			::Wuxia.Armory.ensureItemMapped(this);
+			__original();
+			::Wuxia.Armory.syncItemOwnerActor(this);
+		};
+	}
+});
+
+::Wuxia.HooksMod.hookTree("scripts/items/armor/armor", function( q )
+{
+	if (::Wuxia.qHas(q, "updateVariant", false))
+	{
+		q.updateVariant = @(__original) function()
+		{
+			__original();
+			::Wuxia.Armory.ensureItemMapped(this, true);
+		};
+	}
+
+	if (::Wuxia.qHas(q, "updateAppearance", false))
+	{
+		q.updateAppearance = @(__original) function()
+		{
+			::Wuxia.Armory.ensureItemMapped(this);
+			__original();
+			::Wuxia.Armory.syncItemOwnerActor(this);
+		};
+	}
 });
 
 // 3. Hook item_container so equipping, unequipping, or updating appearance syncs paperdoll layers cleanly

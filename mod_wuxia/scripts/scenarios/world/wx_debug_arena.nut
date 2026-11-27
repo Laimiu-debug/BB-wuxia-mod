@@ -63,15 +63,57 @@ this.wx_debug_arena <- this.inherit("scripts/scenarios/world/starting_scenario",
 		}
 		::Wuxia.Backgrounds.SuppressAutoAssign = false;
 
-		// Equip first hero with starter manuals + extra learned manuals to test Perk-page slot selection right away
+		// Equip test heroes with starter & showcase kinetic manuals so all 5 next-gen VFX skills can be tested immediately!
 		local brothers = roster.getAll();
+		local setSlotTier = function( _bro, _slotIdx, _manualID, _tier )
+		{
+			::Wuxia.Slots.equipManual(_bro, _slotIdx, _manualID, false);
+			local c = ::Wuxia.Slots.getContainer(_bro);
+			if (c != null && _slotIdx < c.m.Slots.len() && c.m.Slots[_slotIdx].ManualID == _manualID)
+			{
+				c.m.Slots[_slotIdx].Tier = _tier;
+				c.m.Slots[_slotIdx].Exp = 999;
+				c.syncGrantedSkills();
+				_bro.getSkills().update();
+			}
+		};
+		local equipMainWeapon = function( _bro, _scriptPath )
+		{
+			local items = _bro.getItems();
+			if (items == null) return;
+			local curM = items.getItemAtSlot(::Const.ItemSlot.Mainhand);
+			if (curM != null) items.unequip(curM);
+			local curO = items.getItemAtSlot(::Const.ItemSlot.Offhand);
+			if (curO != null) items.unequip(curO);
+			items.equip(::new(_scriptPath));
+		};
+
 		if (brothers.len() > 0)
 		{
-			::Wuxia.Slots.equipManual(brothers[0], 0, "wx_manual_guiyuan", false);
-			::Wuxia.Slots.equipManual(brothers[0], 1, "wx_manual_qingfeng", false);
+			// 沈清风 (Lv 11): 清风连环剑 + 天外一剑 (太阿剑)
+			equipMainWeapon(brothers[0], "scripts/items/weapons/named/wx_relic_taie");
+			setSlotTier(brothers[0], 0, "wx_manual_guiyuan", 3);
+			setSlotTier(brothers[0], 1, "wx_manual_qingfeng", 3);
+			setSlotTier(brothers[0], 4, "wx_manual_tianwai", 3);
 			::Wuxia.Slots.learnManual(brothers[0], "wx_manual_taxue", false);
 			::Wuxia.Slots.learnManual(brothers[0], "wx_manual_jinchan", false);
 			::Wuxia.Slots.learnManual(brothers[0], "wx_manual_huifeng", false);
+		}
+		if (brothers.len() > 1)
+		{
+			// 雷震山 (Lv 9): 燃木烈阳劈 (陌刀主手) + 雷霆碎岳锤 (瓮金锤副袋可切换)
+			equipMainWeapon(brothers[1], "scripts/items/weapons/named/wx_relic_modao");
+			brothers[1].getItems().addToBag(::new("scripts/items/weapons/named/wx_relic_wengjinchui"));
+			setSlotTier(brothers[1], 0, "wx_manual_guiyuan", 2);
+			setSlotTier(brothers[1], 1, "wx_manual_shaolin_jiedao", 3);
+			setSlotTier(brothers[1], 4, "wx_manual_jiuyao_pocheng", 2);
+		}
+		if (brothers.len() > 2)
+		{
+			// 柳青衣 (Lv 5): 亢龙有悔掌 (成对拳套)
+			equipMainWeapon(brothers[2], "scripts/items/weapons/named/wx_named_fist");
+			setSlotTier(brothers[2], 0, "wx_manual_guiyuan", 2);
+			setSlotTier(brothers[2], 1, "wx_manual_gaibang_xianglong", 3);
 		}
 
 		// Populate Stash cleanly with gear, relics, Shan Hai cores & pills (while all 268+ manuals & pages live in 藏经阁!)

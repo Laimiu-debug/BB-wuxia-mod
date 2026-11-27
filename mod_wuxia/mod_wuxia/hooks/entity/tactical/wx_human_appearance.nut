@@ -149,12 +149,22 @@ if ("Armory" in ::Wuxia && "Appearance" in ::Wuxia.Config)
 					sb.setBrush(origB);
 			}
 		}
-		__original();
+		this.m.WX_InBatchEquip <- true;
+		try
+		{
+			__original();
+		}
+		catch (err)
+		{
+			this.m.WX_InBatchEquip <- false;
+			throw err;
+		}
+		this.m.WX_InBatchEquip <- false;
 		local autoBust = ::Wuxia.Appearance.resolveAutoEnemyBust(this);
 		if (autoBust != null)
 			::Wuxia.Appearance.applyCustomEnemyBust(this, autoBust);
 		else if (::Wuxia.Appearance.isEligibleHumanActor(this))
-			::Wuxia.Appearance.refreshActorSprites(this);
+			::Wuxia.Appearance.refreshActorSprites(this, true);
 		::Wuxia.Armory.syncActorHandheldAndArmor(this);
 	};
 
@@ -186,11 +196,14 @@ if ("Armory" in ::Wuxia && "Appearance" in ::Wuxia.Config)
 
 	q.onDeath = @(__original) function( _killer, _skill, _tile, _fatalityType )
 	{
+		local isHandled = ("WX_DeathHandled" in this.m) && this.m.WX_DeathHandled;
 		this.m.WX_DeathHandled <- true;
-		local wxDeathSnap = ::Wuxia.Appearance.captureDeathLayers(this);
-		::Wuxia.Appearance.restoreVanillaBrushesForDeath(this);
+		local wxDeathSnap = isHandled ? null : ::Wuxia.Appearance.captureDeathLayers(this);
+		if (!isHandled && wxDeathSnap != null)
+			::Wuxia.Appearance.restoreVanillaBrushesForDeath(this, _fatalityType, wxDeathSnap);
 		__original(_killer, _skill, _tile, _fatalityType);
-		::Wuxia.Appearance.applyWuxiaCorpseDecals(this, _tile, _fatalityType, wxDeathSnap);
+		if (!isHandled && wxDeathSnap != null)
+			::Wuxia.Appearance.applyWuxiaCorpseDecals(this, _tile, _fatalityType, wxDeathSnap);
 	};
 });
 
@@ -329,6 +342,7 @@ local registerAppearanceTroopHook = function( _scriptPath )
 		{
 			q.onResurrected = @(__original) function( _info )
 			{
+				this.m.WX_DeathHandled <- false;
 				__original(_info);
 				local autoBust = ::Wuxia.Appearance.resolveAutoEnemyBust(this);
 				if (autoBust != null)

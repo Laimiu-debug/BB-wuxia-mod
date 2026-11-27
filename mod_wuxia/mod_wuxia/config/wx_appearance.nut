@@ -68,12 +68,12 @@
 		"寒江棕草防雨护肩蓑披", "吊睛白额猛虎皮英雄披肩", "铁算盘神算子乌金腰挂", "铜箍油皮山川舆图背筒"
 	],
 
-	// Open-crown headbands, topknot crowns & half-masks let full `wx_hair_XX` crown rise naturally
+	// Open-crown headbands, circlets, topknot crowns & half-masks let full `wx_hair_XX` crown rise naturally
 	OpenCrownHats = {
-		wx_hat_01 = true, wx_hat_09 = true, wx_hat_10 = true, wx_hat_12 = true,
-		wx_hat_13 = true, wx_hat_14 = true, wx_hat_15 = true, wx_hat_16 = true,
-		wx_hat_17 = true, wx_hat_21 = true, wx_hat_22 = true,
-		wx_char_hat_topknot = true, wx_char_hat_taoist = true
+		wx_hat_12 = true, wx_hat_13 = true, wx_hat_14 = true, wx_hat_15 = true,
+		wx_hat_16 = true, wx_hat_17 = true, wx_hat_21 = true, wx_hat_22 = true,
+		wx_char_hat_topknot = true, wx_char_hat_taoist = true,
+		wx_helm_bashe = true
 	},
 
 	// Full enclosed war helmets / full bronze masks hide hair completely
@@ -85,7 +85,7 @@
 	// Lower-face masks / assassin cowls / enclosed faceplates hide beard cleanly
 	HideBeardHats = {
 		wx_hat_08 = true, wx_hat_17 = true, wx_hat_18 = true, wx_hat_23 = true,
-		wx_hat_29 = true
+		wx_hat_29 = true, wx_helm_taotie = true, wx_helm_chiyou = true
 	},
 
 	// Authentic Jianghu heroine names assigned when a newly generated recruit rolls `FaceIdx >= 33`

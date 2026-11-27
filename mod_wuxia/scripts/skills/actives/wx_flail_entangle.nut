@@ -29,6 +29,7 @@ this.wx_flail_entangle <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.FatigueCost = 18;
 		this.m.MinRange = 1;
 		this.m.MaxRange = 2;
+		this.m.MaxLevelDifference = 2;
 		this.m.InjuriesOnBody = this.Const.Injury.BluntBody;
 		this.m.InjuriesOnHead = this.Const.Injury.BluntHead;
 		this.m.RequiredWeaponTypes = ["Flail"];

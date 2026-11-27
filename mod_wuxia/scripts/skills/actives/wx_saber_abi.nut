@@ -61,7 +61,9 @@ this.wx_saber_abi <- this.inherit("scripts/skills/actives/wx_move_base", {
 			if (hit)
 			{
 				anyHit = true;
-				if (target.isAlive()) { if (!::Wuxia.CombatRules.isUndeadOrConstruct(target)) { target.checkMorale(-1, -12); if (_user.isAlive()) _user.setHitpoints(::Math.min(_user.getHitpointsMax(), _user.getHitpoints() + 6)); } }
+				if ("Streams" in ::Wuxia) ::Wuxia.Streams.triggerBloodBlade(_user, target);
+				if (target.isAlive() && !::Wuxia.CombatRules.isUndeadOrConstruct(target))
+					target.checkMorale(-1, -12);
 			}
 		}
 		return anyHit;

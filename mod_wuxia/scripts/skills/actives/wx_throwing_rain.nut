@@ -33,6 +33,7 @@ this.wx_throwing_rain <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.FatigueCost = 14;
 		this.m.MinRange = 1;
 		this.m.MaxRange = 3;
+		this.m.MaxLevelDifference = 4;
 		this.m.RequiredWeaponTypes = ["Throwing"];
 		this.m.DirectDamageMult = 0.45;
 	}
@@ -41,8 +42,9 @@ this.wx_throwing_rain <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		if (_skill == this)
 		{
+			this.wxApplyTagPreHitProps(_targetEntity, _properties);
 			_properties.RangedSkill += 15;
-			_properties.DamageDirectAdd += 0.15;
+			if ("Streams" in ::Wuxia) ::Wuxia.Streams.addCappedPen(_properties, 0.15);
 		}
 	}
 
@@ -51,10 +53,14 @@ this.wx_throwing_rain <- this.inherit("scripts/skills/actives/wx_move_base", {
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, (::Wuxia.hasMember(this.m, "WX_VfxBrush")) ? this.m.WX_VfxBrush : null);
 		local target = _targetTile.getEntity();
 		local hit = this.wxThrowAt(_user, target);
-		if (hit && target != null && target.isAlive())
+		if (hit)
 		{
-			this.wxApplyStatusToTarget(target, "effects.wx_status_poison_dart", "scripts/skills/effects/wx_status_poison_dart");
+			if (target != null && target.isAlive())
+				this.wxApplyStatusToTarget(target, "effects.wx_status_poison_dart", "scripts/skills/effects/wx_status_poison_dart");
+			if ("Streams" in ::Wuxia)
+				::Wuxia.Streams.plantTangmenCaltrop(_user, _targetTile);
 		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

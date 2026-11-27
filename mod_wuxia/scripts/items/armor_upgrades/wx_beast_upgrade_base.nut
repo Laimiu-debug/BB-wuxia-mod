@@ -97,6 +97,13 @@ this.wx_beast_upgrade_base <- this.inherit("scripts/items/armor_upgrades/armor_u
 		if (rngM != 1.0) _properties.DamageReceivedRangedMult *= rngM;
 		if (armM != 1.0) _properties.DamageReceivedArmorMult *= armM;
 		if (cfg.PoisonImmune) _properties.IsImmuneToPoison = true;
+
+		if (this.m.UpgID == "wx_up_chiling" && ("MovementFatigueCostMult" in _properties))
+			_properties.MovementFatigueCostMult *= 0.85;
+		else if (this.m.UpgID == "wx_up_xuanlin")
+			_properties.ThresholdToReceiveInjuryMult *= 1.15;
+		else if (this.m.UpgID == "wx_up_shagu" && ("SurroundedDefense" in _properties))
+			_properties.SurroundedDefense += 2;
 	}
 
 	function onDeserialize( _in )

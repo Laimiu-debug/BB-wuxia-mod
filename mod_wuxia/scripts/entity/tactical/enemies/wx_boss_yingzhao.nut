@@ -11,6 +11,8 @@ this.wx_boss_yingzhao <- this.inherit("scripts/entity/tactical/enemies/orc_warlo
 
 	function onDeath( _killer, _skill, _tile, _fatalityType )
 	{
+		if ("ShanHaiMultiBody" in ::Wuxia)
+			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.orc_warlord.onDeath(_killer, _skill, _tile, _fatalityType);
 		::Wuxia.ShanHai.dropBossCore("boss_yingzhao", _tile);
 	}

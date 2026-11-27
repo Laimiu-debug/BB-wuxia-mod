@@ -29,4 +29,27 @@ this.wx_beast_material_base <- this.inherit("scripts/items/item", {
 			this.m.Icon = cfg.Icon;
 		}
 	}
+
+	function getTooltip()
+	{
+		local ret = this.item.getTooltip();
+		local natStr = "";
+		local fullId = "misc." + this.m.MatID;
+		if ("Alchemy" in ::Wuxia.Config && "KnownMaterials" in ::Wuxia.Config.Alchemy && (fullId in ::Wuxia.Config.Alchemy.KnownMaterials))
+		{
+			local km = ::Wuxia.Config.Alchemy.KnownMaterials[fullId];
+			local nName = ("Natures" in ::Wuxia.Config.Alchemy && km.Nature in ::Wuxia.Config.Alchemy.Natures)
+				? ::Wuxia.Config.Alchemy.Natures[km.Nature].Name
+				: km.Nature;
+			local nCol = ("UI" in ::Wuxia && "getNatureTooltipColor" in ::Wuxia.UI) ? ::Wuxia.UI.getNatureTooltipColor(km.Nature) : "#094039";
+			natStr = " · 炼丹药性：[color=" + nCol + "][b]" + nName + "（药力 " + km.Potency + "）[/b][/color]";
+		}
+		ret.push({
+			id = 15,
+			type = "text",
+			icon = "ui/icons/asset_supplies.png",
+			text = "[color=#094039][b]【百工奇材 · 重锻辅料】[/b][/color]可用于城镇「百工丹坊」锻造百工奇物、镶缀甲片或「神兵重锻」免内丹淬洗词条" + natStr
+		});
+		return ret;
+	}
 });

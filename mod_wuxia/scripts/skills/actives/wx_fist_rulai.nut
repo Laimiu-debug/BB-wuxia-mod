@@ -7,7 +7,7 @@ this.wx_fist_rulai <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_fist_rulai";
 		this.m.Name = "如来千手印";
-		this.m.Description = "禅宗掌道至高孤本：消耗 6 AP 与 28 内息，幻化漫天金莲千手掌影轰击身前 3 敌（命中 +10，穿甲 +18%，震散敌手劲力）。";
+		this.m.Description = "禅宗掌道至高孤本：消耗 6 AP 与 28 内息，幻化漫天金莲千手掌影轰击身前 3 敌（命中 +10，总伤 +10%，穿甲 +12%，震散敌手劲力）。";
 		this.m.Icon = "skills/wx_fist_rulai.png";
 		this.m.IconDisabled = "skills/wx_fist_rulai_sw.png";
 		this.m.Overlay = "wx_ov_wx_fist_rulai";
@@ -22,13 +22,16 @@ this.wx_fist_rulai <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.MinRange = 1;
 		this.m.MaxRange = 1;
 		this.m.RequiredWeaponTypes = ["Fist"];
-		this.m.DirectDamageMult = 0.45;
+		this.m.DirectDamageMult = 0.40;
 	}
 	function onAnySkillUsed( _skill, _targetEntity, _properties )
 	{
 		if (_skill == this)
 		{
-			_properties.MeleeSkill += 10; _properties.DamageDirectAdd += 0.18; _properties.DamageTotalMult *= 1.20;
+			this.wxApplyTagPreHitProps(_targetEntity, _properties);
+			_properties.MeleeSkill += 10;
+			if ("Streams" in ::Wuxia) ::Wuxia.Streams.addCappedPen(_properties, 0.12);
+			_properties.DamageTotalMult *= 1.10;
 		}
 	}
 
@@ -61,7 +64,11 @@ this.wx_fist_rulai <- this.inherit("scripts/skills/actives/wx_move_base", {
 			if (hit)
 			{
 				anyHit = true;
-				if (target.isAlive()) { this.wxApplyStatusToTarget(target, "effects.wx_scatter_weakness", "scripts/skills/effects/wx_scatter_weakness"); }
+				if (target.isAlive())
+				{
+					this.wxApplyStatusToTarget(target, "effects.wx_scatter_weakness", "scripts/skills/effects/wx_scatter_weakness");
+					if ("Streams" in ::Wuxia) ::Wuxia.Streams.detonateHiddenForceNow(_user, target);
+				}
 			}
 		}
 		return anyHit;

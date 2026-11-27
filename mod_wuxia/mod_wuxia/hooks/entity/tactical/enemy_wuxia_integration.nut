@@ -12,32 +12,42 @@ local registerEnemyHook = function( _scriptPath, _archetypeKey )
 				? ::Wuxia.Config.Fighters[key]
 				: ((key in ::Wuxia.Loot.EnemyLoadouts) ? ::Wuxia.Loot.EnemyLoadouts[key] : null);
 
-			if (key in ::Wuxia.Config.Fighters)
+			this.m.WX_InBatchEquip <- true;
+			try
 			{
-				local fighter = ::Wuxia.Config.Fighters[key];
-				local items = this.getItems();
-				local old = items.getItemAtSlot(::Const.ItemSlot.Mainhand);
-				if (old != null) items.unequip(old);
-				local oldAmmo = items.getItemAtSlot(::Const.ItemSlot.Ammo);
-				if (oldAmmo != null) items.unequip(oldAmmo);
-
-				local w = ::new("scripts/items/weapons/" + fighter.Weapon);
-				if (::Wuxia.hasMember(w, "getBlockedSlotType") && w.getBlockedSlotType() == ::Const.ItemSlot.Offhand)
+				if (key in ::Wuxia.Config.Fighters)
 				{
-					local off = items.getItemAtSlot(::Const.ItemSlot.Offhand);
-					if (off != null) items.unequip(off);
+					local fighter = ::Wuxia.Config.Fighters[key];
+					local items = this.getItems();
+					local old = items.getItemAtSlot(::Const.ItemSlot.Mainhand);
+					if (old != null) items.unequip(old);
+					local oldAmmo = items.getItemAtSlot(::Const.ItemSlot.Ammo);
+					if (oldAmmo != null) items.unequip(oldAmmo);
+
+					local w = ::new("scripts/items/weapons/" + fighter.Weapon);
+					if (::Wuxia.hasMember(w, "getBlockedSlotType") && w.getBlockedSlotType() == ::Const.ItemSlot.Offhand)
+					{
+						local off = items.getItemAtSlot(::Const.ItemSlot.Offhand);
+						if (off != null) items.unequip(off);
+					}
+					items.equip(w);
+
+					if (fighter.Weapon.find("handgonne") != null)
+						items.equip(::new("scripts/items/ammo/powder_bag"));
+					else if (fighter.Weapon.find("crossbow") != null)
+						items.equip(::new("scripts/items/ammo/quiver_of_bolts"));
+					else if (fighter.Weapon.find("bow") != null)
+						items.equip(::new("scripts/items/ammo/quiver_of_arrows"));
+
+					this.setName(fighter.Name);
 				}
-				items.equip(w);
-
-				if (fighter.Weapon.find("handgonne") != null)
-					items.equip(::new("scripts/items/ammo/powder_bag"));
-				else if (fighter.Weapon.find("crossbow") != null)
-					items.equip(::new("scripts/items/ammo/quiver_of_bolts"));
-				else if (fighter.Weapon.find("bow") != null)
-					items.equip(::new("scripts/items/ammo/quiver_of_arrows"));
-
-				this.setName(fighter.Name);
 			}
+			catch (err)
+			{
+				this.m.WX_InBatchEquip <- false;
+				throw err;
+			}
+			this.m.WX_InBatchEquip <- false;
 
 			if (profile != null && ("CustomBust" in profile) && profile.CustomBust != null && profile.CustomBust != "")
 			{

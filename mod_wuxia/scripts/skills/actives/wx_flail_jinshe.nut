@@ -16,10 +16,14 @@ this.wx_flail_jinshe <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.WX_AnimMode <- "whip_jinshe";
 		this.m.WX_ChoreoID <- "wx_flail_jinshe";
 		this.m.SoundOnUse = ["sounds/combat/slash_01.wav", "sounds/combat/slash_02.wav"];
+		this.m.SoundOnHit = ["sounds/combat/slash_hit_01.wav", "sounds/combat/slash_hit_02.wav"];
+		this.m.IsShieldRelevant = false;
+		this.m.IsIgnoredAsAOO = true;
 		this.m.ActionPointCost = 4;
 		this.m.FatigueCost = 18;
 		this.m.MinRange = 1;
 		this.m.MaxRange = 2;
+		this.m.MaxLevelDifference = 2;
 		this.m.RequiredWeaponTypes = ["Flail"];
 		this.m.DirectDamageMult = 0.30;
 	}
@@ -27,7 +31,7 @@ this.wx_flail_jinshe <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		if (_skill == this)
 		{
-			_properties.MeleeSkill += 8; _properties.IsIgnoringShieldBonus = true;
+			_properties.MeleeSkill += 8;
 		}
 	}
 
@@ -38,8 +42,11 @@ this.wx_flail_jinshe <- this.inherit("scripts/skills/actives/wx_move_base", {
 		local hit = this.attackEntity(_user, target);
 		if (hit && target != null && target.isAlive())
 		{
-			this.wxApplyStatusToTarget(target, "effects.wx_status_poison_dart", "scripts/skills/effects/wx_status_poison_dart"); this.wxApplyStatusToTarget(target, "effects.wx_status_acupoint", "scripts/skills/effects/wx_status_acupoint");
+			this.wxApplyStatusToTarget(target, "effects.wx_status_poison_dart", "scripts/skills/effects/wx_status_poison_dart");
+			this.wxApplyStatusToTarget(target, "effects.wx_status_acupoint", "scripts/skills/effects/wx_status_acupoint");
+			this.wxTryPullToAdjacent(_user, target);
 		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

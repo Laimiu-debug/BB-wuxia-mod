@@ -62,9 +62,13 @@ this.wx_hama_push <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		if (_skill == this)
 		{
-			_properties.MeleeSkill += 10;
-			_properties.DamageTotalMult *= 1.30;
-			_properties.DamageDirectAdd += 0.20;
+			this.wxApplyTagPreHitProps(_targetEntity, _properties);
+			local cont = this.getContainer();
+			local actor = cont != null ? cont.getActor() : null;
+			local tf = (actor != null && "Streams" in ::Wuxia) ? ::Wuxia.Streams.peekToadForce(actor) : 0;
+			_properties.MeleeSkill += (10 + tf * 3);
+			_properties.DamageTotalMult *= (1.30 + tf * 0.12);
+			if ("Streams" in ::Wuxia) ::Wuxia.Streams.addCappedPen(_properties, 0.20);
 		}
 	}
 
@@ -106,12 +110,29 @@ this.wx_hama_push <- this.inherit("scripts/skills/actives/wx_move_base", {
 
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, this.m.WX_VfxBrush);
 		local hit = this.attackEntity(_user, target);
+		local consumedTF = ("Streams" in ::Wuxia) ? ::Wuxia.Streams.consumeToadForce(_user) : 0;
 		if (hit && target != null && target.isAlive())
 		{
 			this.wxTryKnockback(_user, target);
 			if (!::Wuxia.CombatRules.isUndeadOrConstruct(target))
 				this.wxApplyStatusToTarget(target, "effects.wx_internal_injury", "scripts/skills/effects/wx_internal_injury");
 			this.wxApplyStatusToTarget(target, "effects.wx_status_offbalance", "scripts/skills/effects/wx_status_offbalance");
+		}
+		if (consumedTF > 0 && _targetTile != null && ::Wuxia.hasMember(_targetTile, "hasNextTile"))
+		{
+			local shock = consumedTF * 8;
+			for (local d2 = 0; d2 < 6; d2 = ++d2)
+			{
+				if (!_targetTile.hasNextTile(d2)) continue;
+				local adj = _targetTile.getNextTile(d2);
+				if (adj != null && adj.IsOccupiedByActor && adj.getEntity() != null && adj.getEntity().isAlive() && !_user.isAlliedWith(adj.getEntity()))
+				{
+					local ae = adj.getEntity();
+					if (ae.getHitpoints() > shock + 1) ae.setHitpoints(ae.getHitpoints() - shock);
+					else ae.setHitpoints(1);
+					this.wxApplyStatusToTarget(ae, "effects.wx_status_offbalance", "scripts/skills/effects/wx_status_offbalance");
+				}
+			}
 		}
 		if (_user != null && _user.isAlive() && ::Wuxia.hasMember(_user, "getSkills") && _user.getSkills() != null)
 		{

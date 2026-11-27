@@ -17,10 +17,13 @@ this.wx_whip_suohou <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.WX_ChoreoID <- "wx_whip_suohou";
 		this.m.SoundOnUse = ["sounds/combat/slash_01.wav"];
 		this.m.SoundOnHit = ["sounds/combat/slash_hit_01.wav"];
+		this.m.IsShieldRelevant = false;
+		this.m.IsIgnoredAsAOO = true;
 		this.m.ActionPointCost = 5;
 		this.m.FatigueCost = 20;
 		this.m.MinRange = 1;
 		this.m.MaxRange = 3;
+		this.m.MaxLevelDifference = 2;
 		this.m.RequiredWeaponTypes = ["Flail", "Cleaver"];
 		this.m.DirectDamageMult = 0.30;
 	}
@@ -40,8 +43,11 @@ this.wx_whip_suohou <- this.inherit("scripts/skills/actives/wx_move_base", {
 		local hit = this.attackEntity(_user, target);
 		if (hit && target != null && target.isAlive())
 		{
-			if (!::Wuxia.CombatRules.isUndeadOrConstruct(target)) this.wxApplyStatusToTarget(target, "effects.bleeding", "scripts/skills/effects/bleeding_effect");
+			if (!::Wuxia.CombatRules.isUndeadOrConstruct(target))
+				this.wxApplyStatusToTarget(target, "effects.bleeding", "scripts/skills/effects/bleeding_effect");
+			this.wxTryPullToAdjacent(_user, target);
 		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

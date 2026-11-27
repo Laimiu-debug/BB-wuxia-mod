@@ -137,7 +137,14 @@
 
 	local previousExp = slot.Exp;
 	local spentOnBreakthroughs = 0;
-	slot.Exp += _amount;
+	local effAmount = _amount;
+	if ("Traits" in ::Wuxia)
+	{
+		local trMult = ::Wuxia.Traits.getMasteryBonusMult(_actor, def);
+		if (trMult > 0.001)
+			effAmount = ::Math.max(_amount + 1, ::Math.round(_amount * (1.0 + trMult)).tointeger());
+	}
+	slot.Exp += effAmount;
 	c.syncSlotToLearned(_slotIndex);
 
 	local result = { Advanced = false, NewTier = slot.Tier, BlockedByReq = false, Missing = [], ExpGained = 0 };

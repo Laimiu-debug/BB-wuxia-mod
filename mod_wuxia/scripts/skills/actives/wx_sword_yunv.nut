@@ -22,24 +22,55 @@ this.wx_sword_yunv <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.MaxRange = 1;
 		this.m.RequiredWeaponTypes = ["Sword"];
 		this.m.DirectDamageMult = 0.30;
+		this.m.WX_ComboForms = [
+			{
+				Name = "冷月双飞·左式素心",
+				Description = "古墓双剑起手式（4 AP / 15 内息）：剑走轻灵（命中 +10，身法高于目标额外穿甲 +12%），命中递进为 3 AP【右式双飞】。",
+				AP = 4, Qi = 15, Hit = 10, Dmg = 1.00
+			},
+			{
+				Name = "冷月双飞·右式双飞",
+				Description = "古墓双剑交剪式（3 AP / 14 内息）：疾风剪喉（命中 +12，额外穿甲 +12%），施加【破绽】并在敌旁凝出一柄驻场气剑！",
+				AP = 3, Qi = 14, Hit = 12, Dmg = 1.08
+			}
+		];
 	}
 	function onAnySkillUsed( _skill, _targetEntity, _properties )
 	{
 		if (_skill == this)
 		{
-			local u = this.getContainer().getActor(); _properties.MeleeSkill += 10; if (u != null && _targetEntity != null && u.getInitiative() > _targetEntity.getInitiative()) _properties.DamageDirectAdd += 0.12;
+			this.wxApplyTagPreHitProps(_targetEntity, _properties);
+			local cf = this.wxGetActiveComboForm();
+			local u = this.getContainer().getActor();
+			_properties.MeleeSkill += (cf != null ? cf.Hit : 10);
+			_properties.DamageTotalMult *= (cf != null ? cf.Dmg : 1.0);
+			if (u != null && _targetEntity != null && (u.getInitiative() > _targetEntity.getInitiative() || cf != null && cf.AP == 3))
+			{
+				if ("Streams" in ::Wuxia) ::Wuxia.Streams.addCappedPen(_properties, 0.12);
+			}
 		}
 	}
 
 	function onUse( _user, _targetTile )
 	{
+		local stg = ("Streams" in ::Wuxia) ? ::Wuxia.Streams.getComboStage(_user, this.m.ID) : 0;
 		local target = _targetTile.getEntity();
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, this.m.WX_VfxBrush);
 		local hit = this.attackEntity(_user, target);
-		if (hit && target != null && target.isAlive())
+		if (hit)
 		{
-			
+			if (stg == 1 && target != null && target.isAlive())
+			{
+				this.wxApplyStatusToTarget(target, "effects.wx_status_opening", "scripts/skills/effects/wx_status_opening");
+				if ("Streams" in ::Wuxia) ::Wuxia.Streams.spawnSwordNode(_user, _targetTile);
+			}
+			if ("Streams" in ::Wuxia) ::Wuxia.Streams.advanceComboStage(_user, this.m.ID, 2, true);
 		}
+		else if ("Streams" in ::Wuxia)
+		{
+			::Wuxia.Streams.resetComboStage(_user, this.m.ID);
+		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

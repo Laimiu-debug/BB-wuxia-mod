@@ -34,6 +34,9 @@ this.wx_shanhai_acc_base <- this.inherit("scripts/items/accessory/accessory", {
 		if (cfg.CustomIcon != null) this.m.Icon = cfg.CustomIcon;
 		this.m.WX_MappedID <- this.m.ID;
 		this.m.WX_ExpectedIcon <- this.m.Icon;
+		this.m.WX_GearTraitID <- ("TraitID" in cfg) ? cfg.TraitID : null;
+		if ("BeastCraft" in ::Wuxia && "bindTraitMethods" in ::Wuxia.BeastCraft)
+			::Wuxia.BeastCraft.bindTraitMethods(this);
 	}
 
 	function updateVariant()

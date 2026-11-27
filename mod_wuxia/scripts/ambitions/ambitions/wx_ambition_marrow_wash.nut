@@ -11,22 +11,22 @@ this.wx_ambition_marrow_wash <- this.inherit("scripts/ambitions/ambition", {
 		this.m.SuccessText = "[img]gfx/ui/events/wx_ev_07.png[/img]药力如江河决堤冲开奇经八脉，伴随一声清越长啸，同袍周身浊气尽去、根骨星辉跃然升华！自此便是凡胎俗骨，亦有问鼎宗师之望！";
 		this.m.SuccessButtonText = "好！壮哉我辈江湖儿女！";
 		if ("ButtonTooltip" in this.m)
-			this.m.ButtonTooltip = "借功法大成契机或服食洗髓灵丹，为任一名麾下侠客成功完成 1 次『洗经伐髓』根骨升星。";
+			this.m.ButtonTooltip = "借孤本大成洗髓契机或服食洗髓灵丹，在角色『武学修为』页为任一麾下侠客成功完成 1 次『洗经伐髓』根骨升星（须冲星成功，失败不计）。";
 		if ("TooltipText" in this.m)
-			this.m.TooltipText = "为任一名麾下侠客成功完成 1 次『洗经伐髓』根骨升星。";
+			this.m.TooltipText = "在『武学修为』页为任一侠客成功完成 1 次『洗经伐髓』根骨升星（须冲星成功）。";
 	}
 
 	function onUpdateScore()
 	{
 		if (this.m.IsDone) return;
 		if (this.World.Flags.get("wx_marrow_wash_success")) return;
-		if (this.World.getTime().Days < 15) return;
+		if (this.World.getTime().Days < 10) return;
 		this.m.Score = 2 + this.Math.rand(0, 5);
 	}
 
 	function onCheckSuccess()
 	{
-		return this.World.Flags.get("wx_marrow_wash_success") == true;
+		return this.World.Flags.get("wx_marrow_wash_success") ? true : false;
 	}
 
 	function onReward()
@@ -35,12 +35,23 @@ this.wx_ambition_marrow_wash <- this.inherit("scripts/ambitions/ambition", {
 		local pill = ::new("scripts/items/misc/wx_pill_item");
 		pill.initPill("wx_pill_humai");
 		if (this.World.Assets.getStash().hasEmptySlot())
+		{
 			this.World.Assets.getStash().add(pill);
-		this.m.SuccessList.push({
-			id = 10,
-			icon = "ui/items/" + pill.getIcon(),
-			text = "获赠纹银 400 两，并得【" + pill.getName() + "】×1 以护后途冲关"
-		});
+			this.m.SuccessList.push({
+				id = 10,
+				icon = "ui/items/" + pill.getIcon(),
+				text = "获赠纹银 400 两，并得【" + pill.getName() + "】×1 以护后途冲关"
+			});
+		}
+		else
+		{
+			this.World.Assets.addMoney(400);
+			this.m.SuccessList.push({
+				id = 10,
+				icon = "ui/icons/asset_money.png",
+				text = "行囊已满，【" + pill.getName() + "】折作纹银，共获赠纹银 800 两"
+			});
+		}
 	}
 
 	function onSerialize( _out )

@@ -37,7 +37,7 @@ if (!("Library" in ::Wuxia))
 
 ::Wuxia.Library.hasWorldFlags <- function()
 {
-	return ("World" in getroottable()) && ::World != null && ("Flags" in ::World) && ::World.Flags != null;
+	return ::Wuxia.hasWorldField("Flags");
 };
 
 ::Wuxia.Library._ensureCache <- function()
@@ -549,6 +549,7 @@ if (!("Library" in ::Wuxia))
 	local booksCrafted = 0;
 	local pagesSpent   = 0;
 	local names        = [];
+	local crafted      = [];
 
 	local pageSnap = clone ::Wuxia.Library.getOwnedMaps().Pages;
 	foreach (mid, cur in pageSnap)
@@ -565,6 +566,7 @@ if (!("Library" in ::Wuxia))
 			booksCrafted += num;
 			pagesSpent += cost;
 			names.push("《" + def.Name + "》" + (num > 1 ? ("×" + num) : ""));
+			crafted.push({ id = mid, count = num });
 		}
 	}
 
@@ -574,7 +576,8 @@ if (!("Library" in ::Wuxia))
 	return {
 		booksCrafted = booksCrafted,
 		pagesSpent   = pagesSpent,
-		names        = names
+		names        = names,
+		crafted      = crafted
 	};
 };
 

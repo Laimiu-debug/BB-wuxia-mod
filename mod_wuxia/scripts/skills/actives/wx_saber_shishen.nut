@@ -27,7 +27,15 @@ this.wx_saber_shishen <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		if (_skill == this)
 		{
-			_properties.MeleeSkill += 8; if (_targetEntity != null && (_targetEntity.getSkills().hasSkill("effects.bleeding") || _targetEntity.getSkills().hasSkill("effects.wx_status_opening"))) _properties.DamageTotalMult *= 1.28; else _properties.DamageTotalMult *= 1.12;
+			this.wxApplyTagPreHitProps(_targetEntity, _properties);
+			_properties.MeleeSkill += 8;
+			local actor = this.getContainer().getActor();
+			local st = (actor != null && "Streams" in ::Wuxia) ? ::Wuxia.Streams.getState(actor) : null;
+			local bb = st != null ? (st.m.BloodBladeStacks * 0.04) : 0.0;
+			if (_targetEntity != null && _targetEntity.getSkills() != null && (_targetEntity.getSkills().hasSkill("effects.bleeding") || _targetEntity.getSkills().hasSkill("effects.wx_status_opening")))
+				_properties.DamageTotalMult *= (1.28 + bb);
+			else
+				_properties.DamageTotalMult *= (1.12 + bb);
 		}
 	}
 
@@ -36,10 +44,11 @@ this.wx_saber_shishen <- this.inherit("scripts/skills/actives/wx_move_base", {
 		local target = _targetTile.getEntity();
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, this.m.WX_VfxBrush);
 		local hit = this.attackEntity(_user, target);
-		if (hit && target != null && target.isAlive())
+		if (hit && ("Streams" in ::Wuxia))
 		{
-			if (!::Wuxia.CombatRules.isUndeadOrConstruct(target) && _user.isAlive()) _user.setHitpoints(::Math.min(_user.getHitpointsMax(), _user.getHitpoints() + 8));
+			::Wuxia.Streams.triggerBloodBlade(_user, target);
 		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

@@ -22,7 +22,9 @@ this.wx_throw_duzhen <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.FatigueCost = 18;
 		this.m.MinRange = 2;
 		this.m.MaxRange = 4;
+		this.m.MaxLevelDifference = 4;
 		this.m.IsRanged = true;
+		this.m.IsIgnoredAsAOO = true;
 		this.m.IsShowingProjectile = true;
 		this.m.ProjectileType = ::Const.ProjectileType.WX_Sangmending;
 		this.m.IsProjectileRotated = true;

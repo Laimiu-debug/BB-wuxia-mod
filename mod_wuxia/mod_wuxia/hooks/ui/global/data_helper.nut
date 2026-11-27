@@ -1,5 +1,81 @@
 // UI Data serialization helpers + data_helper hook for Character Screen (武学修为 & 藏经阁) & Tactical HUD
 
+::Wuxia.Settings <- {
+	syncFromWorldFlags = function()
+	{
+		if (!("World" in getroottable()) || ::World == null || !("Flags" in ::World) || ::World.Flags == null)
+			return;
+		local f = ::World.Flags;
+		if ("VFX" in ::Wuxia && "Config" in ::Wuxia.VFX)
+		{
+			if (f.has("wx_cfg_vfx"))    ::Wuxia.VFX.Config.ShowSkillVfx      = f.get("wx_cfg_vfx") ? true : false;
+			if (f.has("wx_cfg_motion")) ::Wuxia.VFX.Config.EnableActorMotion = f.get("wx_cfg_motion") ? true : false;
+			if (f.has("wx_cfg_cutin"))  ::Wuxia.VFX.Config.ShowSkillCutIn    = f.get("wx_cfg_cutin") ? true : false;
+			if (f.has("wx_cfg_sfx"))    ::Wuxia.VFX.Config.EnableWuxiaSfx    = f.get("wx_cfg_sfx") ? true : false;
+		}
+		if ("CombatRules" in ::Wuxia && f.has("wx_cfg_lock_era0"))
+		{
+			::Wuxia.CombatRules.ForcedThreatEra = f.get("wx_cfg_lock_era0") ? 0 : -1;
+		}
+	},
+
+	getPayload = function()
+	{
+		::Wuxia.Settings.syncFromWorldFlags();
+		local vfxCfg = ("VFX" in ::Wuxia && "Config" in ::Wuxia.VFX) ? ::Wuxia.VFX.Config : {};
+		local threat = ("CombatRules" in ::Wuxia && "getCampaignThreatProfile" in ::Wuxia.CombatRules)
+			? ::Wuxia.CombatRules.getCampaignThreatProfile()
+			: { era = 0, label = "初入江湖" };
+		return {
+			ok                = true,
+			showSkillVfx      = ("ShowSkillVfx" in vfxCfg) ? vfxCfg.ShowSkillVfx : true,
+			enableActorMotion = ("EnableActorMotion" in vfxCfg) ? vfxCfg.EnableActorMotion : true,
+			showSkillCutIn    = ("ShowSkillCutIn" in vfxCfg) ? vfxCfg.ShowSkillCutIn : false,
+			enableWuxiaSfx    = ("EnableWuxiaSfx" in vfxCfg) ? vfxCfg.EnableWuxiaSfx : true,
+			autoStoreLibrary  = ::Wuxia.Library.isAutoStoreEnabled(),
+			dynamicThreatOn   = !("CombatRules" in ::Wuxia) || ::Wuxia.CombatRules.ForcedThreatEra < 0,
+			currentEra        = threat.era,
+			currentEraLabel   = threat.label
+		};
+	},
+
+	updateSetting = function( _key, _val )
+	{
+		local bVal = _val ? true : false;
+		local hasWF = ("World" in getroottable()) && ::World != null && ("Flags" in ::World) && ::World.Flags != null;
+		if (_key == "showSkillVfx" && ("VFX" in ::Wuxia))
+		{
+			::Wuxia.VFX.Config.ShowSkillVfx = bVal;
+			if (hasWF) ::World.Flags.set("wx_cfg_vfx", bVal);
+		}
+		else if (_key == "enableActorMotion" && ("VFX" in ::Wuxia))
+		{
+			::Wuxia.VFX.Config.EnableActorMotion = bVal;
+			if (hasWF) ::World.Flags.set("wx_cfg_motion", bVal);
+		}
+		else if (_key == "showSkillCutIn" && ("VFX" in ::Wuxia))
+		{
+			::Wuxia.VFX.Config.ShowSkillCutIn = bVal;
+			if (hasWF) ::World.Flags.set("wx_cfg_cutin", bVal);
+		}
+		else if (_key == "enableWuxiaSfx" && ("VFX" in ::Wuxia))
+		{
+			::Wuxia.VFX.Config.EnableWuxiaSfx = bVal;
+			if (hasWF) ::World.Flags.set("wx_cfg_sfx", bVal);
+		}
+		else if (_key == "autoStoreLibrary")
+		{
+			::Wuxia.Library.setAutoStoreEnabled(bVal);
+		}
+		else if (_key == "dynamicThreatOn" && ("CombatRules" in ::Wuxia))
+		{
+			::Wuxia.CombatRules.ForcedThreatEra = bVal ? -1 : 0;
+			if (hasWF) ::World.Flags.set("wx_cfg_lock_era0", !bVal);
+		}
+		return ::Wuxia.Settings.getPayload();
+	}
+};
+
 ::Wuxia.UI <- {};
 
 ::Wuxia.UI.QualityRank <- {
@@ -508,6 +584,7 @@
 		attrLabels             = ::Wuxia.Text.Attributes,
 		slots                  = slotsData,
 		learnedManuals         = learnedManuals,
+		loadoutPresets         = ::Wuxia.Slots.getLoadoutPresets(_actor),
 		emptyUnlockedSlots     = emptyUnlockedSlots,
 		equipableSlotHintCount = equipableHintCount
 	};
@@ -1053,8 +1130,26 @@
 		local raidCd    = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("raid", sid, 15) : 0;
 		local recruitCd = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("recruit", sid, 10) : 0;
 		local empowerCd = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("emp", sid, 5) : 0;
-		local healCd    = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("heal", sid, 3) : 0;
-		local herbCd    = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("herb", sid, 4) : 0;
+		local healCd     = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("heal", sid, 3) : 0;
+		local herbCd     = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("herb", sid, 4) : 0;
+		local rareHerbCd = ("getTeaCooldownLeft" in ::Wuxia.SectRelations) ? ::Wuxia.SectRelations.getTeaCooldownLeft("herb_rare", sid, 7) : 0;
+		local herbCatalog = null;
+		if (isAtThisSanctum && ("getSectApothecaryCatalog" in ::Wuxia.SectRelations))
+		{
+			local hcat = ::Wuxia.SectRelations.getSectApothecaryCatalog(sid);
+			herbCatalog = {
+				common      = ::Wuxia.SectRelations.describeHerbIds(hcat.common),
+				commonCost  = hcat.commonCost,
+				commonQty   = hcat.commonQty,
+				commonRel   = hcat.commonRel,
+				commonCdMax = hcat.commonCdMax,
+				rare        = ::Wuxia.SectRelations.describeHerbIds(hcat.rare),
+				rareCost    = hcat.rareCost,
+				rareQty     = hcat.rareQty,
+				rareRel     = hcat.rareRel,
+				rareCdMax   = hcat.rareCdMax
+			};
+		}
 		local questInfo = (isAtThisSanctum && ("getSanctumQuestInfo" in ::Wuxia.SectRelations))
 			? ::Wuxia.SectRelations.getSanctumQuestInfo(sid)
 			: null;
@@ -1092,6 +1187,8 @@
 			empowerCd           = empowerCd,
 			healCd              = healCd,
 			herbCd              = herbCd,
+			rareHerbCd          = rareHerbCd,
+			herbCatalog         = herbCatalog,
 			questInfo           = questInfo,
 			revealedManualCount = revealedManualCount,
 			manuals             = mList
@@ -1115,31 +1212,218 @@
 	local seatedCnt = 0;
 	foreach (_k, _v in townSeats) seatedCnt += 1;
 
+	local isNight = ("World" in getroottable() && ::World != null && ::Wuxia.hasMember(::World, "getTime") && ::World.getTime() != null && ("IsDaytime" in ::World.getTime()) && !::World.getTime().IsDaytime);
+	local rosterCnt = ("World" in getroottable() && ::World != null && ::Wuxia.hasMember(::World, "getPlayerRoster") && ::World.getPlayerRoster() != null)
+		? ::World.getPlayerRoster().getSize()
+		: 0;
+	local rosterMax = ("World" in getroottable() && ::World != null && ("Assets" in ::World) && ::World.Assets != null)
+		? ::World.Assets.getBrothersMax()
+		: 12;
+	local sanctumSceneKey = (sanctumSectID != "" && ("getSanctumSceneKey" in ::Wuxia.SectRelations))
+		? ::Wuxia.SectRelations.getSanctumSceneKey(sanctumSectID)
+		: "";
+	local sanctumBannerImg = (sanctumSectID != "" && ("getSanctumBannerUIPath" in ::Wuxia.SectRelations))
+		? ::Wuxia.SectRelations.getSanctumBannerUIPath(sanctumSectID)
+		: "";
+	local sanctumDisciple = (sanctumSectID != "" && ("getSanctumDisciplePreview" in ::Wuxia.SectRelations))
+		? ::Wuxia.SectRelations.getSanctumDisciplePreview(sanctumSectID)
+		: null;
+
 	return {
-		ok              = true,
-		inSanctum       = (curSanctum != null),
-		sanctumSectID   = sanctumSectID,
-		sanctumName     = sanctumName,
-		inTown          = (curTown != null),
-		townName        = (curTown != null ? curTown.getName() : ""),
-		townSeatedCount = seatedCnt,
-		rumorCd         = rumorCd,
-		knownSectCount  = sectList.len(),
-		totalSectCount  = ids.len(),
-		money           = curMoney,
-		localRegion     = (curTown != null && ("getSettlementRegion" in ::Wuxia.SectRelations))
+		ok               = true,
+		inSanctum        = (curSanctum != null),
+		sanctumSectID    = sanctumSectID,
+		sanctumName      = sanctumName,
+		sanctumSceneKey  = sanctumSceneKey,
+		sanctumBannerImg = sanctumBannerImg,
+		sanctumDisciple  = sanctumDisciple,
+		isNight          = isNight,
+		rosterCount      = rosterCnt,
+		rosterMax        = rosterMax,
+		inTown           = (curTown != null),
+		townName         = (curTown != null ? curTown.getName() : ""),
+		townSeatedCount  = seatedCnt,
+		rumorCd          = rumorCd,
+		knownSectCount   = sectList.len(),
+		totalSectCount   = ids.len(),
+		money            = curMoney,
+		localRegion      = (curTown != null && ("getSettlementRegion" in ::Wuxia.SectRelations))
 			? ::Wuxia.SectRelations.getSettlementRegion(curTown)
 			: ::Wuxia.SectRelations.getLocalRegion(),
-		regions         = regions,
-		sects           = sectList
+		regions          = regions,
+		sects            = sectList
+	};
+};
+
+::Wuxia.UI.playShowcaseSound <- function( _cue )
+{
+	if (_cue == null || typeof _cue != "string" || _cue == "") return false;
+	if (!("Sound" in getroottable()) || ::Sound == null) return false;
+
+	local useWxSfx = !("VFX" in ::Wuxia) || !("isSfxEnabled" in ::Wuxia.VFX) || ::Wuxia.VFX.isSfxEnabled();
+	local pick = null;
+	local vol  = 0.72;
+	if (_cue == "alchemy_start")
+	{
+		local arr = useWxSfx
+			? ["sounds/wx_ritual/wx_alchemy_flare.wav"]
+			: ["sounds/ambience/buildings/alchemist_metal_pot_01.wav", "sounds/ambience/buildings/alchemist_metal_pot_02.wav", "sounds/ambience/buildings/alchemist_metal_pot_03.wav"];
+		pick = arr[::Math.rand(0, arr.len() - 1)];
+		vol = 0.76;
+	}
+	else if (_cue == "alchemy_success")
+	{
+		local arr = useWxSfx
+			? ["sounds/wx_ritual/wx_alchemy_flare.wav", "sounds/wx_ritual/wx_qi_meditate.wav"]
+			: ["sounds/crafting/crafting_potion_01.wav", "sounds/crafting/crafting_potion_02.wav", "sounds/crafting/crafting_potion_03.wav", "sounds/crafting/crafting_potion_04.wav"];
+		pick = arr[::Math.rand(0, arr.len() - 1)];
+		vol = 0.82;
+	}
+	else if (_cue == "alchemy_crit" || _cue == "cultivate_breakthrough" || _cue == "wash_success" || _cue == "forge_masterwork")
+	{
+		local arr = useWxSfx
+			? ["sounds/wx_ritual/wx_breakthrough_gong.wav"]
+			: ["sounds/ambience/buildings/temple_bell_00.wav", "sounds/ambience/buildings/temple_bell_01.wav", "sounds/ambience/buildings/temple_bell_02.wav", "sounds/ambience/buildings/temple_bell_03.wav"];
+		pick = arr[::Math.rand(0, arr.len() - 1)];
+		vol = 0.82;
+	}
+	else if (_cue == "alchemy_trial" || _cue == "wash_fail")
+	{
+		local arr = ["sounds/enemies/miasma_spell_01.wav", "sounds/enemies/miasma_spell_02.wav"];
+		pick = arr[::Math.rand(0, arr.len() - 1)];
+		vol = 0.68;
+	}
+	else if (_cue == "forge_hammer")
+	{
+		local arr = ["sounds/ambience/buildings/blacksmith_hammering_01.wav", "sounds/ambience/buildings/blacksmith_hammering_03.wav", "sounds/ambience/buildings/blacksmith_hammering_05.wav", "sounds/ambience/buildings/blacksmith_hammering_07.wav"];
+		pick = arr[::Math.rand(0, arr.len() - 1)];
+		vol = 0.88;
+	}
+	else if (_cue == "forge_quench")
+	{
+		pick = useWxSfx ? "sounds/wx_ritual/wx_forge_quench.wav" : "sounds/ambience/buildings/blacksmith_hot_water_00.wav";
+		vol = 0.84;
+	}
+	else if (_cue == "cultivate_infuse" || _cue == "manual_craft" || _cue == "manual_learn")
+	{
+		local arr = useWxSfx
+			? ["sounds/wx_ritual/wx_qi_meditate.wav"]
+			: ["sounds/crafting/crafting_general_01.wav", "sounds/crafting/crafting_general_02.wav", "sounds/crafting/crafting_general_03.wav"];
+		pick = arr[::Math.rand(0, arr.len() - 1)];
+		vol = 0.76;
+	}
+	else if (_cue == "wash_start")
+	{
+		pick = useWxSfx ? "sounds/wx_ritual/wx_marrow_wash.wav" : "sounds/combat/rally_the_troops_01.wav";
+		vol = 0.72;
+	}
+	else if (_cue == "pill_drink")
+	{
+		local arr = ["sounds/inventory/pills_swallow_01.wav", "sounds/combat/drink_01.wav", "sounds/combat/drink_02.wav"];
+		pick = arr[::Math.rand(0, arr.len() - 1)];
+		vol = 0.82;
+	}
+	else if (_cue == "sect_gain")
+	{
+		local arr = ["sounds/coins_01.wav", "sounds/coins_02.wav", "sounds/coins_03.wav"];
+		pick = arr[::Math.rand(0, arr.len() - 1)];
+		vol = 0.76;
+	}
+	else if (_cue == "spar_clash")
+	{
+		local arr = useWxSfx
+			? ["sounds/wx_combat/wx_sword_qi_01.wav", "sounds/wx_combat/wx_sword_qi_02.wav", "sounds/wx_combat/wx_palm_dragon_01.wav"]
+			: ["sounds/combat/riposte_01.wav", "sounds/combat/riposte_02.wav", "sounds/combat/riposte_03.wav", "sounds/combat/shield_hit_metal_01.wav"];
+		pick = arr[::Math.rand(0, arr.len() - 1)];
+		vol = 0.78;
+	}
+	else if (_cue == "offend_crack")
+	{
+		pick = useWxSfx ? "sounds/wx_combat/wx_thunder_quake_01.wav" : "sounds/combat/shatter_hit_01.wav";
+		vol = 0.80;
+	}
+	else if (_cue == "disguise_smoke")
+	{
+		pick = useWxSfx ? "sounds/wx_combat/wx_qinggong_step_01.wav" : "sounds/barber_01.wav";
+		vol = 0.80;
+	}
+	else if (_cue == "heal_chime")
+	{
+		local arr = useWxSfx
+			? ["sounds/wx_ritual/wx_qi_meditate.wav", "sounds/wx_combat/wx_golden_bell_01.wav"]
+			: ["sounds/ambience/buildings/temple_bell_01.wav", "sounds/ambience/buildings/temple_bell_02.wav"];
+		pick = arr[::Math.rand(0, arr.len() - 1)];
+		vol = 0.75;
+	}
+	else if (_cue == "sweep_whoosh")
+	{
+		pick = "sounds/cloth_01.wav";
+		vol = 0.78;
+	}
+
+	if (pick == null) return false;
+	try { ::Sound.play(pick, vol); return true; } catch (_e) { return false; }
+};
+
+::Wuxia.UI.buildManualShowcaseCard <- function( _manualID, _extraTag = "" )
+{
+	local def = ::Wuxia.Slots.getManualDef(_manualID);
+	if (def == null)
+	{
+		return {
+			name        = _manualID,
+			icon        = "ui/items/misc/wx_book_waigong_common.png",
+			overlayIcon = "",
+			gradeTitle  = "武学秘籍",
+			gradeColor  = "#d7b174",
+			subLabel    = _extraTag,
+			description = ""
+		};
+	}
+	local qKey = (def.Quality == "secret") ? "supreme" : def.Quality;
+	local qLbl = (def.Quality in ::Wuxia.Text.Qualities) ? ::Wuxia.Text.Qualities[def.Quality] : def.Quality;
+	local catLbl = (def.Category in ::Wuxia.Text.Categories) ? ::Wuxia.Text.Categories[def.Category] : def.Category;
+	local qCols = { common = "#c8ba9e", sect = "#5ec47a", secret = "#b58ae6", supreme = "#b58ae6", unique = "#f0bc42" };
+	local qCol = (def.Quality in qCols) ? qCols[def.Quality] : "#d7b174";
+	local skIco = (def.Icon != null && def.Icon != "")
+		? ((def.Icon.find("ui/") == 0) ? def.Icon : ("ui/" + def.Icon))
+		: "";
+	local sub = qLbl + " · " + catLbl + (_extraTag != "" ? (" · " + _extraTag) : "");
+	return {
+		id          = def.ID,
+		name        = "《" + def.Name + "》",
+		icon        = "ui/items/misc/wx_book_" + def.Category + "_" + qKey + ".png",
+		overlayIcon = skIco,
+		gradeTitle  = qLbl,
+		gradeColor  = qCol,
+		subLabel    = sub,
+		description = ("Description" in def && def.Description != null) ? def.Description : ""
 	};
 };
 
 ::Wuxia.UI.attachSectTeaHouseRPCs <- function( q, _allowTeaHouse = false, _allowSanctum = false )
 {
+	if (!::Wuxia.qHas(q, "onWXShowcaseSound"))
+	{
+		q.onWXShowcaseSound <- function( _cue )
+		{
+			local key = (typeof _cue == "array" && _cue.len() > 0) ? _cue[0] : _cue;
+			::Wuxia.UI.playShowcaseSound(key);
+			return { ok = true };
+		};
+	}
+
 	q.onWXGetSectRelations <- function( _data = null )
 	{
 		return ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
+	};
+
+	q.onWXGetActiveSectQuests <- function( _data = null )
+	{
+		local list = ("SectRelations" in ::Wuxia && "getAllActiveSanctumQuests" in ::Wuxia.SectRelations)
+			? ::Wuxia.SectRelations.getAllActiveSanctumQuests()
+			: [];
+		return { ok = true, quests = list };
 	};
 
 	q.onWXTeaHouseBuyManual <- function( _data )
@@ -1152,6 +1436,7 @@
 		if (!op.ok) return op;
 		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
 		payload.actionMessage <- op.message;
+		if ("showcase" in op && op.showcase != null) payload.wxShowcase <- op.showcase;
 		return payload;
 	};
 
@@ -1164,6 +1449,7 @@
 		if (!op.ok) return op;
 		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
 		payload.actionMessage <- op.message;
+		if ("showcase" in op && op.showcase != null) payload.wxShowcase <- op.showcase;
 		return payload;
 	};
 
@@ -1177,6 +1463,7 @@
 		if (!op.ok) return op;
 		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
 		payload.actionMessage <- op.message;
+		if ("showcase" in op && op.showcase != null) payload.wxShowcase <- op.showcase;
 		return payload;
 	};
 
@@ -1188,6 +1475,7 @@
 		if (!op.ok) return op;
 		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
 		payload.actionMessage <- op.message;
+		if ("showcase" in op && op.showcase != null) payload.wxShowcase <- op.showcase;
 		return payload;
 	};
 
@@ -1200,6 +1488,7 @@
 		if (!op.ok) return op;
 		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
 		payload.actionMessage <- op.message;
+		if ("showcase" in op && op.showcase != null) payload.wxShowcase <- op.showcase;
 		return payload;
 	};
 
@@ -1221,6 +1510,7 @@
 		if (!op.ok) return op;
 		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
 		payload.actionMessage <- op.message;
+		if ("showcase" in op && op.showcase != null) payload.wxShowcase <- op.showcase;
 		return payload;
 	};
 
@@ -1233,6 +1523,7 @@
 		if (!op.ok) return op;
 		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
 		payload.actionMessage <- op.message;
+		if ("showcase" in op && op.showcase != null) payload.wxShowcase <- op.showcase;
 		return payload;
 	};
 
@@ -1245,6 +1536,7 @@
 		if (!op.ok) return op;
 		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
 		payload.actionMessage <- op.message;
+		if ("showcase" in op && op.showcase != null) payload.wxShowcase <- op.showcase;
 		return payload;
 	};
 
@@ -1257,6 +1549,8 @@
 		if (!op.ok) return op;
 		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
 		payload.actionMessage <- op.message;
+		payload.activeSectQuests <- ::Wuxia.SectRelations.getAllActiveSanctumQuests();
+		if ("showcase" in op && op.showcase != null) payload.wxShowcase <- op.showcase;
 		return payload;
 	};
 
@@ -1264,11 +1558,13 @@
 	{
 		if (!_allowSanctum)
 			return { ok = false, reason = "须亲赴该派【独立山门】药庐，方可求购本门道地灵草！" };
-		local sid = (typeof _data == "array" && _data.len() > 0) ? _data[0] : ("" + _data);
-		local op = ::Wuxia.SectRelations.sanctumBuyHerbs(sid);
+		local sid  = (typeof _data == "array" && _data.len() > 0) ? _data[0] : ("" + _data);
+		local tier = (typeof _data == "array" && _data.len() >= 2 && _data[1] != null && _data[1] != "") ? _data[1] : "common";
+		local op = ::Wuxia.SectRelations.sanctumBuyHerbs(sid, tier);
 		if (!op.ok) return op;
 		local payload = ::Wuxia.UI.buildSectRelationsDirectory(_allowTeaHouse, _allowSanctum);
 		payload.actionMessage <- op.message;
+		if ("showcase" in op && op.showcase != null) payload.wxShowcase <- op.showcase;
 		return payload;
 	};
 
@@ -1277,6 +1573,18 @@
 		if ("World" in getroottable() && ::World != null && ("Flags" in ::World) && ::World.Flags != null)
 			::World.Flags.set("wx_active_sanctum_sect", "");
 		return { ok = true };
+	};
+
+	q.onWXGetModSettings <- function( _data = null )
+	{
+		return ::Wuxia.Settings.getPayload();
+	};
+
+	q.onWXUpdateModSetting <- function( _data )
+	{
+		if (_data == null || typeof _data != "array" || _data.len() < 2)
+			return ::Wuxia.Settings.getPayload();
+		return ::Wuxia.Settings.updateSetting("" + _data[0], _data[1]);
 	};
 };
 
@@ -1315,6 +1623,8 @@
 			if (sk == null) continue;
 			entry.wxAp <- sk.getActionPointCost();
 			entry.wxQi <- sk.getFatigueCost();
+			entry.wxAvailAp <- entity.getActionPoints();
+			entry.wxAvailQi <- ::Math.max(0, entity.getFatigueMax() - entity.getFatigue());
 			local sid = entry.id;
 			local lineage = "basic";
 			if (sid.find("actives.wx_meditate") == 0 || sid.find("actives.wx_neigong_") == 0 || sid.find("actives.wx_blood_") == 0)

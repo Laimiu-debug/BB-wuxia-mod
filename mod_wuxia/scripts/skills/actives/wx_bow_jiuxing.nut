@@ -16,15 +16,17 @@ this.wx_bow_jiuxing <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.WX_AnimMode <- "flurry_jiuxing";
 		this.m.WX_ChoreoID <- "wx_bow_jiuxing";
 		this.m.IsRanged = true;
+		this.m.IsIgnoredAsAOO = true;
 		this.m.IsShowingProjectile = true;
 		this.m.ProjectileType = ::Const.ProjectileType.WX_Liuxingjian;
 		this.m.IsProjectileRotated = true;
 		this.m.ProjectileTimeScale = 1.25;
-		this.m.SoundOnUse = ["sounds/combat/aimed_shot_01.wav", "sounds/combat/aimed_shot_02.wav"];
+		this.m.SoundOnUse = ["sounds/combat/quick_shot_01.wav", "sounds/combat/quick_shot_02.wav", "sounds/combat/quick_shot_03.wav"];
 		this.m.ActionPointCost = 5;
 		this.m.FatigueCost = 22;
 		this.m.MinRange = 2;
 		this.m.MaxRange = 7;
+		this.m.MaxLevelDifference = 4;
 		this.m.RequiredWeaponTypes = ["Bow"];
 		this.m.DirectDamageMult = 0.42;
 	}

@@ -20,7 +20,20 @@
 	}
 
 	function wxShowFloatingBanner(_host, _msg, _isErr) {
-		if (!_host || !_host.length || !_msg) return;
+		if (!_msg) return;
+		if (window.WX_Showcase && window.WX_Showcase.plaque) {
+			var isBarber = (_host && _host.find && _host.find('.wx-disguise-root').length > 0);
+			window.WX_Showcase.plaque({
+				title: _isErr ? '未能成行' : (isBarber ? '铜镜易容阁' : '江湖传讯'),
+				message: _msg,
+				icon: _isErr
+					? 'ui/wx_icons/wx_seal_cinnabar.png'
+					: (isBarber ? 'ui/wx_icons/wx_glyph_mirror.png' : 'ui/wx_icons/wx_glyph_sect_token.png'),
+				isError: !!_isErr
+			});
+			return;
+		}
+		if (!_host || !_host.length) return;
 		var banner = _host.children('.wx-screen-banner');
 		if (!banner.length) {
 			banner = $('<div class="wx-screen-banner" style="display:none;"></div>');
@@ -342,44 +355,92 @@
 	// ------------------------------------------------------------------------
 	// 4B. Town Disguise Pavilion (`铜镜江湖易容阁` — WorldTownScreenBarberDialogModule)
 	// ------------------------------------------------------------------------
-	function wxReloadDisguisePortrait(_mod, _imgPath) {
-		if (!_mod || !_mod.mContainer || !_imgPath) return;
-		var prefix = (typeof Path !== 'undefined' && Path.PROCEDURAL) ? Path.PROCEDURAL : 'coui://';
-		var fullSrc = (_imgPath.indexOf('coui://') === 0 || _imgPath.indexOf('procedural://') === 0) ? _imgPath : (prefix + _imgPath);
+	var WX_TRANSPARENT_PX = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
-		// 1. Force-update the main mirror portrait (`mDetailsPanel.CharacterImage`) even if vanilla set it to TempEntity!
-		var mainImg = (_mod.mDetailsPanel && _mod.mDetailsPanel.CharacterImage && _mod.mDetailsPanel.CharacterImage.length)
-			? _mod.mDetailsPanel.CharacterImage
-			: null;
-		if (mainImg) {
-			mainImg.attr('src', 'coui://gfx/ui/icons/action_points.png');
-			setTimeout(function () {
-				mainImg.attr('src', fullSrc);
-				if (typeof mainImg.centerImageWithinParent === 'function') {
-					mainImg.centerImageWithinParent(0, 0, 1.0, false);
-				}
-				mainImg.removeClass('opacity-none');
-			}, 16);
+	function wxToProceduralUrl(_imgPath) {
+		if (!_imgPath) return '';
+		var prefix = (typeof Path !== 'undefined' && Path.PROCEDURAL) ? Path.PROCEDURAL : 'coui://';
+		return (_imgPath.indexOf('coui://') === 0 || _imgPath.indexOf('procedural://') === 0) ? _imgPath : (prefix + _imgPath);
+	}
+
+	function wxRefreshBarberListThumb(_entryEl, _imgPath, _forceRefresh) {
+		if (!_entryEl || !_entryEl.length || !_imgPath) return;
+		var listImg = _entryEl.find('.column.is-left img:first');
+		if (!listImg.length) return;
+		var fullSrc = wxToProceduralUrl(_imgPath);
+		var entryData = _entryEl.data('entry') || {};
+		entryData.ImagePath = _imgPath;
+		var ox = ('ImageOffsetX' in entryData && entryData.ImageOffsetX !== null) ? entryData.ImageOffsetX : 0;
+		var oy = ('ImageOffsetY' in entryData && entryData.ImageOffsetY !== null) ? entryData.ImageOffsetY : 0;
+		if (!_forceRefresh && listImg.attr('src') === fullSrc) {
+			listImg.removeClass('opacity-none');
+			return;
+		}
+		listImg.attr('src', WX_TRANSPARENT_PX);
+		setTimeout(function () {
+			listImg.attr('src', fullSrc);
+			if (typeof listImg.centerImageWithinParent === 'function') {
+				listImg.centerImageWithinParent(ox, oy, 0.64);
+			}
+			listImg.removeClass('opacity-none');
+		}, 24);
+	}
+
+	function wxReloadDisguisePortrait(_mod, _imgPath, _forceRefresh) {
+		if (!_mod || !_mod.mContainer || !_imgPath) return;
+		var fullSrc = wxToProceduralUrl(_imgPath);
+
+		// 1. Update our dedicated CSS-centered bronze mirror <img> (immune to vanilla centerImageWithinParent clipping & stuck opacity-none!)
+		var dCont = (_mod.mDetailsPanel && _mod.mDetailsPanel.Container && _mod.mDetailsPanel.Container.length)
+			? _mod.mDetailsPanel.Container
+			: _mod.mContainer.find('.details-container:first');
+		var pBox = dCont.find('.column.is-character-portrait-container:first');
+		if (_mod.mDetailsPanel && _mod.mDetailsPanel.CharacterImage && _mod.mDetailsPanel.CharacterImage.length) {
+			_mod.mDetailsPanel.CharacterImage.hide();
+		}
+		if (pBox.length) {
+			var mirrorImg = pBox.children('img.wx-barber-mirror-img');
+			if (!mirrorImg.length) {
+				mirrorImg = $('<img class="wx-barber-mirror-img" alt=""/>');
+				pBox.append(mirrorImg);
+			}
+			var selected = _mod.mSelectedEntry;
+			clearTimeout(_mod.mWXMirrorTimer);
+			if (_forceRefresh || mirrorImg.attr('src') === fullSrc) {
+				// Force CoherentUI to drop cached procedural:// bitmap via transparent 1x1 gif without flashing an icon or hiding opacity
+				mirrorImg.attr('src', WX_TRANSPARENT_PX);
+				_mod.mWXMirrorTimer = setTimeout(function () {
+					if (_mod.mSelectedEntry !== selected) return;
+					mirrorImg.attr('src', fullSrc);
+				}, 24);
+			} else {
+				mirrorImg.attr('src', fullSrc);
+			}
 		}
 
-		// 2. Force-update the selected brother's left-roster thumbnail
-		var selEntry = _mod.mSelectedEntry || _mod.mContainer.find('.list-entry.is-selected:first');
-		if (selEntry && selEntry.length) {
-			var listImg = selEntry.find('.column.is-left img:first');
-			if (listImg.length) {
-				var entryData = selEntry.data('entry') || {};
-				entryData.ImagePath = _imgPath;
-				var ox = ('ImageOffsetX' in entryData && entryData.ImageOffsetX !== null) ? entryData.ImageOffsetX : 0;
-				var oy = ('ImageOffsetY' in entryData && entryData.ImageOffsetY !== null) ? entryData.ImageOffsetY : 0;
-				listImg.attr('src', 'coui://gfx/ui/icons/action_points.png');
-				setTimeout(function () {
-					listImg.attr('src', fullSrc);
-					if (typeof listImg.centerImageWithinParent === 'function') {
-						listImg.centerImageWithinParent(ox, oy, 0.64);
-					}
-					listImg.removeClass('opacity-none');
-				}, 16);
-			}
+		// 2. Sync the selected brother's left-roster thumbnail (only cache-bust when appearance actually changed!)
+		var selEntry = (_mod.mSelectedEntry && _mod.mSelectedEntry.length)
+			? _mod.mSelectedEntry
+			: _mod.mContainer.find('.list-entry.is-selected:first');
+		if (selEntry && selEntry.length && _forceRefresh) {
+			wxRefreshBarberListThumb(selEntry, _imgPath, true);
+		}
+
+	}
+
+	function wxRefreshRestoredBarberThumbs(_mod, _restoredBros) {
+		if (!_restoredBros || !_restoredBros.length || !_mod.mContainer) return;
+		var entries = _mod.mContainer.find('.list-entry').not(_mod.mSelectedEntry);
+		for (var i = 0; i < _restoredBros.length; i++) {
+			var restored = _restoredBros[i];
+			if (!restored || !restored.imagePath) continue;
+			entries.each(function () {
+				var row = $(this);
+				var data = row.data('entry');
+				if (data && String(data.ID) === String(restored.broId)) {
+					wxRefreshBarberListThumb(row, restored.imagePath, true);
+				}
+			});
 		}
 	}
 
@@ -402,6 +463,9 @@
 			if (ch.hasClass('wx-disguise-root') || ch.hasClass('is-character-container')) return;
 			ch.hide();
 		});
+		if (_mod.mDetailsPanel && _mod.mDetailsPanel.CharacterImage && _mod.mDetailsPanel.CharacterImage.length) {
+			_mod.mDetailsPanel.CharacterImage.hide();
+		}
 
 		var root = dCont.children('.wx-disguise-root');
 		if (!root.length) {
@@ -411,26 +475,142 @@
 		return root;
 	}
 
-	function wxRenderDisguisePanel(_mod, _res) {
+	function wxRenderDisguisePanel(_mod, _res, _opts) {
+		if (!_mod || !_res || !_res.ok) return;
+		var opts = _opts || {};
+		// An earlier selection can be the only response carrying a restored roster portrait.
+		wxRefreshRestoredBarberThumbs(_mod, _res.restoredBros);
+		if (typeof opts.selectionSeq === 'number' && opts.selectionSeq !== _mod.mWXBarberReqSeq) return;
+		var selected = (_mod.mSelectedEntry && _mod.mSelectedEntry.length) ? _mod.mSelectedEntry.data('entry') : null;
+		if (selected && String(selected.ID) !== String(_res.broId)) return;
 		var root = wxEnsureDisguisePanel(_mod);
-		if (!root || !root.length || !_res || !_res.ok) return;
+		if (!root || !root.length) return;
 
+		var switchedBro = (String(_mod.mWXCurrentBroID || '') !== String(_res.broId));
 		_mod.mWXCurrentBroID = _res.broId;
+
+		var dCont = (_mod.mDetailsPanel && _mod.mDetailsPanel.Container && _mod.mDetailsPanel.Container.length)
+			? _mod.mDetailsPanel.Container
+			: _mod.mContainer.find('.details-container:first');
+		dCont.removeClass('display-none').addClass('display-block');
+
 		if (_mod.mDetailsPanel && _mod.mDetailsPanel.CharacterName && _mod.mDetailsPanel.CharacterName.length) {
 			_mod.mDetailsPanel.CharacterName.html(wxEsc(_res.fullName));
 		}
-		var selEntry = _mod.mContainer.find('.is-selected:first');
-		if (selEntry.length) {
+		var selEntry = (_mod.mSelectedEntry && _mod.mSelectedEntry.length)
+			? _mod.mSelectedEntry
+			: _mod.mContainer.find('.list-entry.is-selected:first');
+		if (selEntry && selEntry.length) {
 			var entryData = selEntry.data('entry');
-			if (entryData && entryData.ID === _res.broId) {
+			if (entryData && String(entryData.ID) === String(_res.broId)) {
 				entryData.Name = _res.fullName;
 				var nmNode = selEntry.find('.name:first');
 				if (nmNode.length) nmNode.html(wxEsc(_res.fullName));
 			}
 		}
-		wxReloadDisguisePortrait(_mod, _res.imagePath);
+
+		if (opts.refreshPortrait !== false) {
+			wxReloadDisguisePortrait(_mod, _res.imagePath, !!opts.forcePortrait);
+		}
+		if (_res.assets && _mod.mAssets && typeof _mod.mAssets.loadFromData === 'function') {
+			try { _mod.mAssets.loadFromData(_res.assets); } catch (_eBA) {}
+		}
 		if (typeof _res.money === 'number') {
 			wxSyncWorldAndTownMoney(_res.money);
+		}
+
+		// Mirror bare-head toggle badge inside bronze mirror frame when brother wears headgear
+		var pBox = dCont.find('.column.is-character-portrait-container:first');
+		if (pBox.length) {
+			pBox.children('.wx-barber-hat-pill').remove();
+			if (_res.hasHeadgear) {
+				var hatLbl = _res.previewBareHead ? '镜中摘帽' : '镜中戴帽';
+				var hatTip = _res.previewBareHead
+					? '当前在镜中暂摘冠胄以明晰发髻面容（离阁自动复戴），点击可切回戴帽预览'
+					: '当前显示实际穿戴冠胄效果，点击可在镜中暂摘冠胄查看发髻胡须';
+				var hatPill = $('<span class="wx-barber-hat-pill' + (_res.previewBareHead ? ' is-bare' : '') + '" title="' + wxEsc(hatTip) + '">' + hatLbl + '</span>');
+				hatPill.on('click', function () {
+					if (!_mod.mSQHandle) return;
+					SQ.call(_mod.mSQHandle, 'onWXBarberToggleHat', [_mod.mWXCurrentBroID], function (_r) {
+						if (_r && _r.ok) {
+							wxRenderDisguisePanel(_mod, _r, { forcePortrait: true, keepInputs: true });
+						}
+					});
+				});
+				pBox.append(hatPill);
+			}
+		}
+
+		// Render roomy 2-row Rename panel cleanly beside the top-left bronze mirror portrait
+		// (Preserves unsaved typed text when stepping face/hair/beard!)
+		var renameHost = dCont.find('.is-character-container .column.is-character-background-container > .row.is-bottom:first');
+		if (renameHost.length) {
+			var curBox = renameHost.children('.wx-disguise-rename-box');
+			if (!curBox.length) {
+				renameHost.html(
+					'<div class="wx-disguise-rename-box">' +
+						'<div class="wx-disguise-sec-hdr" style="margin-bottom:0.35rem;">改换字号 · 隐姓埋名</div>' +
+						'<div class="wx-disguise-inp-row">' +
+							'<span class="wx-disguise-inp-lbl">本名</span>' +
+							'<input type="text" class="wx-disguise-inp" data-dinp="name" maxlength="16" value="' + wxEsc(_res.name || '') + '" placeholder="侠客本名" />' +
+							'<span class="wx-disguise-btn wx-disguise-rename-btn" data-dact="rename">改换名号</span>' +
+						'</div>' +
+						'<div class="wx-disguise-inp-row is-last">' +
+							'<span class="wx-disguise-inp-lbl">绰号</span>' +
+							'<input type="text" class="wx-disguise-inp" data-dinp="title" maxlength="16" value="' + wxEsc(_res.title || '') + '" placeholder="江湖绰号(可留空)" />' +
+							'<span class="wx-disguise-rename-tip">不费纹银</span>' +
+						'</div>' +
+					'</div>'
+				);
+				var doRename = function () {
+					if (!_mod.mSQHandle) return;
+					var nm = renameHost.find('[data-dinp="name"]').val() || '';
+					var tt = renameHost.find('[data-dinp="title"]').val() || '';
+					SQ.call(_mod.mSQHandle, 'onWXBarberRename', [_mod.mWXCurrentBroID, nm, tt], function (_r) {
+						if (!_r) return;
+						if (!_r.ok) {
+							wxShowFloatingBanner(_mod.mContainer, _r.reason || '改换名号失败。', true);
+							return;
+						}
+						wxRenderDisguisePanel(_mod, _r, { refreshPortrait: false, syncInputs: true });
+						if (window.WX_Showcase && window.WX_Showcase.sweepFx) {
+							var nmHost = (_mod.mDetailsPanel && _mod.mDetailsPanel.CharacterName && _mod.mDetailsPanel.CharacterName.length)
+								? _mod.mDetailsPanel.CharacterName.parent()
+								: renameHost;
+							window.WX_Showcase.sweepFx(nmHost, {
+								theme: 'gold',
+								icon: 'ui/wx_icons/wx_glyph_mirror.png',
+								floatText: '易名：' + (_r.fullName || ''),
+								sqHandle: _mod.mSQHandle,
+								soundCue: 'disguise_smoke'
+							});
+						} else if (_r.actionMessage) {
+							wxShowFloatingBanner(_mod.mContainer, _r.actionMessage, false);
+						}
+					});
+				};
+				renameHost.find('input').on('keydown', function (_e) {
+					if (_e.keyCode === 13) {
+						$(this).blur();
+						doRename();
+						_e.preventDefault();
+						_e.stopPropagation();
+						return false;
+					}
+					if (_e.keyCode === 27) {
+						$(this).blur();
+						_e.stopPropagation();
+						return false;
+					}
+					_e.stopPropagation();
+				}).on('keyup keypress', function (_e) {
+					_e.stopPropagation();
+				});
+				renameHost.find('[data-dact="rename"]').on('click', doRename);
+			} else if (switchedBro || opts.syncInputs || !opts.keepInputs) {
+				renameHost.find('[data-dinp="name"]').val(_res.name || '');
+				renameHost.find('[data-dinp="title"]').val(_res.title || '');
+			}
 		}
 
 		var lb = _res.labels || {};
@@ -450,9 +630,9 @@
 			rowsHtml +=
 				'<div class="wx-disguise-step-row">' +
 					'<span class="wx-disguise-step-lbl">' + wxEsc(p.title) + '</span>' +
-					'<span class="wx-disguise-arr' + dCls + '" data-dstep="' + p.key + '" data-ddir="-1">&lsaquo;</span>' +
+					'<span class="wx-disguise-arr is-prev' + dCls + '" data-dstep="' + p.key + '" data-ddir="-1">&lsaquo;</span>' +
 					'<span class="wx-disguise-step-val">' + wxEsc(p.val) + '</span>' +
-					'<span class="wx-disguise-arr' + dCls + '" data-dstep="' + p.key + '" data-ddir="1">&rsaquo;</span>' +
+					'<span class="wx-disguise-arr is-next' + dCls + '" data-dstep="' + p.key + '" data-ddir="1">&rsaquo;</span>' +
 				'</div>';
 		}
 
@@ -470,18 +650,18 @@
 			statusParts.push('九州各派暂无追杀恶交');
 		}
 		if (coldFacCnt > 0) {
-			statusParts.push('盘查冷淡藩镇：' + wxEsc(_res.coldFactionName || (coldFacCnt + ' 镇')));
+			statusParts.push('盘查冷淡：' + wxEsc(_res.coldFactionName || (coldFacCnt + ' 镇')));
 		}
 
 		var vendCost = _res.vendettaCost || 600;
 		var clrDis = (dCd > 0 || hostCnt <= 0 || curMoney < vendCost) ? ' is-disabled' : '';
 		var clrLbl = dCd > 0
-			? ('易容消解追杀(隔' + dCd + '日)')
-			: ('秘术易容 · 消解追杀令(' + vendCost + '两)');
+			? ('易容消解追杀 (隔' + dCd + '日)')
+			: ('易容消解追杀 (' + vendCost + '两)');
 		var facDis = (oCd > 0 || coldFacCnt <= 0 || curMoney < 800) ? ' is-disabled' : '';
 		var facLbl = oCd > 0
-			? ('伪造官凭路引(隔' + oCd + '日)')
-			: '伪造路引 · 周旋藩镇官凭(800两)';
+			? ('伪造官凭路引 (隔' + oCd + '日)')
+			: '伪造官凭路引 (800两)';
 
 		root.html(
 			'<div class="wx-disguise-sec-hdr">千面修容 · 四十八相男女面谱</div>' +
@@ -492,31 +672,21 @@
 				'<span class="wx-disguise-btn" data-drnd="reset_bg">归复本相</span>' +
 			'</div>' +
 			'<div class="wx-sect-gold-line"></div>' +
-			'<div class="wx-disguise-sec-hdr">改换字号 · 隐姓埋名</div>' +
-			'<div class="wx-disguise-inp-row">' +
-				'<input type="text" class="wx-disguise-inp" data-dinp="name" maxlength="16" value="' + wxEsc(_res.name || '') + '" placeholder="侠客本名" />' +
-				'<input type="text" class="wx-disguise-inp" data-dinp="title" maxlength="16" value="' + wxEsc(_res.title || '') + '" placeholder="江湖绰号(可空)" />' +
-				'<span class="wx-disguise-btn" data-dact="rename">改换名号</span>' +
-			'</div>' +
-			'<div class="wx-sect-gold-line"></div>' +
 			'<div class="wx-disguise-sec-hdr">秘术敛息 · 消解追缉与官凭</div>' +
 			'<div class="wx-disguise-status">' + statusParts.join(' · ') + '</div>' +
-			'<div>' +
-				'<span class="wx-disguise-btn' + clrDis + '" data-dact="vendetta" title="耗银 600 两改换形貌暗记，大幅缓和至多两家恶交/寻仇宗门敌意（+22）并甩脱城外追杀队">' + wxEsc(clrLbl) + '</span>' +
-				'<span class="wx-disguise-btn' + facDis + '" data-dact="faction" title="耗银 800 两托驿馆暗桩换发官凭路引，缓和关系最低的地方藩镇/都护府盘查敌意（+12）">' + wxEsc(facLbl) + '</span>' +
+			'<div class="wx-disguise-secret-bar">' +
+				'<span class="wx-disguise-btn is-wide' + clrDis + '" data-dact="vendetta" title="耗银 ' + vendCost + ' 两改换形貌暗记，大幅缓和至多两家恶交/寻仇宗门敌意（+22）并甩脱城外追杀队">' + wxEsc(clrLbl) + '</span>' +
+				'<span class="wx-disguise-btn is-wide is-last' + facDis + '" data-dact="faction" title="耗银 800 两托驿馆暗桩换发官凭路引，缓和关系最低的地方藩镇/都护府盘查敌意（+12）">' + wxEsc(facLbl) + '</span>' +
+				'<div class="clear-both"></div>' +
 			'</div>'
 		);
 
-		root.find('input').on('keydown keyup keypress', function (_e) {
-			_e.stopPropagation();
-		});
-
 		root.find('[data-dstep]').on('click', function () {
-			if (!_mod.mSQHandle) return;
+			if (!_mod.mSQHandle || $(this).hasClass('is-disabled')) return;
 			var part = $(this).attr('data-dstep');
 			var dir = parseInt($(this).attr('data-ddir'), 10) || 1;
 			SQ.call(_mod.mSQHandle, 'onWXBarberStepPart', [_mod.mWXCurrentBroID, part, dir], function (_r) {
-				if (_r && _r.ok) wxRenderDisguisePanel(_mod, _r);
+				if (_r && _r.ok) wxRenderDisguisePanel(_mod, _r, { forcePortrait: true, keepInputs: true });
 			});
 		});
 
@@ -524,22 +694,7 @@
 			if (!_mod.mSQHandle) return;
 			var mode = $(this).attr('data-drnd');
 			SQ.call(_mod.mSQHandle, 'onWXBarberStepPart', [_mod.mWXCurrentBroID, mode, 1], function (_r) {
-				if (_r && _r.ok) wxRenderDisguisePanel(_mod, _r);
-			});
-		});
-
-		root.find('[data-dact="rename"]').on('click', function () {
-			if (!_mod.mSQHandle) return;
-			var nm = root.find('[data-dinp="name"]').val() || '';
-			var tt = root.find('[data-dinp="title"]').val() || '';
-			SQ.call(_mod.mSQHandle, 'onWXBarberRename', [_mod.mWXCurrentBroID, nm, tt], function (_r) {
-				if (!_r) return;
-				if (!_r.ok) {
-					wxShowFloatingBanner(_mod.mContainer, _r.reason || '改换名号失败。', true);
-					return;
-				}
-				wxRenderDisguisePanel(_mod, _r);
-				if (_r.actionMessage) wxShowFloatingBanner(_mod.mContainer, _r.actionMessage, false);
+				if (_r && _r.ok) wxRenderDisguisePanel(_mod, _r, { forcePortrait: true, keepInputs: true });
 			});
 		});
 
@@ -551,8 +706,12 @@
 					wxShowFloatingBanner(_mod.mContainer, _r.reason || '无法执行秘术易容。', true);
 					return;
 				}
-				wxRenderDisguisePanel(_mod, _r);
-				if (_r.actionMessage) wxShowFloatingBanner(_mod.mContainer, _r.actionMessage, false);
+				wxRenderDisguisePanel(_mod, _r, { refreshPortrait: false, keepInputs: true });
+				if (_r.wxShowcase && window.WX_Showcase) {
+					window.WX_Showcase.play(_r.wxShowcase, { sqHandle: _mod.mSQHandle });
+				} else if (_r.actionMessage) {
+					wxShowFloatingBanner(_mod.mContainer, _r.actionMessage, false);
+				}
 			});
 		});
 
@@ -564,21 +723,27 @@
 					wxShowFloatingBanner(_mod.mContainer, _r.reason || '无法打点官凭。', true);
 					return;
 				}
-				wxRenderDisguisePanel(_mod, _r);
-				if (_r.actionMessage) wxShowFloatingBanner(_mod.mContainer, _r.actionMessage, false);
+				wxRenderDisguisePanel(_mod, _r, { refreshPortrait: false, keepInputs: true });
+				if (_r.wxShowcase && window.WX_Showcase) {
+					window.WX_Showcase.play(_r.wxShowcase, { sqHandle: _mod.mSQHandle });
+				} else if (_r.actionMessage) {
+					wxShowFloatingBanner(_mod.mContainer, _r.actionMessage, false);
+				}
 			});
 		});
 	}
 
 	function wxQueryDisguiseForSelected(_mod, _element) {
 		if (!_mod || !_mod.mSQHandle) return;
-		var el = (_element && _element.length) ? _element : (_mod.mContainer ? _mod.mContainer.find('.is-selected:first') : null);
+		var el = (_element && _element.length)
+			? _element
+			: ((_mod.mSelectedEntry && _mod.mSelectedEntry.length) ? _mod.mSelectedEntry : (_mod.mContainer ? _mod.mContainer.find('.list-entry.is-selected:first') : null));
 		var entry = (el && el.length) ? el.data('entry') : null;
 		var broId = (entry && typeof entry.ID !== 'undefined') ? entry.ID : 0;
+		var seq = (_mod.mWXBarberReqSeq || 0) + 1;
+		_mod.mWXBarberReqSeq = seq;
 		SQ.call(_mod.mSQHandle, 'onWXBarberGetState', [broId], function (_res) {
-			if (_res && _res.ok) {
-				wxRenderDisguisePanel(_mod, _res);
-			}
+			wxRenderDisguisePanel(_mod, _res, { forcePortrait: true, syncInputs: true, selectionSeq: seq });
 		});
 	}
 
@@ -594,13 +759,10 @@
 		if (WorldTownScreenBarberDialogModule.prototype.loadFromData) {
 			var origBarberLoad = WorldTownScreenBarberDialogModule.prototype.loadFromData;
 			WorldTownScreenBarberDialogModule.prototype.loadFromData = function (_data) {
-				var self = this;
+				this.mWXCurrentBroID = null;
 				origBarberLoad.call(this, _data);
 				wxUpgradeImagesIn(this.mContainer);
-				setTimeout(function () {
-					wxEnsureDisguisePanel(self);
-					wxQueryDisguiseForSelected(self, null);
-				}, 35);
+				wxEnsureDisguisePanel(this);
 			};
 		}
 		if (WorldTownScreenBarberDialogModule.prototype.updateDetailsPanel) {
@@ -609,10 +771,9 @@
 				var self = this;
 				origBarberUpdateDetails.call(this, _element);
 				wxEnsureDisguisePanel(this);
-				setTimeout(function () {
-					wxEnsureDisguisePanel(self);
+				if (_element && _element.length) {
 					wxQueryDisguiseForSelected(self, _element);
-				}, 30);
+				}
 			};
 		}
 		if (typeof Screens !== 'undefined' && Screens['WorldTownScreen'] && Screens['WorldTownScreen'].mBarberDialogModule) {
@@ -763,7 +924,17 @@
 							if (self.mShopSlots && self.mShopList) {
 								self.assignItems(WorldTownScreenShop.ItemOwner.Shop, self.mShopList, self.mShopSlots, self.mShopListScrollContainer);
 							}
-							wxShowFloatingBanner(self.mDialogContainer, _res.actionMessage, _res.movedCount === 0);
+							if (_res.movedCount > 0 && _res.sweepSummary && window.WX_Showcase && window.WX_Showcase.sweepFx) {
+								window.WX_Showcase.sweepFx(sweepBtn, {
+									theme: 'gold',
+									icon: 'ui/items/misc/wx_book_waigong_sect.png',
+									floatText: _res.sweepSummary,
+									sqHandle: self.mSQHandle,
+									soundCue: 'sweep_whoosh'
+								});
+							} else {
+								wxShowFloatingBanner(self.mDialogContainer, _res.actionMessage, _res.movedCount === 0);
+							}
 						}
 					});
 				});
@@ -913,8 +1084,18 @@
 					SQ.call(self.mDataSource.mSQHandle, 'onWXSweepCombatLootManuals', null, function (_res) {
 						if (_res && _res.ok) {
 							self.mDataSource.loadFromData(_res);
-							var dlg = $('.tactical-combat-result-screen .ui-control.dialog:first');
-							wxShowFloatingBanner(dlg, _res.wxSweepMessage, _res.movedCount === 0);
+							if (_res.movedCount > 0 && _res.sweepSummary && window.WX_Showcase && window.WX_Showcase.sweepFx) {
+								window.WX_Showcase.sweepFx(lootSweepBtn, {
+									theme: 'gold',
+									icon: 'ui/items/misc/wx_book_waigong_sect.png',
+									floatText: _res.sweepSummary,
+									sqHandle: self.mDataSource.mSQHandle,
+									soundCue: 'sweep_whoosh'
+								});
+							} else {
+								var dlg = $('.tactical-combat-result-screen .ui-control.dialog:first');
+								wxShowFloatingBanner(dlg, _res.wxSweepMessage, _res.movedCount === 0);
+							}
 						}
 					});
 				});
@@ -977,12 +1158,24 @@
 	function wxSyncWorldAndTownMoney(_money) {
 		if (typeof _money !== 'number') return;
 		var fmt = wxFormatCommaMoney(_money);
-		$('.world-town-screen .asset-container.is-money .label, .world-screen .asset-container.is-money .label').text(fmt);
-		$('.wx-sect-money-badge span').text(fmt);
+		$('.world-town-screen .asset-container.is-money .label, .world-town-screen .l-tab-asset.is-money .label, .world-screen .asset-container.is-money .label').text(fmt);
+		$('.wx-sect-money-badge span, .wx-sanctum-money-val').text(fmt);
 	}
 
 	function wxShowSectToast(_dlg, _msg, _isErr) {
-		if (!_dlg || !_dlg.length || !_msg) return;
+		if (!_msg) return;
+		if (window.WX_Showcase && window.WX_Showcase.plaque) {
+			window.WX_Showcase.plaque({
+				title: _isErr ? '山门回音' : '宗门礼数',
+				message: _msg,
+				icon: _isErr ? 'ui/wx_icons/wx_seal_cinnabar.png' : 'ui/wx_icons/wx_glyph_sect_token.png',
+				isError: !!_isErr,
+				sqHandle: wxSanctumViewState.sqHandle || wxSectModalState.sqHandle || window.WX_SectRPCHandle,
+				soundCue: _isErr ? null : 'sect_gain'
+			});
+			return;
+		}
+		if (!_dlg || !_dlg.length) return;
 		_dlg.find('.wx-sect-toast').remove();
 		var t = $('<div class="wx-sect-toast' + (_isErr ? ' is-err' : '') + '">' + wxEsc(_msg) + '</div>');
 		_dlg.append(t);
@@ -995,10 +1188,11 @@
 		var existing = $('.wx-sect-backdrop');
 		if (existing.length) {
 			var wasSanctum = !!(wxSectModalState.data && wxSectModalState.data.inSanctum);
+			var hasSanctumBehind = $('.wx-sanctum-backdrop').length > 0;
 			var h = wxSectModalState.sqHandle || window.WX_SectRPCHandle;
 			existing.remove();
 			$(document).off('keydown.wxSectModal');
-			if (wasSanctum && h) {
+			if (wasSanctum && !hasSanctumBehind && h) {
 				SQ.call(h, 'onWXCloseSanctum', null);
 			}
 			if (wxSectModalState.popupHostDS && wxSectModalState.popupHostDS.notifyBackendPopupDialogIsVisible) {
@@ -1008,14 +1202,16 @@
 		}
 	}
 
-	function wxRenderSectDetail(_pane, _s, _payload, _onActionDone) {
+	function wxRenderSectDetail(_pane, _s, _payload, _onActionDone, _browseOnly) {
 		if (!_s) {
 			_pane.html('<div style="padding:2rem 0;color:#bd9d71;font-style:italic;text-align:center;">左键点击左侧宗门查阅渊源、独立山门方位、交情与传承秘籍。<br/><br/>（尚未结识的隐世宗门，可赴酒楼茶座结交、向酒保打探秘闻或踏勘荒山山门逐一揭开）</div>');
 			return;
 		}
 		var localRegion = _payload ? _payload.localRegion : '';
-		var inTown = !!(_payload && _payload.inTown);
+		var inTown = !_browseOnly && !!(_payload && _payload.inTown);
 		var inSanctum = !!(_payload && _payload.inSanctum);
+		var atSanctum = !_browseOnly && _s.isAtSanctum;
+		var canInteractHere = atSanctum || (inTown && _s.isSeatedInTown);
 		var curMoney = (_payload && typeof _payload.money === 'number') ? _payload.money : 0;
 		var relCls = _s.relation > 0 ? 'is-pos' : (_s.relation < 0 ? 'is-neg' : 'is-neu');
 		var relSign = _s.relation > 0 ? ('+' + _s.relation) : String(_s.relation);
@@ -1066,7 +1262,7 @@
 			);
 		}
 
-		if (_s.isAtSanctum) {
+		if (atSanctum) {
 			var sealDays = _s.sealDays || 0;
 			var sealedDis = sealDays > 0;
 
@@ -1091,10 +1287,11 @@
 				: (_s.relation < 15 ? '运功疗内伤(需交情≥15)' : '运功拔除内伤(380两)');
 
 			var herbCd = _s.herbCd || 0;
-			var herbDis = (sealedDis || herbCd > 0 || _s.relation < 20 || curMoney < 360) ? ' is-disabled' : '';
+			var hCatD = _s.herbCatalog || { commonCost: 420, commonRel: 20 };
+			var herbDis = (sealedDis || herbCd > 0 || _s.relation < hCatD.commonRel || curMoney < hCatD.commonCost) ? ' is-disabled' : '';
 			var herbLbl = herbCd > 0
 				? ('道地药庐(隔' + herbCd + '日)')
-				: (_s.relation < 20 ? '采买道地灵草(需交情≥20)' : '采买本门灵草(360两)');
+				: (_s.relation < hCatD.commonRel ? ('采买常备灵草(需交情≥' + hCatD.commonRel + ')') : ('采买常备灵草(' + hCatD.commonCost + '两)'));
 
 			var sAlcDis = (sealedDis || (_s.alcCd || 0) > 0 || _s.relation < 35 || curMoney < 480) ? ' is-disabled' : '';
 			var sAlcLbl = (_s.alcCd || 0) > 0
@@ -1118,7 +1315,7 @@
 			var trDis = (sealedDis || trCd > 0 || _s.relation < trMinRel) ? ' is-disabled' : '';
 			var trLbl = trCd > 0
 				? ('护山大阵(隔' + trCd + '日)')
-				: (_s.relation < trMinRel ? ('闯护山大阵(需交情≥' + trMinRel + ')') : '闯护山大阵(实战赢残页灵草)');
+				: (_s.relation < trMinRel ? ('闯护山大阵(需交情≥' + trMinRel + ')') : '闯护山大阵(点到为止·不死人)');
 
 			var rdCd = _s.raidCd || 0;
 			var rdDis = (sealDays > 0 || rdCd > 0) ? ' is-disabled' : '';
@@ -1178,6 +1375,8 @@
 				'<div class="wx-tea-actions" style="font-size:1.28rem;color:#bd9d71;font-style:italic;">' +
 					'该宗门传人今日未在此城酒楼落座。可' + whereHint + '；若交情达 25 以上，在任意城池酒楼皆可飞鸽约见。' +
 				'</div>';
+		} else if (_browseOnly && _s.isAtSanctum) {
+			html += '<div class="wx-tea-actions">返回山门庭院，可前往各堂拜会、请教或演武。</div>';
 		} else if (inSanctum && !_s.isAtSanctum) {
 			html +=
 				'<div class="wx-tea-actions" style="font-size:1.28rem;color:#bd9d71;font-style:italic;">' +
@@ -1199,7 +1398,6 @@
 		if (_s.manuals.length === 0) {
 			html += '<div style="color:#bd9d71;font-style:italic;">该宗门暂无对外传授之秘籍。</div>';
 		} else {
-			var canInteractHere = (_s.isAtSanctum || (inTown && _s.isSeatedInTown));
 			for (var i = 0; i < _s.manuals.length; i++) {
 				var m = _s.manuals[i];
 				var bookSrc = m.bookIcon ? ('coui://gfx/' + m.bookIcon) : 'coui://gfx/ui/items/misc/wx_book_waigong_sect.png';
@@ -1273,7 +1471,7 @@
 		}
 		_pane.html(html);
 
-		if ((_s.isAtSanctum || (inTown && _s.isSeatedInTown)) && wxSectModalState.sqHandle) {
+		if (canInteractHere && wxSectModalState.sqHandle) {
 			_pane.find('[data-tea-op="banquet"]').on('click', function () {
 				SQ.call(wxSectModalState.sqHandle, 'onWXTeaHouseBanquet', [_s.id], function (_res) {
 					if (_onActionDone) _onActionDone(_res);
@@ -1318,6 +1516,7 @@
 				SQ.call(wxSectModalState.sqHandle, 'onWXSanctumStartBattle', [_s.id, 'trial'], function (_res) {
 					if (_res && _res.ok && _res.closeModal) {
 						wxCloseSectDirectory();
+						wxCloseSanctumView(true);
 						return;
 					}
 					if (_onActionDone) _onActionDone(_res);
@@ -1327,6 +1526,7 @@
 				SQ.call(wxSectModalState.sqHandle, 'onWXSanctumStartBattle', [_s.id, 'raid'], function (_res) {
 					if (_res && _res.ok && _res.closeModal) {
 						wxCloseSectDirectory();
+						wxCloseSanctumView(true);
 						return;
 					}
 					if (_onActionDone) _onActionDone(_res);
@@ -1397,7 +1597,8 @@
 			rumorBtnHtml = '<span class="wx-sect-rumor-btn' + rDis + '" data-sect-act="rumor" title="赏酒保 160 两纹银，打探一处尚未现世的名门山门坐落或一道失传丹方">' + wxEsc(rTxt) + '</span>';
 		}
 
-		var hdrTitle = _payload.inSanctum
+		var isOverlayDir = ($('.wx-sanctum-backdrop').length > 0 && _initialFilter !== 'sanctum');
+		var hdrTitle = (_payload.inSanctum && !isOverlayDir)
 			? ('【' + wxEsc(_payload.sanctumName || '宗门山门') + '】登门拜山 · 宗门议事堂')
 			: (_payload.inTown
 				? ('【' + wxEsc(_payload.townName) + ' · 迎风酒楼】二楼江湖茶座')
@@ -1405,7 +1606,7 @@
 		var moneyBadgeHtml = (typeof _payload.money === 'number')
 			? ('<div class="wx-sect-money-badge">纹银：<span>' + wxFormatCommaMoney(_payload.money) + '</span> 两</div>')
 			: '';
-		var closeBtnText = _payload.inSanctum ? '辞别下山' : '关闭';
+		var closeBtnText = isOverlayDir ? '返回山门' : (_payload.inSanctum ? '辞别下山' : '关闭');
 
 		var backdrop = $(
 			'<div class="wx-sect-backdrop ui-control">' +
@@ -1462,7 +1663,9 @@
 				}
 			}
 			refreshList();
-			if (_res.actionMessage) {
+			if (_res.wxShowcase && window.WX_Showcase) {
+				window.WX_Showcase.play(_res.wxShowcase, { sqHandle: wxSectModalState.sqHandle || window.WX_SectRPCHandle });
+			} else if (_res.actionMessage) {
 				wxShowSectToast(dialogBox, _res.actionMessage, false);
 			}
 		}
@@ -1538,7 +1741,7 @@
 						wxSectModalState.selectedId = _sect.id;
 						listPane.find('.wx-sect-row').removeClass('is-selected');
 						$(this).addClass('is-selected');
-						wxRenderSectDetail(detailPane, _sect, _payload, handleActionResponse);
+						wxRenderSectDetail(detailPane, _sect, _payload, handleActionResponse, isOverlayDir);
 					});
 				})(s);
 
@@ -1549,7 +1752,7 @@
 			if (active) {
 				wxSectModalState.selectedId = active.id;
 				listPane.find('[data-sid="' + active.id + '"]').addClass('is-selected');
-				wxRenderSectDetail(detailPane, active, _payload, handleActionResponse);
+				wxRenderSectDetail(detailPane, active, _payload, handleActionResponse, isOverlayDir);
 			} else {
 				var emptyMsg = (_payload.sects && _payload.sects.length === 0)
 					? '初涉江湖，尚未结识任何门派。<br/>可步入州县【迎风酒楼 · 二楼江湖茶座】会晤各派行客、向酒保打探隐世山门，或游历山川探访独立山门！'
@@ -1594,6 +1797,7 @@
 		});
 
 		$(document).on('keydown.wxSectModal', function (_e) {
+			if ($('.wx-fx-backdrop').length > 0) return;
 			if (_e.keyCode === 27) {
 				wxCloseSectDirectory();
 				_e.stopPropagation();
@@ -1613,6 +1817,618 @@
 		refreshList();
 	}
 
+	// ------------------------------------------------------------------------
+	// 9B. Town-Style Panoramic Sect Mountain Gate & 6 Clickable Hall Interiors
+	// ------------------------------------------------------------------------
+	var wxSanctumViewState = {
+		data: null,
+		sqHandle: null,
+		activeHall: null
+	};
+
+	function wxCloseSanctumView(_skipBackendNotify) {
+		var existing = $('.wx-sanctum-backdrop');
+		if (existing.length) {
+			var h = wxSanctumViewState.sqHandle || window.WX_SectRPCHandle;
+			existing.remove();
+			$(document).off('keydown.wxSanctumModal');
+			wxSanctumViewState.activeHall = null;
+			if (!_skipBackendNotify && h) {
+				SQ.call(h, 'onWXCloseSanctum', null);
+			}
+		}
+	}
+
+	function wxFindSanctumSectObj(_payload) {
+		if (!_payload || !_payload.sects) return null;
+		var targetId = _payload.sanctumSectID || '';
+		var i;
+		for (i = 0; i < _payload.sects.length; i++) {
+			if ((targetId && _payload.sects[i].id === targetId) || _payload.sects[i].isAtSanctum) {
+				return _payload.sects[i];
+			}
+		}
+		return null;
+	}
+
+	function wxSanctumCardHtml(_opts) {
+		var disCls = _opts.disabled ? ' is-disabled' : '';
+		var dngCls = _opts.danger ? ' is-danger' : '';
+		var metaHtml = _opts.meta ? ('<div class="wx-sanc-card-meta">' + _opts.meta + '</div>') : '';
+		return (
+			'<div class="wx-sanc-card' + dngCls + '">' +
+				'<div class="wx-sanc-card-ico"><img src="coui://gfx/' + wxEsc(_opts.icon) + '" alt="" /></div>' +
+				'<div class="wx-sanc-card-body">' +
+					'<div class="wx-sanc-card-title">' + wxEsc(_opts.title) + '</div>' +
+					'<div class="wx-sanc-card-desc">' + _opts.desc + '</div>' +
+					metaHtml +
+				'</div>' +
+				'<div class="wx-sanc-card-act">' +
+					'<span class="wx-sanc-act-btn' + dngCls + disCls + '" data-sanc-op="' + wxEsc(_opts.op) + '">' + wxEsc(_opts.btnText) + '</span>' +
+				'</div>' +
+				'<div class="clear-both"></div>' +
+			'</div>'
+		);
+	}
+
+	function wxRenderSanctumSceneDOM(_payload) {
+		wxCloseSectDirectory();
+		wxCloseSanctumView(true);
+		if (!_payload || !_payload.ok) return;
+
+		var sectObj = wxFindSanctumSectObj(_payload);
+		if (!sectObj) {
+			wxRenderSectModalDOM(_payload, null, 'sanctum');
+			return;
+		}
+
+		wxSanctumViewState.data = _payload;
+		wxSanctumViewState.activeHall = null;
+
+		var host = $('.root-screen:first');
+		if (!host.length) host = $(document.body);
+
+		var backdrop = $(
+			'<div class="wx-sanctum-backdrop ui-control">' +
+				'<div class="wx-sanctum-dialog">' +
+					'<div class="wx-sanctum-hdr">' +
+						'<img class="wx-sanctum-banner" data-sanc="banner" src="" alt="" />' +
+						'<div class="wx-sanctum-hdr-text">' +
+							'<div class="wx-sanctum-title" data-sanc="title"></div>' +
+							'<div class="wx-sanctum-subtitle" data-sanc="subtitle"></div>' +
+						'</div>' +
+						'<div class="wx-sanctum-hdr-close" data-sanc-act="close" title="辞别下山 (ESC)"><img src="coui://gfx/ui/skin/icon_cross.png" alt="" /></div>' +
+					'</div>' +
+					'<div class="wx-sanctum-subbar" data-sanc="subbar"></div>' +
+					'<div class="wx-sanctum-stage" data-sanc="stage"></div>' +
+					'<div class="wx-sanctum-hall-overlay" data-sanc="overlay" style="display:none;"></div>' +
+					'<div class="wx-sanctum-foot">' +
+						'<span class="wx-sect-foot-btn" data-sanc-act="close">辞别下山</span>' +
+					'</div>' +
+				'</div>' +
+			'</div>'
+		);
+		host.append(backdrop);
+
+		var dlg = backdrop.find('.wx-sanctum-dialog:first');
+		var stageEl = backdrop.find('[data-sanc="stage"]');
+		var overlayEl = backdrop.find('[data-sanc="overlay"]');
+
+		function refreshAll() {
+			var p = wxSanctumViewState.data;
+			var s = wxFindSanctumSectObj(p);
+			if (!p || !s) return;
+
+			var isNight = !!p.isNight;
+			var nightSfx = isNight ? '_night' : '';
+			var sceneKey = p.sanctumSceneKey || 'reg_mountains';
+			var bgSrc = 'coui://gfx/ui/sanctums/wx_sanctum_bg_' + sceneKey + nightSfx + '.jpg';
+			var bannerSrc = p.sanctumBannerImg ? ('coui://gfx/' + p.sanctumBannerImg) : 'coui://gfx/ui/banners/banner_52.png';
+
+			dlg.find('[data-sanc="banner"]').attr('src', bannerSrc);
+			dlg.find('[data-sanc="title"]').text('【' + (p.sanctumName || (s.name + '山门')) + '】');
+			dlg.find('[data-sanc="subtitle"]').text(s.regionLabel + ' · ' + s.alignmentLabel + ' · ' + s.description);
+
+			var relCls = s.relation > 0 ? 'is-pos' : (s.relation < 0 ? 'is-neg' : 'is-neu');
+			var relSign = s.relation > 0 ? ('+' + s.relation) : String(s.relation);
+			var moneyFmt = wxFormatCommaMoney(typeof p.money === 'number' ? p.money : 0);
+			var rosCnt = (typeof p.rosterCount === 'number') ? p.rosterCount : 0;
+			var rosMax = (typeof p.rosterMax === 'number') ? p.rosterMax : 12;
+
+			dlg.find('[data-sanc="subbar"]').html(
+				'<div class="wx-sanctum-rel-group">' +
+					'<span>当前交情：</span>' +
+					'<span class="wx-sanctum-rel-pill ' + relCls + '">' + wxEsc(relSign + ' · ' + s.statusLabel) + '</span>' +
+					'<span class="wx-sanctum-vendetta-note">寻仇红线 &le; ' + s.vendettaRel + '</span>' +
+				'</div>' +
+				'<div class="wx-sanctum-assets">' +
+					'<span class="wx-sanctum-asset"><img src="coui://gfx/ui/wx_icons/wx_asset_money.png" alt="" /><span class="wx-sanctum-money-val">' + moneyFmt + '</span> 两</span>' +
+					'<span class="wx-sanctum-asset"><img src="coui://gfx/ui/icons/asset_brothers.png" alt="" />' + rosCnt + ' / ' + rosMax + '</span>' +
+				'</div>' +
+				'<span class="wx-sanctum-dir-btn" data-sanc-act="open-dir" title="翻阅随身《江湖名刺录》，查阅九州各派渊源与交情">' +
+					'<img src="coui://gfx/ui/wx_icons/wx_glyph_sect_token.png" alt="" />江湖名刺录' +
+				'</span>'
+			);
+
+			dlg.find('[data-sanc-act="open-dir"]').on('click', function () {
+				var h = wxSanctumViewState.sqHandle || window.WX_SectRPCHandle;
+				if (h) {
+					wxSectModalState.sqHandle = h;
+					wxRenderSectModalDOM(wxSanctumViewState.data, null, 'all');
+				}
+			});
+
+			// Compute live courtyard badges for the 6 Hall buildings
+			var sealDays = s.sealDays || 0;
+			var qInfo = s.questInfo || { active: false, canComplete: false, cd: 0, label: '接领宗门法帖(交情+22)', detail: '' };
+			var zhikeBadge = '';
+			if (qInfo.active && qInfo.canComplete) zhikeBadge = '<span class="wx-sanc-pip is-gold">可复命</span>';
+			else if (qInfo.active) zhikeBadge = '<span class="wx-sanc-pip">法帖中</span>';
+
+			var revCnt = (typeof s.revealedManualCount === 'number') ? s.revealedManualCount : (s.manuals ? s.manuals.length : 0);
+			var totMan = s.manuals ? s.manuals.length : 0;
+			var hasBuyableMan = false;
+			if (s.manuals && sealDays <= 0) {
+				for (var mi = 0; mi < s.manuals.length; mi++) {
+					var mm = s.manuals[mi];
+					if (mm.isRevealed !== false && mm.unlocked && !mm.requiresSanctum && (p.money || 0) >= mm.price && (mm.vaultBooks || 0) <= 0 && (mm.learnedCount || 0) <= 0) {
+						hasBuyableMan = true;
+						break;
+					}
+				}
+			}
+			var cangjingBadge = hasBuyableMan
+				? '<span class="wx-sanc-pip is-gold">新秘传</span>'
+				: ('<span class="wx-sanc-pip">' + revCnt + '/' + totMan + '</span>');
+
+			var qiuxianBadge = (sealDays <= 0 && (s.recruitCd || 0) <= 0 && s.relation >= 45 && (p.money || 0) >= (s.recruitCost || 1800) && rosCnt < rosMax)
+				? '<span class="wx-sanc-pip is-gold">可延请</span>'
+				: '';
+
+			var sealHtml = sealDays > 0
+				? ('<div class="wx-sanctum-seal-banner">【封山戒严】本门前番遭强攻重创，紧闭山门疗伤（尚余 ' + sealDays + ' 日重开各堂）</div>')
+				: '';
+
+			var halls = [
+				{ id: 'cangjing',  stem: 'wx_hall_cangjing',  slot: 'is-rear-left',   name: '藏经阁',   hint: '独门武库 · 奉脩请教', badge: cangjingBadge },
+				{ id: 'chuangong', stem: 'wx_hall_chuangong', slot: 'is-rear-right',  name: '传功堂',   hint: '长老灌顶 · 运功疗伤', badge: '' },
+				{ id: 'zhike',     stem: 'wx_hall_zhike',     slot: 'is-front-fl',    name: '知客堂',   hint: '递帖奉茗 · 宗门法帖', badge: zhikeBadge },
+				{ id: 'yaolu',     stem: 'wx_hall_yaolu',     slot: 'is-front-il',    name: '药庐丹房', hint: '道地灵草 · 丹房古方', badge: '' },
+				{ id: 'qiuxian',   stem: 'wx_hall_qiuxian',   slot: 'is-front-ir',    name: '求贤堂',   hint: '延请真传弟子下山',   badge: qiuxianBadge },
+				{ id: 'yanwu',     stem: 'wx_hall_yanwu',     slot: 'is-front-fr',    name: '演武校场', hint: '拆招 · 闯阵 · 踢馆', badge: '' }
+			];
+
+			var hallsHtml = '';
+			for (var hi = 0; hi < halls.length; hi++) {
+				var hl = halls[hi];
+				var normSrc = 'coui://gfx/ui/sanctums/' + hl.stem + nightSfx + '.png';
+				var hovSrc  = 'coui://gfx/ui/sanctums/' + hl.stem + nightSfx + '_b.png';
+				hallsHtml +=
+					'<div class="wx-sanctum-hall ' + hl.slot + (sealDays > 0 && hl.id !== 'cangjing' ? ' is-sealed' : '') + '" data-hall="' + hl.id + '" data-norm="' + normSrc + '" data-hov="' + hovSrc + '">' +
+						'<img class="wx-sanctum-hall-img" src="' + normSrc + '" alt="" />' +
+						'<div class="wx-sanctum-hall-sign">' + wxEsc(hl.name) + hl.badge + '</div>' +
+						'<div class="wx-sanctum-hall-hint">' + wxEsc(hl.hint) + '</div>' +
+					'</div>';
+			}
+
+			stageEl.html(
+				'<img class="wx-sanctum-bg" src="' + bgSrc + '" alt="" />' +
+				sealHtml +
+				'<div class="wx-sanctum-stage-tip">点击庭院各座堂口建筑，步入殿内拜会、请教或闯阵</div>' +
+				hallsHtml
+			);
+
+			stageEl.find('.wx-sanctum-hall').on('mouseenter', function () {
+				var $h = $(this);
+				$h.addClass('is-hovered');
+				$h.find('.wx-sanctum-hall-img').attr('src', $h.attr('data-hov'));
+			}).on('mouseleave', function () {
+				var $h = $(this);
+				$h.removeClass('is-hovered');
+				$h.find('.wx-sanctum-hall-img').attr('src', $h.attr('data-norm'));
+			}).on('click', function () {
+				wxSanctumViewState.activeHall = $(this).attr('data-hall');
+				renderActiveHall();
+			});
+
+			if (wxSanctumViewState.activeHall) {
+				renderActiveHall();
+			} else {
+				overlayEl.hide().empty();
+			}
+		}
+
+		function handleSanctumAction(_res) {
+			if (!_res) return;
+			if (_res.ok && _res.closeModal) {
+				wxCloseSanctumView(true);
+				return;
+			}
+			if (!_res.ok) {
+				wxShowSectToast(dlg, _res.reason || '无法执行该操作。', true);
+				return;
+			}
+			wxSanctumViewState.data = _res;
+			wxSyncWorldAndTownMoney(_res.money);
+			if (_res.activeSectQuests) {
+				wxRenderSectQuestTracker(_res.activeSectQuests);
+			} else if (typeof window.WX_RefreshSectQuestTracker === 'function') {
+				window.WX_RefreshSectQuestTracker(wxSanctumViewState.sqHandle || window.WX_SectRPCHandle);
+			}
+			refreshAll();
+			if (_res.wxShowcase && window.WX_Showcase) {
+				window.WX_Showcase.play(_res.wxShowcase, { sqHandle: wxSanctumViewState.sqHandle || window.WX_SectRPCHandle });
+			} else if (_res.actionMessage) {
+				wxShowSectToast(dlg, _res.actionMessage, false);
+			}
+		}
+
+		function renderActiveHall() {
+			var hid = wxSanctumViewState.activeHall;
+			var p = wxSanctumViewState.data;
+			var s = wxFindSanctumSectObj(p);
+			if (!hid || !p || !s) {
+				overlayEl.hide().empty();
+				return;
+			}
+
+			var curMoney = (typeof p.money === 'number') ? p.money : 0;
+			var sealDays = s.sealDays || 0;
+			var sealedDis = sealDays > 0;
+			var sealWarn = sealedDis
+				? ('<div class="wx-sanc-hall-warn">【封山戒严】本门前番遭强攻重创，尚余 ' + sealDays + ' 日方能重开堂口诸事。</div>')
+				: '';
+
+			var hallMeta = {
+				zhike:     { title: '知客堂 · 拜山奉茗与宗门法帖', sub: '青砖茶轩迎四方侠客，可递帖奉茗厚结交情，或接领本门法帖差事立功扬名。', wide: false },
+				cangjing:  { title: '藏经阁 · 本门独门武库',       sub: '飞檐阁楼典藏本门历代秘传心法与外功套路；亲临山门方可奉脩请教镇派绝学。', wide: true  },
+				chuangong: { title: '传功堂 · 长老灌顶与运功疗伤', sub: '坐堂宿老深谙内劲调息之道，可助门下侠客贯通功法火候或推宫过穴拔除内伤。', wide: false },
+				yaolu:     { title: '药庐丹房 · 道地灵草与丹房古方', sub: '山门药圃秘植九州道地灵草，丹房亦藏有不传外人的上古丹诀。', wide: false },
+				qiuxian:   { title: '求贤堂 · 延请真传弟子下山',   sub: '交情深厚之同道可奉礼银延请本门入室弟子下山历练，随义社并肩闯荡江湖。', wide: false },
+				yanwu:     { title: '演武校场 · 拆招闯阵与生死踢馆', sub: '青石演武高台之上刀枪林立：既可点到拆招、登坛闯护山大阵，亦可拔刃强攻踢馆。', wide: false }
+			};
+			var hm = hallMeta[hid] || hallMeta.zhike;
+			var bodyHtml = sealWarn;
+
+			if (hid === 'zhike') {
+				var sBanqDis = sealedDis || (s.banquetCd > 0) || (curMoney < 350);
+				var sBanqLbl = (s.banquetCd > 0) ? ('隔 ' + s.banquetCd + ' 日再会') : '递帖奉茗 (350两)';
+				var qInfo = s.questInfo || { active: false, canComplete: false, cd: 0, label: '接领宗门法帖', detail: '' };
+				var qDis = sealedDis || (!qInfo.active && (qInfo.cd > 0 || s.relation < -15)) || (qInfo.active && !qInfo.canComplete);
+				var qDesc = qInfo.detail
+					? wxEsc(qInfo.detail)
+					: '向知客长老接领本门法帖差事（荡寇除恶、奉山采药或校勘残卷），功成回山大涨交情与威名并获赐秘籍残页。';
+
+				bodyHtml += wxSanctumCardHtml({
+					icon: 'ui/wx_icons/wx_glyph_sect_token.png',
+					title: '递帖奉茗 · 拜会掌门长老',
+					desc: '奉上名茶厚礼登堂拜会，立增本门交情 <strong style="color:#ffe28a;">+18</strong>（冷却 3 日）。',
+					meta: '需纹银 350 两' + (s.banquetCd > 0 ? (' · 尚需隔 ' + s.banquetCd + ' 日') : ''),
+					op: 'banquet',
+					btnText: sBanqLbl,
+					disabled: sBanqDis,
+					danger: false
+				});
+				bodyHtml += wxSanctumCardHtml({
+					icon: 'ui/wx_icons/wx_icon_ambition.png',
+					title: qInfo.active ? '宗门法帖 · 差事进度' : '接领宗门法帖差事',
+					desc: qDesc,
+					meta: '功成回山：交情 +22 · 江湖威名 · 本门残页（需交情 ≥ -15）',
+					op: 'quest',
+					btnText: qInfo.label,
+					disabled: qDis,
+					danger: false
+				});
+			} else if (hid === 'chuangong') {
+				var empCd = s.empowerCd || 0;
+				var empDis = sealedDis || (empCd > 0) || (s.relation < 30) || (curMoney < 450);
+				var empLbl = empCd > 0 ? ('隔 ' + empCd + ' 日可再灌顶') : (s.relation < 30 ? '需交情 ≥30' : '长老灌顶 (450两)');
+
+				var healCd = s.healCd || 0;
+				var healDis = sealedDis || (healCd > 0) || (s.relation < 15) || (curMoney < 380);
+				var healLbl = healCd > 0 ? ('隔 ' + healCd + ' 日可再疗伤') : (s.relation < 15 ? '需交情 ≥15' : '运功疗内伤 (380两)');
+
+				bodyHtml += wxSanctumCardHtml({
+					icon: 'ui/wx_icons/wx_icon_qi.png',
+					title: '长老灌顶 · 贯通武学火候',
+					desc: '传功长老以浑厚真气助队中一名已装未满重功法之侠客打通关窍，当场注入 <strong style="color:#ffe28a;">+160 功法火候</strong>。',
+					meta: '需交情 ≥30 · 束脩 450 两' + (empCd > 0 ? (' · 冷却余 ' + empCd + ' 日') : ''),
+					op: 'empower',
+					btnText: empLbl,
+					disabled: empDis,
+					danger: false
+				});
+				bodyHtml += wxSanctumCardHtml({
+					icon: 'ui/wx_icons/wx_asset_medicine.png',
+					title: '推宫过穴 · 全队拔除内伤',
+					desc: '坐堂宿老运功护脉，一次性为全队侠客拔除【经脉内伤】与【散功虚弱】，并调满全队气血。',
+					meta: '需交情 ≥15 · 诊金 380 两' + (healCd > 0 ? (' · 冷却余 ' + healCd + ' 日') : ''),
+					op: 'heal',
+					btnText: healLbl,
+					disabled: healDis,
+					danger: false
+				});
+			} else if (hid === 'yaolu') {
+				var hCat = s.herbCatalog || {
+					common: [], commonCost: 420, commonQty: 2, commonRel: 20, commonCdMax: 4,
+					rare: [],   rareCost: 980,   rareQty: 1,   rareRel: 50,   rareCdMax: 7
+				};
+				var fmtHerbPool = function (_arr) {
+					if (!_arr || _arr.length === 0) return '本门道地常备灵草';
+					var parts = [];
+					for (var hi = 0; hi < _arr.length; hi++) {
+						var it = _arr[hi];
+						var tag = it.natureShort ? ('[' + it.natureShort + '·药力' + it.potency + ']') : '';
+						parts.push(wxEsc(it.name) + tag);
+					}
+					return parts.join(' · ');
+				};
+
+				var herbCd = s.herbCd || 0;
+				var herbDis = sealedDis || (herbCd > 0) || (s.relation < hCat.commonRel) || (curMoney < hCat.commonCost);
+				var herbLbl = herbCd > 0
+					? ('隔 ' + herbCd + ' 日采收')
+					: (s.relation < hCat.commonRel ? ('需交情 ≥' + hCat.commonRel) : ('采买 ' + hCat.commonQty + ' 株 (' + hCat.commonCost + '两)'));
+
+				var rareHerbCd = s.rareHerbCd || 0;
+				var rareDis = sealedDis || (rareHerbCd > 0) || (s.relation < hCat.rareRel) || (curMoney < hCat.rareCost);
+				var rareLbl = rareHerbCd > 0
+					? ('隔 ' + rareHerbCd + ' 日育苗')
+					: (s.relation < hCat.rareRel ? ('需交情 ≥' + hCat.rareRel) : ('求购 1 株 (' + hCat.rareCost + '两)'));
+
+				var alcCd = s.alcCd || 0;
+				var alcDis = sealedDis || (alcCd > 0) || (s.relation < 35) || (curMoney < 480);
+				var alcLbl = alcCd > 0 ? ('隔 ' + alcCd + ' 日可再请教') : (s.relation < 35 ? '需交情 ≥35' : '求教古方 (480两)');
+
+				bodyHtml += wxSanctumCardHtml({
+					icon: 'ui/wx_icons/wx_glyph_herb_cabinet.png',
+					title: '常备药圃 · 采买本门道地灵草（药力 2~3）',
+					desc: '采买 <strong style="color:#7ee29a;">' + hCat.commonQty + ' 株</strong> 本门常备药圃所产灵草，直接入【百草药柜】。<br/><span style="color:#d6be96;">限供名录：' + fmtHerbPool(hCat.common) + '</span>',
+					meta: '需交情 ≥' + hCat.commonRel + ' · 药资 ' + hCat.commonCost + ' 两 · 冷却 ' + hCat.commonCdMax + ' 日' + (herbCd > 0 ? ('（余 ' + herbCd + ' 日）') : ''),
+					op: 'herbs',
+					btnText: herbLbl,
+					disabled: herbDis,
+					danger: false
+				});
+				bodyHtml += wxSanctumCardHtml({
+					icon: 'ui/wx_icons/wx_seal_vital.png',
+					title: '镇庐珍株 · 限量匀购高阶奇草（药力 4）',
+					desc: '交情深厚之同道方可限量求购 <strong style="color:#d4b3ff;">' + hCat.rareQty + ' 株</strong> 本门秘植奇草（<span style="color:#c8a878;">紫芝、扶桑、不死草、建木、月桂及洗髓血芝列为镇山禁品，概不外售</span>）。<br/><span style="color:#e6d0ff;">限供名录：' + fmtHerbPool(hCat.rare) + '</span>',
+					meta: '需交情 ≥' + hCat.rareRel + ' · 药资 ' + hCat.rareCost + ' 两 · 冷却 ' + hCat.rareCdMax + ' 日' + (rareHerbCd > 0 ? ('（余 ' + rareHerbCd + ' 日）') : ''),
+					op: 'herbs-rare',
+					btnText: rareLbl,
+					disabled: rareDis,
+					danger: false
+				});
+				bodyHtml += wxSanctumCardHtml({
+					icon: 'ui/wx_icons/wx_glyph_cauldron.png',
+					title: '求教丹房秘传古丹方',
+					desc: '奉上礼银向丹房长老请教一道尚未载入《丹经手札》的失传古丹方，习得后即可在城镇【百工丹坊】按方开炉。',
+					meta: '需交情 ≥35 · 礼银 480 两' + (alcCd > 0 ? (' · 冷却余 ' + alcCd + ' 日') : ''),
+					op: 'alchemy',
+					btnText: alcLbl,
+					disabled: alcDis,
+					danger: false
+				});
+			} else if (hid === 'qiuxian') {
+				var recCd = s.recruitCd || 0;
+				var recCost = s.recruitCost || 1800;
+				var rosCnt2 = (typeof p.rosterCount === 'number') ? p.rosterCount : 0;
+				var rosMax2 = (typeof p.rosterMax === 'number') ? p.rosterMax : 12;
+				var recDis = sealedDis || (recCd > 0) || (s.relation < 45) || (curMoney < recCost) || (rosCnt2 >= rosMax2);
+				var recLbl = recCd > 0
+					? ('隔 ' + recCd + ' 日再延请')
+					: (rosCnt2 >= rosMax2
+						? '义社编制已满'
+						: (s.relation < 45 ? '需交情 ≥45' : ('延请入队 (' + recCost + '两)')));
+				var dp = p.sanctumDisciple || { title: s.name + '真传', style: '成名游侠根骨 · 2 级入队并预装本门内功与外功' };
+
+				bodyHtml += wxSanctumCardHtml({
+					icon: 'ui/icons/asset_brothers.png',
+					title: '延请本门真传弟子 · 【' + dp.title + '】',
+					desc: wxEsc(dp.style) + '。<br/>弟子携趁手兵刃甲胄直接加入义社，省去从零寻书练功之苦。',
+					meta: '需交情 ≥45 · 安家礼银 ' + recCost + ' 两 · 当前编制 ' + rosCnt2 + ' / ' + rosMax2 + (recCd > 0 ? (' · 冷却余 ' + recCd + ' 日') : ''),
+					op: 'recruit',
+					btnText: recLbl,
+					disabled: recDis,
+					danger: false
+				});
+			} else if (hid === 'yanwu') {
+				var sSparDis = sealedDis || (s.sparCd > 0);
+				var sSparLbl = (s.sparCd > 0) ? ('隔 ' + s.sparCd + ' 日拆招') : '登台拆招';
+
+				var trMinRel = (s.alignment === 'outlaw') ? 0 : 10;
+				var trCd = s.trialCd || 0;
+				var trDis = sealedDis || (trCd > 0) || (s.relation < trMinRel);
+				var trLbl = trCd > 0 ? ('隔 ' + trCd + ' 日重布阵') : (s.relation < trMinRel ? ('需交情 ≥' + trMinRel) : '入阵闯关');
+
+				var rdCd = s.raidCd || 0;
+				var rdDis = (sealDays > 0) || (rdCd > 0);
+				var rdLbl = (sealDays > 0 || rdCd > 0) ? ('封山余 ' + Math.max(sealDays, rdCd) + ' 日') : '拔刃踢馆';
+
+				bodyHtml += wxSanctumCardHtml({
+					icon: 'ui/wx_icons/wx_slot_mainhand.png',
+					title: '点到拆招 · 校场印证武艺',
+					desc: '与本门同辈高手登台拆招切磋，点到为止不伤性命，赢取麾下功法火候与本门交情 <strong style="color:#ffe28a;">+15</strong>。',
+					meta: '无需纹银' + (s.sparCd > 0 ? (' · 冷却余 ' + s.sparCd + ' 日') : ''),
+					op: 'spar',
+					btnText: sSparLbl,
+					disabled: sSparDis,
+					danger: false
+				});
+				bodyHtml += wxSanctumCardHtml({
+					icon: 'ui/wx_icons/wx_icon_melee_def.png',
+					title: '闯护山大阵 · 点到为止实战切磋',
+					desc: '踏入演武场破本门护山大阵！<strong style="color:#7ee29a;">【点到为止 · 绝不死人 / 免永久伤残】</strong>（重创落败者由护阵长老扶下场，全军败北亦安全收势）；破阵赢本门残页、常备灵草、<strong style="color:#ffe28a;">500 两彩头</strong>、威名及交情 <strong style="color:#ffe28a;">+18</strong>。',
+					meta: '非致命切磋 · 需交情 ≥' + trMinRel + (trCd > 0 ? (' · 冷却余 ' + trCd + ' 日') : ''),
+					op: 'battle-trial',
+					btnText: trLbl,
+					disabled: trDis,
+					danger: false
+				});
+				bodyHtml += wxSanctumCardHtml({
+					icon: 'ui/wx_icons/wx_icon_melee_skill.png',
+					title: '生死踢馆 · 强攻夺取镇派真传',
+					desc: '拔刃强攻本门山门重阵！胜之可强夺本门<strong style="color:#ff9a8f;">镇派整本秘籍、多张残页与海量库银</strong>，但此为真刀真枪生死死战，且将结下不共戴天血仇（交情 -65、重创封山并招致追杀）。',
+					meta: '高危死战 · 阵亡自负 · 胜败皆生血仇',
+					op: 'battle-raid',
+					btnText: rdLbl,
+					disabled: rdDis,
+					danger: true
+				});
+			} else if (hid === 'cangjing') {
+				var revC = (typeof s.revealedManualCount === 'number') ? s.revealedManualCount : s.manuals.length;
+				bodyHtml += '<div class="wx-sanc-lib-bar">本门藏经武库（已探明 <strong style="color:#ffe28a;">' + revC + ' / ' + s.manuals.length + '</strong> 部 · 交情越高解锁越深，亲临山门可请教镇派绝学）</div>';
+				if (!s.manuals || s.manuals.length === 0) {
+					bodyHtml += '<div style="padding:3rem;text-align:center;color:#bd9d71;font-style:italic;">该宗门暂无对外传授之秘籍。</div>';
+				} else {
+					bodyHtml += '<div class="wx-sanc-manual-grid">';
+					for (var mIdx = 0; mIdx < s.manuals.length; mIdx++) {
+						var m = s.manuals[mIdx];
+						var bookSrc = m.bookIcon ? ('coui://gfx/' + m.bookIcon) : 'coui://gfx/ui/items/misc/wx_book_waigong_sect.png';
+						if (m.isRevealed === false) {
+							bodyHtml +=
+								'<div class="wx-sanc-mcard is-masked">' +
+									'<div class="wx-sect-manual-fig">' +
+										'<img class="wx-sect-manual-ico is-dim" src="' + wxEsc(bookSrc) + '" alt="" />' +
+										'<img class="wx-sect-manual-skico" src="coui://gfx/ui/wx_icons/wx_glyph_lock_sm.png" alt="" />' +
+									'</div>' +
+									'<div class="wx-sanc-mcard-body">' +
+										'<div class="wx-sanc-mcard-top"><span style="color:#a3875c;">《？？？》</span><span class="wx-sect-own-tag">秘传未显</span></div>' +
+										'<div class="wx-sanc-mcard-meta">' + wxEsc(m.qualityLabel) + ' · ' + wxEsc(m.categoryLabel) + '</div>' +
+										'<div class="wx-sanc-mcard-foot" style="color:#8e7550;font-style:italic;">' + wxEsc(m.maskedHint || ('需交情 ≥' + m.minRel + ' 方显真容')) + '</div>' +
+									'</div>' +
+								'</div>';
+							continue;
+						}
+						var reqHtml = m.unlocked
+							? '<span style="color:#7ee29a;">交情达标(&ge;' + m.minRel + ')</span>'
+							: '<span style="color:#e6766b;">需交情 &ge;' + m.minRel + '</span>';
+						var ownHtml = '';
+						if ((m.vaultBooks || 0) <= 0 && (m.learnedCount || 0) <= 0) {
+							ownHtml = '<span class="wx-sect-own-tag is-new">未收录</span>';
+						} else {
+							var oParts = [];
+							if (m.vaultBooks > 0) oParts.push('阁藏 ' + m.vaultBooks);
+							if (m.learnedCount > 0) oParts.push('已习 ' + m.learnedCount + ' 人');
+							ownHtml = '<span class="wx-sect-own-tag">' + oParts.join(' · ') + '</span>';
+						}
+						var canBuy = !sealedDis && m.unlocked && !m.requiresSanctum && curMoney >= m.price;
+						var buyTxt = sealedDis ? '封山禁授' : (!m.unlocked ? '交情未达' : (curMoney < m.price ? '纹银不足' : '奉脩请教'));
+						var skHtml = '';
+						if (m.skillIcon) {
+							var skRel = (m.skillIcon.indexOf('ui/') === 0) ? m.skillIcon : ('ui/' + m.skillIcon);
+							skHtml = '<img class="wx-sect-manual-skico" src="coui://gfx/' + wxEsc(skRel) + '" alt="" />';
+						}
+						bodyHtml +=
+							'<div class="wx-sanc-mcard">' +
+								'<div class="wx-sect-manual-fig">' +
+									'<img class="wx-sect-manual-ico" src="' + wxEsc(bookSrc) + '" alt="" />' +
+									skHtml +
+								'</div>' +
+								'<div class="wx-sanc-mcard-body">' +
+									'<div class="wx-sanc-mcard-top"><span style="color:#ffe28a;">《' + wxEsc(m.name) + '》</span>' + ownHtml + '</div>' +
+									'<div class="wx-sanc-mcard-meta">' + wxEsc(m.qualityLabel) + ' · ' + wxEsc(m.categoryLabel) + '　' + reqHtml + '</div>' +
+									'<div class="wx-sanc-mcard-foot">' +
+										'<span style="color:#dda21f;">束脩 ' + m.price + ' 两</span>' +
+										'<span class="wx-tea-buy-btn' + (canBuy ? '' : ' is-disabled') + '" data-sanc-buy="' + wxEsc(m.id) + '">' + wxEsc(buyTxt) + '</span>' +
+										'<div class="clear-both"></div>' +
+									'</div>' +
+								'</div>' +
+							'</div>';
+					}
+					bodyHtml += '<div class="clear-both"></div></div>';
+				}
+			}
+
+			overlayEl.html(
+				'<div class="wx-sanctum-hall-modal' + (hm.wide ? ' is-wide' : '') + '">' +
+					'<div class="wx-sanc-hall-hdr">' +
+						'<div class="wx-sanc-hall-title">' + wxEsc(hm.title) + '</div>' +
+						'<div class="wx-sanc-hall-sub">' + wxEsc(hm.sub) + '</div>' +
+						'<div class="wx-sanc-hall-close" data-sanc-hall-close="1" title="返回山门庭院 (ESC)"><img src="coui://gfx/ui/skin/icon_cross.png" alt="" /></div>' +
+					'</div>' +
+					'<div class="wx-sect-gold-line"></div>' +
+					'<div class="wx-sanc-hall-body">' + bodyHtml + '</div>' +
+					'<div class="wx-sanc-hall-foot">' +
+						'<span class="wx-sect-foot-btn" data-sanc-hall-close="1">返回山门庭院</span>' +
+					'</div>' +
+				'</div>'
+			).show();
+
+			overlayEl.find('[data-sanc-hall-close]').on('click', function () {
+				wxSanctumViewState.activeHall = null;
+				overlayEl.hide().empty();
+			});
+
+			var h = wxSanctumViewState.sqHandle || window.WX_SectRPCHandle;
+			if (!h) return;
+
+			overlayEl.find('[data-sanc-op]').on('click', function () {
+				if ($(this).hasClass('is-disabled')) return;
+				var op = $(this).attr('data-sanc-op');
+				if (op === 'banquet') {
+					SQ.call(h, 'onWXTeaHouseBanquet', [s.id], handleSanctumAction);
+				} else if (op === 'quest') {
+					SQ.call(h, 'onWXSanctumHandleQuest', [s.id], handleSanctumAction);
+				} else if (op === 'empower') {
+					SQ.call(h, 'onWXSanctumElderEmpower', [s.id], handleSanctumAction);
+				} else if (op === 'heal') {
+					SQ.call(h, 'onWXSanctumHealInternal', [s.id], handleSanctumAction);
+				} else if (op === 'herbs') {
+					SQ.call(h, 'onWXSanctumBuyHerbs', [s.id, 'common'], handleSanctumAction);
+				} else if (op === 'herbs-rare') {
+					SQ.call(h, 'onWXSanctumBuyHerbs', [s.id, 'rare'], handleSanctumAction);
+				} else if (op === 'alchemy') {
+					SQ.call(h, 'onWXSanctumAskAlchemy', [s.id], handleSanctumAction);
+				} else if (op === 'recruit') {
+					SQ.call(h, 'onWXSanctumRecruitDisciple', [s.id], handleSanctumAction);
+				} else if (op === 'spar') {
+					SQ.call(h, 'onWXTeaHouseSpar', [s.id, 'spar'], handleSanctumAction);
+				} else if (op === 'battle-trial') {
+					SQ.call(h, 'onWXSanctumStartBattle', [s.id, 'trial'], handleSanctumAction);
+				} else if (op === 'battle-raid') {
+					SQ.call(h, 'onWXSanctumStartBattle', [s.id, 'raid'], handleSanctumAction);
+				}
+			});
+
+			overlayEl.find('[data-sanc-buy]').on('click', function () {
+				if ($(this).hasClass('is-disabled')) return;
+				var mid = $(this).attr('data-sanc-buy');
+				if (!mid) return;
+				SQ.call(h, 'onWXTeaHouseBuyManual', [s.id, mid], handleSanctumAction);
+			});
+		}
+
+		overlayEl.on('click', function (_e) {
+			if ($(_e.target).hasClass('wx-sanctum-hall-overlay')) {
+				wxSanctumViewState.activeHall = null;
+				overlayEl.hide().empty();
+			}
+		});
+
+		backdrop.find('[data-sanc-act="close"]').on('click', function () {
+			wxCloseSanctumView(false);
+		});
+
+		$(document).on('keydown.wxSanctumModal', function (_e) {
+			if (_e.keyCode !== 27) return;
+			if ($('.wx-fx-backdrop').length > 0) return;
+			if ($('.wx-sect-backdrop').length > 0) return;
+			if (wxSanctumViewState.activeHall) {
+				wxSanctumViewState.activeHall = null;
+				overlayEl.hide().empty();
+				_e.stopPropagation();
+				return false;
+			}
+			wxCloseSanctumView(false);
+			_e.stopPropagation();
+			return false;
+		});
+
+		refreshAll();
+	}
+
 	window.WX_OpenSectDirectory = function (_sqHandle, _optionalDS, _initialFilter) {
 		var h = _sqHandle || window.WX_SectRPCHandle;
 		if (!h) return;
@@ -1625,18 +2441,120 @@
 		});
 	};
 
+	var wxSectTrackerFolded = false;
+
+	function wxEnsureSectQuestTrackerDOM() {
+		var $ws = $('.world-screen:first');
+		if (!$ws.length) return null;
+		var $box = $ws.find('.wx-sect-quest-tracker:first');
+		if (!$box.length) {
+			$box = $(
+				'<div class="wx-sect-quest-tracker" style="display:none;">' +
+					'<div class="wx-sqt-header">' +
+						'<span class="wx-sqt-title">宗门法帖</span>' +
+						'<span class="wx-sqt-toggle" title="折叠 / 展开宗门法帖追踪">▾</span>' +
+					'</div>' +
+					'<div class="wx-sqt-list"></div>' +
+				'</div>'
+			);
+			$ws.append($box);
+			$box.find('.wx-sqt-header').on('click', function (_e) {
+				wxSectTrackerFolded = !wxSectTrackerFolded;
+				$box.find('.wx-sqt-list').toggle(!wxSectTrackerFolded);
+				$box.find('.wx-sqt-toggle').text(wxSectTrackerFolded ? '▸' : '▾');
+				_e.stopPropagation();
+			});
+		}
+		return $box;
+	}
+
+	function wxRenderSectQuestTracker(_quests) {
+		var $box = wxEnsureSectQuestTrackerDOM();
+		if (!$box) return;
+		if (!_quests || !_quests.length) {
+			$box.hide();
+			return;
+		}
+		var readyCnt = 0;
+		var i;
+		for (i = 0; i < _quests.length; i++) {
+			if (_quests[i] && _quests[i].canComplete) readyCnt++;
+		}
+		var hdrText = '宗门法帖 (' + _quests.length + ')';
+		if (readyCnt > 0) {
+			hdrText += ' · 可缴令 ' + readyCnt;
+		}
+		$box.find('.wx-sqt-title').text(hdrText);
+		$box.toggleClass('has-ready', readyCnt > 0);
+
+		var $list = $box.find('.wx-sqt-list');
+		$list.empty();
+		for (i = 0; i < _quests.length; i++) {
+			var q = _quests[i];
+			if (!q) continue;
+			var badgeCls = q.canComplete ? 'wx-sqt-badge is-ready' : 'wx-sqt-badge';
+			var badgeTxt = q.canComplete ? '已完成·回山缴令' : '进行中';
+			var $row = $(
+				'<div class="wx-sqt-row' + (q.canComplete ? ' is-ready' : '') + '" data-sect="' + wxEsc(q.sectID) + '" title="' + wxEsc(q.detail + '（点击查阅《江湖名刺录》山门方位）') + '">' +
+					'<div class="wx-sqt-row-top">' +
+						'<span class="wx-sqt-sect">【' + wxEsc(q.sectName) + '】</span>' +
+						'<span class="' + badgeCls + '">' + badgeTxt + '</span>' +
+					'</div>' +
+					'<div class="wx-sqt-row-label">' + wxEsc(q.label) + '</div>' +
+					'<div class="wx-sqt-row-loc">缴令处：' + wxEsc(q.locHint || '本派山门知客堂') + '</div>' +
+				'</div>'
+			);
+			(function (_sid) {
+				$row.on('click', function (_ev) {
+					if (typeof window.WX_OpenSectDirectory === 'function') {
+						window.WX_OpenSectDirectory(window.WX_SectRPCHandle, null, _sid);
+					}
+					_ev.stopPropagation();
+				});
+			})(q.sectID);
+			$list.append($row);
+		}
+		$list.toggle(!wxSectTrackerFolded);
+		$box.find('.wx-sqt-toggle').text(wxSectTrackerFolded ? '▸' : '▾');
+		$box.show();
+	}
+
+	window.WX_RefreshSectQuestTracker = function (_sqHandle) {
+		var h = _sqHandle || window.WX_SectRPCHandle;
+		if (!h) return;
+		SQ.call(h, 'onWXGetActiveSectQuests', null, function (_res) {
+			if (_res && _res.ok) {
+				wxRenderSectQuestTracker(_res.quests || []);
+			}
+		});
+	};
+
 	if (typeof WorldScreen !== 'undefined') {
+		WorldScreen.prototype.wxUpdateSectQuestTracker = function (_quests) {
+			wxRenderSectQuestTracker(_quests || []);
+		};
 		WorldScreen.prototype.wxOpenSanctumModal = function (_payload) {
 			if (!_payload || !_payload.ok) return;
 			var h = this.mSQHandle || window.WX_SectRPCHandle;
 			if (h) {
 				window.WX_SectRPCHandle = h;
 				wxSectModalState.sqHandle = h;
+				wxSanctumViewState.sqHandle = h;
 			}
-			wxRenderSectModalDOM(_payload, null, 'sanctum');
+			wxRenderSanctumSceneDOM(_payload);
+			window.WX_RefreshSectQuestTracker(h);
 		};
+		if (WorldScreen.prototype.show && !WorldScreen.prototype._wxSqtShowPatched) {
+			WorldScreen.prototype._wxSqtShowPatched = true;
+			var origWsShowForSqt = WorldScreen.prototype.show;
+			WorldScreen.prototype.show = function (_animate) {
+				origWsShowForSqt.call(this, _animate);
+				window.WX_RefreshSectQuestTracker(this.mSQHandle || window.WX_SectRPCHandle);
+			};
+		}
 		if (typeof Screens !== 'undefined' && Screens['WorldScreen']) {
 			Screens['WorldScreen'].wxOpenSanctumModal = WorldScreen.prototype.wxOpenSanctumModal;
+			Screens['WorldScreen'].wxUpdateSectQuestTracker = WorldScreen.prototype.wxUpdateSectQuestTracker;
 		}
 	}
 
@@ -1665,10 +2583,10 @@
 
 			if (this.mDialogContainer) {
 				this.mDialogContainer.find('.header:first .title:first').text('江湖录 · 朝堂与宗门');
-				this.mDialogContainer.find('.header:first .sub-title:first').text('查阅朝堂藩镇邦交，或点击上方两侧翻阅随身只读【江湖宗门名刺】与【丹经与药柜录】');
+				this.mDialogContainer.find('.header:first .sub-title:first').text('查阅朝堂藩镇邦交，或点击上方两侧翻阅随身【江湖宗门名刺】与【丹经与药柜录】');
 				if (!this.mDialogContainer.find('.wx-rel-sect-btn').length) {
 					var relSectBtn = $(
-						'<div class="wx-rel-sect-btn" title="翻阅随身只读《江湖名刺录》已结识门派、独立山门方位与已探明传承（结交请赴酒肆茶座或山门）">' +
+						'<div class="wx-rel-sect-btn" title="翻阅随身《江湖名刺录》已结识门派、独立山门方位与已探明传承（结交请赴酒肆茶座或山门）">' +
 							'<img src="coui://gfx/ui/wx_icons/wx_glyph_sect_token.png" alt="" />江湖宗门名刺' +
 						'</div>'
 					);
@@ -1680,7 +2598,7 @@
 					this.mDialogContainer.append(relSectBtn);
 
 					var relAlcBtn = $(
-						'<div class="wx-rel-alc-btn" title="翻阅随身只读《丹经手札》已悟丹方、百工器谱与百草药柜账册（开炉炼丹、重锻与存取奇材请赴城镇百工丹坊）">' +
+						'<div class="wx-rel-alc-btn" title="翻阅随身《丹经手札》已悟丹方、百工器谱与百草药柜账册（开炉炼丹、重锻与存取奇材请赴城镇百工丹坊）">' +
 							'<img src="coui://gfx/ui/wx_icons/wx_glyph_herb_cabinet.png" alt="" />丹经与药柜录' +
 						'</div>'
 					);
@@ -1699,7 +2617,7 @@
 			WorldRelationsScreen.prototype.loadFromData = function (_data) {
 				origRelLoad.call(this, _data);
 				if (this.mDialogContainer) {
-					this.mDialogContainer.find('.header:first .sub-title:first').text('查阅朝堂藩镇邦交，或点击上方两侧翻阅随身只读【江湖宗门名刺】与【丹经与药柜录】');
+					this.mDialogContainer.find('.header:first .sub-title:first').text('查阅朝堂藩镇邦交，或点击上方两侧翻阅随身【江湖宗门名刺】与【丹经与药柜录】');
 				}
 			};
 		}
@@ -1999,12 +2917,384 @@
 		}
 	}
 
+	// ------------------------------------------------------------------------
+	// 11B. High-Contrast Parchment Item Tooltip Colorizer (`ui-item` tooltips)
+	// Strictly ES3-compatible; uses RegExp constructors for BBCode bracket patterns.
+	// ------------------------------------------------------------------------
+	var WX_ITEM_TIER_COLORS = ['#1b1510', '#0b4a1e', '#50187d', '#7c1414'];
+	var WX_RE_PROTECTED_BB   = new RegExp('(\\[color=[^\\]]+\\][\\s\\S]*?\\[\\/color\\]|\\[img\\][\\s\\S]*?\\[\\/img\\])', 'gi');
+	var WX_RE_VANILLA_COLOR  = new RegExp('\\[color=(#135213|#1e861e|#8f1e1e|#a22424)\\]([\\s\\S]*?)\\[\\/color\\]', 'gi');
+	var WX_RE_VANILLA_POS    = new RegExp('\\[color=(#135213|#1e861e)\\]([\\s\\S]*?)\\[\\/color\\]', 'gi');
+	var WX_RE_VANILLA_NEG    = new RegExp('\\[color=(#8f1e1e|#a22424)\\]([\\s\\S]*?)\\[\\/color\\]', 'gi');
+	var WX_RE_BOLD_TAG       = new RegExp('\\[b\\]([\\s\\S]*?)\\[\\/b\\]', 'g');
+	var WX_RE_CLOSE_SILVER   = new RegExp('(\\[\\/color\\])(\\s*两纹银)', 'g');
+	var WX_RE_POS_NUM        = new RegExp('(\\+\\d+(?:\\.\\d+)?%?)', 'g');
+	var WX_RE_NEG_NUM        = new RegExp('(^|[\\s（(，,、：:｜|])(-\\d+(?:\\.\\d+)?%?)', 'g');
+	var WX_RE_BRACKET_LEAD   = new RegExp('^(【[^】]{1,24}】)');
+	var WX_RE_CN_LABEL_LEAD  = new RegExp('^([\\u4e00-\\u9fff·]{2,9}[：:])');
+
+	function wxGetIconBasename(_icon) {
+		if (!_icon || typeof _icon !== 'string') return '';
+		var idx = _icon.lastIndexOf('/');
+		return (idx !== -1 ? _icon.substring(idx + 1) : _icon).toLowerCase();
+	}
+
+	function wxTransformUncolored(_str, _fn) {
+		if (!_str || typeof _str !== 'string') return _str;
+		WX_RE_PROTECTED_BB.lastIndex = 0;
+		var out = '';
+		var lastIdx = 0;
+		var m;
+		while ((m = WX_RE_PROTECTED_BB.exec(_str)) !== null) {
+			if (m.index > lastIdx) {
+				out += _fn(_str.substring(lastIdx, m.index));
+			}
+			out += m[0];
+			lastIdx = m.index + m[0].length;
+		}
+		if (lastIdx < _str.length) {
+			out += _fn(_str.substring(lastIdx));
+		}
+		return out;
+	}
+
+	function wxRecolorVanillaColorTags(_str, _newHex, _makeBold) {
+		if (!_str || typeof _str !== 'string') return _str;
+		WX_RE_VANILLA_COLOR.lastIndex = 0;
+		return _str.replace(WX_RE_VANILLA_COLOR, function (_all, _hex, _inner) {
+			var body = _inner;
+			if (_makeBold && body.indexOf('[b]') === -1) {
+				body = '[b]' + body + '[/b]';
+			}
+			return '[color=' + _newHex + ']' + body + '[/color]';
+		});
+	}
+
+	function wxBoldVanillaPosNeg(_str) {
+		if (!_str || typeof _str !== 'string') return _str;
+		WX_RE_VANILLA_POS.lastIndex = 0;
+		var s = _str.replace(WX_RE_VANILLA_POS, function (_a, _h, _in) {
+			return '[color=#0e4d18]' + (_in.indexOf('[b]') === -1 ? ('[b]' + _in + '[/b]') : _in) + '[/color]';
+		});
+		WX_RE_VANILLA_NEG.lastIndex = 0;
+		s = s.replace(WX_RE_VANILLA_NEG, function (_a, _h, _in) {
+			return '[color=#8f1e1e]' + (_in.indexOf('[b]') === -1 ? ('[b]' + _in + '[/b]') : _in) + '[/color]';
+		});
+		return s;
+	}
+
+	function wxColorizeSignedNumbers(_plain, _invertNegAsGood) {
+		if (!_plain) return _plain;
+		WX_RE_POS_NUM.lastIndex = 0;
+		var s = _plain.replace(WX_RE_POS_NUM, '[color=#0e4d18][b]$1[/b][/color]');
+		var negHex = _invertNegAsGood ? '#0e4d18' : '#8f1e1e';
+		WX_RE_NEG_NUM.lastIndex = 0;
+		s = s.replace(WX_RE_NEG_NUM, '$1[color=' + negHex + '][b]$2[/b][/color]');
+		return s;
+	}
+
+	function wxInferFallbackItemMeta(_rows) {
+		var tier = 0;
+		var tag = '';
+		var titleText = '';
+		var i;
+		for (i = 0; i < _rows.length; i++) {
+			var r = _rows[i];
+			if (!r || typeof r !== 'object') continue;
+			if (r.type === 'title') {
+				if (typeof r.wxTier === 'number') {
+					return {
+						tier: Math.max(0, Math.min(3, r.wxTier)),
+						tag: (typeof r.wxTierTag === 'string') ? r.wxTierTag : '',
+						color: (typeof r.wxTierColor === 'string' && r.wxTierColor) ? r.wxTierColor : WX_ITEM_TIER_COLORS[Math.max(0, Math.min(3, r.wxTier))]
+					};
+				}
+				titleText = (typeof r.text === 'string') ? r.text : '';
+			}
+		}
+
+		// Fallback heuristic when backend row metadata is absent (e.g. blueprint previews or external items)
+		var joined = titleText;
+		for (i = 0; i < _rows.length; i++) {
+			if (_rows[i] && typeof _rows[i].text === 'string') {
+				joined += ' ' + _rows[i].text;
+			}
+		}
+
+		if (titleText.indexOf('山海·') === 0 || joined.indexOf('【锻造品相 · 神工') !== -1 || joined.indexOf('【江湖孤本') !== -1 || joined.indexOf('丹霞') !== -1) {
+			tier = 3;
+			tag = (titleText.indexOf('山海·') === 0) ? '山海神兵' : (joined.indexOf('【江湖孤本') !== -1 ? '江湖孤本' : (joined.indexOf('丹霞') !== -1 ? '丹霞极品' : '神工'));
+		} else if (titleText.indexOf('传世·') === 0 || joined.indexOf('【锻造品相 · 百炼') !== -1 || joined.indexOf('【绝学') !== -1) {
+			tier = 2;
+			tag = (titleText.indexOf('传世·') === 0) ? '传世名器' : (joined.indexOf('【绝学') !== -1 ? '绝学' : '百炼');
+		} else if (joined.indexOf('【百工兽魄') !== -1 || joined.indexOf('【百工镶缀】') !== -1 || joined.indexOf('【锻造品相 · 良工') !== -1 || joined.indexOf('【门派上乘') !== -1 || joined.indexOf('灵纹') !== -1) {
+			tier = 1;
+			tag = (joined.indexOf('【门派上乘') !== -1) ? '门派上乘' : (joined.indexOf('灵纹') !== -1 ? '灵纹灵丹' : '百工奇物');
+		}
+
+		return { tier: tier, tag: tag, color: WX_ITEM_TIER_COLORS[tier] };
+	}
+
+	function wxColorizeItemStatRow(_row) {
+		if (!_row || typeof _row.text !== 'string' || !_row.text || _row.wxColorized) return;
+		var txt = _row.text;
+		var ico = wxGetIconBasename(_row.icon);
+		var hasColorTag = (txt.indexOf('[color=') !== -1);
+
+		// 1. Silver value / price row (`价值 [img]money[/img][b]1200[/b]` or `Worth ...`)
+		if (txt.indexOf('money.png') !== -1 || txt.indexOf('wx_icon_money_small.png') !== -1 || txt.indexOf('价值') === 0 || txt.indexOf('Worth') === 0) {
+			if (!hasColorTag) {
+				WX_RE_BOLD_TAG.lastIndex = 0;
+				txt = txt.replace(WX_RE_BOLD_TAG, '[color=#6b3900][b]$1[/b][/color]');
+				WX_RE_CLOSE_SILVER.lastIndex = 0;
+				txt = txt.replace(WX_RE_CLOSE_SILVER, '$1[color=#6b3900]$2[/color]');
+				if (txt.indexOf('[color=#6b3900]') === -1) {
+					txt = wxTransformUncolored(txt, function (_p) {
+						return _p.replace(/(\d[\d,]*\s*两纹银|\d[\d,]*)/g, '[color=#6b3900][b]$1[/b][/color]');
+					});
+				}
+				txt = txt.replace(/^(价值|Worth)(\s*)/, '[color=#4f3718]$1[/color]$2');
+			}
+			_row.text = txt;
+			_row.wxColorized = true;
+			return;
+		}
+
+		// 2. Icon-less category / slot subtitle row (e.g. `单手剑`, `拳掌护手, 双手`, `身甲`, `装备于...`)
+		if (!ico && !_row.label && !hasColorTag) {
+			if (txt.length <= 44 && (_row.id === 64 || _row.id === 65 || _row.id === 66 || _row.id === 3 || _row.id === 4)) {
+				_row.text = '[color=#3a3052][b]' + txt + '[/b][/color]';
+				_row.wxColorized = true;
+				return;
+			}
+		}
+
+		// 3. Regular attack damage (`regular_damage.png`) -> Deep Blood-Crimson `#8b1818`
+		//    (Skip martial page preview rows like `一重预览：` which reuse `regular_damage.png`)
+		if ((ico === 'regular_damage.png' || ico === 'wx_icon_regular_damage.png') && txt.indexOf('预览') === -1) {
+			txt = wxRecolorVanillaColorTags(txt, '#8b1818', true);
+			txt = wxTransformUncolored(txt, function (_p) {
+				var s = _p.replace(/(\d+\s*-\s*\d+)/g, '[color=#8b1818][b]$1[/b][/color]');
+				s = s.replace(/^(伤害值为|伤害[：:]|Damage of\s*)/, '[color=#4f221b]$1[/color]');
+				return s;
+			});
+			_row.text = txt;
+			_row.wxColorized = true;
+			return;
+		}
+
+		// 4. Armor effectiveness / crushing damage (`armor_damage.png`) -> Burnt Amber `#6e3400`
+		if ((ico === 'armor_damage.png' || ico === 'wx_icon_armor_damage.png') && txt.indexOf('预览') === -1) {
+			txt = wxRecolorVanillaColorTags(txt, '#6e3400', true);
+			txt = wxTransformUncolored(txt, function (_p) {
+				return _p.replace(/(\d+%)/g, '[color=#6e3400][b]$1[/b][/color]');
+			});
+			_row.text = txt;
+			_row.wxColorized = true;
+			return;
+		}
+
+		// 5. Direct damage / armor penetration (`direct_damage.png`) -> Steel Indigo `#153e6e`
+		if ((ico === 'direct_damage.png' || ico === 'wx_icon_direct_damage.png') && txt.indexOf('预览') === -1) {
+			txt = wxRecolorVanillaColorTags(txt, '#153e6e', true);
+			txt = wxTransformUncolored(txt, function (_p) {
+				return _p.replace(/(\d+%)/g, '[color=#153e6e][b]$1[/b][/color]');
+			});
+			_row.text = txt;
+			_row.wxColorized = true;
+			return;
+		}
+
+		// 6. Shield damage (`shield_damage.png`) -> Burnt Amber `#6e3400`
+		if (ico === 'shield_damage.png') {
+			txt = wxRecolorVanillaColorTags(txt, '#6e3400', true);
+			txt = wxTransformUncolored(txt, function (_p) {
+				var s = _p.replace(/(\d+)/g, '[color=#6e3400][b]$1[/b][/color]');
+				s = s.replace(/^(盾牌伤害[：:]|Shield damage of\s*)/, '[color=#4f2d12]$1[/color]');
+				return s;
+			});
+			_row.text = txt;
+			_row.wxColorized = true;
+			return;
+		}
+
+		// 7. Chance to hit head (`chance_to_hit_head.png`) -> Deep Plum-Crimson `#6b1d57`
+		if (ico === 'chance_to_hit_head.png') {
+			txt = wxRecolorVanillaColorTags(txt, '#6b1d57', true);
+			txt = wxTransformUncolored(txt, function (_p) {
+				var s = _p.replace(/([+-]?\d+%)/g, '[color=#6b1d57][b]$1[/b][/color]');
+				s = s.replace(/^(头部命中率[：:]?|Chance to hit head\s*)/, '[color=#472042]$1[/color]');
+				return s;
+			});
+			_row.text = txt;
+			_row.wxColorized = true;
+			return;
+		}
+
+		// 8. Armor / Helmet / Shield durability (`armor_body.png`, `armor_head.png`) -> Forest Jade `#0e4d18` (red if <50%)
+		if (ico === 'armor_body.png' || ico === 'wx_icon_armor_body.png' || ico === 'armor_head.png' || ico === 'wx_icon_armor_head.png') {
+			txt = wxRecolorVanillaColorTags(txt, '#0e4d18', true);
+			txt = wxTransformUncolored(txt, function (_p) {
+				var s = _p;
+				if (s.indexOf('/') !== -1) {
+					s = s.replace(/(\d+)\s*\/\s*(\d+)/g, function (_m, _cur, _max) {
+						var cNum = parseInt(_cur, 10);
+						var mNum = parseInt(_max, 10);
+						var cHex = (mNum > 0 && cNum < mNum * 0.5) ? '#8f1e1e' : '#0e4d18';
+						return '[color=' + cHex + '][b]' + _cur + '[/b][/color] / [color=#0e4d18][b]' + _max + '[/b][/color]';
+					});
+				} else {
+					s = s.replace(/(\+?\d+)/g, '[color=#0e4d18][b]$1[/b][/color]');
+				}
+				s = s.replace(/^(护甲[：:]?|耐久[：:]?|Armor[：:]?\s*|Durability[：:]?\s*)/, '[color=#1f3e26]$1[/color]');
+				return s;
+			});
+			_row.text = txt;
+			_row.wxColorized = true;
+			return;
+		}
+
+		// 9. Fatigue / Qi modifier (`fatigue.png`, `wx_icon_qi.png`)
+		if (ico === 'fatigue.png' || ico === 'wx_icon_qi.png') {
+			var isReduce = (txt.indexOf('降低') !== -1 || txt.indexOf('减少') !== -1 || txt.indexOf('减免') !== -1 || txt.indexOf('less') !== -1 || txt.indexOf('回气') !== -1);
+			txt = wxBoldVanillaPosNeg(txt);
+			txt = wxTransformUncolored(txt, function (_p) {
+				var s = wxColorizeSignedNumbers(_p, isReduce);
+				s = s.replace(/^(内息上限[：:]?|武器技能内息消耗修正[：:]?|盾牌技能内息消耗修正[：:]?)/, '[color=#4a2822]$1[/color]');
+				return s;
+			});
+			_row.text = txt;
+			_row.wxColorized = true;
+			return;
+		}
+
+		// 10. Vision / Range (`vision.png`, `wx_icon_vision.png`)
+		if (ico === 'vision.png' || ico === 'wx_icon_vision.png') {
+			if (txt.indexOf('射程') !== -1 || txt.indexOf('Range') !== -1) {
+				txt = wxRecolorVanillaColorTags(txt, '#094a44', true);
+				txt = wxTransformUncolored(txt, function (_p) {
+					var s = _p.replace(/(\d+(?:\s*-\s*\d+)?)/g, '[color=#094a44][b]$1[/b][/color]');
+					s = s.replace(/^(射程[：:]|Range of\s*)/, '[color=#1b4440]$1[/color]');
+					return s;
+				});
+			} else {
+				txt = wxBoldVanillaPosNeg(txt);
+				txt = wxTransformUncolored(txt, function (_p) {
+					var s = wxColorizeSignedNumbers(_p, false);
+					s = s.replace(/^(视野[：:]?|Vision\s*)/, '[color=#3a3052]$1[/color]');
+					return s;
+				});
+			}
+			_row.text = txt;
+			_row.wxColorized = true;
+			return;
+		}
+
+		// 11. Defense / Skill / Health / Bravery / Initiative / Hitchance
+		if (ico === 'melee_defense.png' || ico === 'wx_icon_melee_def.png' ||
+			ico === 'ranged_defense.png' || ico === 'wx_icon_ranged_def.png' ||
+			ico === 'melee_skill.png' || ico === 'wx_icon_melee_skill.png' ||
+			ico === 'ranged_skill.png' || ico === 'wx_icon_ranged_skill.png' ||
+			ico === 'hitchance.png' || ico === 'health.png' || ico === 'wx_icon_hp.png' ||
+			ico === 'bravery.png' || ico === 'wx_icon_bravery.png' ||
+			ico === 'initiative.png' || ico === 'wx_icon_initiative.png') {
+			var isRedMit = (txt.indexOf('减免') !== -1 || txt.indexOf('降低') !== -1 || txt.indexOf('减少') !== -1);
+			txt = wxBoldVanillaPosNeg(txt);
+			txt = wxTransformUncolored(txt, function (_p) {
+				var s = wxColorizeSignedNumbers(_p, isRedMit);
+				s = s.replace(WX_RE_CN_LABEL_LEAD, '[color=#3a3052][b]$1[/b][/color]');
+				return s;
+			});
+			_row.text = txt;
+			_row.wxColorized = true;
+			return;
+		}
+
+		// 12. Ammo / Food / Supplies / Medicine (`ammo`, `asset_*`)
+		if (ico === 'ammo.png' || ico === 'asset_ammo.png' || ico === 'wx_asset_ammo.png' ||
+			ico === 'asset_food.png' || ico === 'wx_asset_food.png' ||
+			ico === 'asset_medicine.png' || ico === 'wx_asset_medicine.png' ||
+			ico === 'asset_supplies.png' || ico === 'wx_asset_supplies.png') {
+			if (!hasColorTag) {
+				txt = wxTransformUncolored(txt, function (_p) {
+					var s = _p.replace(/(\d+\s*\/\s*\d+|\+?\d+%?)/g, '[color=#094a44][b]$1[/b][/color]');
+					s = s.replace(WX_RE_CN_LABEL_LEAD, '[color=#3a3052][b]$1[/b][/color]');
+					return s;
+				});
+			}
+			_row.text = txt;
+			_row.wxColorized = true;
+			return;
+		}
+
+		// 13. Warning icon -> Alert crimson `#8b1818`
+		if (ico === 'warning.png' || ico === 'negative.png') {
+			if (!hasColorTag) {
+				_row.text = '[color=#8b1818]' + txt + '[/color]';
+			}
+			_row.wxColorized = true;
+			return;
+		}
+
+		// 14. General / Special / XP / Relations / Trait rows -> highlight uncolored prefixes & signed numbers only
+		var isGoodNeg = (txt.indexOf('减免') !== -1 || txt.indexOf('降低') !== -1 || txt.indexOf('减少') !== -1 || txt.indexOf('省气') !== -1 || txt.indexOf('消耗 -') !== -1 || txt.indexOf('受击 -') !== -1 || txt.indexOf('伤 -') !== -1);
+		txt = wxTransformUncolored(txt, function (_p) {
+			var s = wxColorizeSignedNumbers(_p, isGoodNeg);
+			if (!hasColorTag) {
+				s = s.replace(WX_RE_BRACKET_LEAD, '[color=#5e2c00][b]$1[/b][/color]');
+				s = s.replace(WX_RE_CN_LABEL_LEAD, '[color=#3a3052][b]$1[/b][/color]');
+			}
+			return s;
+		});
+		_row.text = txt;
+		_row.wxColorized = true;
+	}
+
+	function wxEnhanceItemTooltipData(_rows) {
+		var meta = { tier: 0, tag: '', color: WX_ITEM_TIER_COLORS[0] };
+		if (!_rows || !jQuery.isArray(_rows)) return meta;
+		meta = wxInferFallbackItemMeta(_rows);
+
+		for (var i = 0; i < _rows.length; i++) {
+			var row = _rows[i];
+			if (!row || typeof row !== 'object') continue;
+			if (row.type === 'description' && typeof row.text === 'string' && !row.wxColorized) {
+				// Highlight leading bracketed rank tag (e.g. `【门派上乘 · 外功】`) inside lore description
+				if (row.text.indexOf('[color=') === -1 && row.text.indexOf('【') === 0) {
+					row.text = row.text.replace(WX_RE_BRACKET_LEAD, '[color=' + meta.color + '][b]$1[/b][/color]');
+				}
+				row.wxColorized = true;
+			} else if (row.type === 'text' || row.type === 'headerText') {
+				wxColorizeItemStatRow(row);
+			}
+		}
+		return meta;
+	}
+
 	if (typeof TooltipModule !== 'undefined' && TooltipModule.prototype.buildFromData) {
 		var origTooltipBuild = TooltipModule.prototype.buildFromData;
 		TooltipModule.prototype.buildFromData = function (_data, _shouldBeUpdated, _contentType) {
 			wxHarmonizeTooltipRows(_data);
+			var itemMeta = null;
+			if (_contentType === 'ui-item') {
+				itemMeta = wxEnhanceItemTooltipData(_data);
+			}
 			origTooltipBuild.call(this, _data, _shouldBeUpdated, _contentType);
 			if (this.mContainer) {
+				this.mContainer.removeClass('wx-tt-tier-0 wx-tt-tier-1 wx-tt-tier-2 wx-tt-tier-3 has-wx-hints');
+				if (_contentType === 'ui-item' && itemMeta) {
+					this.mContainer.addClass('wx-tt-tier-' + itemMeta.tier);
+					if (this.mContainer.find('.hint-container .row').length > 0) {
+						this.mContainer.addClass('has-wx-hints');
+					}
+					if (itemMeta.tag) {
+						var titleEl = this.mContainer.find('.title-container .title:first');
+						if (titleEl.length && !titleEl.find('.wx-tt-tier-pill').length) {
+							var pillCls = 'wx-tt-tier-pill' + (itemMeta.tier >= 1 ? (' is-t' + itemMeta.tier) : '');
+							titleEl.append('<span class="' + pillCls + '">' + wxEsc(itemMeta.tag) + '</span>');
+						}
+					}
+				}
 				wxUpgradeImagesIn(this.mContainer);
 			}
 		};
@@ -2018,14 +3308,16 @@
 	// =========================================================================
 	var WX_OPT_STORAGE_VFX = 'wx_opt_skill_vfx';
 	var WX_OPT_STORAGE_MOTION = 'wx_opt_actor_motion';
+	var WX_OPT_STORAGE_CUTIN = 'wx_opt_skill_cutin';
 	var wxOptPanelUid = 0;
 
 	function wxReadStoredCombatOptions() {
-		var res = { hasStored: false, showSkillVfx: true, enableActorMotion: true };
+		var res = { hasStored: false, showSkillVfx: true, enableActorMotion: true, showSkillCutIn: false };
 		try {
 			if (typeof window !== 'undefined' && window.localStorage) {
 				var v = window.localStorage.getItem(WX_OPT_STORAGE_VFX);
 				var m = window.localStorage.getItem(WX_OPT_STORAGE_MOTION);
+				var c = window.localStorage.getItem(WX_OPT_STORAGE_CUTIN);
 				if (v !== null) {
 					res.hasStored = true;
 					res.showSkillVfx = (v !== '0' && v !== 'false');
@@ -2033,6 +3325,10 @@
 				if (m !== null) {
 					res.hasStored = true;
 					res.enableActorMotion = (m !== '0' && m !== 'false');
+				}
+				if (c !== null) {
+					res.hasStored = true;
+					res.showSkillCutIn = (c === '1' || c === 'true');
 				}
 			}
 		} catch (_e) {}
@@ -2045,17 +3341,19 @@
 			if (typeof window !== 'undefined' && window.localStorage) {
 				window.localStorage.setItem(WX_OPT_STORAGE_VFX, _opts.showSkillVfx ? '1' : '0');
 				window.localStorage.setItem(WX_OPT_STORAGE_MOTION, _opts.enableActorMotion ? '1' : '0');
+				window.localStorage.setItem(WX_OPT_STORAGE_CUTIN, _opts.showSkillCutIn ? '1' : '0');
 			}
 		} catch (_e) {}
 	}
 
 	function wxEnsureDataSourceCombatOptions(_ds) {
-		if (!_ds) return { showSkillVfx: true, enableActorMotion: true };
+		if (!_ds) return { showSkillVfx: true, enableActorMotion: true, showSkillCutIn: false };
 		if (!_ds.mWXCombatOptions) {
 			var stored = wxReadStoredCombatOptions();
 			_ds.mWXCombatOptions = {
 				showSkillVfx: stored.showSkillVfx,
-				enableActorMotion: stored.enableActorMotion
+				enableActorMotion: stored.enableActorMotion,
+				showSkillCutIn: stored.showSkillCutIn
 			};
 		}
 		return _ds.mWXCombatOptions;
@@ -2066,7 +3364,8 @@
 		try {
 			SQ.call(_ds.mSQHandle, 'onWXApplyCombatOptions', [
 				_opts.showSkillVfx ? true : false,
-				_opts.enableActorMotion ? true : false
+				_opts.enableActorMotion ? true : false,
+				_opts.showSkillCutIn ? true : false
 			]);
 		} catch (_e) {}
 	}
@@ -2081,6 +3380,9 @@
 			if (_panel.mWXActorMotionCheckbox && _panel.mWXActorMotionCheckbox.length > 0) {
 				_panel.selectCheckboxOption(_panel.mWXActorMotionCheckbox, _opts.enableActorMotion === true);
 			}
+			if (_panel.mWXSkillCutInCheckbox && _panel.mWXSkillCutInCheckbox.length > 0) {
+				_panel.selectCheckboxOption(_panel.mWXSkillCutInCheckbox, _opts.showSkillCutIn === true);
+			}
 		} catch (_e) {}
 		_panel.mWXSyncingCheckboxes = false;
 	}
@@ -2094,6 +3396,9 @@
 			if (_panel.mWXActorMotionLabel && _panel.mWXActorMotionLabel.length > 0) {
 				_panel.mWXActorMotionLabel.bindTooltip({ contentType: 'ui-element', elementId: 'menu-screen.options.WXActorMotion' });
 			}
+			if (_panel.mWXSkillCutInLabel && _panel.mWXSkillCutInLabel.length > 0) {
+				_panel.mWXSkillCutInLabel.bindTooltip({ contentType: 'ui-element', elementId: 'menu-screen.options.WXSkillCutIn' });
+			}
 		} catch (_e) {}
 	}
 
@@ -2105,6 +3410,9 @@
 			}
 			if (_panel.mWXActorMotionLabel && _panel.mWXActorMotionLabel.length > 0) {
 				_panel.mWXActorMotionLabel.unbindTooltip();
+			}
+			if (_panel.mWXSkillCutInLabel && _panel.mWXSkillCutInLabel.length > 0) {
+				_panel.mWXSkillCutInLabel.unbindTooltip();
 			}
 		} catch (_e) {}
 	}
@@ -2122,6 +3430,7 @@
 		wxOptPanelUid = wxOptPanelUid + 1;
 		var vfxId = 'cb-wx-skill-vfx-' + wxOptPanelUid;
 		var motId = 'cb-wx-actor-motion-' + wxOptPanelUid;
+		var cutId = 'cb-wx-skill-cutin-' + wxOptPanelUid;
 
 		var row = $('<div class="row wx-combat-options-row"></div>');
 		rightCol.append(row);
@@ -2153,11 +3462,25 @@
 			increaseArea: '30%'
 		});
 
+		var ctrlCut = $('<div class="control"></div>');
+		row.append(ctrlCut);
+		var cbCut = $('<input type="checkbox" id="' + cutId + '" name="wx-skill-cutin" />');
+		ctrlCut.append(cbCut);
+		var lblCut = $('<label class="text-font-normal font-color-subtitle" for="' + cutId + '">显示招式特写横幅与屏幕压暗</label>');
+		ctrlCut.append(lblCut);
+		cbCut.iCheck({
+			checkboxClass: 'icheckbox_flat-orange',
+			radioClass: 'iradio_flat-orange',
+			increaseArea: '30%'
+		});
+
 		_panel.mWXCombatRow = row;
 		_panel.mWXSkillVfxCheckbox = cbVfx;
 		_panel.mWXSkillVfxLabel = lblVfx;
 		_panel.mWXActorMotionCheckbox = cbMot;
 		_panel.mWXActorMotionLabel = lblMot;
+		_panel.mWXSkillCutInCheckbox = cbCut;
+		_panel.mWXSkillCutInLabel = lblCut;
 		_panel.mWXSyncingCheckboxes = false;
 
 		cbVfx.on('ifChecked ifUnchecked', null, _panel, function (_event) {
@@ -2172,6 +3495,13 @@
 			if (!self || self.mWXSyncingCheckboxes || !self.mDataSource) return;
 			var opts = wxEnsureDataSourceCombatOptions(self.mDataSource);
 			opts.enableActorMotion = (self.mWXActorMotionCheckbox.prop('checked') === true);
+		});
+
+		cbCut.on('ifChecked ifUnchecked', null, _panel, function (_event) {
+			var self = _event.data;
+			if (!self || self.mWXSyncingCheckboxes || !self.mDataSource) return;
+			var opts = wxEnsureDataSourceCombatOptions(self.mDataSource);
+			opts.showSkillCutIn = (self.mWXSkillCutInCheckbox.prop('checked') === true);
 		});
 
 		var initOpts = wxEnsureDataSourceCombatOptions(_panel.mDataSource);
@@ -2195,6 +3525,9 @@
 						if (typeof _res.enableActorMotion === 'boolean') {
 							opts.enableActorMotion = _res.enableActorMotion;
 						}
+						if (typeof _res.showSkillCutIn === 'boolean') {
+							opts.showSkillCutIn = _res.showSkillCutIn;
+						}
 						wxApplyCheckboxVisuals(_panel, opts);
 					}
 				});
@@ -2208,6 +3541,7 @@
 		var opts = wxEnsureDataSourceCombatOptions(_panel.mDataSource);
 		opts.showSkillVfx = true;
 		opts.enableActorMotion = true;
+		opts.showSkillCutIn = false;
 		wxApplyCheckboxVisuals(_panel, opts);
 	}
 
@@ -2218,6 +3552,7 @@
 		if (stored.hasStored) {
 			opts.showSkillVfx = stored.showSkillVfx;
 			opts.enableActorMotion = stored.enableActorMotion;
+			opts.showSkillCutIn = stored.showSkillCutIn;
 			wxPushCombatOptionsToBackend(_ds, opts);
 		} else {
 			try {
@@ -2228,6 +3563,9 @@
 						}
 						if (typeof _res.enableActorMotion === 'boolean') {
 							opts.enableActorMotion = _res.enableActorMotion;
+						}
+						if (typeof _res.showSkillCutIn === 'boolean') {
+							opts.showSkillCutIn = _res.showSkillCutIn;
 						}
 					}
 				});
@@ -2287,8 +3625,13 @@
 					this.mWXActorMotionCheckbox.remove();
 					this.mWXActorMotionCheckbox = null;
 				}
+				if (this.mWXSkillCutInCheckbox) {
+					this.mWXSkillCutInCheckbox.remove();
+					this.mWXSkillCutInCheckbox = null;
+				}
 				this.mWXSkillVfxLabel = null;
 				this.mWXActorMotionLabel = null;
+				this.mWXSkillCutInLabel = null;
 				this.mWXCombatRow = null;
 				origGpDestroyDIV.call(this);
 			};
@@ -2326,33 +3669,141 @@
 		}
 	}
 
-	// Patch any already-instantiated OptionsMenuModule instances across Screens (MainMenuScreen, IngameMenuScreen, etc.)
-	if (typeof Screens !== 'undefined') {
-		for (var wxScrKey in Screens) {
-			if (!Screens.hasOwnProperty(wxScrKey)) continue;
-			var wxScr = Screens[wxScrKey];
-			if (!wxScr || !wxScr.mOptionsMenuModule) continue;
-			var wxOptMod = wxScr.mOptionsMenuModule;
-			if (wxOptMod.mDataSource && wxOptMod.mDataSource.mSQHandle) {
-				wxSyncStoredOptionsOnConnect(wxOptMod.mDataSource);
-			}
-			if (wxOptMod.mGameplayPanel) {
-				if (wxOptMod.mGameplayPanel.mContainer) {
-					wxEnsureGameplayCombatControls(wxOptMod.mGameplayPanel);
-					wxBindGameplayCombatTooltips(wxOptMod.mGameplayPanel);
+		// Patch any already-instantiated OptionsMenuModule instances across Screens (MainMenuScreen, IngameMenuScreen, etc.)
+		if (typeof Screens !== 'undefined') {
+			for (var wxScrKey in Screens) {
+				if (!Screens.hasOwnProperty(wxScrKey)) continue;
+				var wxScr = Screens[wxScrKey];
+				if (!wxScr || !wxScr.mOptionsMenuModule) continue;
+				var wxOptMod = wxScr.mOptionsMenuModule;
+				if (wxOptMod.mDataSource && wxOptMod.mDataSource.mSQHandle) {
+					wxSyncStoredOptionsOnConnect(wxOptMod.mDataSource);
 				}
-				if (wxOptMod.mDataSource && !wxOptMod.mGameplayPanel._wxLiveListenerAdded && typeof OptionsMenuModuleDatasourceIdentifier !== 'undefined') {
-					wxOptMod.mGameplayPanel._wxLiveListenerAdded = true;
-					(function (_panel) {
-						wxOptMod.mDataSource.addListener(OptionsMenuModuleDatasourceIdentifier.Options.Loaded, function () {
-							wxSyncGameplayPanelOptions(_panel);
-						});
-						wxOptMod.mDataSource.addListener(OptionsMenuModuleDatasourceIdentifier.Options.Reseted, function () {
-							wxResetGameplayPanelDefaults(_panel);
-						});
-					})(wxOptMod.mGameplayPanel);
+				if (wxOptMod.mGameplayPanel) {
+					if (wxOptMod.mGameplayPanel.mContainer) {
+						wxEnsureGameplayCombatControls(wxOptMod.mGameplayPanel);
+						wxBindGameplayCombatTooltips(wxOptMod.mGameplayPanel);
+					}
+					if (wxOptMod.mDataSource && !wxOptMod.mGameplayPanel._wxLiveListenerAdded && typeof OptionsMenuModuleDatasourceIdentifier !== 'undefined') {
+						wxOptMod.mGameplayPanel._wxLiveListenerAdded = true;
+						(function (_panel) {
+							wxOptMod.mDataSource.addListener(OptionsMenuModuleDatasourceIdentifier.Options.Loaded, function () {
+								wxSyncGameplayPanelOptions(_panel);
+							});
+							wxOptMod.mDataSource.addListener(OptionsMenuModuleDatasourceIdentifier.Options.Reseted, function () {
+								wxResetGameplayPanelDefaults(_panel);
+							});
+						})(wxOptMod.mGameplayPanel);
+					}
 				}
 			}
 		}
-	}
-})();
+
+		// Unified In-Game Wuxia Mod Settings Modal (`江湖机枢设置`)
+		window.WX_OpenModSettings = function (_sqHandle, _hostDS) {
+			var sqH = _sqHandle || window.WX_SectRPCHandle;
+			if (!sqH || typeof SQ === 'undefined' || !SQ.call) return;
+
+			$('.wx-modcfg-backdrop').remove();
+			if (_hostDS && _hostDS.notifyBackendPopupDialogIsVisible) {
+				_hostDS.notifyBackendPopupDialogIsVisible(true);
+			}
+
+			function closeCfg() {
+				$('.wx-modcfg-backdrop').remove();
+				$(document).off('keydown.wxModCfg');
+				if (_hostDS && _hostDS.notifyBackendPopupDialogIsVisible) {
+					_hostDS.notifyBackendPopupDialogIsVisible(false);
+				}
+			}
+
+			SQ.call(sqH, 'onWXGetModSettings', null, function (_st) {
+				if (!_st) return;
+				var fastOn = false;
+				try {
+					fastOn = !!(window.localStorage && window.localStorage.getItem('wx_showcase_fast') === '1');
+				} catch (_eLs) {}
+
+				var items = [
+					{ key: 'showSkillVfx',      val: !!_st.showSkillVfx,      title: '招式气芒与法相特效', desc: '战斗中渲染 171 招刀剑气芒、掌劲冲击环与阵印粒子' },
+					{ key: 'enableActorMotion', val: !!_st.enableActorMotion, title: '演武身法位移演出',   desc: '出招与受击时呈现轻功掠影、腾空劈斩与震退身架动作' },
+					{ key: 'showSkillCutIn',    val: !!_st.showSkillCutIn,    title: '绝学出招水墨题字特写', desc: '施展成名武学时浮现招式意境题字与轻微压暗特写' },
+					{ key: 'enableWuxiaSfx',    val: !!_st.enableWuxiaSfx,    title: '武侠破空与内劲音效', desc: '启用剑气破空、龙吟掌风、点穴清音与金钟破境专属音效' },
+					{ key: 'fastShowcase',      val: fastOn,                  title: '炼丹/铸器/修习快速结算', desc: '跳过开炉与修习动画过场，直接展示成丹或破境结果' },
+					{ key: 'autoStoreLibrary',  val: !!_st.autoStoreLibrary,  title: '典籍战后自动归入藏经阁', desc: '缴获或购入的秘籍与残页自动收入零占格藏经阁' },
+					{ key: 'dynamicThreatOn',   val: !!_st.dynamicThreatOn,   title: '动态江湖武道演进（当前：' + wxEsc(_st.currentEraLabel || '初入江湖') + '）', desc: '随天数与主力等级逐步解锁敌方高重武学与历战强敌' }
+				];
+
+				var rows = '';
+				for (var i = 0; i < items.length; i++) {
+					var it = items[i];
+					rows +=
+						'<div style="position:relative;padding:0.65rem 9.2rem 0.65rem 0.9rem;margin-bottom:0.35rem;background:rgba(20,14,10,0.55);border:0.1rem solid rgba(189,157,113,0.28);">' +
+							'<div style="color:#dda21f;font-size:1.45rem;">' + it.title + '</div>' +
+							'<div style="color:#bd9d71;font-size:1.22rem;">' + wxEsc(it.desc) + '</div>' +
+							'<span class="wx-cfg-toggle" data-cfg-key="' + it.key + '" data-cfg-on="' + (it.val ? '1' : '0') + '" ' +
+								'style="position:absolute;right:0.9rem;top:1.1rem;width:7.2rem;height:2.8rem;line-height:2.8rem;text-align:center;cursor:pointer;' +
+								'border:0.1rem solid ' + (it.val ? '#dda21f' : '#6e5c42') + ';color:' + (it.val ? '#ffe28a' : '#8a7454') + ';background:' + (it.val ? 'rgba(130,62,24,0.65)' : 'rgba(30,24,18,0.65)') + ';">' +
+								(it.val ? '已开启' : '已关闭') +
+							'</span>' +
+						'</div>';
+				}
+
+				var bd = $(
+					'<div class="wx-modcfg-backdrop" style="position:fixed;left:0;top:0;right:0;bottom:0;z-index:9980;background:rgba(0,0,0,0.62);">' +
+						'<div style="position:relative;width:58.0rem;margin:8.5rem auto 0 auto;padding:2.0rem 2.8rem 1.6rem 2.8rem;background-image:url(\'coui://gfx/ui/skin/popup_background_600x300.png\');background-size:100% 100%;color:#d7b174;box-shadow:0 0 3rem #000;">' +
+							'<div style="text-align:center;font-size:2.15rem;color:#dda21f;margin-bottom:0.85rem;">江湖机枢 · 模组全局设置</div>' +
+							'<div style="max-height:43.0rem;overflow-y:auto;">' + rows + '</div>' +
+							'<div style="text-align:center;margin-top:1.1rem;">' +
+								'<span data-cfg-close="1" style="display:inline-block;width:11.0rem;height:3.6rem;line-height:3.7rem;cursor:pointer;color:#dda21f;background-image:url(\'coui://gfx/ui/skin/button_01_default.png\');background-size:100% 100%;">完成返回</span>' +
+							'</div>' +
+						'</div>' +
+					'</div>'
+				);
+
+				var host = $('.root-screen:first');
+				if (!host.length) host = $(document.body);
+				host.append(bd);
+
+				bd.find('.wx-cfg-toggle').on('click', function () {
+					var btn = $(this);
+					var k = btn.attr('data-cfg-key');
+					var nextOn = btn.attr('data-cfg-on') !== '1';
+					btn.attr('data-cfg-on', nextOn ? '1' : '0')
+						.text(nextOn ? '已开启' : '已关闭')
+						.css({
+							borderColor: nextOn ? '#dda21f' : '#6e5c42',
+							color: nextOn ? '#ffe28a' : '#8a7454',
+							background: nextOn ? 'rgba(130,62,24,0.65)' : 'rgba(30,24,18,0.65)'
+						});
+					if (k === 'fastShowcase') {
+						try {
+							if (window.localStorage) window.localStorage.setItem('wx_showcase_fast', nextOn ? '1' : '0');
+						} catch (_eF) {}
+						if (window.WX_Showcase && window.WX_Showcase.setFastMode) {
+							window.WX_Showcase.setFastMode(nextOn);
+						}
+						return;
+					}
+					if (k === 'showSkillVfx' || k === 'enableActorMotion' || k === 'showSkillCutIn') {
+						var curStored = wxReadStoredCombatOptions();
+						curStored[k] = nextOn;
+						wxWriteStoredCombatOptions(curStored);
+					}
+					SQ.call(sqH, 'onWXUpdateModSetting', [k, nextOn], function () {});
+				});
+
+				bd.find('[data-cfg-close="1"]').on('click', function () { closeCfg(); });
+				bd.on('click', function (_e) {
+					if ($(_e.target).hasClass('wx-modcfg-backdrop')) closeCfg();
+				});
+				$(document).on('keydown.wxModCfg', function (_e) {
+					if (_e.keyCode === 27) {
+						closeCfg();
+						_e.stopPropagation();
+						return false;
+					}
+				});
+			});
+		};
+	})();

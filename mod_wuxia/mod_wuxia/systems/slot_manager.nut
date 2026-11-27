@@ -555,6 +555,8 @@
 			else stack.addPageCount(-take);
 			remaining -= take;
 		}
+		if (::Wuxia.hasWorldField("Flags"))
+			::World.Flags.set("wx_crafted_page_manual", true);
 
 		return {
 			Ok = true,
@@ -605,11 +607,252 @@
 		else sp.item.addPageCount(-takeSp);
 		remSpare -= takeSp;
 	}
+	if (::Wuxia.hasWorldField("Flags"))
+		::World.Flags.set("wx_crafted_page_manual", true);
 
 	return {
 		Ok = true,
 		ManualName = def.Name,
 		UsedWildcard = true,
 		SacrificedCount = spareNeeded
+	};
+};
+
+// =============================================================================
+// Per-Brother 3-Slot Martial Loadout Presets (`武学配槽方案 壹 / 贰 / 叁`)
+// Stored in `actor.getFlags()` (`wx_preset_0..2`), 100% zero-byte stream compatible with all saves!
+// =============================================================================
+::Wuxia.Slots.PresetDefaultNames <- ["常规江湖", "破尸诛邪", "猎妖攻坚"];
+
+::Wuxia.Slots.splitPipe <- function( _s )
+{
+	local out = [];
+	if (_s == null || typeof _s != "string" || _s == "") return out;
+	local start = 0;
+	while (true)
+	{
+		local idx = _s.find("|", start);
+		if (idx == null)
+		{
+			out.push(_s.slice(start));
+			break;
+		}
+		out.push(_s.slice(start, idx));
+		start = idx + 1;
+	}
+	return out;
+};
+
+::Wuxia.Slots.getLoadoutPresets <- function( _actor )
+{
+	local res = [];
+	local flags = (_actor != null && ::Wuxia.hasMember(_actor, "getFlags")) ? _actor.getFlags() : null;
+	for (local p = 0; p < 3; p = ++p)
+	{
+		local defLbl = ::Wuxia.Slots.PresetDefaultNames[p];
+		local rawStr = (flags != null && flags.has("wx_preset_" + p)) ? flags.get("wx_preset_" + p) : "";
+		local customNm = (flags != null && flags.has("wx_preset_nm_" + p)) ? flags.get("wx_preset_nm_" + p) : "";
+		local label = (typeof customNm == "string" && customNm != "") ? customNm : defLbl;
+		local manualIDs = [null, null, null, null, null, null, null];
+		local manualNames = [];
+		local count = 0;
+		if (typeof rawStr == "string" && rawStr != "")
+		{
+			local parts = ::Wuxia.Slots.splitPipe(rawStr);
+			for (local i = 0; i < 7 && i < parts.len(); i = ++i)
+			{
+				if (parts[i] != "")
+				{
+					local def = ::Wuxia.Slots.getManualDef(parts[i]);
+					if (def != null)
+					{
+						manualIDs[i] = parts[i];
+						manualNames.push(def.Name);
+						count += 1;
+					}
+				}
+			}
+		}
+		res.push({
+			index       = p,
+			label       = label,
+			saved       = (typeof rawStr == "string" && rawStr != ""),
+			count       = count,
+			manualIDs   = manualIDs,
+			manualNames = manualNames
+		});
+	}
+	return res;
+};
+
+::Wuxia.Slots.saveLoadoutPreset <- function( _actor, _presetIdx, _customLabel = "" )
+{
+	if (_actor == null || !::Wuxia.hasMember(_actor, "getFlags") || _actor.getFlags() == null)
+		return { Ok = false, Reason = "无法读取侠客档案标记。" };
+	if (typeof _presetIdx != "integer" || _presetIdx < 0 || _presetIdx >= 3)
+		return { Ok = false, Reason = "无效的预设槽编号。" };
+
+	local c = ::Wuxia.Slots.getContainer(_actor);
+	if (c == null)
+		return { Ok = false, Reason = "无法读取侠客武学插槽。" };
+	c.ensureSlotsRegisteredInLearned();
+
+	local joined = "";
+	local cnt = 0;
+	for (local i = 0; i < 7; i = ++i)
+	{
+		if (i > 0) joined += "|";
+		local mid = (i < c.m.Slots.len() && c.m.Slots[i].ManualID != null && c.m.Slots[i].Tier > 0) ? c.m.Slots[i].ManualID : "";
+		if (mid != "") cnt += 1;
+		joined += mid;
+	}
+	if (cnt == 0)
+		return { Ok = false, Reason = "当前 7 大穴位未装备任何功法，请先装配功法再保存方案。" };
+
+	local flags = _actor.getFlags();
+	flags.set("wx_preset_" + _presetIdx, joined);
+	if (typeof _customLabel == "string" && _customLabel != "")
+		flags.set("wx_preset_nm_" + _presetIdx, _customLabel);
+
+	local presets = ::Wuxia.Slots.getLoadoutPresets(_actor);
+	return {
+		Ok          = true,
+		PresetIndex = _presetIdx,
+		PresetLabel = presets[_presetIdx].label,
+		SavedCount  = cnt
+	};
+};
+
+::Wuxia.Slots.applyLoadoutPreset <- function( _actor, _presetIdx, _confirmed = false )
+{
+	if (_actor == null || !::Wuxia.hasMember(_actor, "getFlags") || _actor.getFlags() == null)
+		return { Ok = false, Reason = "无法读取侠客档案。" };
+	if (typeof _presetIdx != "integer" || _presetIdx < 0 || _presetIdx >= 3)
+		return { Ok = false, Reason = "无效的预设方案。" };
+
+	local presets = ::Wuxia.Slots.getLoadoutPresets(_actor);
+	local preset = presets[_presetIdx];
+	if (!preset.saved)
+		return { Ok = false, Reason = "「" + preset.label + "」尚未保存任何配槽记录。" };
+
+	local c = ::Wuxia.Slots.getContainer(_actor);
+	c.ensureSlotsRegisteredInLearned();
+
+	// Validate target 7-slot plan against unlocked level, learned pool, and AGENTS.md <=2 Neigong / <=2 Qinggong caps
+	local targetIDs = [null, null, null, null, null, null, null];
+	local seen = {};
+	local ngCnt = 0;
+	local qgCnt = 0;
+	for (local i = 0; i < 7; i = ++i)
+	{
+		if (!::Wuxia.Slots.isSlotUnlocked(_actor, i))
+		{
+			targetIDs[i] = c.m.Slots[i].ManualID;
+			continue;
+		}
+		local mid = preset.manualIDs[i];
+		if (mid == null || mid == "") continue;
+		local def = ::Wuxia.Slots.getManualDef(mid);
+		if (def == null || !(mid in c.m.LearnedManuals)) continue;
+		if (mid in seen) continue;
+		if (!::Wuxia.Slots.isCategoryAllowedInSlot(i, def.Category)) continue;
+		if (def.Category == "neigong" && ngCnt >= 2) continue;
+		if (def.Category == "qinggong" && qgCnt >= 2) continue;
+		seen[mid] <- true;
+		if (def.Category == "neigong") ngCnt += 1;
+		else if (def.Category == "qinggong") qgCnt += 1;
+		targetIDs[i] = mid;
+	}
+
+	local changedCount = 0;
+	local maxPenaltyDays = 0;
+	local hasWangchen = (_actor.getSkills() != null && _actor.getSkills().hasSkill("effects.wx_wangchen_grace")) || (_actor.getFlags() != null && _actor.getFlags().get("wx_wangchen_grace"));
+
+	for (local sIdx = 0; sIdx < 7; sIdx = ++sIdx)
+	{
+		if (!::Wuxia.Slots.isSlotUnlocked(_actor, sIdx)) continue;
+		local curID = c.m.Slots[sIdx].ManualID;
+		local nxtID = targetIDs[sIdx];
+		if (curID != nxtID)
+		{
+			changedCount += 1;
+			if (curID != null && !hasWangchen)
+			{
+				local oldDef = ::Wuxia.Slots.getManualDef(curID);
+				local pDays = (oldDef != null) ? ::Wuxia.Slots.getSwitchWeaknessDays(oldDef.Quality) : 1;
+				if (pDays > maxPenaltyDays) maxPenaltyDays = pDays;
+			}
+		}
+	}
+
+	if (changedCount == 0)
+		return { Ok = false, Reason = _actor.getName() + " 当前穴位已与「" + preset.label + "」完全一致。" };
+
+	if (maxPenaltyDays > 0 && !_confirmed)
+	{
+		return {
+			Ok           = false,
+			NeedsConfirm = true,
+			PresetIndex  = _presetIdx,
+			PresetLabel  = preset.label,
+			ChangedCount = changedCount,
+			PenaltyDays  = maxPenaltyDays
+		};
+	}
+
+	// Preserve all current slot mastery in LearnedManuals first, then apply target slots atomically
+	for (local k = 0; k < 7; k = ++k)
+	{
+		if (c.m.Slots[k].ManualID != null && c.m.Slots[k].Tier > 0)
+			c.syncSlotToLearned(k);
+	}
+	for (local m = 0; m < 7; m = ++m)
+	{
+		if (!::Wuxia.Slots.isSlotUnlocked(_actor, m)) continue;
+		local nMid = targetIDs[m];
+		if (nMid == null)
+		{
+			c.m.Slots[m].ManualID   = null;
+			c.m.Slots[m].Tier       = 0;
+			c.m.Slots[m].Exp        = 0;
+			c.m.Slots[m].IsFragment = false;
+		}
+		else
+		{
+			local ent = c.m.LearnedManuals[nMid];
+			c.m.Slots[m].ManualID   = nMid;
+			c.m.Slots[m].Tier       = ent.Tier;
+			c.m.Slots[m].Exp        = ent.Exp;
+			c.m.Slots[m].IsFragment = ent.IsFragment;
+		}
+	}
+
+	if (hasWangchen)
+	{
+		if (_actor.getSkills() != null && _actor.getSkills().hasSkill("effects.wx_wangchen_grace"))
+			_actor.getSkills().removeByID("effects.wx_wangchen_grace");
+		if (::Wuxia.hasMember(_actor, "getFlags") && _actor.getFlags() != null && _actor.getFlags().get("wx_wangchen_grace"))
+			_actor.getFlags().set("wx_wangchen_grace", false);
+	}
+	else if (maxPenaltyDays > 0)
+	{
+		::Wuxia.Slots.applyScatterPenalty(_actor, maxPenaltyDays, false);
+	}
+
+	c.syncGrantedSkills();
+	_actor.getSkills().update();
+	for (local adv = 0; adv < 7; adv = ++adv)
+	{
+		if (c.m.Slots[adv].ManualID != null && !c.m.Slots[adv].IsFragment && c.m.Slots[adv].Tier < 3)
+			::Wuxia.Mastery.tryAdvanceSlot(_actor, adv);
+	}
+
+	return {
+		Ok           = true,
+		PresetIndex  = _presetIdx,
+		PresetLabel  = preset.label,
+		ChangedCount = changedCount,
+		PenaltyDays  = hasWangchen ? 0 : maxPenaltyDays,
+		UsedWangchen = hasWangchen
 	};
 };

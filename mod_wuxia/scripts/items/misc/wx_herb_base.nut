@@ -41,12 +41,24 @@ this.wx_herb_base <- this.inherit("scripts/items/item", {
 		if ("Herbs" in ::Wuxia.Config && (this.m.HerbID in ::Wuxia.Config.Herbs))
 		{
 			local cfg = ::Wuxia.Config.Herbs[this.m.HerbID];
-			local qLabel = ("Quality" in cfg && cfg.Quality in ::Wuxia.Text.Qualities) ? ::Wuxia.Text.Qualities[cfg.Quality] : "奇珍";
+			local qKey = ("Quality" in cfg) ? cfg.Quality : "common";
+			local qLabel = (qKey in ::Wuxia.Text.Qualities) ? ::Wuxia.Text.Qualities[qKey] : "奇珍";
+			local qCol = ("UI" in ::Wuxia && "getQualityTooltipColor" in ::Wuxia.UI) ? ::Wuxia.UI.getQualityTooltipColor(qKey) : "#0b4a1e";
+			local natSuffix = "";
+			if ("Alchemy" in ::Wuxia.Config && "HerbNatures" in ::Wuxia.Config.Alchemy && (this.m.HerbID in ::Wuxia.Config.Alchemy.HerbNatures))
+			{
+				local hn = ::Wuxia.Config.Alchemy.HerbNatures[this.m.HerbID];
+				local nName = ("Natures" in ::Wuxia.Config.Alchemy && hn.Nature in ::Wuxia.Config.Alchemy.Natures)
+					? ::Wuxia.Config.Alchemy.Natures[hn.Nature].Name
+					: hn.Nature;
+				local nCol = ("UI" in ::Wuxia && "getNatureTooltipColor" in ::Wuxia.UI) ? ::Wuxia.UI.getNatureTooltipColor(hn.Nature) : "#094039";
+				natSuffix = " · [color=" + nCol + "][b]" + nName + "（药力 " + hn.Potency + "）[/b][/color]";
+			}
 			ret.push({
 				id = 15,
 				type = "text",
 				icon = "ui/icons/special.png",
-				text = "本草品阶：【《" + cfg.Chapter + "》· " + qLabel + " · " + cfg.SubLabel + "】"
+				text = "[color=#3a3052][b]本草品阶：[/b][/color][color=" + qCol + "][b]【《" + cfg.Chapter + "》· " + qLabel + " · " + cfg.SubLabel + "】[/b][/color]" + natSuffix
 			});
 			if (cfg.Kind == "herb_infuse")
 			{
@@ -54,7 +66,7 @@ this.wx_herb_base <- this.inherit("scripts/items/item", {
 					id = 16,
 					type = "text",
 					icon = "ui/icons/xp_received.png",
-					text = "双途妙用：可在「百工猎妖炼丹房」入炉炼制仙丹，亦可拖入武学插槽生服参悟（[color=" + ::Const.UI.Color.PositiveValue + "]+" + cfg.ExpAmount + "[/color] 火候）"
+					text = "[color=#094a44][b]双途妙用：[/b][/color]可在「百工丹坊」入炉炼制仙丹，亦可拖入武学插槽生服参悟（[color=#0b4a1e][b]+" + cfg.ExpAmount + "[/b][/color] 火候）"
 				});
 			}
 			else
@@ -63,7 +75,7 @@ this.wx_herb_base <- this.inherit("scripts/items/item", {
 					id = 16,
 					type = "text",
 					icon = "ui/icons/health.png",
-					text = "双途妙用：可在「百工猎妖炼丹房」入炉倍增药效炼成灵丹，亦可在行囊或丹药页应急生服"
+					text = "[color=#094a44][b]双途妙用：[/b][/color]可在「百工丹坊」入炉倍增药效炼成灵丹，亦可在行囊或丹药页应急生服"
 				});
 			}
 		}
@@ -140,7 +152,7 @@ this.wx_herb_base <- this.inherit("scripts/items/item", {
 			return { Ok = true, Message = _actor.getName() + " 生服奇草「" + cfg.Name + "」，下场战斗药效已生发！" + warning };
 		}
 
-		return { Ok = false, Reason = "此仙株请拖入武学插槽参悟，或携往百工猎妖炼丹房入炉炼制仙丹。" };
+		return { Ok = false, Reason = "此仙株请拖入武学插槽参悟，或携往城镇【百工丹坊】入炉炼制仙丹。" };
 	}
 
 	function onUse( _actor, _item = null )

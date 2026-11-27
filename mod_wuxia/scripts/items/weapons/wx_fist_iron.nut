@@ -19,9 +19,9 @@ this.wx_fist_iron <- this.inherit("scripts/items/weapons/wx_fist_base", {
 		this.m.Condition = 64.0;
 		this.m.ConditionMax = 64.0;
 		this.m.StaminaModifier = -6;
-		this.m.RegularDamage = 34;
-		this.m.RegularDamageMax = 48;
-		this.m.ArmorDamageMult = 0.95;
-		this.m.DirectDamageMult = 0.40;
+		this.m.RegularDamage = 28;
+		this.m.RegularDamageMax = 40;
+		this.m.ArmorDamageMult = 0.85;
+		this.m.DirectDamageMult = 0.36;
 	}
 });

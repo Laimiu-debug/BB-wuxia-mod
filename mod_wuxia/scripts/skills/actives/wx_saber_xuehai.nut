@@ -29,7 +29,15 @@ this.wx_saber_xuehai <- this.inherit("scripts/skills/actives/wx_move_base", {
 	{
 		if (_skill == this)
 		{
-			local actor = this.getContainer().getActor(); if (actor != null && actor.getHitpointsMax() > 0) { local lost = 1.0 - (actor.getHitpoints() / (actor.getHitpointsMax() * 1.0)); _properties.DamageTotalMult *= (1.05 + lost * 0.35); }
+			this.wxApplyTagPreHitProps(_targetEntity, _properties);
+			local actor = this.getContainer().getActor();
+			if (actor != null && actor.getHitpointsMax() > 0)
+			{
+				local lost = 1.0 - (actor.getHitpoints() / (actor.getHitpointsMax() * 1.0));
+				local st = ("Streams" in ::Wuxia) ? ::Wuxia.Streams.getState(actor) : null;
+				local bbBonus = st != null ? (st.m.BloodBladeStacks * 0.05) : 0.0;
+				_properties.DamageTotalMult *= (1.05 + lost * 0.35 + bbBonus);
+			}
 		}
 	}
 
@@ -38,10 +46,11 @@ this.wx_saber_xuehai <- this.inherit("scripts/skills/actives/wx_move_base", {
 		local target = _targetTile.getEntity();
 		::Wuxia.VFX.playSkillVfx(this, _user, _targetTile, this.m.WX_VfxBrush);
 		local hit = this.attackEntity(_user, target);
-		if (hit && target != null && target.isAlive())
+		if (hit && ("Streams" in ::Wuxia))
 		{
-			if (!::Wuxia.CombatRules.isUndeadOrConstruct(target) && _user.isAlive()) _user.setHitpoints(::Math.min(_user.getHitpointsMax(), _user.getHitpoints() + 10));
+			::Wuxia.Streams.triggerBloodBlade(_user, target);
 		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

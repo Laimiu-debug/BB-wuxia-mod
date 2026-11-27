@@ -7,7 +7,7 @@ this.wx_spear_bawang <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.wx_move_base.create();
 		this.m.ID = "actives.wx_spear_bawang";
 		this.m.Name = "霸王挑山枪";
-		this.m.Description = "刚猛绝伦军阵霸枪：消耗 6 AP 与 26 内息，大枪自下而上猛挑两格敌手（总伤 +20%，击退目标并震至失衡）。";
+		this.m.Description = "刚猛绝伦军阵霸枪：消耗 6 AP 与 26 内息，贴身命中且自身背后为空地时触发【挑飞过肩换位】将敌军挑摔至身后合围圈；两格命中则破蓄势震退并挂失衡（总伤 +20%、破甲 +20%）。";
 		this.m.Icon = "skills/wx_spear_bawang.png";
 		this.m.IconDisabled = "skills/wx_spear_bawang_sw.png";
 		this.m.Overlay = "wx_ov_wx_spear_bawang";
@@ -40,8 +40,13 @@ this.wx_spear_bawang <- this.inherit("scripts/skills/actives/wx_move_base", {
 		local hit = this.attackEntity(_user, target);
 		if (hit && target != null && target.isAlive())
 		{
-			this.wxApplyStatusToTarget(target, "effects.wx_status_offbalance", "scripts/skills/effects/wx_status_offbalance"); this.wxTryKnockback(_user, target);
+			if ("Streams" in ::Wuxia) ::Wuxia.Streams.interruptEnemyCharge(_user, target, 2);
+			this.wxApplyStatusToTarget(target, "effects.wx_status_offbalance", "scripts/skills/effects/wx_status_offbalance");
+			local flipped = ("Streams" in ::Wuxia) && ::Wuxia.Streams.vaultFlipOverShoulder(_user, target);
+			if (!flipped)
+				this.wxTryKnockback(_user, target);
 		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

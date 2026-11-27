@@ -18,7 +18,8 @@ this.wx_blood_burst <- this.inherit("scripts/skills/skill", {
 		this.m.IconDisabled = "skills/wx_blood_burst_sw.png";
 		this.m.Overlay = "wx_ov_wx_blood_burst";
 		this.m.SoundOnUse = [
-			"sounds/combat/perfect_focus_01.wav"
+			"sounds/combat/shieldwall_01.wav",
+			"sounds/combat/shieldwall_03.wav"
 		];
 		this.m.Type = this.Const.SkillType.Active;
 		this.m.Order = this.Const.SkillOrder.NonTargeted;

@@ -11,6 +11,8 @@ this.wx_boss_jumang <- this.inherit("scripts/entity/tactical/enemies/schrat", {
 
 	function onDeath( _killer, _skill, _tile, _fatalityType )
 	{
+		if ("ShanHaiMultiBody" in ::Wuxia)
+			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.schrat.onDeath(_killer, _skill, _tile, _fatalityType);
 		::Wuxia.ShanHai.dropBossCore("boss_jumang", _tile);
 	}

@@ -16,16 +16,18 @@ this.wx_gun_leihuo <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.WX_AnimMode <- "aoe_leihuo";
 		this.m.WX_ChoreoID <- "wx_gun_leihuo";
 		this.m.IsRanged = true;
+		this.m.IsIgnoredAsAOO = true;
 		this.m.IsShowingProjectile = true;
 		this.m.ProjectileType = ::Const.ProjectileType.WX_Huochongdan;
 		this.m.IsProjectileRotated = true;
 		this.m.ProjectileTimeScale = 1.25;
-		this.m.SoundOnUse = ::Const.DLC.Desert ? ["sounds/combat/dlc6/fire_gonne_01.wav"] : ["sounds/combat/bolt_shot_01.wav"];
+		this.m.SoundOnUse = ::Const.DLC.Desert ? ["sounds/combat/dlc6/fire_hit_05.wav", "sounds/combat/dlc6/fire_gonne_hit_03.wav"] : ["sounds/combat/shatter_hit_02.wav"];
 		this.m.IsAOE = true;
 		this.m.ActionPointCost = 5;
 		this.m.FatigueCost = 20;
 		this.m.MinRange = 2;
 		this.m.MaxRange = 4;
+		this.m.MaxLevelDifference = 4;
 		this.m.RequiredWeaponTypes = ["Firearm", "Crossbow"];
 		this.m.DirectDamageMult = 0.38;
 	}
@@ -71,6 +73,8 @@ this.wx_gun_leihuo <- this.inherit("scripts/skills/actives/wx_move_base", {
 				if (extraCnt >= 2) break;
 			}
 		}
+		if (anyHit && _targetTile != null && ("TileField" in ::Wuxia))
+			::Wuxia.TileField.setField(_targetTile, "drought_scorch", 2, _user);
 		return anyHit;
 	}
 });

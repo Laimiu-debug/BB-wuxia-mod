@@ -107,15 +107,32 @@
 .wx-tac-skill-cost
 {
 	position: absolute;
-	right: 0.3rem;
+	right: 0.25rem;
 	bottom: 0.1rem;
 	z-index: 4;
-	font-size: 1.2rem;
-	line-height: 1.3rem;
-	color: #d6dbe9;
+	font-size: 1.18rem;
+	line-height: 1.28rem;
+	color: #ffe28a;
 	text-shadow: 1px 1px 1px #000, -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000;
 	pointer-events: none;
 }
+
+.wx-tac-skill-cost.is-lack,
+.wx-tac-skill-cost .wx-qi-sub.is-lack
+{
+	color: #ff6b6b;
+}
+
+.wx-tac-skill-cost .wx-qi-sub
+{
+	font-size: 1.05rem;
+	color: #88e0d8;
+}
+
+.skill.wx-lin-neigong { box-shadow: inset 0 -0.18rem 0 rgba(235, 186, 72, 0.72); }
+.skill.wx-lin-qinggong { box-shadow: inset 0 -0.18rem 0 rgba(102, 214, 204, 0.72); }
+.skill.wx-lin-waigong { box-shadow: inset 0 -0.18rem 0 rgba(214, 108, 72, 0.68); }
+.skill.wx-lin-tactics { box-shadow: inset 0 -0.18rem 0 rgba(176, 148, 224, 0.68); }
 
 .turnsequencebar-module .skills-container .wx-skill-page
 {
@@ -413,8 +430,8 @@
 	left: 0;
 	right: 0;
 	bottom: 0;
-	z-index: 9990;
-	background-color: rgba(0, 0, 0, 0.55);
+	z-index: 9995;
+	background-color: rgba(0, 0, 0, 0.58);
 }
 
 .wx-sect-dialog
@@ -921,7 +938,7 @@
 	color: #ff9a8f;
 }
 
-/* 9. 铜镜江湖易容阁 (WorldTownScreenBarberDialogModule — 1000-Faces + Rename + Disguise) */
+/* 9. 铜镜江湖易容阁 (WorldTownScreenBarberDialogModule — Mirror Portrait + Rename + 1000-Faces + Disguise) */
 .world-town-screen > .l-barber-dialog-container .details-container.wx-barber-details
 {
 	position: relative !important;
@@ -930,8 +947,168 @@
 
 .world-town-screen > .l-barber-dialog-container .details-container.wx-barber-details > .row.is-character-container
 {
-	height: 16.8rem !important;
+	height: 16.4rem !important;
 	position: relative !important;
+}
+
+.world-town-screen > .l-barber-dialog-container .details-container.wx-barber-details .column.is-character-portrait-container
+{
+	top: 4.2rem !important;
+	left: 1.0rem !important;
+	width: 11.6rem !important;
+	height: 11.6rem !important;
+	z-index: 9 !important;
+	background: rgba(12, 9, 6, 0.78);
+	border: 1px solid rgba(182, 138, 66, 0.62);
+	box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.85), 0 2px 6px rgba(0, 0, 0, 0.65);
+	overflow: hidden;
+}
+
+.world-town-screen > .l-barber-dialog-container .details-container.wx-barber-details .column.is-character-portrait-container > img.wx-barber-mirror-img
+{
+	position: absolute !important;
+	top: 0 !important;
+	bottom: 0 !important;
+	left: 0 !important;
+	right: 0 !important;
+	margin: auto !important;
+	max-width: 100% !important;
+	max-height: 100% !important;
+	width: auto !important;
+	height: auto !important;
+	display: block !important;
+	opacity: 1 !important;
+}
+
+.wx-barber-hat-pill
+{
+	position: absolute;
+	right: 0.25rem;
+	bottom: 0.25rem;
+	padding: 0.1rem 0.45rem;
+	font-size: 1.05rem;
+	line-height: 1.55rem;
+	color: #f3d796;
+	background: rgba(16, 11, 7, 0.88);
+	border: 1px solid rgba(218, 165, 32, 0.72);
+	text-shadow: 1px 1px 1px #000;
+	cursor: pointer;
+	z-index: 4;
+}
+.wx-barber-hat-pill:hover
+{
+	color: #ffeaa8;
+	border-color: #f0bc42;
+	background: rgba(42, 27, 12, 0.94);
+}
+.wx-barber-hat-pill.is-bare
+{
+	color: #7ee29a;
+	border-color: rgba(102, 206, 136, 0.72);
+}
+
+.world-town-screen > .l-barber-dialog-container .details-container.wx-barber-details .column.is-character-background-container .row.is-top
+{
+	height: 3.7rem !important;
+}
+
+.world-town-screen > .l-barber-dialog-container .details-container.wx-barber-details .column.is-character-background-container .row.is-top .border
+{
+	height: 3.7rem !important;
+}
+
+.world-town-screen > .l-barber-dialog-container .details-container.wx-barber-details .column.is-character-background-container .row.is-bottom
+{
+	top: 4.2rem !important;
+	left: 13.4rem !important;
+	right: 0.8rem !important;
+	height: 11.6rem !important;
+	z-index: 8 !important;
+	line-height: 1.9rem !important;
+}
+
+.wx-disguise-rename-box
+{
+	padding: 0.55rem 0.8rem;
+	height: 11.6rem;
+	background: rgba(16, 11, 7, 0.58);
+	border: 1px solid rgba(132, 98, 48, 0.45);
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+.wx-disguise-inp-row
+{
+	position: relative;
+	height: 3.0rem;
+	line-height: 3.0rem;
+	margin-bottom: 0.5rem;
+	white-space: nowrap;
+}
+.wx-disguise-inp-row.is-last
+{
+	margin-bottom: 0;
+}
+
+.wx-disguise-inp-lbl
+{
+	display: inline-block;
+	width: 3.6rem;
+	color: #bd9d71;
+	font-size: 1.26rem;
+	text-shadow: 1px 1px 1px #000;
+	vertical-align: middle;
+}
+
+.world-town-screen > .l-barber-dialog-container .details-container.wx-barber-details input.wx-disguise-inp
+{
+	display: inline-block !important;
+	width: 19.2rem !important;
+	height: 2.9rem !important;
+	line-height: 2.9rem !important;
+	padding: 0 0.65rem !important;
+	margin: 0 0.65rem 0 0 !important;
+	border: 1px solid rgba(154, 116, 56, 0.58) !important;
+	outline: none !important;
+	background-color: rgba(12, 9, 6, 0.88) !important;
+	background-image: url("coui://gfx/ui/skin/text_input_300x40_default.png") !important;
+	background-size: 100% 100% !important;
+	background-repeat: no-repeat !important;
+	color: #ffe28a !important;
+	font-size: 1.3rem !important;
+	text-shadow: 1px 1px 1px #000 !important;
+	vertical-align: middle !important;
+	box-sizing: border-box !important;
+	-webkit-user-select: text;
+	user-select: text;
+}
+.world-town-screen > .l-barber-dialog-container .details-container.wx-barber-details input.wx-disguise-inp:hover,
+.world-town-screen > .l-barber-dialog-container .details-container.wx-barber-details input.wx-disguise-inp:focus
+{
+	background-image: url("coui://gfx/ui/skin/text_input_300x40_selected.png") !important;
+	background-size: 100% 100% !important;
+	border-color: #dda21f !important;
+}
+
+.wx-disguise-rename-btn
+{
+	width: 8.8rem;
+	height: 2.9rem !important;
+	line-height: 2.9rem !important;
+	padding: 0 0.4rem !important;
+	margin: 0 !important;
+	box-sizing: border-box;
+}
+
+.wx-disguise-rename-tip
+{
+	display: inline-block;
+	width: 8.8rem;
+	text-align: center;
+	font-size: 1.18rem;
+	color: #9f835a;
+	font-style: italic;
+	vertical-align: middle;
 }
 
 .wx-disguise-root
@@ -939,9 +1116,9 @@
 	position: absolute;
 	left: 0.8rem;
 	right: 0.8rem;
-	top: 17.4rem;
-	bottom: 0.8rem;
-	padding: 0.7rem 0.9rem;
+	top: 16.5rem;
+	bottom: 0.6rem;
+	padding: 0.75rem 0.95rem;
 	background-image: url("coui://gfx/ui/skin/dialog_panel_01.png");
 	background-size: 100% 100%;
 	color: #d7b174;
@@ -955,57 +1132,68 @@
 
 .wx-disguise-sec-hdr
 {
-	font-size: 1.45rem;
+	font-size: 1.4rem;
 	color: #dda21f;
-	margin-bottom: 0.35rem;
+	margin-bottom: 0.38rem;
 }
 
 .wx-disguise-step-row
 {
 	position: relative;
-	height: 2.9rem;
-	line-height: 2.9rem;
+	height: 3.0rem;
+	line-height: 3.0rem;
 	margin-bottom: 0.28rem;
-	padding: 0 0.4rem;
-	background: rgba(18, 13, 8, 0.45);
+	background: rgba(18, 13, 8, 0.48);
 	border-bottom: 1px solid rgba(90, 67, 37, 0.35);
+	overflow: hidden;
 }
 
 .wx-disguise-step-lbl
 {
-	float: left;
-	width: 7.4rem;
+	position: absolute;
+	left: 0.65rem;
+	top: 0;
+	width: 8.0rem;
 	color: #bd9d71;
 	font-size: 1.3rem;
+	white-space: nowrap;
 }
 
 .wx-disguise-step-val
 {
-	display: inline-block;
-	width: 14.8rem;
+	position: absolute;
+	left: 12.6rem;
+	right: 4.3rem;
+	top: 0;
 	text-align: center;
 	color: #ffe28a;
-	font-size: 1.32rem;
+	font-size: 1.34rem;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	vertical-align: top;
 }
 
 .wx-disguise-arr
 {
-	display: inline-block;
-	width: 3.1rem;
-	height: 2.6rem;
-	line-height: 2.6rem;
-	margin-top: 0.15rem;
+	position: absolute;
+	top: 0.15rem;
+	width: 3.2rem;
+	height: 2.7rem;
+	line-height: 2.7rem;
 	text-align: center;
 	color: #dda21f;
-	font-size: 1.4rem;
+	font-size: 1.45rem;
 	background-image: url("coui://gfx/ui/skin/button_03_default.png");
 	background-size: 100% 100%;
 	cursor: pointer;
-	vertical-align: top;
+}
+.wx-disguise-arr.is-prev
+{
+	left: 9.0rem;
+}
+.wx-disguise-arr.is-next
+{
+	right: 0.6rem;
 }
 .wx-disguise-arr:hover
 {
@@ -1020,22 +1208,39 @@
 
 .wx-disguise-mini-bar
 {
-	margin: 0.4rem 0 0.65rem 0;
+	margin: 0.5rem 0 0.55rem 0;
 }
 
 .wx-disguise-btn
 {
 	display: inline-block;
 	height: 3.0rem;
-	line-height: 3.1rem;
-	padding: 0 0.85rem;
-	margin: 0.15rem 0.35rem 0.15rem 0;
+	line-height: 3.0rem;
+	padding: 0 1.0rem;
+	margin: 0.1rem 0.45rem 0.1rem 0;
 	text-align: center;
 	font-size: 1.28rem;
 	color: #dda21f;
 	background-image: url("coui://gfx/ui/skin/button_02_default.png");
 	background-size: 100% 100%;
 	cursor: pointer;
+	vertical-align: middle;
+	box-sizing: border-box;
+}
+.wx-disguise-btn.is-wide
+{
+	float: left;
+	width: 48.8%;
+	padding: 0 0.5rem;
+	margin: 0 2.4% 0 0;
+	font-size: 1.22rem;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.wx-disguise-btn.is-wide.is-last
+{
+	margin-right: 0;
 }
 .wx-disguise-btn:hover
 {
@@ -1049,40 +1254,990 @@
 	pointer-events: none;
 }
 
-.wx-disguise-inp-row
+.wx-disguise-secret-bar
 {
-	margin-bottom: 0.4rem;
-	white-space: nowrap;
-}
-
-.wx-disguise-inp
-{
-	display: inline-block;
-	width: 11.2rem;
-	height: 2.9rem;
-	padding: 0 0.65rem;
-	margin-right: 0.35rem;
-	border: none;
-	outline: none;
-	background-image: url("coui://gfx/ui/skin/text_input_300x40_default.png");
-	background-size: 100% 100%;
-	color: #dda21f;
-	font-size: 1.32rem;
-	text-shadow: 1px 1px 1px #000;
-	vertical-align: middle;
-	-webkit-user-select: text;
-	user-select: text;
-}
-.wx-disguise-inp:focus
-{
-	background-image: url("coui://gfx/ui/skin/text_input_300x40_selected.png");
+	margin-top: 0.25rem;
 }
 
 .wx-disguise-status
 {
-	font-size: 1.25rem;
+	font-size: 1.24rem;
 	line-height: 1.75rem;
 	color: #bd9d71;
 	font-style: italic;
 	margin-bottom: 0.4rem;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* 10. 登门拜山 · 城镇式宗门全景山门与六大堂口 (Town-Style Panoramic Sect Sanctum) */
+.wx-sanctum-backdrop
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 9988;
+	background-color: rgba(0, 0, 0, 0.62);
+}
+
+.wx-sanctum-dialog
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 102.4rem;
+	height: 76.8rem;
+	margin: auto;
+	background-image: url("coui://gfx/ui/skin/dialog_background_01.png");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	color: #d7b174;
+	font-size: 1.38rem;
+	text-shadow: 1px 1px 1px #000;
+	box-shadow: 0 0 3.4rem rgba(0, 0, 0, 0.92);
+	overflow: hidden;
+}
+
+.wx-sanctum-hdr
+{
+	position: relative;
+	height: 7.2rem;
+	padding: 0.85rem 6.2rem 0.25rem 6.2rem;
+	text-align: center;
+	box-sizing: border-box;
+}
+
+.wx-sanctum-banner
+{
+	position: absolute;
+	left: 1.8rem;
+	top: 0.8rem;
+	height: 6.2rem;
+	width: auto;
+	pointer-events: none;
+}
+
+.wx-sanctum-title
+{
+	font-family: 'BBMOD Map', 'STSong', 'SimSun', 'Songti SC', 'Microsoft YaHei', 'Cinzel-Bold', serif;
+	font-weight: 600;
+	font-size: 2.35rem;
+	line-height: 3.1rem;
+	color: #dda21f;
+	text-shadow: 1px 1px 2px #000, -1px -1px 1px #000;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.wx-sanctum-subtitle
+{
+	font-size: 1.28rem;
+	line-height: 2.0rem;
+	color: #bd9d71;
+	font-style: italic;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.wx-sanctum-hdr-close
+{
+	position: absolute;
+	right: 1.6rem;
+	top: 1.4rem;
+	width: 4.4rem;
+	height: 3.8rem;
+	background-image: url("coui://gfx/ui/skin/button_03_default.png");
+	background-size: 100% 100%;
+	cursor: pointer;
+}
+.wx-sanctum-hdr-close:hover
+{
+	background-image: url("coui://gfx/ui/skin/button_03_hovered.png");
+}
+.wx-sanctum-hdr-close img
+{
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	margin: auto;
+	width: 2.0rem;
+	height: 2.0rem;
+}
+
+.wx-sanctum-subbar
+{
+	position: relative;
+	height: 4.0rem;
+	line-height: 4.0rem;
+	padding: 0 2.0rem;
+	background: rgba(14, 10, 7, 0.72);
+	border-top: 1px solid rgba(154, 114, 54, 0.45);
+	border-bottom: 1px solid rgba(154, 114, 54, 0.45);
+	box-sizing: border-box;
+}
+
+.wx-sanctum-rel-group
+{
+	float: left;
+	font-size: 1.32rem;
+	color: #d7b174;
+}
+
+.wx-sanctum-rel-pill
+{
+	display: inline-block;
+	padding: 0 0.7rem;
+	height: 2.4rem;
+	line-height: 2.4rem;
+	border-radius: 2px;
+	background: rgba(26, 18, 11, 0.85);
+	border: 1px solid rgba(164, 122, 56, 0.55);
+	vertical-align: middle;
+}
+.wx-sanctum-rel-pill.is-pos { color: #ffe28a; border-color: rgba(221, 162, 31, 0.75); }
+.wx-sanctum-rel-pill.is-neg { color: #ff8070; border-color: rgba(205, 38, 38, 0.75); }
+.wx-sanctum-rel-pill.is-neu { color: #d7b174; }
+
+.wx-sanctum-vendetta-note
+{
+	margin-left: 0.9rem;
+	font-size: 1.2rem;
+	color: #a98b60;
+	font-style: italic;
+}
+
+.wx-sanctum-assets
+{
+	position: absolute;
+	left: 44.0rem;
+	top: 0;
+	height: 4.0rem;
+	line-height: 4.0rem;
+}
+
+.wx-sanctum-asset
+{
+	display: inline-block;
+	margin-right: 2.2rem;
+	font-size: 1.42rem;
+	color: #ffe28a;
+}
+
+.wx-sanctum-asset img
+{
+	width: 2.2rem;
+	height: 2.2rem;
+	vertical-align: middle;
+	margin: -0.25rem 0.45rem 0 0;
+}
+
+.wx-sanctum-dir-btn
+{
+	float: right;
+	height: 3.1rem;
+	line-height: 3.1rem;
+	margin-top: 0.4rem;
+	padding: 0 1.1rem;
+	font-size: 1.28rem;
+	color: #dda21f;
+	background-image: url("coui://gfx/ui/skin/button_02_default.png");
+	background-size: 100% 100%;
+	cursor: pointer;
+}
+.wx-sanctum-dir-btn:hover
+{
+	background-image: url("coui://gfx/ui/skin/button_02_hovered.png");
+	color: #ffe28a;
+}
+.wx-sanctum-dir-btn img
+{
+	width: 1.75rem;
+	height: 1.75rem;
+	vertical-align: middle;
+	margin: -0.2rem 0.35rem 0 0;
+}
+
+.wx-sanctum-stage
+{
+	position: relative;
+	width: 100.0rem;
+	height: 57.4rem;
+	margin: 0.7rem auto 0 auto;
+	border: 1px solid rgba(114, 84, 42, 0.75);
+	box-shadow: inset 0 0 2.0rem rgba(0, 0, 0, 0.65);
+	overflow: hidden;
+	background: #14100b;
+}
+
+.wx-sanctum-bg
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: block;
+	pointer-events: none;
+	z-index: 1;
+}
+
+.wx-sanctum-seal-banner
+{
+	position: absolute;
+	top: 1.0rem;
+	left: 16.0rem;
+	right: 16.0rem;
+	padding: 0.55rem 1.2rem;
+	text-align: center;
+	font-size: 1.32rem;
+	color: #ffb69e;
+	background: rgba(74, 14, 12, 0.88);
+	border: 1px solid #cd2626;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
+	z-index: 18;
+	pointer-events: none;
+}
+
+.wx-sanctum-stage-tip
+{
+	position: absolute;
+	left: 50%;
+	top: 0.9rem;
+	width: 38.0rem;
+	margin-left: -19.0rem;
+	padding: 0.28rem 1.0rem;
+	text-align: center;
+	font-size: 1.2rem;
+	color: #e7cda0;
+	background: rgba(16, 11, 7, 0.62);
+	border: 1px solid rgba(166, 126, 62, 0.35);
+	border-radius: 2px;
+	z-index: 9;
+	pointer-events: none;
+}
+
+.wx-sanctum-hall
+{
+	position: absolute;
+	cursor: pointer;
+	text-align: center;
+}
+
+.wx-sanctum-hall.is-sealed .wx-sanctum-hall-img
+{
+	opacity: 0.68;
+}
+
+.wx-sanctum-hall-img
+{
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+/* 6 Courtyard Hall Building Positions matching verified U-arc perspective on 100.0rem x 57.4rem */
+.wx-sanctum-hall.is-rear-left
+{
+	left: 25.6%;
+	bottom: 25.4%;
+	width: 17.85rem;
+	height: 12.6rem;
+	margin-left: -8.92rem;
+	z-index: 4;
+}
+.wx-sanctum-hall.is-rear-right
+{
+	left: 74.4%;
+	bottom: 25.4%;
+	width: 17.85rem;
+	height: 12.6rem;
+	margin-left: -8.92rem;
+	z-index: 4;
+}
+.wx-sanctum-hall.is-front-fl
+{
+	left: 12.5%;
+	bottom: 4.8%;
+	width: 20.4rem;
+	height: 14.4rem;
+	margin-left: -10.2rem;
+	z-index: 6;
+}
+.wx-sanctum-hall.is-front-il
+{
+	left: 35.9%;
+	bottom: 4.8%;
+	width: 19.55rem;
+	height: 13.8rem;
+	margin-left: -9.78rem;
+	z-index: 6;
+}
+.wx-sanctum-hall.is-front-ir
+{
+	left: 64.1%;
+	bottom: 4.8%;
+	width: 19.83rem;
+	height: 14.0rem;
+	margin-left: -9.92rem;
+	z-index: 6;
+}
+.wx-sanctum-hall.is-front-fr
+{
+	left: 87.5%;
+	bottom: 4.8%;
+	width: 20.4rem;
+	height: 14.4rem;
+	margin-left: -10.2rem;
+	z-index: 6;
+}
+.wx-sanctum-hall.is-hovered
+{
+	z-index: 12;
+}
+
+.wx-sanctum-hall-sign
+{
+	position: absolute;
+	left: 50%;
+	bottom: -1.35rem;
+	width: 13.2rem;
+	margin-left: -6.6rem;
+	height: 2.6rem;
+	line-height: 2.6rem;
+	padding: 0 0.45rem;
+	text-align: center;
+	font-size: 1.32rem;
+	color: #e4c282;
+	text-shadow: 1px 1px 1px #000, -1px -1px 1px #000;
+	background-image: url("coui://gfx/ui/skin/dialog_panel_01.png");
+	background-size: 100% 100%;
+	box-shadow: 0 2px 7px rgba(0, 0, 0, 0.88);
+	pointer-events: none;
+	white-space: nowrap;
+	box-sizing: border-box;
+}
+
+.wx-sanctum-hall.is-hovered .wx-sanctum-hall-sign
+{
+	color: #ffe28a;
+	box-shadow: 0 0 10px rgba(221, 162, 31, 0.65), 0 2px 7px rgba(0, 0, 0, 0.92);
+}
+
+.wx-sanc-pip
+{
+	display: inline-block;
+	margin-left: 0.4rem;
+	padding: 0 0.35rem;
+	height: 1.65rem;
+	line-height: 1.65rem;
+	font-size: 1.05rem;
+	color: #d7b174;
+	background: rgba(24, 17, 10, 0.85);
+	border: 1px solid rgba(160, 120, 56, 0.55);
+	border-radius: 2px;
+	vertical-align: middle;
+}
+.wx-sanc-pip.is-gold
+{
+	color: #1c1208;
+	background: #dda21f;
+	border-color: #ffe28a;
+	text-shadow: none;
+	font-weight: bold;
+}
+
+.wx-sanctum-hall-hint
+{
+	display: none;
+	position: absolute;
+	left: 50%;
+	top: -2.4rem;
+	width: 16.4rem;
+	margin-left: -8.2rem;
+	padding: 0.22rem 0.6rem;
+	text-align: center;
+	font-size: 1.18rem;
+	color: #ffe28a;
+	background: rgba(16, 11, 7, 0.90);
+	border: 1px solid rgba(221, 162, 31, 0.65);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+	pointer-events: none;
+	white-space: nowrap;
+}
+
+.wx-sanctum-hall.is-hovered .wx-sanctum-hall-hint
+{
+	display: block;
+}
+
+.wx-sanctum-foot
+{
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 1.4rem;
+	height: 4.4rem;
+	text-align: center;
+}
+
+/* Hall Interior Overlay Modal (opens when clicking any of the 6 Hall buildings) */
+.wx-sanctum-hall-overlay
+{
+	position: absolute;
+	top: 11.2rem;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 24;
+	background: rgba(8, 6, 4, 0.72);
+}
+
+.wx-sanctum-hall-modal
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 76.0rem;
+	height: 52.0rem;
+	margin: auto;
+	padding: 1.8rem 2.4rem 1.4rem 2.4rem;
+	background-image: url("coui://gfx/ui/skin/dialog_background_01.png");
+	background-size: 100% 100%;
+	box-shadow: 0 0 3.0rem rgba(0, 0, 0, 0.95);
+	box-sizing: border-box;
+}
+.wx-sanctum-hall-modal.is-wide
+{
+	width: 88.0rem;
+	height: 55.0rem;
+}
+
+.wx-sanc-hall-hdr
+{
+	position: relative;
+	padding-right: 5.2rem;
+	margin-bottom: 0.4rem;
+}
+
+.wx-sanc-hall-title
+{
+	font-family: 'BBMOD Map', 'STSong', 'SimSun', 'Songti SC', 'Microsoft YaHei', 'Cinzel-Bold', serif;
+	font-weight: 600;
+	font-size: 2.05rem;
+	line-height: 2.7rem;
+	color: #dda21f;
+}
+
+.wx-sanc-hall-sub
+{
+	font-size: 1.26rem;
+	line-height: 1.85rem;
+	color: #bd9d71;
+	font-style: italic;
+}
+
+.wx-sanc-hall-close
+{
+	position: absolute;
+	right: 0;
+	top: 0.1rem;
+	width: 4.2rem;
+	height: 3.6rem;
+	background-image: url("coui://gfx/ui/skin/button_03_default.png");
+	background-size: 100% 100%;
+	cursor: pointer;
+}
+.wx-sanc-hall-close:hover
+{
+	background-image: url("coui://gfx/ui/skin/button_03_hovered.png");
+}
+.wx-sanc-hall-close img
+{
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	margin: auto;
+	width: 1.9rem;
+	height: 1.9rem;
+}
+
+.wx-sanc-hall-body
+{
+	position: absolute;
+	top: 8.6rem;
+	left: 2.4rem;
+	right: 2.4rem;
+	bottom: 6.4rem;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding-right: 0.4rem;
+}
+
+.wx-sanc-hall-body::-webkit-scrollbar
+{
+	width: 1.0rem;
+}
+.wx-sanc-hall-body::-webkit-scrollbar-track
+{
+	background-image: url("coui://ui/extern/jquery-aciScrollBar/image/aciScrollBar.desk/track_v.png");
+	background-size: 100% 100%;
+}
+.wx-sanc-hall-body::-webkit-scrollbar-thumb
+{
+	background-image: url("coui://ui/extern/jquery-aciScrollBar/image/aciScrollBar.desk/drag_g.png");
+	background-size: 100% 100%;
+}
+
+.wx-sanc-hall-foot
+{
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 1.2rem;
+	height: 4.3rem;
+	text-align: center;
+}
+
+.wx-sanc-hall-warn
+{
+	padding: 0.65rem 1.0rem;
+	margin-bottom: 0.8rem;
+	color: #ffb09c;
+	background: rgba(88, 18, 14, 0.72);
+	border: 1px solid #cd2626;
+	font-size: 1.3rem;
+}
+
+.wx-sanc-card
+{
+	position: relative;
+	padding: 1.15rem 1.35rem;
+	margin-bottom: 0.9rem;
+	background-image: url("coui://gfx/ui/skin/dialog_panel_01.png");
+	background-size: 100% 100%;
+	border: 1px solid rgba(154, 114, 54, 0.42);
+}
+.wx-sanc-card.is-danger
+{
+	border-color: rgba(205, 38, 38, 0.62);
+}
+
+.wx-sanc-card-ico
+{
+	float: left;
+	width: 5.0rem;
+	height: 5.0rem;
+	margin-right: 1.2rem;
+	background: rgba(12, 8, 5, 0.72);
+	border: 1px solid rgba(164, 122, 56, 0.58);
+	text-align: center;
+	line-height: 4.8rem;
+}
+.wx-sanc-card-ico img
+{
+	width: 3.6rem;
+	height: 3.6rem;
+	vertical-align: middle;
+}
+
+.wx-sanc-card-body
+{
+	float: left;
+	width: 44.0rem;
+}
+
+.wx-sanc-card-title
+{
+	font-size: 1.56rem;
+	color: #ffe28a;
+	margin-bottom: 0.25rem;
+}
+.wx-sanc-card.is-danger .wx-sanc-card-title
+{
+	color: #ff9a8f;
+}
+
+.wx-sanc-card-desc
+{
+	font-size: 1.28rem;
+	line-height: 1.85rem;
+	color: #d7b174;
+}
+
+.wx-sanc-card-meta
+{
+	margin-top: 0.3rem;
+	font-size: 1.2rem;
+	color: #a98b60;
+	font-style: italic;
+}
+
+.wx-sanc-card-act
+{
+	float: right;
+	padding-top: 0.7rem;
+}
+
+.wx-sanc-act-btn
+{
+	display: inline-block;
+	min-width: 14.4rem;
+	height: 3.8rem;
+	line-height: 3.9rem;
+	padding: 0 1.2rem;
+	text-align: center;
+	font-size: 1.35rem;
+	color: #dda21f;
+	background-image: url("coui://gfx/ui/skin/button_01_default.png");
+	background-size: 100% 100%;
+	cursor: pointer;
+	box-sizing: border-box;
+}
+.wx-sanc-act-btn:hover
+{
+	background-image: url("coui://gfx/ui/skin/button_01_hovered.png");
+	color: #ffe28a;
+}
+.wx-sanc-act-btn.is-danger
+{
+	color: #ff9a8f;
+}
+.wx-sanc-act-btn.is-disabled
+{
+	opacity: 0.45;
+	cursor: default;
+	pointer-events: none;
+}
+
+/* Cangjing Pavilion 2-column Martial Manual Shelf */
+.wx-sanc-lib-bar
+{
+	font-size: 1.3rem;
+	color: #bd9d71;
+	margin-bottom: 0.75rem;
+	padding: 0.45rem 0.8rem;
+	background: rgba(16, 11, 7, 0.62);
+	border-left: 3px solid #dda21f;
+}
+
+.wx-sanc-manual-grid
+{
+	margin: 0 -0.45rem;
+}
+
+.wx-sanc-mcard
+{
+	float: left;
+	width: 40.4rem;
+	min-height: 7.4rem;
+	margin: 0 0.45rem 0.75rem 0.45rem;
+	padding: 0.85rem 1.0rem;
+	background-image: url("coui://gfx/ui/skin/dialog_panel_01.png");
+	background-size: 100% 100%;
+	border: 1px solid rgba(140, 102, 48, 0.42);
+	box-sizing: border-box;
+}
+.wx-sanc-mcard.is-masked
+{
+	opacity: 0.76;
+}
+.wx-sanc-mcard .wx-sect-manual-fig
+{
+	position: relative;
+	float: left;
+	width: 4.8rem;
+	height: 4.8rem;
+	margin-right: 0.85rem;
+	background: rgba(12, 8, 5, 0.7);
+	border: 1px solid rgba(150, 112, 58, 0.62);
+	text-align: center;
+}
+.wx-sanc-mcard-body
+{
+	overflow: hidden;
+}
+.wx-sanc-mcard-top
+{
+	font-size: 1.44rem;
+	line-height: 2.0rem;
+	margin-bottom: 0.2rem;
+}
+.wx-sanc-mcard-meta
+{
+	font-size: 1.24rem;
+	line-height: 1.75rem;
+	color: #bd9d71;
+	margin-bottom: 0.3rem;
+}
+.wx-sanc-mcard-foot
+{
+	font-size: 1.26rem;
+	line-height: 2.5rem;
+}
+
+/* ============================================================================
+ * 10. High-Contrast Parchment Item Tooltip Visual Hierarchy
+ * Scoped strictly to `.tooltip-module.is-ui-item-content` (vanilla light parchment
+ * `#bda882` background). Uses deep saturated ink tones for WCAG >= 5:1 contrast.
+ * CoherentUI Safe: zero CSS variables, zero flex/grid/gap/calc.
+ * ============================================================================ */
+.tooltip-module.is-ui-item-content .row.title-container
+{
+	padding-bottom: 0.35rem;
+	margin-bottom: 0.22rem;
+	border-bottom: 1px solid rgba(92, 66, 36, 0.36);
+}
+
+.tooltip-module.is-ui-item-content.wx-tt-tier-0 .row.title-container .title
+{
+	color: #1b1510 !important;
+}
+
+.tooltip-module.is-ui-item-content.wx-tt-tier-1 .row.title-container
+{
+	border-bottom-color: rgba(11, 74, 30, 0.50);
+}
+
+.tooltip-module.is-ui-item-content.wx-tt-tier-1 .row.title-container .title
+{
+	color: #0b4a1e !important;
+}
+
+.tooltip-module.is-ui-item-content.wx-tt-tier-2 .row.title-container
+{
+	border-bottom-color: rgba(80, 24, 125, 0.52);
+}
+
+.tooltip-module.is-ui-item-content.wx-tt-tier-2 .row.title-container .title
+{
+	color: #50187d !important;
+}
+
+.tooltip-module.is-ui-item-content.wx-tt-tier-3 .row.title-container
+{
+	border-bottom-color: rgba(124, 20, 20, 0.58);
+}
+
+.tooltip-module.is-ui-item-content.wx-tt-tier-3 .row.title-container .title
+{
+	color: #7c1414 !important;
+}
+
+.tooltip-module.is-ui-item-content .wx-tt-tier-pill
+{
+	display: inline-block;
+	margin-left: 0.45rem;
+	padding: 0 0.42rem;
+	font-family: 'BBMOD Han', 'Microsoft YaHei', 'SimHei', sans-serif;
+	font-size: 1.12rem;
+	font-weight: bold;
+	line-height: 1.62rem;
+	vertical-align: 0.1rem;
+	border-radius: 0.25rem;
+	border: 1px solid rgba(92, 66, 36, 0.45);
+	background-color: rgba(88, 64, 34, 0.12);
+	color: #3a2d1e;
+}
+
+.tooltip-module.is-ui-item-content .wx-tt-tier-pill.is-t1
+{
+	color: #0b4a1e;
+	border-color: rgba(11, 74, 30, 0.55);
+	background-color: rgba(11, 74, 30, 0.11);
+}
+
+.tooltip-module.is-ui-item-content .wx-tt-tier-pill.is-t2
+{
+	color: #50187d;
+	border-color: rgba(80, 24, 125, 0.55);
+	background-color: rgba(80, 24, 125, 0.11);
+}
+
+.tooltip-module.is-ui-item-content .wx-tt-tier-pill.is-t3
+{
+	color: #7c1414;
+	border-color: rgba(124, 20, 20, 0.62);
+	background-color: rgba(124, 20, 20, 0.12);
+}
+
+.tooltip-module.is-ui-item-content .row.description-container
+{
+	margin-top: 0.22rem;
+	padding-bottom: 0.45rem;
+	margin-bottom: 0.28rem;
+	border-bottom: 1px dashed rgba(92, 66, 36, 0.36);
+}
+
+.tooltip-module.is-ui-item-content .description-container .description
+{
+	color: #4a3723 !important;
+	font-style: italic;
+	line-height: 1.85rem;
+}
+
+.tooltip-module.is-ui-item-content .description-container .description b,
+.tooltip-module.is-ui-item-content .description-container .description strong
+{
+	font-style: normal;
+}
+
+.tooltip-module.is-ui-item-content .row.content-container .text,
+.tooltip-module.is-ui-item-content .row.content-child-container .text
+{
+	color: #261e16 !important;
+}
+
+.tooltip-module.is-ui-item-content .row.content-container .text b,
+.tooltip-module.is-ui-item-content .row.content-child-container .text b
+{
+	font-weight: bold;
+}
+
+.tooltip-module.is-ui-item-content.has-wx-hints .hint-container
+{
+	margin-top: 0.45rem;
+	padding-top: 0.32rem;
+	border-top: 1px solid rgba(92, 66, 36, 0.30);
+}
+
+.tooltip-module.is-ui-item-content .hint-container .text
+{
+	color: #4d4032 !important;
+}
+
+/* ============================================================================
+ * 11. World Map Sect Sanctum Quest Tracker (`宗门法帖` HUD Panel)
+ * CoherentUI Safe: zero CSS variables, zero flex/grid.
+ * ============================================================================ */
+.wx-sect-quest-tracker
+{
+	position: absolute;
+	top: 6.4rem;
+	right: 1.4rem;
+	width: 26.8rem;
+	z-index: 12;
+	background-color: rgba(18, 13, 9, 0.88);
+	border: 1px solid rgba(176, 134, 68, 0.62);
+	border-radius: 0.3rem;
+	box-shadow: 0 0.3rem 1.0rem rgba(0, 0, 0, 0.72);
+	pointer-events: auto;
+}
+
+.wx-sect-quest-tracker.has-ready
+{
+	border-color: rgba(112, 214, 146, 0.85);
+	box-shadow: 0 0 1.1rem rgba(78, 185, 115, 0.35);
+}
+
+.wx-sect-quest-tracker .wx-sqt-header
+{
+	padding: 0.42rem 0.75rem;
+	background-color: rgba(44, 31, 18, 0.92);
+	border-bottom: 1px solid rgba(150, 112, 58, 0.45);
+	cursor: pointer;
+	overflow: hidden;
+}
+
+.wx-sect-quest-tracker .wx-sqt-title
+{
+	float: left;
+	font-size: 1.28rem;
+	font-weight: bold;
+	color: #e6c67c;
+	line-height: 1.7rem;
+}
+
+.wx-sect-quest-tracker .wx-sqt-toggle
+{
+	float: right;
+	font-size: 1.25rem;
+	color: #bd9d71;
+	line-height: 1.7rem;
+}
+
+.wx-sect-quest-tracker .wx-sqt-list
+{
+	max-height: 24.0rem;
+	overflow-y: auto;
+	padding: 0.35rem 0.55rem;
+}
+
+.wx-sect-quest-tracker .wx-sqt-row
+{
+	padding: 0.42rem 0.55rem;
+	margin-bottom: 0.35rem;
+	background-color: rgba(28, 20, 13, 0.78);
+	border-left: 3px solid #b58a42;
+	cursor: pointer;
+}
+
+.wx-sect-quest-tracker .wx-sqt-row:hover
+{
+	background-color: rgba(52, 37, 22, 0.90);
+}
+
+.wx-sect-quest-tracker .wx-sqt-row.is-ready
+{
+	border-left-color: #5fd387;
+	background-color: rgba(20, 38, 26, 0.84);
+}
+
+.wx-sect-quest-tracker .wx-sqt-row-top
+{
+	overflow: hidden;
+	margin-bottom: 0.16rem;
+}
+
+.wx-sect-quest-tracker .wx-sqt-sect
+{
+	float: left;
+	font-size: 1.24rem;
+	font-weight: bold;
+	color: #f0dec0;
+}
+
+.wx-sect-quest-tracker .wx-sqt-badge
+{
+	float: right;
+	font-size: 1.08rem;
+	padding: 0 0.38rem;
+	border-radius: 0.2rem;
+	background-color: rgba(181, 138, 66, 0.22);
+	border: 1px solid rgba(181, 138, 66, 0.55);
+	color: #dfbe78;
+}
+
+.wx-sect-quest-tracker .wx-sqt-badge.is-ready
+{
+	background-color: rgba(70, 175, 108, 0.25);
+	border-color: rgba(95, 211, 135, 0.78);
+	color: #82f0a6;
+	font-weight: bold;
+}
+
+.wx-sect-quest-tracker .wx-sqt-row-label
+{
+	font-size: 1.18rem;
+	color: #d8c8ad;
+	line-height: 1.58rem;
+}
+
+.wx-sect-quest-tracker .wx-sqt-row-loc
+{
+	font-size: 1.10rem;
+	color: #9e8a6b;
+	line-height: 1.48rem;
 }

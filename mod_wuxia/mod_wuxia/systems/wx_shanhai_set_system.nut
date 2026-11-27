@@ -151,7 +151,7 @@
 {
 	if (_target == null) return false;
 	local tsk = (::Wuxia.hasMember(_target, "getSkills")) ? _target.getSkills() : null;
-	if (tsk != null && tsk.hasSkill("special.wx_shanhai_boss_trait"))
+	if (tsk != null && ((("ShanHai" in ::Wuxia) && ("findBossTrait" in ::Wuxia.ShanHai) && ::Wuxia.ShanHai.findBossTrait(tsk) != null) || tsk.hasSkill("special.wx_shanhai_boss_trait")))
 		return true;
 	if (::Wuxia.hasMember(_target, "getType") && ("BeastCraft" in ::Wuxia) && ("getEntityKey" in ::Wuxia.BeastCraft))
 	{

@@ -12,7 +12,95 @@
 ::Wuxia.VFX <- {
 	Config = {
 		ShowSkillVfx      = true,
-		EnableActorMotion = true
+		EnableActorMotion = true,
+		ShowSkillCutIn    = false,
+		EnableWuxiaSfx    = true
+	},
+	EnableWuxiaSfx = true,
+	isSfxEnabled = function()
+	{
+		if ("EnableWuxiaSfx" in ::Wuxia.VFX && !::Wuxia.VFX.EnableWuxiaSfx)
+			return false;
+		return !("Config" in ::Wuxia.VFX) || !("EnableWuxiaSfx" in ::Wuxia.VFX.Config) || ::Wuxia.VFX.Config.EnableWuxiaSfx;
+	},
+	resolveMoveSoundBank = function( _skill )
+	{
+		if (_skill == null) return null;
+		local sid = (::Wuxia.hasMember(_skill, "getID") && _skill.getID() != null) ? _skill.getID() : "";
+		local reqs = (::Wuxia.hasMember(_skill, "m") && _skill.m != null && ::Wuxia.hasMember(_skill.m, "RequiredWeaponTypes") && _skill.m.RequiredWeaponTypes != null)
+			? _skill.m.RequiredWeaponTypes : [];
+
+		if (sid.find("acupoint") != null || sid.find("yiyang") != null || sid.find("canhe") != null || sid.find("nianhua") != null || sid.find("fuxue") != null)
+		{
+			return {
+				use = ["sounds/wx_combat/wx_finger_acupoint_01.wav", "sounds/wx_combat/wx_finger_acupoint_02.wav"],
+				hit = ["sounds/wx_combat/wx_finger_acupoint_02.wav", "sounds/wx_combat/wx_palm_inch_01.wav"]
+			};
+		}
+		if (sid.find("wx_gun_") == 8 || sid.find("pilidan") != null || reqs.find("Firearm") != null)
+		{
+			return {
+				use = ["sounds/wx_combat/wx_firelance_boom_01.wav"],
+				hit = ["sounds/wx_combat/wx_thunder_quake_01.wav"]
+			};
+		}
+		if (reqs.find("Fist") != null)
+		{
+			if (sid.find("xianglong") != null || sid.find("rulai") != null || sid.find("jingang") != null || sid.find("nuchao") != null || sid.find("hama") != null)
+			{
+				return {
+					use = ["sounds/wx_combat/wx_palm_dragon_01.wav", "sounds/wx_combat/wx_palm_dragon_02.wav"],
+					hit = ["sounds/wx_combat/wx_palm_inch_01.wav", "sounds/wx_combat/wx_thunder_quake_01.wav"]
+				};
+			}
+			return {
+				use = ["sounds/wx_combat/wx_palm_inch_01.wav", "sounds/wx_combat/wx_palm_dragon_01.wav"],
+				hit = ["sounds/wx_combat/wx_palm_inch_01.wav"]
+			};
+		}
+		if (reqs.find("Sword") != null || reqs.find("Dagger") != null)
+		{
+			return {
+				use = ["sounds/wx_combat/wx_sword_qi_01.wav", "sounds/wx_combat/wx_sword_qi_02.wav"],
+				hit = ["sounds/wx_combat/wx_sword_hit_01.wav"]
+			};
+		}
+		if (reqs.find("Saber") != null || reqs.find("Cleaver") != null)
+		{
+			return {
+				use = ["sounds/wx_combat/wx_saber_gale_01.wav", "sounds/wx_combat/wx_saber_gale_02.wav"],
+				hit = ["sounds/wx_combat/wx_sword_hit_01.wav"]
+			};
+		}
+		if (reqs.find("Flail") != null || sid.find("whip") != null)
+		{
+			return {
+				use = ["sounds/wx_combat/wx_whip_crack_01.wav"],
+				hit = ["sounds/wx_combat/wx_whip_crack_01.wav", "sounds/wx_combat/wx_sword_hit_01.wav"]
+			};
+		}
+		if (reqs.find("Hammer") != null || reqs.find("Axe") != null)
+		{
+			return {
+				use = ["sounds/wx_combat/wx_saber_gale_02.wav", "sounds/wx_combat/wx_thunder_quake_01.wav"],
+				hit = ["sounds/wx_combat/wx_thunder_quake_01.wav"]
+			};
+		}
+		if (reqs.find("Spear") != null || reqs.find("Polearm") != null || reqs.find("Staff") != null)
+		{
+			return {
+				use = ["sounds/wx_combat/wx_spear_phoenix_01.wav"],
+				hit = ["sounds/wx_combat/wx_sword_hit_01.wav", "sounds/wx_combat/wx_palm_inch_01.wav"]
+			};
+		}
+		if (reqs.find("Throwing") != null || reqs.find("Bow") != null || reqs.find("Crossbow") != null)
+		{
+			return {
+				use = ["sounds/wx_combat/wx_throwing_rain_01.wav"],
+				hit = ["sounds/wx_combat/wx_sword_hit_01.wav"]
+			};
+		}
+		return null;
 	},
 	Cache                  = {},
 	FlipbookCache          = {},
@@ -23,6 +111,15 @@
 	LastQinggongCast       = {},
 
 	TacticalVfxTextures = [
+		"gfx/wx_kinetic_0.png",
+		"gfx/wx_kinetic_1.png",
+		"gfx/wx_kinetic_2.png",
+		"gfx/wx_kinetic_3.png",
+		"gfx/wx_kinetic_4.png",
+		"gfx/wx_kinetic_5.png",
+		"gfx/wx_kinetic_6.png",
+		"gfx/wx_kinetic_7.png",
+		"gfx/wx_kinetic_8.png",
 		"gfx/wx_effects_0.png",
 		"gfx/wx_effects_1.png",
 		"gfx/wx_effects_2.png",
@@ -30,13 +127,57 @@
 		"gfx/wx_effects_4.png",
 		"gfx/wx_effects_5.png",
 		"gfx/wx_projectiles_0.png",
-		"gfx/wx_corpses_0.png"
+		"gfx/wx_corpses_0.png",
+		"gfx/wx_corpses_1.png"
 	],
 	TacticalBaseTextures = [
 		"gfx/wx_effects_4.png",
 		"gfx/wx_projectiles_0.png",
-		"gfx/wx_corpses_0.png"
+		"gfx/wx_corpses_1.png"
 	],
+
+	SeqToKineticSheet = {
+		wx_kin_celestial_beam = ["gfx/wx_kinetic_0.png", "gfx/wx_kinetic_7.png"],
+		wx_kin_dragon_surge   = ["gfx/wx_kinetic_0.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_flame_cleave   = ["gfx/wx_kinetic_0.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_flame_pillar   = ["gfx/wx_kinetic_0.png"],
+		wx_kin_sword_slash    = ["gfx/wx_kinetic_0.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_thunder_bolt   = ["gfx/wx_kinetic_0.png"],
+		wx_kin_blood_arc      = ["gfx/wx_kinetic_1.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_claw_rend      = ["gfx/wx_kinetic_1.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_shadow_cross   = ["gfx/wx_kinetic_1.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_spear_drill    = ["gfx/wx_kinetic_1.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_whip_lash      = ["gfx/wx_kinetic_1.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_whirl_cyclone  = ["gfx/wx_kinetic_1.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_arrow_barrage  = ["gfx/wx_kinetic_2.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_buddha_palm    = ["gfx/wx_kinetic_2.png"],
+		wx_kin_earth_shatter  = ["gfx/wx_kinetic_2.png"],
+		wx_kin_frost_burst    = ["gfx/wx_kinetic_2.png"],
+		wx_kin_sonic_wave     = ["gfx/wx_kinetic_2.png"],
+		wx_kin_venom_mire     = ["gfx/wx_kinetic_2.png"],
+		wx_kin_golden_dome    = ["gfx/wx_kinetic_3.png"],
+		wx_kin_qinggong_gust  = ["gfx/wx_kinetic_3.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_soul_vortex    = ["gfx/wx_kinetic_3.png", "gfx/wx_kinetic_7.png"],
+		wx_kin_taiji_seal     = ["gfx/wx_kinetic_3.png"],
+		wx_kin_bamboo_bind    = ["gfx/wx_kinetic_4.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_fist_flurry    = ["gfx/wx_kinetic_4.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_flying_knives  = ["gfx/wx_kinetic_4.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_giant_axe      = ["gfx/wx_kinetic_4.png", "gfx/wx_kinetic_7.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_lotus_poke     = ["gfx/wx_kinetic_4.png"],
+		wx_kin_phoenix_spear  = ["gfx/wx_kinetic_4.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_cannon_blast   = ["gfx/wx_kinetic_5.png"],
+		wx_kin_gold_needles   = ["gfx/wx_kinetic_5.png"],
+		wx_kin_peacock_fan    = ["gfx/wx_kinetic_5.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_tidal_wave     = ["gfx/wx_kinetic_5.png", "gfx/wx_kinetic_7.png"],
+		wx_kin_war_banner     = ["gfx/wx_kinetic_5.png"],
+		wx_kin_xuanwu_aegis   = ["gfx/wx_kinetic_5.png"],
+		wx_kin_moon_crescent  = ["gfx/wx_kinetic_6.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_prism_burst    = ["gfx/wx_kinetic_6.png"],
+		wx_kin_smoke_cloud    = ["gfx/wx_kinetic_6.png"],
+		wx_kin_snow_step      = ["gfx/wx_kinetic_6.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_sword_rain     = ["gfx/wx_kinetic_6.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_warp_seal      = ["gfx/wx_kinetic_6.png"]
+	},
 
 	MotionBodyLayers = [
 		"body", "armor", "surcoat", "tattoo_body", "armor_upgrade_back",
@@ -47,7 +188,8 @@
 		"head", "head_frenzy", "head_hurt", "closed_eyes", "eye_rings",
 		"tattoo_head", "injury", "permanent_injury_1", "permanent_injury_2",
 		"permanent_injury_3", "permanent_injury_4",
-		"beard", "beard_top", "hair", "helmet", "helmet_damage"
+		"beard", "beard_top", "hair", "helmet", "helmet_damage",
+		"helmet_bottom", "helmet_top", "helmet_vanity", "helmet_lower"
 	],
 	MotionWeaponLayers = [
 		"arms_icon", "shaft"
@@ -301,11 +443,54 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 	return ::Wuxia.VFX.Config.EnableActorMotion;
 };
 
+::Wuxia.VFX.isCutInEnabled <- function()
+{
+	return ::Wuxia.VFX.Config.ShowSkillVfx && ::Wuxia.VFX.Config.ShowSkillCutIn;
+};
+
+if (!("Settings" in ::Wuxia))
+{
+	::Wuxia.Settings <- {
+		FastRitual = false,
+		getPayload = function()
+		{
+			return {
+				showSkillVfx      = ::Wuxia.VFX.Config.ShowSkillVfx,
+				enableActorMotion = ::Wuxia.VFX.Config.EnableActorMotion,
+				showSkillCutIn    = ::Wuxia.VFX.Config.ShowSkillCutIn,
+				enableWuxiaSfx    = ::Wuxia.VFX.Config.EnableWuxiaSfx,
+				FastRitual        = ::Wuxia.Settings.FastRitual
+			};
+		},
+		updateSetting = function( _key, _val )
+		{
+			local b = (_val == true || _val == 1 || _val == "1" || _val == "true");
+			if (_key == "enableWuxiaSfx" || _key == "EnableWuxiaSfx")
+			{
+				::Wuxia.VFX.Config.EnableWuxiaSfx = b;
+				::Wuxia.VFX.EnableWuxiaSfx = b;
+			}
+			else if (_key == "showSkillVfx" || _key == "ShowSkillVfx")
+				::Wuxia.VFX.Config.ShowSkillVfx = b;
+			else if (_key == "enableActorMotion" || _key == "EnableActorMotion")
+				::Wuxia.VFX.Config.EnableActorMotion = b;
+			else if (_key == "showSkillCutIn" || _key == "ShowSkillCutIn")
+				::Wuxia.VFX.Config.ShowSkillCutIn = b;
+			else if (_key == "FastRitual" || _key == "fastRitual")
+				::Wuxia.Settings.FastRitual = b;
+			::Wuxia.VFX.OptionsDirtyInSession = true;
+			::Wuxia.VFX.saveOptionsToWorld();
+			return ::Wuxia.Settings.getPayload();
+		}
+	};
+}
+
 ::Wuxia.VFX.getOptions <- function()
 {
 	return {
 		showSkillVfx      = ::Wuxia.VFX.Config.ShowSkillVfx,
-		enableActorMotion = ::Wuxia.VFX.Config.EnableActorMotion
+		enableActorMotion = ::Wuxia.VFX.Config.EnableActorMotion,
+		showSkillCutIn    = ::Wuxia.VFX.Config.ShowSkillCutIn
 	};
 };
 
@@ -317,6 +502,7 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 		{
 			::World.Flags.set("wx_opt_skill_vfx", ::Wuxia.VFX.Config.ShowSkillVfx ? 1 : 0);
 			::World.Flags.set("wx_opt_actor_motion", ::Wuxia.VFX.Config.EnableActorMotion ? 1 : 0);
+			::World.Flags.set("wx_opt_skill_cutin", ::Wuxia.VFX.Config.ShowSkillCutIn ? 1 : 0);
 		}
 	}
 	catch (_e) {}
@@ -337,6 +523,8 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 				::Wuxia.VFX.Config.ShowSkillVfx = (::World.Flags.getAsInt("wx_opt_skill_vfx") != 0);
 			if (::World.Flags.has("wx_opt_actor_motion"))
 				::Wuxia.VFX.Config.EnableActorMotion = (::World.Flags.getAsInt("wx_opt_actor_motion") != 0);
+			if (::World.Flags.has("wx_opt_skill_cutin"))
+				::Wuxia.VFX.Config.ShowSkillCutIn = (::World.Flags.getAsInt("wx_opt_skill_cutin") != 0);
 		}
 	}
 	catch (_e) {}
@@ -346,11 +534,89 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 {
 	if (!("Tactical" in getroottable()) || ::Tactical == null || !("addResource" in ::Tactical))
 		return;
-	local list = ::Wuxia.VFX.Config.ShowSkillVfx ? ::Wuxia.VFX.TacticalVfxTextures : ::Wuxia.VFX.TacticalBaseTextures;
-	foreach (texPath in list)
+
+	local queued = {};
+	local addTex = function( _p )
 	{
-		try { ::Tactical.addResource(texPath); } catch (_e) {}
+		if (_p == null || (_p in queued)) return;
+		queued[_p] <- true;
+		try { ::Tactical.addResource(_p); } catch (_e) {}
+	};
+
+	foreach (baseTex in ::Wuxia.VFX.TacticalBaseTextures)
+		addTex(baseTex);
+
+	local needsCustomCorpse0 = false;
+	local seqMap = ::Wuxia.VFX.SeqToKineticSheet;
+	local profiles = ("KineticVFX" in ::Wuxia && "Profiles" in ::Wuxia.KineticVFX) ? ::Wuxia.KineticVFX.Profiles : null;
+
+	try
+	{
+		if (("Entities" in ::Tactical) && ::Tactical.Entities != null && ("getAllInstances" in ::Tactical.Entities))
+		{
+			local allInst = ::Tactical.Entities.getAllInstances();
+			if (allInst != null)
+			{
+				foreach (facList in allInst)
+				{
+					if (facList == null) continue;
+					foreach (act in facList)
+					{
+						if (act == null || !("m" in act) || act.m == null) continue;
+						if (("WX_CustomEnemyBust" in act.m && act.m.WX_CustomEnemyBust != null)
+							|| ("WX_BossID" in act.m && act.m.WX_BossID != null))
+						{
+							needsCustomCorpse0 = true;
+						}
+						if (!::Wuxia.VFX.Config.ShowSkillVfx || profiles == null || !::Wuxia.hasMember(act, "getSkills"))
+							continue;
+						local skCont = act.getSkills();
+						if (skCont == null || !("m" in skCont) || !("Skills" in skCont.m) || skCont.m.Skills == null)
+							continue;
+						foreach (sk in skCont.m.Skills)
+						{
+							if (sk == null || !("m" in sk) || sk.m.ID == null) continue;
+							if (sk.m.ID.find("actives.wx_") == 0)
+							{
+								local key = sk.m.ID.slice(8);
+								local pr = ("KineticVFX" in ::Wuxia && "getProfile" in ::Wuxia.KineticVFX)
+									? ::Wuxia.KineticVFX.getProfile(key)
+									: ((profiles != null && (key in profiles)) ? profiles[key] : null);
+								if (pr != null)
+								{
+									if (pr.seq != "" && (pr.seq in seqMap))
+									{
+										foreach (tp in seqMap[pr.seq]) addTex(tp);
+									}
+									if (pr.seq2 != "" && (pr.seq2 in seqMap))
+									{
+										foreach (tp2 in seqMap[pr.seq2]) addTex(tp2);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
+	catch (_eScan)
+	{
+		needsCustomCorpse0 = true;
+	}
+
+	if (needsCustomCorpse0)
+		addTex("gfx/wx_corpses_0.png");
+
+	if (::Wuxia.VFX.Config.ShowSkillVfx)
+	{
+		// Core particle rings, overhead skill icons & Qi trigger auras (skipping 11+ MB of unused `wx_effects_0..2` sheets!)
+		addTex("gfx/wx_effects_3.png");
+		addTex("gfx/wx_effects_5.png");
+		addTex("gfx/wx_kinetic_0.png");
+		addTex("gfx/wx_kinetic_3.png");
+	}
+
 	::Wuxia.VFX.BattleResourcesQueued = true;
 	if (_loadImmediately && ("loadResources" in ::Tactical))
 	{
@@ -358,13 +624,15 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 	}
 };
 
-::Wuxia.VFX.setOptions <- function( _showVfx, _enableMotion, _fromUI = false )
+::Wuxia.VFX.setOptions <- function( _showVfx, _enableMotion, _fromUI = false, _showCutIn = null )
 {
 	local prevVfx = ::Wuxia.VFX.Config.ShowSkillVfx;
 	if (_showVfx != null)
 		::Wuxia.VFX.Config.ShowSkillVfx = (_showVfx == true || _showVfx == 1);
 	if (_enableMotion != null)
 		::Wuxia.VFX.Config.EnableActorMotion = (_enableMotion == true || _enableMotion == 1);
+	if (_showCutIn != null)
+		::Wuxia.VFX.Config.ShowSkillCutIn = (_showCutIn == true || _showCutIn == 1);
 
 	if (_fromUI)
 	{
@@ -378,6 +646,15 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 			::Wuxia.VFX.registerTacticalResources(true);
 		if (!::Wuxia.VFX.Config.EnableActorMotion)
 			::Wuxia.VFX.clearAllActiveMotions();
+		if (!::Wuxia.VFX.isCutInEnabled())
+		{
+			try
+			{
+				if ("State" in ::Tactical && ::Tactical.State != null && ::Tactical.State.m.TacticalScreen != null && ::Tactical.State.m.TacticalScreen.m.JSHandle != null)
+					::Tactical.State.m.TacticalScreen.m.JSHandle.asyncCall("wxCloseCombatCue", null);
+			}
+			catch (_eCue) {}
+		}
 	}
 	return ::Wuxia.VFX.getOptions();
 };
@@ -447,11 +724,37 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 	return 0.0;
 };
 
-// Native OpenGL tactical direction vector (+X = Right/East, +Y = Up/North matching `tile.Pos` & `sprite.vs`)
-::Wuxia.VFX.getDirVec <- function( _fromTile, _toTile )
+// Canonical Battle Brothers horizontal facing sign: player & allies face Right (+1.0), enemies face Left (-1.0)
+::Wuxia.VFX.getActorFacingSign <- function( _actor )
 {
+	if (_actor == null) return 1.0;
+	try
+	{
+		if (::Wuxia.hasMember(_actor, "isAlliedWithPlayer"))
+			return _actor.isAlliedWithPlayer() ? 1.0 : -1.0;
+		if (::Wuxia.hasMember(_actor, "isPlayerControlled"))
+			return _actor.isPlayerControlled() ? 1.0 : -1.0;
+	}
+	catch (_e) {}
+	return 1.0;
+};
+
+::Wuxia.VFX.shouldFlipLeft <- function( _dir, _user = null )
+{
+	if (_dir != null)
+	{
+		if (_dir.X < -0.15) return true;
+		if (_dir.X > 0.15) return false;
+	}
+	return ::Wuxia.VFX.getActorFacingSign(_user) < 0.0;
+};
+
+// Native OpenGL tactical direction vector (+X = Right/East, +Y = Up/North matching `tile.Pos` & `sprite.vs`)
+::Wuxia.VFX.getDirVec <- function( _fromTile, _toTile, _user = null )
+{
+	local defX = ::Wuxia.VFX.getActorFacingSign(_user);
 	if (_fromTile == null || _toTile == null || _fromTile.ID == _toTile.ID)
-		return { X = 1.0, Y = 0.0 };
+		return { X = defX, Y = 0.0 };
 	try
 	{
 		if (("Pos" in _fromTile) && ("Pos" in _toTile) && _fromTile.Pos != null && _toTile.Pos != null)
@@ -478,7 +781,7 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 		}
 	}
 	catch (_e) {}
-	return { X = 1.0, Y = 0.0 };
+	return { X = defX, Y = 0.0 };
 };
 
 ::Wuxia.VFX.getSkyTileAbove <- function( _tile, _steps = 2 )
@@ -710,9 +1013,28 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 	if (!("spawnParticleEffect" in ::Tactical)) return;
 	local d = _spec.Delay + _extraDelayMs;
 	if (d < 0) d = 0;
+	local brushes = _spec.Brushes;
+	if (_flipX && brushes != null && brushes.len() > 0 && "doesBrushExist" in getroottable())
+	{
+		local swapped = [];
+		local anySwapped = false;
+		foreach (b in brushes)
+		{
+			if (b != null && b != "" && ::doesBrushExist(b + "_L"))
+			{
+				swapped.push(b + "_L");
+				anySwapped = true;
+			}
+			else
+			{
+				swapped.push(b);
+			}
+		}
+		if (anySwapped) brushes = swapped;
+	}
 	::Tactical.spawnParticleEffect(
-		_flipX,
-		_spec.Brushes,
+		false,
+		brushes,
 		_tile,
 		d,
 		_spec.Quantity,
@@ -875,9 +1197,15 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 				else if (!isPlayer && gs.FasterAIMovement) scale = 0.72;
 			}
 		}
+		if ("Time" in getroottable() && ::Time != null && ("getVirtualSpeed" in ::Time))
+		{
+			local vs = ::Time.getVirtualSpeed();
+			if (vs > 1.05)
+				scale = scale / ::Math.minf(2.5, vs);
+		}
 	}
 	catch (_e) {}
-	return scale;
+	return ::Math.maxf(0.28, scale);
 };
 
 ::Wuxia.VFX.applyActorArticulatedOffset <- function( _actor, _bx, _by, _hx, _hy, _wx, _wy, _sx, _sy )
@@ -927,14 +1255,44 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 	}
 };
 
+// Bug 3 Fix: NEVER call `storeSpriteColors()` / `fadeToStoredColors()` or fade Alpha < 255 on live actors!
+// Under fast combat speed / Qinggong teleports / elevation step-fades, an actor's transient Alpha can be 0 when
+// `storeSpriteColors()` runs, poisoning stored colors with Alpha = 0 so `fadeToStoredColors()` turns the unit invisible!
+::Wuxia.VFX.ensureActorSpritesVisible <- function( _actor )
+{
+	if (_actor == null || !::Wuxia.hasMember(_actor, "isAlive") || !_actor.isAlive() || !::Wuxia.hasMember(_actor, "hasSprite"))
+		return;
+	local white = ::Wuxia.VFX.makeColorRGBA(255, 255, 255, 255);
+	try
+	{
+		if (::Wuxia.hasMember(_actor, "fadeTo"))
+			_actor.fadeTo(white, 0);
+		if (_actor.hasSprite("body"))
+		{
+			local sb = _actor.getSprite("body");
+			if (sb != null && sb.HasBrush)
+			{
+				sb.Color = white;
+				if (!sb.Visible) sb.Visible = true;
+			}
+		}
+		if ("Armory" in ::Wuxia && "syncActorHandheldAndArmor" in ::Wuxia.Armory && ("Appearance" in ::Wuxia) && ::Wuxia.Appearance.isEligibleHumanActor(_actor))
+		{
+			if (_actor.hasSprite("head") && !_actor.getSprite("head").Visible)
+				::Wuxia.Armory.syncActorHandheldAndArmor(_actor);
+		}
+	}
+	catch (_eVis) {}
+};
+
 ::Wuxia.VFX.beginActorTint <- function( _actor, _r, _g, _b, _a, _ms )
 {
 	if (_actor == null || !::Wuxia.hasMember(_actor, "fadeTo")) return;
+	if (("m" in _actor) && _actor.m != null && ("IsMoving" in _actor.m) && _actor.m.IsMoving) return;
 	try
 	{
-		if (::Wuxia.hasMember(_actor, "isStoringColor") && ::Wuxia.hasMember(_actor, "storeSpriteColors") && !_actor.isStoringColor())
-			_actor.storeSpriteColors();
-		_actor.fadeTo(::Wuxia.VFX.makeColorRGBA(_r, _g, _b, _a), _ms);
+		// Strictly clamp Alpha to 255 so rapid overlapping animations can NEVER turn an actor transparent/invisible!
+		_actor.fadeTo(::Wuxia.VFX.makeColorRGBA(_r, _g, _b, 255), _ms);
 		_actor.m.WX_MotionTinted <- true;
 	}
 	catch (_e) {}
@@ -942,62 +1300,103 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 
 ::Wuxia.VFX.endActorTint <- function( _actor, _ms = 120 )
 {
-	if (_actor == null || !("m" in _actor) || !("WX_MotionTinted" in _actor.m) || !_actor.m.WX_MotionTinted) return;
-	_actor.m.WX_MotionTinted = false;
+	if (_actor == null || !("m" in _actor) || _actor.m == null) return;
+	local wasTinted = ("WX_MotionTinted" in _actor.m) && _actor.m.WX_MotionTinted;
+	_actor.m.WX_MotionTinted <- false;
+	if (!wasTinted) return;
 	try
 	{
-		if (::Wuxia.hasMember(_actor, "fadeToStoredColors"))
-			_actor.fadeToStoredColors(_ms);
+		local white = ::Wuxia.VFX.makeColorRGBA(255, 255, 255, 255);
+		if (_ms <= 0 || (("IsMoving" in _actor.m) && _actor.m.IsMoving))
+			::Wuxia.VFX.ensureActorSpritesVisible(_actor);
+		else if (::Wuxia.hasMember(_actor, "fadeTo"))
+			_actor.fadeTo(white, _ms);
 	}
 	catch (_e) {}
 };
 
-::Wuxia.VFX.clearActorMotion <- function( _actor )
+::Wuxia.VFX.clearActorMotion <- function( _actor, _forceReset = false )
 {
 	if (_actor == null || !("m" in _actor) || _actor.m == null) return;
 	local mo = ("WX_Motion" in _actor.m) ? _actor.m.WX_Motion : null;
-	if (mo == null)
+	if (mo == null && !_forceReset)
 	{
-		::Wuxia.VFX.endActorTint(_actor, 80);
+		::Wuxia.VFX.endActorTint(_actor, 60);
 		return;
 	}
-	_actor.m.WX_Motion = null;
+	_actor.m.WX_Motion <- null;
 	try
 	{
-		if (mo.flippedTemp)
+		if (mo != null && mo.flippedTemp)
 			::Wuxia.VFX.setActorLayersFlip(_actor, mo.origFlip);
 		::Wuxia.VFX.applyActorArticulatedOffset(_actor, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-		::Wuxia.VFX.endActorTint(_actor, 100);
-		if (mo.disableRenderOnEnd && ::Wuxia.hasMember(_actor, "setRenderCallbackEnabled"))
+		local isMovingNow = ("IsMoving" in _actor.m) && _actor.m.IsMoving;
+		if (!isMovingNow && ::Wuxia.hasMember(_actor, "setAlwaysApplySpriteOffset"))
+			_actor.setAlwaysApplySpriteOffset(false);
+		if (_forceReset && !isMovingNow && ::Wuxia.hasMember(_actor, "resetRenderEffects"))
+			_actor.resetRenderEffects();
+		::Wuxia.VFX.endActorTint(_actor, _forceReset ? 0 : 80);
+		::Wuxia.VFX.ensureActorSpritesVisible(_actor);
+		local isHuman = ("Appearance" in ::Wuxia) && ::Wuxia.Appearance.isEligibleHumanActor(_actor);
+		local wasRenderEnabled = (mo != null && ("wasRenderEnabled" in mo)) ? mo.wasRenderEnabled : false;
+		// NEVER disable render callback while vanilla BB is moving/fading the actor or if vanilla already had it enabled!
+		if (!isMovingNow && !wasRenderEnabled && ((mo != null && mo.disableRenderOnEnd) || (_forceReset && isHuman)) && ::Wuxia.hasMember(_actor, "setRenderCallbackEnabled"))
 			_actor.setRenderCallbackEnabled(false);
+		if (::Wuxia.hasMember(_actor, "setDirty"))
+			_actor.setDirty(true);
 	}
 	catch (_e) {}
 };
 
-::Wuxia.VFX.clearAllActiveMotions <- function()
+::Wuxia.VFX.clearAllActiveMotions <- function( _forceRoster = false )
 {
-	if (!("Tactical" in getroottable()) || ::Tactical == null || !::Tactical.isActive() || !("Entities" in ::Tactical) || ::Tactical.Entities == null)
-		return;
 	try
 	{
-		local all = ::Tactical.Entities.getAllInstances();
-		if (all != null)
+		if ("Tactical" in getroottable() && ::Tactical != null && ("Entities" in ::Tactical) && ::Tactical.Entities != null)
 		{
-			foreach (facList in all)
+			local all = ::Tactical.Entities.getAllInstances();
+			if (all != null)
 			{
-				if (facList == null) continue;
-				foreach (a in facList)
-					::Wuxia.VFX.clearActorMotion(a);
+				foreach (facList in all)
+				{
+					if (facList == null) continue;
+					foreach (a in facList)
+						::Wuxia.VFX.clearActorMotion(a, _forceRoster);
+				}
 			}
 		}
 	}
 	catch (_e) {}
+
+	if (_forceRoster)
+	{
+		try
+		{
+			if ("World" in getroottable() && ::World != null && ::Wuxia.hasMember(::World, "getPlayerRoster") && ::World.getPlayerRoster() != null)
+			{
+				local bros = ::World.getPlayerRoster().getAll();
+				if (bros != null)
+				{
+					foreach (bro in bros)
+						::Wuxia.VFX.clearActorMotion(bro, true);
+				}
+			}
+		}
+		catch (_e2) {}
+	}
 };
 
 ::Wuxia.VFX.startActorMotion <- function( _actor, _kind, _dir, _durSec, _delaySec = 0.0, _extra = null )
 {
 	if (!::Wuxia.VFX.isMotionEnabled()) return false;
 	if (_actor == null || !::Wuxia.isOnMap(_actor) || !_actor.isAlive()) return false;
+	if (!("Tactical" in getroottable()) || ::Tactical == null || !::Tactical.isActive()) return false;
+	try
+	{
+		if (("Entities" in ::Tactical) && ::Tactical.Entities != null && ::Wuxia.hasMember(::Tactical.Entities, "isCombatFinished") && ::Tactical.Entities.isCombatFinished())
+			return false;
+	}
+	catch (_eFin) {}
 	local tile = _actor.getTile();
 	if (tile == null || !tile.IsVisibleForPlayer) return false;
 	if (!::Wuxia.hasMember(_actor, "setSpriteOffset") || !::Wuxia.hasMember(_actor, "setRenderCallbackEnabled")) return false;
@@ -1007,28 +1406,37 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 
 	local now = ::Wuxia.VFX.getNowF();
 	local spd = ::Wuxia.VFX.getMotionSpeedScale(_actor);
-	local dx = (_dir != null) ? _dir.X.tofloat() : 1.0;
+	local dx = (_dir != null) ? _dir.X.tofloat() : ::Wuxia.VFX.getActorFacingSign(_actor);
 	local dy = (_dir != null) ? _dir.Y.tofloat() : 0.0;
+	local faceSign = (dx < -0.15) ? -1.0 : ((dx > 0.15) ? 1.0 : ::Wuxia.VFX.getActorFacingSign(_actor));
 	local origFlip = false;
 	if (_actor.hasSprite("body"))
 		origFlip = _actor.getSprite("body").isFlippedHorizontally();
 	local isHuman = ("Appearance" in ::Wuxia) && ::Wuxia.Appearance.isEligibleHumanActor(_actor);
+	local wasRenderEnabled = false;
+	try
+	{
+		if (::Wuxia.hasMember(_actor, "isRenderCallbackEnabled"))
+			wasRenderEnabled = _actor.isRenderCallbackEnabled();
+	}
+	catch (_eRC) {}
 
 	_actor.m.WX_Motion <- {
 		kind               = _kind,
 		dx                 = dx,
 		dy                 = dy,
-		px                 = -dy,
-		py                 = dx,
+		px                 = -dy * faceSign,
+		py                 = dx * faceSign,
 		startTime          = now + _delaySec.tofloat() * spd,
-		duration           = ::Math.maxf(0.18, _durSec.tofloat() * spd),
+		duration           = ::Math.maxf(0.16, _durSec.tofloat() * spd),
 		origFlip           = origFlip,
 		flippedTemp        = false,
 		afterimage1Done    = false,
 		afterimage2Done    = false,
 		tintStarted        = false,
 		tintEnded          = false,
-		disableRenderOnEnd = isHuman,
+		wasRenderEnabled   = wasRenderEnabled,
+		disableRenderOnEnd = isHuman && !wasRenderEnabled,
 		extra              = _extra
 	};
 
@@ -1123,6 +1531,12 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 	local sx = 0.0; local sy = 0.0;
 	local k = 0.0;
 	local kind = mo.kind;
+
+	if (kind.find("kin_") == 0 && ("KineticVFX" in ::Wuxia) && ("evalActorMotion" in ::Wuxia.KineticVFX))
+	{
+		if (::Wuxia.KineticVFX.evalActorMotion(_actor, mo, p))
+			return;
+	}
 
 	if (kind == "lunge_pierce" || kind == "basic_strike")
 	{
@@ -1594,6 +2008,7 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 ::Wuxia.VFX.playAoESecondaryVfx <- function( _skill, _user, _adjTile, _delayMs = 85 )
 {
 	if (!("Tactical" in getroottable()) || ::Tactical == null || !::Tactical.isActive()) return;
+	if (_skill != null && ("m" in _skill) && ("WX_KineticSuppressLegacy" in _skill.m) && _skill.m.WX_KineticSuppressLegacy) return;
 	if (_adjTile == null || !_adjTile.IsVisibleForPlayer) return;
 
 	local choreoID = (_skill != null && ::Wuxia.hasMember(_skill.m, "WX_ChoreoID")) ? _skill.m.WX_ChoreoID : null;
@@ -1602,8 +2017,8 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 	local mode   = (spec != null) ? spec[2] : "tidal_sweep";
 	local qiAura = (_skill != null && ::Wuxia.hasMember(_skill.m, "WX_VfxBrush") && _skill.m.WX_VfxBrush != null) ? _skill.m.WX_VfxBrush : (spec != null ? spec[3] : "wx_vfx_06");
 	local originTile = (_user != null && _user.isPlacedOnMap()) ? _user.getTile() : _adjTile;
-	local dir = ::Wuxia.VFX.getDirVec(originTile, _adjTile);
-	local flipX = (dir.X < -0.15);
+	local dir = ::Wuxia.VFX.getDirVec(originTile, _adjTile, _user);
+	local flipX = ::Wuxia.VFX.shouldFlipLeft(dir, _user);
 
 	try
 	{
@@ -1632,6 +2047,7 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 ::Wuxia.VFX.playSkillVfx <- function( _skill, _user, _targetTile, _brushName )
 {
 	if (!("Tactical" in getroottable()) || ::Tactical == null || !::Tactical.isActive()) return;
+	if (_skill != null && ("m" in _skill) && ("WX_KineticSuppressLegacy" in _skill.m) && _skill.m.WX_KineticSuppressLegacy) return;
 
 	local originTile = (_user != null && _user.isPlacedOnMap()) ? _user.getTile() : null;
 	local tile = _targetTile != null ? _targetTile : originTile;
@@ -1646,8 +2062,8 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 	local volleys = (spec != null) ? spec[5] : 0;
 	local shakePow= (spec != null) ? spec[6] : 5;
 
-	local dir = ::Wuxia.VFX.getDirVec(originTile, tile);
-	local flipX = (dir.X < -0.15);
+	local dir = ::Wuxia.VFX.getDirVec(originTile, tile, _user);
+	local flipX = ::Wuxia.VFX.shouldFlipLeft(dir, _user);
 	local isRangedWpnSkill = (_skill != null && (::Wuxia.hasMember(_skill, "isRanged")) && _skill.isRanged());
 	local isAttackSkill = (_skill != null && (::Wuxia.hasMember(_skill, "isAttack")) && _skill.isAttack());
 	local isQinggongMode = (mode == "cloud_jump" || mode == "mirage_step" || mode.find("step_") == 0);
@@ -1661,8 +2077,8 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 		if ((uid in ::Wuxia.VFX.LastQinggongCast) && (nowT - ::Wuxia.VFX.LastQinggongCast[uid].time) < 0.25 && ::Wuxia.VFX.LastQinggongCast[uid].tileID != tile.ID)
 		{
 			isQinggongLanding = true;
-			dir = ::Wuxia.VFX.getDirVec(::Wuxia.VFX.LastQinggongCast[uid].tile, tile);
-			flipX = (dir.X < -0.15);
+			dir = ::Wuxia.VFX.getDirVec(::Wuxia.VFX.LastQinggongCast[uid].tile, tile, _user);
+			flipX = ::Wuxia.VFX.shouldFlipLeft(dir, _user);
 			delete ::Wuxia.VFX.LastQinggongCast[uid];
 		}
 		else
@@ -1774,8 +2190,8 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 	if (!_tile.IsVisibleForPlayer) return;
 	try
 	{
-		local dir = ::Wuxia.VFX.getDirVec(_originTile, _tile);
-		local flipX = (dir.X < -0.15);
+		local dir = ::Wuxia.VFX.getDirVec(_originTile, _tile, _user);
+		local flipX = ::Wuxia.VFX.shouldFlipLeft(dir, _user);
 		local d0 = (_spec.isRanged) ? 145 : (::Wuxia.VFX.isMotionEnabled() ? 85 : 25);
 		::Wuxia.VFX.spawnDynamicAt(_tile, _spec.animID + "_f2", d0,      0.14, 1.02, dir.X * 85.0, dir.Y * 85.0, 0, 1, 0, 0, flipX, -dir.X * 14.0, -dir.Y * 14.0, 175, 0.06, 0.15);
 		::Wuxia.VFX.spawnDynamicAt(_tile, _spec.qiAura,         d0 + 50, 0.16, 0.98, dir.X * 72.0, dir.Y * 72.0, 0, 1, 0, 0, flipX, 0.0, 0.0, 165, 0.06, 0.16);
@@ -1802,8 +2218,8 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 	local isAttack   = (_skill != null && ::Wuxia.hasMember(_skill, "isAttack") && _skill.isAttack());
 	local motionPad  = (isAttack && ::Wuxia.VFX.isMotionEnabled()) ? 95 : 0;
 	local d0         = ("isRanged" in _spec && _spec.isRanged) ? 165 : motionPad;
-	local dir        = ::Wuxia.VFX.getDirVec(originTile, tile);
-	local flipX      = (dir.X < -0.15);
+	local dir        = ::Wuxia.VFX.getDirVec(originTile, tile, _user);
+	local flipX      = ::Wuxia.VFX.shouldFlipLeft(dir, _user);
 
 	try
 	{
@@ -2213,8 +2629,8 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 	if (tile == null) return;
 	if (!tile.IsVisibleForPlayer && (originTile == null || !originTile.IsVisibleForPlayer)) return;
 
-	local dir = ::Wuxia.VFX.getDirVec(originTile, tile);
-	local flipX = (dir.X < -0.15);
+	local dir = ::Wuxia.VFX.getDirVec(originTile, tile, _user);
+	local flipX = ::Wuxia.VFX.shouldFlipLeft(dir, _user);
 
 	if (::Wuxia.VFX.isMotionEnabled())
 	{
@@ -2253,8 +2669,8 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 	if (spec == null) return false;
 
 	local originTile = _user.getTile();
-	local dir = ::Wuxia.VFX.getDirVec(originTile, _hitTile);
-	local flipX = (dir.X < -0.15);
+	local dir = ::Wuxia.VFX.getDirVec(originTile, _hitTile, _user);
+	local flipX = ::Wuxia.VFX.shouldFlipLeft(dir, _user);
 	local isRanged = (::Wuxia.hasMember(_skill, "isRanged") && _skill.isRanged());
 
 	if (_targetEntity != null && _targetEntity.isAlive() && ::Wuxia.VFX.isMotionEnabled())
@@ -2320,7 +2736,7 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 	if (tile == null || !tile.IsVisibleForPlayer) return;
 
 	local originTile = _user.getTile();
-	local dir = ::Wuxia.VFX.getDirVec(originTile, tile);
+	local dir = ::Wuxia.VFX.getDirVec(originTile, tile, _user);
 	local isRanged = (::Wuxia.hasMember(_skill, "isRanged") && _skill.isRanged());
 
 	// Crisp martial lunge & target hit reaction even on standard weapon attacks!
@@ -2342,7 +2758,7 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 
 	try
 	{
-		local flipX = (dir.X < -0.15);
+		local flipX = ::Wuxia.VFX.shouldFlipLeft(dir, _user);
 		local apCost = (::Wuxia.hasMember(_skill.m, "ActionPointCost")) ? _skill.m.ActionPointCost : 4;
 		local isHeavy = (apCost >= 6);
 		local isSpin = (skID.find("round_swing") != null || skID.find("thresh") != null);
@@ -2366,6 +2782,12 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 ::Wuxia.VFX.onAttackLanded <- function( _skill, _user, _hitTile, _targetEntity = null )
 {
 	if (_skill == null || _hitTile == null) return;
+	if (("m" in _skill) && ("WX_KineticSuppressLegacy" in _skill.m) && _skill.m.WX_KineticSuppressLegacy)
+	{
+		if ("KineticVFX" in ::Wuxia && "onKineticAttackResult" in ::Wuxia.KineticVFX)
+			::Wuxia.KineticVFX.onKineticAttackResult(_skill, _user, _hitTile, _targetEntity, true);
+		return;
+	}
 	local originTile = (_user != null && _user.isPlacedOnMap()) ? _user.getTile() : null;
 	if (("m" in _skill) && ("WX_PendingImpactVfx" in _skill.m) && _skill.m.WX_PendingImpactVfx != null)
 	{
@@ -2386,6 +2808,12 @@ foreach (_skKey, _chSpec in ::Wuxia.VFX.SkillChoreo)
 ::Wuxia.VFX.onAttackMissed <- function( _skill, _user, _missTile, _targetEntity = null )
 {
 	if (_skill == null || _missTile == null) return;
+	if (("m" in _skill) && ("WX_KineticSuppressLegacy" in _skill.m) && _skill.m.WX_KineticSuppressLegacy)
+	{
+		if ("KineticVFX" in ::Wuxia && "onKineticAttackResult" in ::Wuxia.KineticVFX)
+			::Wuxia.KineticVFX.onKineticAttackResult(_skill, _user, _missTile, _targetEntity, false);
+		return;
+	}
 	local originTile = (_user != null && _user.isPlacedOnMap()) ? _user.getTile() : null;
 	if (("m" in _skill) && ("WX_PendingImpactVfx" in _skill.m) && _skill.m.WX_PendingImpactVfx != null)
 	{
@@ -2461,7 +2889,8 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 		q.attackEntity = @(__original) function( _user, _targetEntity, _allowDiversion = true )
 		{
 			this.m.WX_AttackAttempted <- true;
-			if (_user != null && ::Wuxia.hasMember(_user, "isPlayerControlled") && _user.isPlayerControlled()
+			local suppressRec = ("WX_KineticSuppressLegacy" in this.m) && this.m.WX_KineticSuppressLegacy;
+			if (!suppressRec && _user != null && ::Wuxia.hasMember(_user, "isPlayerControlled") && _user.isPlayerControlled()
 				&& ("Mastery" in ::Wuxia) && ("recordSkillUse" in ::Wuxia.Mastery)
 				&& (!("WX_RecordedThisUse" in this.m) || !this.m.WX_RecordedThisUse))
 			{
@@ -2494,19 +2923,34 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 				::Wuxia.VFX.BattleResourcesQueued = false;
 				::Wuxia.VFX.LastQinggongCast = {};
 				local res = __original();
-				if (!::Wuxia.VFX.BattleResourcesQueued)
-					::Wuxia.VFX.registerTacticalResources(true);
+				// Queue ONLY the sheets needed by entities spawned in this battle; BB's native tactical loader
+				// flushes queued resources immediately after `initMap()` without double-stalling the main thread!
+				::Wuxia.VFX.registerTacticalResources(false);
 				return res;
+			};
+		}
+		if (::Wuxia.qHas(q, "onBattleEnded"))
+		{
+			q.onBattleEnded = @(__original) function()
+			{
+				::Wuxia.VFX.clearAllActiveMotions(true);
+				if ("KineticVFX" in ::Wuxia && "clearAll" in ::Wuxia.KineticVFX)
+					::Wuxia.KineticVFX.clearAll();
+				return __original();
 			};
 		}
 		if (::Wuxia.qHas(q, "onFinish"))
 		{
 			q.onFinish = @(__original) function()
 			{
-				::Wuxia.VFX.clearAllActiveMotions();
+				::Wuxia.VFX.clearAllActiveMotions(true);
+				if ("KineticVFX" in ::Wuxia && "clearAll" in ::Wuxia.KineticVFX)
+					::Wuxia.KineticVFX.clearAll();
 				::Wuxia.VFX.BattleResourcesQueued = false;
 				::Wuxia.VFX.LastQinggongCast = {};
-				return __original();
+				local ret = __original();
+				::Wuxia.VFX.clearAllActiveMotions(true);
+				return ret;
 			};
 		}
 	});
@@ -2517,8 +2961,6 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 		{
 			q.setupEntity = @(__original) function( _actor, _troop )
 			{
-				if (!::Wuxia.VFX.BattleResourcesQueued)
-					::Wuxia.VFX.registerTacticalResources(false);
 				return __original(_actor, _troop);
 			};
 		}
@@ -2558,21 +3000,24 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 				return ::Wuxia.VFX.getOptions();
 			local sv = null;
 			local em = null;
+			local sc = null;
 			if (typeof _data == "array")
 			{
 				if (_data.len() >= 1) sv = _data[0];
 				if (_data.len() >= 2) em = _data[1];
+				if (_data.len() >= 3) sc = _data[2];
 			}
 			else if (typeof _data == "table")
 			{
 				if ("showSkillVfx" in _data) sv = _data.showSkillVfx;
 				if ("enableActorMotion" in _data) em = _data.enableActorMotion;
+				if ("showSkillCutIn" in _data) sc = _data.showSkillCutIn;
 			}
 			else
 			{
 				return ::Wuxia.VFX.getOptions();
 			}
-			return ::Wuxia.VFX.setOptions(sv, em, true);
+			return ::Wuxia.VFX.setOptions(sv, em, true, sc);
 		};
 	});
 }

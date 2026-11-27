@@ -16,6 +16,7 @@ this.wx_crossbow_liannu <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.WX_AnimMode <- "flurry_liannu";
 		this.m.WX_ChoreoID <- "wx_crossbow_liannu";
 		this.m.IsRanged = true;
+		this.m.IsIgnoredAsAOO = true;
 		this.m.IsShowingProjectile = true;
 		this.m.ProjectileType = ::Const.ProjectileType.WX_Xiujian;
 		this.m.IsProjectileRotated = true;
@@ -25,6 +26,7 @@ this.wx_crossbow_liannu <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.FatigueCost = 16;
 		this.m.MinRange = 2;
 		this.m.MaxRange = 6;
+		this.m.MaxLevelDifference = 4;
 		this.m.RequiredWeaponTypes = ["Crossbow"];
 		this.m.DirectDamageMult = 0.48;
 	}

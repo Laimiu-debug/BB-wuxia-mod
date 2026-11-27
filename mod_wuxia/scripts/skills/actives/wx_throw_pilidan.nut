@@ -22,7 +22,9 @@ this.wx_throw_pilidan <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.FatigueCost = 26;
 		this.m.MinRange = 2;
 		this.m.MaxRange = 4;
+		this.m.MaxLevelDifference = 4;
 		this.m.IsRanged = true;
+		this.m.IsIgnoredAsAOO = true;
 		this.m.IsShowingProjectile = true;
 		this.m.ProjectileType = ::Const.ProjectileType.WX_Pilileihuo;
 		this.m.IsProjectileRotated = false;

@@ -1,7 +1,7 @@
 ::Wuxia <- {
 	ID = "mod_wuxia",
 	Name = "山海武侠 (BB Wuxia)",
-	Version = "0.8.8",
+	Version = "0.8.16",
 	SchemaVersion = 1,
 	Config = {},
 	Text = {},
@@ -84,6 +84,10 @@
 	::Hooks.registerCSS("ui/mods/mod_wuxia/wx_global_theme.css");
 	::Hooks.registerCSS("ui/mods/mod_wuxia/wx_alchemy_ui.css");
 	::Hooks.registerCSS("ui/mods/mod_wuxia/wx_gambling_ui.css");
+	::Hooks.registerCSS("ui/mods/mod_wuxia/wx_showcase_fx.css");
+	::Hooks.registerCSS("ui/mods/mod_wuxia/wx_combat_vfx_stage.css");
+	::Hooks.registerLateJS("ui/mods/mod_wuxia/wx_showcase_fx.js");
+	::Hooks.registerLateJS("ui/mods/mod_wuxia/wx_combat_vfx_stage.js");
 	::Hooks.registerLateJS("ui/mods/mod_wuxia/wx_ui_global_overhaul.js");
 	::Hooks.registerLateJS("ui/mods/mod_wuxia/screens_wuxia.js");
 	::Hooks.registerLateJS("ui/mods/mod_wuxia/character_screen_wuxia_module.js");
@@ -130,8 +134,10 @@ if ("QueueBucket" in ::Hooks && "Last" in ::Hooks.QueueBucket)
 			"scripts/ambitions/ambitions",
 			"scripts/skills/backgrounds",
 			"scripts/skills/racial",
+			"scripts/entity/world/settlements",
 			"scripts/entity/world/settlements/buildings",
 			"scripts/entity/world/attached_location",
+			"scripts/mapgen/templates/world",
 			"scripts/items/weapons",
 			"scripts/items/weapons/named",
 			"scripts/items/weapons/oriental",

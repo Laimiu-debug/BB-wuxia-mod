@@ -1080,9 +1080,22 @@ T.claimTicket <- function( _ev, _ticketId )
 				G.playSound("ledger");
 			}
 			G.touch();
-			return G.result(true, val.amount > 0
+			local cMsg = val.amount > 0
 				? ("大庄家核验红印无误，当场点出 " + val.amount + " 两足色纹银（含本金）奉还！")
-				: "此票未能押中胜方，庄家在票角划下墨叉留档。");
+				: "此票未能押中胜方，庄家在票角划下墨叉留档。";
+			local outRes = G.result(true, cMsg);
+			if (val.amount > 0)
+			{
+				outRes.wxShowcase <- {
+					kind     = "tourney_payout",
+					outcome  = val.amount >= 1000 ? "crit" : "great",
+					title    = "朱印验票 · 银两落袋",
+					subtitle = _ev.title + " · 演武红盘兑付",
+					amount   = val.amount,
+					message  = cMsg
+				};
+			}
+			return outRes;
 		}
 	}
 	return G.result(false, "账册上未查得该号银票。");

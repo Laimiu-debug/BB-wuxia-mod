@@ -42,7 +42,10 @@ this.wx_tactics_bamen <- this.inherit("scripts/skills/skill", {
 		this.m.ActiveBuff = true;
 		this.m.Cooldown = 2;
 		::Wuxia.VFX.playSkillVfx(this, _user, _user.getTile(), this.m.WX_VfxBrush);
-		local actors = ::Tactical.Entities.getAllInstances(); local myT = _user.getTile(); foreach (team in actors) { foreach (a in team) { if (a == null || !a.isAlive() || !a.isPlacedOnMap() || !_user.isAlliedWith(a)) continue; if (myT.getDistanceTo(a.getTile()) <= 3) { a.checkMorale(1, 15); local ask = a.getSkills(); if (ask != null) ask.removeByID("effects.wx_status_offbalance"); } } }
+		local myT = _user.getTile();
+		if ("TileField" in ::Wuxia && myT != null)
+			::Wuxia.TileField.dispelFieldsInRadius(myT, 3, ["mirage_mist", "gale_sand"]);
+		local actors = ::Tactical.Entities.getAllInstances(); foreach (team in actors) { foreach (a in team) { if (a == null || !a.isAlive() || !a.isPlacedOnMap() || !_user.isAlliedWith(a)) continue; if (myT.getDistanceTo(a.getTile()) <= 3) { a.checkMorale(1, 15); local ask = a.getSkills(); if (ask != null) ask.removeByID("effects.wx_status_offbalance"); } } }
 		this.getContainer().update();
 		return true;
 	}

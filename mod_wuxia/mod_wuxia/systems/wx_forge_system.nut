@@ -8,14 +8,202 @@
 
 ::Wuxia.Forge <- {
 	FallbackPity     = 0,
+	FallbackExtMeta  = {},
 	LastCraftBanner  = "",
+	LastCraftItems   = [],
 	RelicCleanCache  = {},
 	Grades = [
 		{ Grade = 0, Title = "凡锻", Color = "#a8a296", TooltipColor = "#3f362a", MinPct = 0,  MaxPct = 34,  ValueMult = 0.92, Span = 36, BaseSeed = 100 },
 		{ Grade = 1, Title = "良工", Color = "#5ec47a", TooltipColor = "#0a4213", MinPct = 35, MaxPct = 69,  ValueMult = 1.00, Span = 40, BaseSeed = 136 },
 		{ Grade = 2, Title = "百炼", Color = "#b58ae6", TooltipColor = "#4b1c76", MinPct = 70, MaxPct = 91,  ValueMult = 1.18, Span = 40, BaseSeed = 176 },
 		{ Grade = 3, Title = "神工", Color = "#f0bc42", TooltipColor = "#5e2c00", MinPct = 92, MaxPct = 100, ValueMult = 1.42, Span = 40, BaseSeed = 216 }
-	]
+	],
+	QuenchCatalysts = {
+		none = {
+			ID = "none", Name = "清泉守正", Short = "无引", Color = "#d7b174", TooltipColor = "#3f362a",
+			BiasF1 = 0.0, BiasF2 = 0.0, BiasF3 = 0.0,
+			AffixTitle = "", AffixDesc = "不添额外淬火引子，依古法炉温均衡百炼。",
+			MatchKeys = []
+		},
+		frost = {
+			ID = "frost", Name = "寒潭灵泉引", Short = "玄阴淬", Color = "#6db4e8", TooltipColor = "#0e3969",
+			BiasF1 = 0.0, BiasF2 = 0.18, BiasF3 = 0.18,
+			AffixTitle = "寒泉淬锋", AffixDesc = "轻量化减重与透甲倾向 +18%，并附【寒泉淬锋：战斗中每轮额外回气 +1】",
+			MatchKeys = ["trophy:wx_mat_xuanlin", "trophy:wx_pmat_longni", "herb:wx_herb_huangguan", "herb:wx_herb_hanshui", "herb:wx_herb_bingpocao", "herb:wx_herb_xuelian"]
+		},
+		flame = {
+			ID = "flame", Name = "地肺赤火引", Short = "赤阳淬", Color = "#e87a42", TooltipColor = "#6c1f04",
+			BiasF1 = 0.18, BiasF2 = 0.18, BiasF3 = 0.0,
+			AffixTitle = "赤火淬锋", AffixDesc = "基伤与破甲倾向 +18%，并附【赤火淬锋：近战攻击命中额外灼损目标 5 点身甲】",
+			MatchKeys = ["trophy:wx_mat_chiling", "trophy:wx_pmat_jinwu_yu", "herb:wx_herb_wutiao", "herb:wx_herb_duheng", "herb:wx_herb_huolingzhi", "herb:wx_herb_longxuejie"]
+		},
+		thunder = {
+			ID = "thunder", Name = "天雷紫电引", Short = "惊雷淬", Color = "#b58ae6", TooltipColor = "#4b1c76",
+			BiasF1 = 0.16, BiasF2 = 0.0, BiasF3 = 0.18,
+			AffixTitle = "惊雷淬锋", AffixDesc = "基伤与锋芒耐久倾向 +18%，并附【惊雷淬锋：开场首轮先攻身法 +8】",
+			MatchKeys = ["trophy:wx_mat_xiongjiao", "trophy:wx_pmat_leigu", "trophy:wx_pmat_bingzhu_jiao", "trophy:wx_mat_renjin"]
+		},
+		blood = {
+			ID = "blood", Name = "凶兽煞血引", Short = "煞血淬", Color = "#e05a5a", TooltipColor = "#721010",
+			BiasF1 = 0.18, BiasF2 = 0.0, BiasF3 = 0.18,
+			AffixTitle = "煞血淬锋", AffixDesc = "主属性与器物耐久倾向 +18%，并附【煞血淬锋：斩杀血肉活物回血 +5（每轮限1次）】",
+			MatchKeys = ["trophy:wx_mat_shagu", "trophy:wx_mat_gujing", "trophy:wx_pmat_taotie_chi", "trophy:wx_pmat_xingtian_sui"]
+		}
+	}
+};
+
+::Wuxia.Forge.buildExtMetaFlagKey <- function( _item )
+{
+	if (_item == null || !::Wuxia.hasMember(_item, "getID")) return "";
+	local v = ::Wuxia.hasMember(_item, "getVariant") ? _item.getVariant() : 0;
+	return "wx_fmeta_" + _item.getID() + "_" + v;
+};
+
+::Wuxia.Forge.saveExtendedMeta <- function( _item )
+{
+	if (_item == null || !("m" in _item) || _item.m == null) return;
+	local qid  = ("WX_QuenchID" in _item.m && _item.m.WX_QuenchID != null) ? _item.m.WX_QuenchID : "none";
+	local wmod = ("WX_WeaponModID" in _item.m && _item.m.WX_WeaponModID != null) ? _item.m.WX_WeaponModID : "";
+	local fk   = ::Wuxia.Forge.buildExtMetaFlagKey(_item);
+	if (fk == "") return;
+	local packed = qid + "|" + wmod;
+	if (packed == "none|")
+	{
+		if (fk in ::Wuxia.Forge.FallbackExtMeta) delete ::Wuxia.Forge.FallbackExtMeta[fk];
+		return;
+	}
+	::Wuxia.Forge.FallbackExtMeta[fk] <- packed;
+	if (::Wuxia.hasWorldField("Flags"))
+		::World.Flags.set(fk, packed);
+};
+
+::Wuxia.Forge.syncExtendedMeta <- function( _item )
+{
+	if (_item == null || !("m" in _item) || _item.m == null) return;
+	if (("WX_QuenchID" in _item.m) && ("WX_WeaponModID" in _item.m)) return;
+	local fk = ::Wuxia.Forge.buildExtMetaFlagKey(_item);
+	if (fk == "") return;
+	local raw = "";
+	if (::Wuxia.hasWorldField("Flags") && ::World.Flags.has(fk))
+		raw = ::World.Flags.get(fk);
+	else if (fk in ::Wuxia.Forge.FallbackExtMeta)
+		raw = ::Wuxia.Forge.FallbackExtMeta[fk];
+	if (raw == null || typeof raw != "string" || raw == "") return;
+	local bar = raw.find("|");
+	if (bar == null)
+	{
+		_item.m.WX_QuenchID <- raw;
+		_item.m.WX_WeaponModID <- "";
+	}
+	else
+	{
+		_item.m.WX_QuenchID <- raw.slice(0, bar);
+		_item.m.WX_WeaponModID <- raw.slice(bar + 1);
+	}
+};
+
+::Wuxia.Forge.applyWeaponAttachment <- function( _weapon, _wmodID, _stash = null )
+{
+	if (_weapon == null || !("WeaponAttachments" in ::Wuxia.Config) || !(_wmodID in ::Wuxia.Config.WeaponAttachments))
+		return { Ok = false, Reason = "未知的兵刃配件配置。" };
+	local mcfg = ::Wuxia.Config.WeaponAttachments[_wmodID];
+	local famList = ("Families" in mcfg && mcfg.Families != null) ? mcfg.Families : [mcfg.Family];
+	if (!("CombatRules" in ::Wuxia) || !::Wuxia.CombatRules.matchesWeapon(_weapon, famList))
+		return { Ok = false, Reason = "「" + mcfg.Name + "」仅可镶缀于【" + mcfg.FamilyLabel + "】之上，请先让该侠客主手装备对应兵器！" };
+
+	::Wuxia.Forge.syncExtendedMeta(_weapon);
+	local prevMod = ("WX_WeaponModID" in _weapon.m && _weapon.m.WX_WeaponModID != null) ? _weapon.m.WX_WeaponModID : "";
+	if (prevMod == _wmodID)
+		return { Ok = false, Reason = "当前主手兵刃已镶有「" + mcfg.Name + "」，无需重复消耗。" };
+
+	local refundNote = "";
+	if (prevMod != "" && (prevMod in ::Wuxia.Config.WeaponAttachments) && _stash != null)
+	{
+		try
+		{
+			local oldItem = ::new("scripts/items/misc/" + prevMod);
+			if (oldItem != null && _stash.add(oldItem) != null)
+				refundNote = "（原配件「" + oldItem.getName() + "」已无损拆回行囊）";
+		}
+		catch (_rErr) {}
+	}
+
+	_weapon.m.WX_WeaponModID <- _wmodID;
+	::Wuxia.Forge.saveExtendedMeta(_weapon);
+	if ("BeastCraft" in ::Wuxia && "injectTraitSkill" in ::Wuxia.BeastCraft)
+		::Wuxia.BeastCraft.injectTraitSkill(_weapon);
+
+	return {
+		Ok      = true,
+		Message = "成功将「" + mcfg.Name + "」镶缀于主手「" + _weapon.getName() + "」之上！" + refundNote
+	};
+};
+
+::Wuxia.Forge.findQuenchIngredient <- function( _quenchID, _stash = null )
+{
+	if (_quenchID == null || _quenchID == "" || _quenchID == "none" || !(_quenchID in ::Wuxia.Forge.QuenchCatalysts))
+		return { Found = true, Source = "none", Name = "清泉守正", Available = 99 };
+
+	local qspec = ::Wuxia.Forge.QuenchCatalysts[_quenchID];
+	local stashRef = _stash;
+	if (stashRef == null && ::Wuxia.hasWorldField("Assets"))
+		stashRef = ::World.Assets.getStash();
+
+	if ("Alchemy" in ::Wuxia && "Cabinet" in ::Wuxia.Alchemy)
+	{
+		foreach (ck in qspec.MatchKeys)
+		{
+			local cnt = ::Wuxia.Alchemy.Cabinet.getCount(ck);
+			if (cnt > 0)
+			{
+				local saved = ::Wuxia.Alchemy.Cabinet.getSavedMeta(ck);
+				local meta = ::Wuxia.Alchemy.getCachedCabinetMeta(ck, saved);
+				return {
+					Found     = true,
+					Source    = "cabinet",
+					Key       = ck,
+					Name      = (meta != null && "Name" in meta) ? meta.Name : qspec.Name,
+					Available = cnt
+				};
+			}
+		}
+	}
+
+	if (stashRef != null && "Alchemy" in ::Wuxia)
+	{
+		local sItems = stashRef.getItems();
+		for (local j = 0; j < sItems.len(); j = ++j)
+		{
+			local it = sItems[j];
+			if (it == null) continue;
+			local m = ::Wuxia.Alchemy.classifyItem(it);
+			if (m == null) continue;
+			foreach (mk in qspec.MatchKeys)
+			{
+				if (m.Key == mk)
+					return { Found = true, Source = "stash", StashIdx = j, Name = it.getName(), Available = 1 };
+			}
+		}
+	}
+	return { Found = false, Source = "", Name = qspec.Name + "对应奇材/灵草", Available = 0 };
+};
+
+::Wuxia.Forge.consumeQuenchIngredient <- function( _quenchID, _stash )
+{
+	if (_quenchID == null || _quenchID == "" || _quenchID == "none") return "";
+	local qi = ::Wuxia.Forge.findQuenchIngredient(_quenchID, _stash);
+	if (!qi.Found || qi.Source == "none") return "";
+	if (qi.Source == "cabinet")
+	{
+		::Wuxia.Alchemy.Cabinet.addCount(qi.Key, -1);
+		return qi.Name;
+	}
+	if (qi.Source == "stash" && _stash != null)
+	{
+		_stash.removeByIndex(qi.StashIdx);
+		return qi.Name;
+	}
+	return "";
 };
 
 ::Wuxia.Forge.lerpInt <- function( _minVal, _maxVal, _t )
@@ -145,6 +333,63 @@
 	local msg = ::Wuxia.Forge.LastCraftBanner;
 	::Wuxia.Forge.LastCraftBanner = "";
 	return msg;
+};
+
+::Wuxia.Forge.consumeLastCraftItems <- function()
+{
+	local items = ::Wuxia.Forge.LastCraftItems;
+	::Wuxia.Forge.LastCraftItems = [];
+	return items;
+};
+
+::Wuxia.Forge.buildItemShowcaseCard <- function( _item )
+{
+	if (_item == null) return null;
+	if (_item.getID() == "misc.wx_pill_item" && ("Alchemy" in ::Wuxia) && ("buildPillShowcaseCard" in ::Wuxia.Alchemy))
+	{
+		return ::Wuxia.Alchemy.buildPillShowcaseCard(_item, false);
+	}
+	local ico = _item.getIcon();
+	if (ico != null && ico != "" && ico.find("ui/") != 0)
+		ico = "ui/items/" + ico;
+	local hasGrade = ("WX_ForgeGrade" in _item.m && _item.m.WX_ForgeGrade != null);
+	local grade = hasGrade ? _item.m.WX_ForgeGrade : 1;
+	local gSpec = ::Wuxia.Forge.Grades[::Math.max(0, ::Math.min(3, grade))];
+	local perf  = ("WX_PerfectionPct" in _item.m && _item.m.WX_PerfectionPct != null) ? _item.m.WX_PerfectionPct : -1;
+	local rng   = ::Wuxia.Forge.describeGearRanges(_item);
+	local statRows = [];
+	if (rng != null && ("Rows" in rng) && rng.Rows != null)
+	{
+		for (local i = 0; i < rng.Rows.len() && i < 6; i = ++i)
+			statRows.push({ label = rng.Rows[i].label, cur = rng.Rows[i].cur, range = rng.Rows[i].range });
+	}
+	else
+	{
+		// Fallback summary stats for vanilla crafted weapons / armor / shields / upgrades
+		if (::Wuxia.hasMember(_item.m, "RegularDamage") && _item.m.RegularDamage > 0)
+			statRows.push({ label = "基础伤害", cur = _item.m.RegularDamage + " - " + _item.m.RegularDamageMax, range = "" });
+		if (::Wuxia.hasMember(_item.m, "ArmorMax") && _item.m.ArmorMax > 0)
+			statRows.push({ label = "甲胄护甲", cur = "" + _item.m.ArmorMax, range = "" });
+		else if (::Wuxia.hasMember(_item.m, "ConditionMax") && _item.m.ConditionMax > 1)
+			statRows.push({ label = "器物耐久", cur = "" + _item.m.ConditionMax, range = "" });
+		if (::Wuxia.hasMember(_item.m, "ConditionModifier") && _item.m.ConditionModifier > 0)
+			statRows.push({ label = "护甲增益", cur = "+" + _item.m.ConditionModifier, range = "" });
+		if (::Wuxia.hasMember(_item.m, "MeleeDefense") && _item.m.MeleeDefense > 0)
+			statRows.push({ label = "近战招架", cur = "+" + _item.m.MeleeDefense, range = "" });
+	}
+	local desc = _item.getDescription();
+	return {
+		isPill        = false,
+		name          = _item.getName(),
+		icon          = ico,
+		grade         = hasGrade ? grade : 1,
+		gradeTitle    = hasGrade ? gSpec.Title : "百工制器",
+		gradeColor    = hasGrade ? gSpec.Color : "#d7b174",
+		perfectionPct = perf,
+		statRows      = statRows,
+		summaryStr    = (rng != null && ("SummaryStr" in rng)) ? rng.SummaryStr : "",
+		description   = desc != null ? desc : ""
+	};
 };
 
 // -----------------------------------------------------------------------------
@@ -542,6 +787,8 @@
 			if (bi > 0) joined += "，";
 			joined += bParts[bi];
 		}
+		if ("MechTail" in cfg && cfg.MechTail != null)
+			joined += cfg.MechTail;
 		_item.m.RolledBonusText <- joined;
 		_item.m.Value = ::Math.round(cfg.Value * _dec.ValueMult).tointeger();
 	}
@@ -860,6 +1107,17 @@
 			icon = "ui/icons/asset_supplies.png",
 			text = "[color=" + col + "]【锻造品相 · " + gTitle + "（完美度 " + perf + "%）】[/color]" + tail
 		});
+		::Wuxia.Forge.syncExtendedMeta(_item);
+		if ("WX_QuenchID" in _item.m && _item.m.WX_QuenchID != null && _item.m.WX_QuenchID != "none" && (_item.m.WX_QuenchID in ::Wuxia.Forge.QuenchCatalysts))
+		{
+			local qsp = ::Wuxia.Forge.QuenchCatalysts[_item.m.WX_QuenchID];
+			_ret.push({
+				id = 971,
+				type = "text",
+				icon = "ui/icons/special.png",
+				text = "[color=" + qsp.TooltipColor + "]【" + qsp.Name + " · " + qsp.AffixTitle + "】[/color]" + qsp.AffixDesc
+			});
+		}
 		if (rng.SummaryStr != "" && _item.m.WX_ForgeGrade < 3)
 		{
 			_ret.push({
@@ -892,6 +1150,13 @@
 				return { Found = true, Source = "cabinet", Key = ck, Name = mcfg.Name, Available = cnt };
 			}
 		}
+		foreach (pmk, pmcfg in ::Wuxia.Config.BeastMaterials)
+		{
+			local pck = "trophy:" + pmk;
+			local pcnt = ::Wuxia.Alchemy.Cabinet.getCount(pck);
+			if (pcnt > 0)
+				return { Found = true, Source = "cabinet", Key = pck, Name = pmcfg.Name, Available = pcnt };
+		}
 	}
 	// Priority 2: `misc.wx_mat_*` in Stash
 	local stashRef = _stash;
@@ -903,7 +1168,7 @@
 		for (local j = 0; j < items.len(); j = ++j)
 		{
 			local it = items[j];
-			if (it != null && it.getID().find("misc.wx_mat_") == 0)
+			if (it != null && (it.getID().find("misc.wx_mat_") == 0 || it.getID().find("misc.wx_pmat_") == 0))
 				return { Found = true, Source = "stash", StashIdx = j, Name = it.getName(), Available = 1 };
 		}
 	}
@@ -925,7 +1190,7 @@
 	{
 		foreach (it in stashRef.getItems())
 		{
-			if (it != null && it.getID().find("misc.wx_mat_") == 0)
+			if (it != null && (it.getID().find("misc.wx_mat_") == 0 || it.getID().find("misc.wx_pmat_") == 0))
 				total += 1;
 		}
 	}
@@ -949,17 +1214,24 @@
 	return null;
 };
 
-::Wuxia.Forge.buildReforgeEntry <- function( _item, _uid, _ownerLabel, _isEquipped )
+::Wuxia.Forge.buildReforgeEntry <- function( _item, _uid, _ownerLabel, _isEquipped, _mastery = null )
 {
 	local rng = ::Wuxia.Forge.describeGearRanges(_item);
 	if (rng == null) return null;
-	local mst = ::Wuxia.Forge.getSmithMastery();
+	local mst = (_mastery != null) ? _mastery : ::Wuxia.Forge.getSmithMastery();
 	local baseSilver = (rng.Info.Domain == "beast") ? 350 : 850;
 	local silverCost = ::Math.max(100, ::Math.floor(baseSilver * mst.CostMult));
 
 	local grade = ("WX_ForgeGrade" in _item.m && _item.m.WX_ForgeGrade != null) ? _item.m.WX_ForgeGrade : 1;
 	local gSpec = ::Wuxia.Forge.Grades[::Math.max(0, ::Math.min(3, grade))];
 	local perf  = ("WX_PerfectionPct" in _item.m && _item.m.WX_PerfectionPct != null) ? _item.m.WX_PerfectionPct : 52;
+	::Wuxia.Forge.syncExtendedMeta(_item);
+	local curQuench = ("WX_QuenchID" in _item.m && _item.m.WX_QuenchID != null) ? _item.m.WX_QuenchID : "none";
+	local qSpec = (curQuench in ::Wuxia.Forge.QuenchCatalysts) ? ::Wuxia.Forge.QuenchCatalysts[curQuench] : ::Wuxia.Forge.QuenchCatalysts.none;
+	local curWmod = ("WX_WeaponModID" in _item.m && _item.m.WX_WeaponModID != null) ? _item.m.WX_WeaponModID : "";
+	local wmodName = (curWmod != "" && "WeaponAttachments" in ::Wuxia.Config && (curWmod in ::Wuxia.Config.WeaponAttachments))
+		? ::Wuxia.Config.WeaponAttachments[curWmod].Name
+		: "";
 
 	return {
 		uid           = _uid,
@@ -974,6 +1246,10 @@
 		gradeTitle    = gSpec.Title,
 		gradeColor    = gSpec.Color,
 		perfectionPct = perf,
+		quenchID      = curQuench,
+		quenchTitle   = qSpec.AffixTitle != "" ? (qSpec.Name + "·" + qSpec.AffixTitle) : "",
+		quenchColor   = qSpec.Color,
+		weaponModName = wmodName,
 		silverCost    = silverCost,
 		summaryStr    = rng.SummaryStr,
 		statRows      = rng.Rows,
@@ -981,9 +1257,10 @@
 	};
 };
 
-::Wuxia.Forge.collectReforgeableList <- function( _stash = null )
+::Wuxia.Forge.collectReforgeableList <- function( _stash = null, _mastery = null )
 {
 	local out = [];
+	local mst = (_mastery != null) ? _mastery : ::Wuxia.Forge.getSmithMastery();
 	if (("World" in getroottable()) && ::World != null && ("getPlayerRoster" in ::World) && ::World.getPlayerRoster() != null)
 	{
 		local slotsCheck = [
@@ -1004,7 +1281,7 @@
 				local eq = items.getItemAtSlot(sl);
 				if (eq == null) continue;
 				local uid = "eq:" + bro.getID() + ":" + sl;
-				local entry = ::Wuxia.Forge.buildReforgeEntry(eq, uid, bro.getName() + " · " + slName, true);
+				local entry = ::Wuxia.Forge.buildReforgeEntry(eq, uid, bro.getName() + " · " + slName, true, mst);
 				if (entry != null) out.push(entry);
 			}
 		}
@@ -1020,7 +1297,7 @@
 		{
 			local it = sItems[i];
 			if (it == null) continue;
-			local entry2 = ::Wuxia.Forge.buildReforgeEntry(it, "st:" + i, "战团行囊", false);
+			local entry2 = ::Wuxia.Forge.buildReforgeEntry(it, "st:" + i, "战团行囊", false, mst);
 			if (entry2 != null) out.push(entry2);
 		}
 	}
@@ -1058,7 +1335,7 @@
 	return null;
 };
 
-::Wuxia.Forge.executeReforge <- function( _uid )
+::Wuxia.Forge.executeReforge <- function( _uid, _quenchID = "none", _lockSlot = "" )
 {
 	if (!::Wuxia.hasWorldField("Assets"))
 		return { Ok = false, Reason = "当前无法启用百工重锻炉。" };
@@ -1073,25 +1350,95 @@
 	if (info == null)
 		return { Ok = false, Reason = "该件装备不支持百工炉火重锻。" };
 
+	local useQuench = (_quenchID != null && _quenchID != "" && (_quenchID in ::Wuxia.Forge.QuenchCatalysts)) ? _quenchID : "none";
+	local useLock   = (_lockSlot == "f1" || _lockSlot == "f2") ? _lockSlot : "";
+	local needMats  = (useLock != "") ? 2 : 1;
+
 	local mst = ::Wuxia.Forge.getSmithMastery();
 	local baseSilver = (info.Domain == "beast") ? 350 : 850;
-	local silverCost = ::Math.max(100, ::Math.floor(baseSilver * mst.CostMult));
+	local lockSilverMult = (useLock != "") ? 1.50 : 1.00;
+	local silverCost = ::Math.max(100, ::Math.floor(baseSilver * mst.CostMult * lockSilverMult));
 	local money = ::World.Assets.getMoney();
 	if (money < silverCost)
 		return { Ok = false, Reason = "纹银不足（本次重锻需 " + silverCost + " 两，现存 " + money + " 两）。" };
 
-	local catCheck = ::Wuxia.Forge.findReforgeCatalyst(stash);
-	if (!catCheck.Found)
-		return { Ok = false, Reason = "缺少百工奇材辅料（讨伐野外山泽异兽或秘境大妖可获赤炎翎、真龙逆鳞、太古凶角、战神煞骨、天妖蛟筋或蚀骨毒晶）。" };
+	local totalMats = ::Wuxia.Forge.countTotalBeastMats(stash);
+	if (totalMats < needMats)
+	{
+		return {
+			Ok     = false,
+			Reason = (needMats >= 2)
+				? "开启【百炼锁词精铸】共需消耗 2 份百工奇材（当前仅存 " + totalMats + " 份）。"
+				: "缺少百工奇材辅料（讨伐野外山泽异兽或秘境大妖可获赤炎翎、真龙逆鳞、太古凶角、战神煞骨、天妖蛟筋或破部精粹）。"
+		};
+	}
 
-	local oldPerf = ("WX_PerfectionPct" in item.m && item.m.WX_PerfectionPct != null) ? item.m.WX_PerfectionPct : 50;
-	local oldTitle = ("WX_ForgeGradeTitle" in item.m && item.m.WX_ForgeGradeTitle != null) ? item.m.WX_ForgeGradeTitle : "良工";
+	if (useQuench != "none")
+	{
+		local qChk = ::Wuxia.Forge.findQuenchIngredient(useQuench, stash);
+		if (!qChk.Found)
+			return { Ok = false, Reason = "缺少所选【" + ::Wuxia.Forge.QuenchCatalysts[useQuench].Name + "】对应的奇草或精粹引子！" };
+	}
+
+	::Wuxia.Forge.syncExtendedMeta(item);
+	local prevWmod = ("WX_WeaponModID" in item.m && item.m.WX_WeaponModID != null) ? item.m.WX_WeaponModID : "";
+	local prevDec  = ::Wuxia.Forge.decodeVariantSeed(item.getVariant());
+	if (prevDec == null)
+		prevDec = { F1 = 0.52, F2 = 0.52, F3 = 0.52 };
+
+	local oldPerf  = ("WX_PerfectionPct" in item.m && item.m.WX_PerfectionPct != null) ? item.m.WX_PerfectionPct : 50;
+	local oldGrade = ("WX_ForgeGrade" in item.m && item.m.WX_ForgeGrade != null) ? item.m.WX_ForgeGrade : 1;
+	local oldSpec  = ::Wuxia.Forge.Grades[::Math.max(0, ::Math.min(3, oldGrade))];
+	local oldTitle = ("WX_ForgeGradeTitle" in item.m && item.m.WX_ForgeGradeTitle != null) ? item.m.WX_ForgeGradeTitle : oldSpec.Title;
 
 	::World.Assets.addMoney(-silverCost);
 	local spentMatName = ::Wuxia.Forge.consumeOneCatalyst(stash);
+	if (useLock != "")
+		::Wuxia.Forge.consumeOneCatalyst(stash);
+	local spentQuenchName = (useQuench != "none") ? ::Wuxia.Forge.consumeQuenchIngredient(useQuench, stash) : "";
 
 	local dec = ::Wuxia.Forge.rollNewSeed(true, 0);
+
+	// 1. Apply Quench Catalyst Directional Shaping (`淬火引子定向塑形`)
+	if (useQuench != "none")
+	{
+		local qsp = ::Wuxia.Forge.QuenchCatalysts[useQuench];
+		dec.F1 = ::Math.minf(1.0, dec.F1 + qsp.BiasF1);
+		dec.F2 = ::Math.minf(1.0, dec.F2 + qsp.BiasF2);
+		dec.F3 = ::Math.minf(1.0, dec.F3 + qsp.BiasF3);
+	}
+
+	// 2. Apply Stat-Lock Precision Reforging (`百炼锁词精铸`: locked dimension never downgrades!)
+	if (useLock == "f1" && prevDec.F1 > dec.F1)
+		dec.F1 = prevDec.F1;
+	else if (useLock == "f2" && prevDec.F2 > dec.F2)
+		dec.F2 = prevDec.F2;
+
+	dec.PerfectionPct = ::Math.min(100, ::Math.max(dec.PerfectionPct, ::Math.round(((dec.F1 + dec.F2 + dec.F3) / 3.0) * 100.0).tointeger()));
+	if (dec.PerfectionPct >= 92 && dec.Grade < 3)
+	{
+		dec.Grade      = 3;
+		dec.GradeTitle = ::Wuxia.Forge.Grades[3].Title;
+		dec.GradeColor = ::Wuxia.Forge.Grades[3].Color;
+		dec.ValueMult  = ::Wuxia.Forge.Grades[3].ValueMult;
+		dec.Seed       = ::Wuxia.Forge.encodeVariantSeed(3, dec.Seed % 40);
+	}
+	else if (dec.PerfectionPct >= 70 && dec.Grade < 2)
+	{
+		dec.Grade      = 2;
+		dec.GradeTitle = ::Wuxia.Forge.Grades[2].Title;
+		dec.GradeColor = ::Wuxia.Forge.Grades[2].Color;
+		dec.ValueMult  = ::Wuxia.Forge.Grades[2].ValueMult;
+		dec.Seed       = ::Wuxia.Forge.encodeVariantSeed(2, dec.Seed % 40);
+	}
+
 	::Wuxia.Forge.applySeedToItem(item, dec, false); // Repairs to full durability on reforge!
+	item.m.WX_WeaponModID <- prevWmod;
+	if (useQuench != "none")
+		item.m.WX_QuenchID <- useQuench;
+	::Wuxia.Forge.saveExtendedMeta(item);
+	if ("BeastCraft" in ::Wuxia && "injectTraitSkill" in ::Wuxia.BeastCraft)
+		::Wuxia.BeastCraft.injectTraitSkill(item);
 
 	if (resolved.Bro != null)
 	{
@@ -1101,17 +1448,30 @@
 			::Wuxia.Armory.syncActorHandheldAndArmor(resolved.Bro);
 	}
 
-	local pityNote = dec.UsedPity ? "【五锤炉温保底激发！】" : "";
-	local mwNote   = (dec.Grade >= 3) ? " 炉吐金霞、神工天成！" : "";
-	local msg = pityNote + "耗「" + spentMatName + "」×1 与纹银 " + silverCost + " 两重铸「" + item.getName() + "」：" +
+	local pityNote   = dec.UsedPity ? "【五锤炉温保底激发！】" : "";
+	local lockNote   = (useLock == "f1") ? "【锁主词精铸】" : ((useLock == "f2") ? "【锁辅词精铸】" : "");
+	local quenchNote = (useQuench != "none") ? (" · 投引「" + spentQuenchName + "」塑成【" + ::Wuxia.Forge.QuenchCatalysts[useQuench].AffixTitle + "】") : "";
+	local mwNote     = (dec.Grade >= 3) ? " 炉吐金霞、神工天成！" : "";
+	local msg = pityNote + lockNote + "耗「" + spentMatName + "」×" + needMats + " 与纹银 " + silverCost + " 两重铸「" + item.getName() + "」" + quenchNote + "：" +
 		oldTitle + "(" + oldPerf + "%) → 【" + dec.GradeTitle + " · 完美度 " + dec.PerfectionPct + "%】！" + mwNote;
 
 	return {
-		Ok            = true,
-		Grade         = dec.Grade,
-		GradeTitle    = dec.GradeTitle,
-		PerfectionPct = dec.PerfectionPct,
-		Message       = msg
+		Ok               = true,
+		Grade            = dec.Grade,
+		GradeTitle       = dec.GradeTitle,
+		GradeColor       = ::Wuxia.Forge.Grades[::Math.max(0, ::Math.min(3, dec.Grade))].Color,
+		PerfectionPct    = dec.PerfectionPct,
+		QuenchID         = ("WX_QuenchID" in item.m) ? item.m.WX_QuenchID : "none",
+		LockedSlot       = useLock,
+		OldGrade         = oldGrade,
+		OldGradeTitle    = oldTitle,
+		OldGradeColor    = oldSpec.Color,
+		OldPerfectionPct = oldPerf,
+		UsedPity         = dec.UsedPity,
+		SpentMatName     = spentMatName,
+		SilverCost       = silverCost,
+		ItemCard         = ::Wuxia.Forge.buildItemShowcaseCard(item),
+		Message          = msg
 	};
 };
 
@@ -1121,6 +1481,7 @@
 ::Wuxia.Forge.rollTownProducts <- function( _products )
 {
 	local craftedMsgs = [];
+	local craftedCards = [];
 	foreach (afterIt in _products)
 	{
 		if (afterIt.getID() == "misc.wx_pill_item")
@@ -1138,8 +1499,11 @@
 			if (gRoll != null)
 				craftedMsgs.push("「" + afterIt.getName() + "」（完美度 " + gRoll.PerfectionPct + "%）");
 		}
+		local card = ::Wuxia.Forge.buildItemShowcaseCard(afterIt);
+		if (card != null) craftedCards.push(card);
 	}
 
+	::Wuxia.Forge.LastCraftItems = craftedCards;
 	if (craftedMsgs.len() > 0)
 	{
 		local joined = "";
@@ -1172,7 +1536,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			local reason = null, plan = null;
 			if (bp == null) reason = "找不到所选配方。";
 			else if (::World.Assets.getMoney() < bp.getCost()) reason = "纹银不足。";
-			else if (!bp.isCraftable()) reason = "制作材料不足，请重新选择丹方。";
+			else if (!bp.isCraftable()) reason = "制作材料不足，请重新选择配方。";
 			else if (bp.getID().find("blueprint.wx_") == 0)
 			{
 				plan = ::Wuxia.BeastCraft.prepareCraft(bp, ::World.Assets.getStash());
@@ -1185,14 +1549,99 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 				return data;
 			}
 
-			if (plan == null) return __original(_blueprintID);
+			// Collect input material icons for the forge/cauldron buildup animation
+			local inputCards = [];
+			try
+			{
+				local comps = (::Wuxia.hasMember(bp.m, "PreviewComponents")) ? bp.m.PreviewComponents : ((::Wuxia.hasMember(bp.m, "Ingredients")) ? bp.m.Ingredients : null);
+				if (comps != null)
+				{
+					foreach (ing in comps)
+					{
+						if (ing == null || !("Instance" in ing) || ing.Instance == null) continue;
+						local iIco = ing.Instance.getIcon();
+						if (iIco != null && iIco != "" && iIco.find("ui/") != 0) iIco = "ui/items/" + iIco;
+						inputCards.push({ name = ing.Instance.getName(), icon = iIco });
+						if (inputCards.len() >= 3) break;
+					}
+				}
+			}
+			catch (_eInp) {}
+
+			if (plan == null)
+			{
+				local stash = ::World.Assets.getStash();
+				local prevIds = {};
+				if (stash != null)
+				{
+					foreach (sIt in stash.getItems())
+					{
+						if (sIt != null) prevIds[sIt.getInstanceID()] <- true;
+					}
+				}
+				::Wuxia.BeastCraft.SkipAutoStoreInQuery = true;
+				local vData;
+				try { vData = __original(_blueprintID); }
+				catch (vErr) { ::Wuxia.BeastCraft.SkipAutoStoreInQuery = false; throw vErr; }
+				::Wuxia.BeastCraft.SkipAutoStoreInQuery = false;
+				local vCards = [];
+				if (stash != null)
+				{
+					foreach (aIt in stash.getItems())
+					{
+						if (aIt != null && !(aIt.getInstanceID() in prevIds))
+						{
+							local vc = ::Wuxia.Forge.buildItemShowcaseCard(aIt);
+							if (vc != null) vCards.push(vc);
+						}
+					}
+				}
+				if (vData != null && vCards.len() > 0)
+				{
+					local isP = vCards[0].isPill;
+					vData.wxCraftShowcase <- {
+						kind    = isP ? "alchemy" : "forge",
+						outcome = "success",
+						title   = isP ? "丹炉出药 · 功成" : "百工铸器 · 出炉",
+						subtitle = "已妥善存入战团行囊",
+						inputs  = inputCards,
+						items   = vCards,
+						message = "出炉：「" + vCards[0].name + "」！"
+					};
+				}
+				return vData;
+			}
+
 			bp.m.WX_CraftPlan <- plan;
+			::Wuxia.BeastCraft.SkipAutoStoreInQuery = true;
 			local data;
 			try { data = __original(_blueprintID); }
-			catch (err) { delete bp.m.WX_CraftPlan; throw err; }
+			catch (err) { ::Wuxia.BeastCraft.SkipAutoStoreInQuery = false; delete bp.m.WX_CraftPlan; throw err; }
+			::Wuxia.BeastCraft.SkipAutoStoreInQuery = false;
 			delete bp.m.WX_CraftPlan;
 			local banner = ::Wuxia.Forge.consumeLastCraftBanner();
+			local craftedCards = ::Wuxia.Forge.consumeLastCraftItems();
 			if (banner != "" && data != null) data.wxCraftBanner <- banner;
+			if (data != null && craftedCards.len() > 0)
+			{
+				local allPills = true;
+				local maxGrade = 0;
+				foreach (cc in craftedCards)
+				{
+					if (!cc.isPill) allPills = false;
+					if (cc.grade > maxGrade) maxGrade = cc.grade;
+				}
+				local outc = (maxGrade >= 3) ? "crit" : (maxGrade >= 2 ? "great" : "success");
+				data.wxCraftShowcase <- {
+					kind     = allPills ? "alchemy" : "forge",
+					outcome  = outc,
+					title    = allPills ? (maxGrade >= 3 ? "丹霞天成 · 极品出炉" : "开炉成丹") : (maxGrade >= 3 ? "神工天成 · 传世出炉" : (maxGrade >= 2 ? "百炼锋成 · 神兵出炉" : "百工铸造 · 兵甲出炉")),
+					subtitle = allPills ? "已收入战团行囊，可随军服食或灌注火候" : "已收入战团行囊（支持于【神兵重锻】继续淬洗品相）",
+					inputs   = inputCards,
+					items    = craftedCards,
+					message  = banner != "" ? banner : ("开炉功成！出炉「" + craftedCards[0].name + "」！")
+				};
+			}
 			return data;
 		};
 	});

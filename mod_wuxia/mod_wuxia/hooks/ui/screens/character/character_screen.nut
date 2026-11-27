@@ -9,6 +9,11 @@
 	q.show = @(__original) function()
 	{
 		this.m.WX_PendingAutoStoreNotice = "";
+		if ("VFX" in ::Wuxia && "clearAllActiveMotions" in ::Wuxia.VFX
+			&& (!("Tactical" in getroottable()) || ::Tactical == null || !::Tactical.isActive()))
+		{
+			::Wuxia.VFX.clearAllActiveMotions(true);
+		}
 		if (!this.isInGroundMode() && ::Wuxia.Library.isAutoStoreEnabled()
 			&& ("World" in getroottable()) && ::World != null && ::World.Assets != null)
 		{
@@ -38,10 +43,11 @@
 		};
 	}
 
-	// Intercept right-click consumable use in vanilla Stash to provide clear feedback when consuming wx_manual_item
+	// Intercept right-click consumable use in vanilla Stash to provide clear feedback when consuming wx_manual_item or wx_wmod_*
 	q.onEquipInventoryItem = @(__original) function( _data )
 	{
 		local manualMeta = null;
+		local wmodMeta = null;
 		if (typeof _data == "array" && _data.len() >= 2 && ("World" in getroottable()) && ::World != null && ::World.Assets != null)
 		{
 			local bro = this.WX_findBrotherById(_data[0]);
@@ -66,10 +72,42 @@
 						wasFragment = (prev != null && prev.IsFragment)
 					};
 				}
+				else if (itemObj != null && (::Wuxia.hasMember(itemObj, "getID")) && itemObj.getID().find("misc.wx_wmod_") == 0)
+				{
+					local mcfg = ::Wuxia.hasMember(itemObj, "getModCfg") ? itemObj.getModCfg() : null;
+					local mainWpn = (bro.getItems() != null) ? bro.getItems().getItemAtSlot(::Const.ItemSlot.Mainhand) : null;
+					wmodMeta = {
+						broName     = bro.getName(),
+						instanceID  = itemId,
+						modName     = itemObj.getName(),
+						familyLabel = mcfg != null ? mcfg.FamilyLabel : "适配兵刃",
+						wpnName     = mainWpn != null ? mainWpn.getName() : ""
+					};
+				}
 			}
 		}
 
 		local ret = __original(_data);
+
+		if (wmodMeta != null && typeof ret == "table")
+		{
+			local stashAfter = (("World" in getroottable()) && ::World != null && ::World.Assets != null) ? ::World.Assets.getStash() : null;
+			local stillInStash = (stashAfter != null && stashAfter.getItemByInstanceID(wmodMeta.instanceID) != null);
+			if (stillInStash)
+			{
+				ret.wxManualNotice <- {
+					ok      = false,
+					message = wmodMeta.broName + " 主手未装备匹配的【" + wmodMeta.familyLabel + "】，无法镶缀「" + wmodMeta.modName + "」！"
+				};
+			}
+			else
+			{
+				ret.wxManualNotice <- {
+					ok      = true,
+					message = wmodMeta.broName + " 已将「" + wmodMeta.modName + "」成功镶缀于主手兵刃" + (wmodMeta.wpnName != "" ? ("「" + wmodMeta.wpnName + "」") : "") + "！"
+				};
+			}
+		}
 
 		if (manualMeta != null && typeof ret == "table")
 		{
@@ -82,9 +120,18 @@
 			}
 			else
 			{
+				local learnedCard = ::Wuxia.UI.buildManualShowcaseCard(manualMeta.manualID, manualMeta.wasFragment ? "补全残篇" : "领悟入录");
 				ret.wxManualNotice <- {
-					ok      = true,
-					message = manualMeta.broName + (manualMeta.wasFragment ? " 补全并领悟完整秘籍" : " 成功研习领悟") + "《" + manualMeta.manualName + "》！请切至【武学修为】页选装入槽。"
+					ok         = true,
+					message    = manualMeta.broName + (manualMeta.wasFragment ? " 补全并领悟完整秘籍" : " 成功研习领悟") + "《" + manualMeta.manualName + "》！请切至【武学修为】页选装入槽。",
+					wxShowcase = {
+						kind     = "learn_manual",
+						outcome  = "success",
+						title    = manualMeta.wasFragment ? "补全残卷 · 领悟全篇" : "展卷研习 · 领悟新功",
+						subtitle = manualMeta.broName + " · 请切至【武学修为】页装入穴位运功",
+						items    = [learnedCard],
+						message  = manualMeta.broName + (manualMeta.wasFragment ? " 补全并领悟完整秘籍" : " 成功研习领悟") + "《" + manualMeta.manualName + "》！"
+					}
 				};
 			}
 		}
@@ -239,6 +286,15 @@
 		state.actionMessage <- res.IsOverwrite
 			? ("已换装《" + res.NewManualName + "》！（《" + res.OldManualName + "》重数与火候已完整保留于已习武学，附带 " + res.PenaltyDays + " 天短暂散功调息）")
 			: ("《" + res.NewManualName + "》已装入插槽生效！");
+		local eqCard = ::Wuxia.UI.buildManualShowcaseCard(manualID, "");
+		state.wxShowcase <- {
+			kind        = "slot_change",
+			slotIndex   = slotIndex,
+			manualName  = res.NewManualName,
+			icon        = eqCard.overlayIcon != "" ? eqCard.overlayIcon : eqCard.icon,
+			isOverwrite = res.IsOverwrite,
+			message     = state.actionMessage
+		};
 		return state;
 	};
 
@@ -281,6 +337,13 @@
 		local state = this.onWXGetState(entityId);
 		this.WX_attachVanillaSync(state, bro, true, false);
 		state.actionMessage <- "已卸下《" + res.OldManualName + "》（重数与火候完整保留于已习武学，角色进入 " + res.PenaltyDays + " 天散功调息）。";
+		state.wxShowcase <- {
+			kind        = "slot_unequip",
+			slotIndex   = slotIndex,
+			manualName  = res.OldManualName,
+			penaltyDays = res.PenaltyDays,
+			message     = state.actionMessage
+		};
 		return state;
 	};
 
@@ -323,6 +386,15 @@
 			state.actionMessage <- bro.getName() + " 已强行记下《" + res.ManualName + "》残篇（限一重），可切至【武学修为】页装入插槽。";
 		else
 			state.actionMessage <- bro.getName() + " 成功领悟《" + res.ManualName + "》！请切至【武学修为】页选装入槽。";
+		local lCard = ::Wuxia.UI.buildManualShowcaseCard(manualID, res.UpgradedFragment ? "补全残本" : (isFragment ? "强记残篇" : "完整领悟"));
+		state.wxShowcase <- {
+			kind     = "learn_manual",
+			outcome  = res.UpgradedFragment ? "crit" : "success",
+			title    = res.UpgradedFragment ? "残卷补全 · 贯通全篇" : (isFragment ? "强记残篇 · 初窥门径" : "藏经研习 · 领悟新功"),
+			subtitle = bro.getName() + " · 已录于【已习武学】",
+			items    = [lCard],
+			message  = state.actionMessage
+		};
 		return state;
 	};
 
@@ -331,12 +403,23 @@
 	{
 		if (typeof _data != "array" || _data.len() < 3) return { ok = false, reason = "缺少研习或装配信息。" };
 		local bro = this.WX_findBrotherById(_data[0]);
-		local result = ::Wuxia.Library.learnAndEquip(bro, _data[1], _data[2], _data.len() > 3 && _data[3],
+		local isFrag = (_data.len() > 3 && _data[3]);
+		local result = ::Wuxia.Library.learnAndEquip(bro, _data[1], _data[2], isFrag,
 			_data.len() > 4 && _data[4], _data.len() > 5, _data.len() > 5 ? _data[5] : null);
 		if (!result.ok) return result;
 		local state = this.onWXGetState(_data[0]);
 		this.WX_attachVanillaSync(state, bro, true, false);
 		state.actionMessage <- result.actionMessage;
+		local leCard = ::Wuxia.UI.buildManualShowcaseCard(_data[2], isFrag ? "残篇入槽" : "研习入槽");
+		state.wxShowcase <- {
+			kind      = "learn_manual",
+			outcome   = "success",
+			title     = isFrag ? "残篇强习 · 装入穴位" : "领悟新功 · 运转周天",
+			subtitle  = (bro != null ? bro.getName() : "侠客") + " · 已直接装入武学穴位生效",
+			slotIndex = _data[1],
+			items     = [leCard],
+			message   = result.actionMessage
+		};
 		return state;
 	};
 
@@ -357,7 +440,17 @@
 		if (moved.booksMoved == 0 && moved.pagesMoved == 0)
 			state.actionMessage <- "战团仓库中当前没有武学秘籍或残页需要收纳。";
 		else
+		{
 			state.actionMessage <- "收纳完成！共将 " + moved.booksMoved + " 册秘籍、" + moved.pagesMoved + " 张残页归入藏经阁，腾出 " + moved.slotsCleared + " 格仓库空间。";
+			local sParts = [];
+			if (moved.booksMoved > 0) sParts.push("秘籍×" + moved.booksMoved);
+			if (moved.pagesMoved > 0) sParts.push("残页×" + moved.pagesMoved);
+			state.wxShowcase <- {
+				kind      = "sweep_vault",
+				floatText = (sParts.len() == 2 ? (sParts[0] + " · " + sParts[1]) : sParts[0]) + " 归入藏经阁",
+				message   = state.actionMessage
+			};
+		}
 		return state;
 	};
 
@@ -441,6 +534,14 @@
 		state.actionMessage <- res.UsedWildcard
 			? ("融会补缺成功！额外折算 " + res.SacrificedCount + " 张同品阶闲置残页，在藏经阁合成完整秘籍《" + res.ManualName + "》！")
 			: ("残页装帧成册！在藏经阁合成完整秘籍《" + res.ManualName + "》！");
+		state.wxShowcase <- {
+			kind     = "craft_manual",
+			outcome  = res.UsedWildcard ? "great" : "success",
+			title    = res.UsedWildcard ? "融会补缺 · 装帧成册" : "残页拼合 · 装帧成册",
+			subtitle = "新成秘籍已典藏入【藏经阁】",
+			items    = [::Wuxia.UI.buildManualShowcaseCard(manualID, res.UsedWildcard ? "融会补缺成册" : "完整装帧")],
+			message  = state.actionMessage
+		};
 		return state;
 	};
 
@@ -462,6 +563,24 @@
 		}
 		if (res.names.len() > 4) previewNames += " 等";
 		state.actionMessage <- "批量装帧完成！消耗 " + res.pagesSpent + " 张残页，合成 " + res.booksCrafted + " 册完整秘籍：" + previewNames + "。";
+
+		local craftedCards = [];
+		if ("crafted" in res && res.crafted != null)
+		{
+			for (local ci = 0; ci < res.crafted.len() && ci < 6; ci = ++ci)
+			{
+				local ce = res.crafted[ci];
+				craftedCards.push(::Wuxia.UI.buildManualShowcaseCard(ce.id, ce.count > 1 ? ("×" + ce.count + " 册") : "1 册"));
+			}
+		}
+		state.wxShowcase <- {
+			kind     = "craft_manual",
+			outcome  = res.booksCrafted >= 2 ? "crit" : "success",
+			title    = "批量装帧 · 秘籍成册",
+			subtitle = "共消耗 " + res.pagesSpent + " 张残页，合成 " + res.booksCrafted + " 册完整秘籍归入藏经阁",
+			items    = craftedCards,
+			message  = state.actionMessage
+		};
 		return state;
 	};
 
@@ -558,6 +677,15 @@
 			bro.setHitpoints(::Math.min(bro.getHitpointsMax(), bro.getHitpoints() + healHP));
 		}
 
+		local srcName = it.getName();
+		local srcIcon = it.getIcon();
+		if (srcIcon != null && srcIcon != "" && srcIcon.find("ui/") != 0)
+			srcIcon = "ui/items/" + srcIcon;
+		local slotManualID = null;
+		local cBefore = bro.getSkills().getSkillByID("special.wx_martial_container");
+		if (cBefore != null && slotIndex >= 0 && slotIndex < cBefore.m.Slots.len())
+			slotManualID = cBefore.m.Slots[slotIndex].ManualID;
+
 		stash.removeByIndex(stashIndex);
 
 		local msg = "向《" + res.ManualName + "》灌注 " + res.ExpAmount + " 点火候！" + resonanceNote;
@@ -571,6 +699,41 @@
 		local state = this.onWXGetState(entityId);
 		this.WX_attachVanillaSync(state, bro, true, true);
 		state.actionMessage <- msg;
+
+		local tierName = (res.NewTier in ::Wuxia.Text.TierNames) ? ::Wuxia.Text.TierNames[res.NewTier] : ("第" + res.NewTier + "重");
+		if (res.Advanced)
+		{
+			local mCard = slotManualID != null ? ::Wuxia.UI.buildManualShowcaseCard(slotManualID, "破境登阶 · " + tierName) : null;
+			state.wxShowcase <- {
+				kind        = "breakthrough",
+				outcome     = res.NewTier >= 3 ? "crit" : "great",
+				title       = res.NewTier >= 3 ? "三重大成 · 功行圆满！" : ("功法破境 · " + tierName),
+				subtitle    = bro.getName() + " 炼化「" + srcName + "」，贯通关窍（火候 +" + res.ExpAmount + "）",
+				slotIndex   = slotIndex,
+				broName     = bro.getName(),
+				sourceName  = srcName,
+				sourceIcon  = srcIcon,
+				expAmount   = res.ExpAmount,
+				newTier     = res.NewTier,
+				newTierName = tierName,
+				items       = mCard != null ? [mCard] : [],
+				message     = msg
+			};
+		}
+		else
+		{
+			state.wxShowcase <- {
+				kind         = "infuse",
+				slotIndex    = slotIndex,
+				manualName   = res.ManualName,
+				sourceName   = srcName,
+				sourceIcon   = srcIcon,
+				expAmount    = res.ExpAmount,
+				blockedByReq = res.BlockedByReq,
+				resonance    = resonanceNote,
+				message      = msg
+			};
+		}
 		return state;
 	};
 
@@ -586,6 +749,11 @@
 		if (bro == null)
 			return { ok = false, reason = "未找到该名侠客。" };
 
+		local slotManualID = null;
+		local cBefore = bro.getSkills().getSkillByID("special.wx_martial_container");
+		if (cBefore != null && slotIndex >= 0 && slotIndex < cBefore.m.Slots.len())
+			slotManualID = cBefore.m.Slots[slotIndex].ManualID;
+
 		local res = ::Wuxia.Library.infuseSlotWithPage(bro, slotIndex, pageManualID);
 		if (!res.Ok)
 			return { ok = false, reason = res.Reason };
@@ -600,6 +768,42 @@
 		local state = this.onWXGetState(entityId);
 		this.WX_attachVanillaSync(state, bro, true, false);
 		state.actionMessage <- msg;
+
+		local pgCard = ::Wuxia.UI.buildManualShowcaseCard(pageManualID, "残页参悟");
+		local tierName = (res.NewTier in ::Wuxia.Text.TierNames) ? ::Wuxia.Text.TierNames[res.NewTier] : ("第" + res.NewTier + "重");
+		if (res.Advanced)
+		{
+			local mCard = slotManualID != null ? ::Wuxia.UI.buildManualShowcaseCard(slotManualID, "破境登阶 · " + tierName) : null;
+			state.wxShowcase <- {
+				kind        = "breakthrough",
+				outcome     = res.NewTier >= 3 ? "crit" : "great",
+				title       = res.NewTier >= 3 ? "三重大成 · 功行圆满！" : ("参悟破境 · " + tierName),
+				subtitle    = bro.getName() + " 参悟《" + res.PageManualName + "》残页，贯通关窍（火候 +" + res.ExpAmount + "）",
+				slotIndex   = slotIndex,
+				broName     = bro.getName(),
+				sourceName  = "《" + res.PageManualName + "》残页",
+				sourceIcon  = pgCard.icon,
+				expAmount   = res.ExpAmount,
+				newTier     = res.NewTier,
+				newTierName = tierName,
+				items       = mCard != null ? [mCard] : [],
+				message     = msg
+			};
+		}
+		else
+		{
+			state.wxShowcase <- {
+				kind         = "infuse",
+				slotIndex    = slotIndex,
+				manualName   = res.ManualName,
+				sourceName   = "《" + res.PageManualName + "》残页",
+				sourceIcon   = pgCard.icon,
+				expAmount    = res.ExpAmount,
+				blockedByReq = res.BlockedByReq,
+				resonance    = resonanceNote,
+				message      = msg
+			};
+		}
 		return state;
 	};
 
@@ -623,6 +827,19 @@
 		if (!("applyToActorWithMessage" in it))
 			return { ok = false, reason = "所选物品不是可直接服食的灵丹或奇草。" };
 
+		local pName = it.getName();
+		local pIcon = it.getIcon();
+		if (pIcon != null && pIcon != "" && pIcon.find("ui/") != 0)
+			pIcon = "ui/items/" + pIcon;
+
+		local pSub = "";
+		if (it.getID() == "misc.wx_pill_item" && ::Wuxia.hasMember(it, "getPillID"))
+		{
+			local pid = it.getPillID();
+			if (pid in ::Wuxia.Config.Pills && ("SubLabel" in ::Wuxia.Config.Pills[pid]))
+				pSub = ::Wuxia.Config.Pills[pid].SubLabel;
+		}
+
 		local res = it.applyToActorWithMessage(bro);
 		if (!res.Ok)
 			return { ok = false, reason = res.Reason };
@@ -631,6 +848,14 @@
 		local state = this.onWXGetState(entityId);
 		this.WX_attachVanillaSync(state, bro, true, true);
 		state.actionMessage <- res.Message;
+		state.wxShowcase <- {
+			kind        = "consume_pill",
+			broName     = bro.getName(),
+			pillName    = pName,
+			pillIcon    = pIcon,
+			effectLabel = pSub,
+			message     = res.Message
+		};
 		return state;
 	};
 
@@ -703,6 +928,8 @@
 		this.WX_attachVanillaSync(state, bro, true, true);
 		state.washResult <- res;
 		state.actionMessage <- res.Message;
+		if ("buildWashShowcase" in ::Wuxia.UI)
+			state.wxShowcase <- ::Wuxia.UI.buildWashShowcase(bro, res);
 		return state;
 	};
 
@@ -724,6 +951,65 @@
 		local state = this.onWXGetState(entityId);
 		this.WX_attachVanillaSync(state, bro, true, false);
 		state.brotherImagePath <- bro.getImagePath();
+		return state;
+	};
+
+	// Save current 7-slot martial loadout into Preset 0..2 (`_data = [entityId, presetIdx, customLabel]`)
+	q.onWXSavePreset <- function( _data )
+	{
+		if (_data == null || typeof _data != "array" || _data.len() < 2)
+			return { ok = false, reason = "参数缺失。" };
+		local entityId = _data[0];
+		local presetIdx = _data[1];
+		local customLbl = _data.len() >= 3 && _data[2] != null ? ("" + _data[2]) : "";
+		local bro = this.WX_findBrotherById(entityId);
+		if (bro == null)
+			return { ok = false, reason = "未找到该名侠客。" };
+
+		local op = ::Wuxia.Slots.saveLoadoutPreset(bro, presetIdx, customLbl);
+		if (!op.Ok)
+			return { ok = false, reason = op.Reason };
+
+		local state = this.onWXGetState(entityId);
+		state.actionMessage <- "已将 " + bro.getName() + " 当前 " + op.SavedCount + " 处穴位功法存入【方案 · " + op.PresetLabel + "】！";
+		return state;
+	};
+
+	// Apply saved 7-slot martial loadout Preset 0..2 (`_data = [entityId, presetIdx, confirmed]`)
+	q.onWXApplyPreset <- function( _data )
+	{
+		if (_data == null || typeof _data != "array" || _data.len() < 2)
+			return { ok = false, reason = "参数缺失。" };
+		local entityId  = _data[0];
+		local presetIdx = _data[1];
+		local confirmed = _data.len() >= 3 ? (_data[2] ? true : false) : false;
+		local bro = this.WX_findBrotherById(entityId);
+		if (bro == null)
+			return { ok = false, reason = "未找到该名侠客。" };
+
+		local res = ::Wuxia.Slots.applyLoadoutPreset(bro, presetIdx, confirmed);
+		if (!res.Ok)
+		{
+			if (("NeedsConfirm" in res) && res.NeedsConfirm)
+			{
+				return {
+					ok           = false,
+					needsConfirm = true,
+					presetIndex  = res.PresetIndex,
+					presetLabel  = res.PresetLabel,
+					changedCount = res.ChangedCount,
+					penaltyDays  = res.PenaltyDays
+				};
+			}
+			return { ok = false, reason = res.Reason };
+		}
+
+		local state = this.onWXGetState(entityId);
+		this.WX_attachVanillaSync(state, bro, true, false);
+		local scatterNote = res.UsedWangchen
+			? "（【归元护脉】生效，本次整套换功零散功虚弱！）"
+			: (res.PenaltyDays > 0 ? ("（所有卸下功法重数已完整保留，附带 " + res.PenaltyDays + " 天短暂散功调息）") : "");
+		state.actionMessage <- bro.getName() + " 已切换至【方案 · " + res.PresetLabel + "】（调整 " + res.ChangedCount + " 处穴位）！" + scatterNote;
 		return state;
 	};
 });

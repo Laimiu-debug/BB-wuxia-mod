@@ -41,7 +41,23 @@ this.wx_sword_zhongjian <- this.inherit("scripts/skills/actives/wx_move_base", {
 		if (hit && target != null && target.isAlive())
 		{
 			this.wxApplyStatusToTarget(target, "effects.wx_status_offbalance", "scripts/skills/effects/wx_status_offbalance");
+			if ("CraftBridge" in ::Wuxia)
+				::Wuxia.CraftBridge.applyBossCounterHit(_user, target, { CorrodeShell = 1, BreakPts = 1 });
+			if (_targetTile != null && ::Wuxia.hasMember(_targetTile, "hasNextTile"))
+			{
+				for (local d = 0; d < 6; d = ++d)
+				{
+					if (!_targetTile.hasNextTile(d)) continue;
+					local adj = _targetTile.getNextTile(d);
+					if (adj != null && adj.IsOccupiedByActor && adj.getEntity() != null && adj.getEntity().isAlive() && !_user.isAlliedWith(adj.getEntity()))
+					{
+						this.wxApplyStatusToTarget(adj.getEntity(), "effects.wx_status_offbalance", "scripts/skills/effects/wx_status_offbalance");
+						break;
+					}
+				}
+			}
 		}
+		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

@@ -24,6 +24,7 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		SupportShotUsed     = false,
 		FastAdaptStacks     = 0,
 		CachedAggFlags      = null,
+		CachedPosAura       = null,
 		WX_ElevationApplied = false
 	},
 
@@ -163,6 +164,9 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 				nextGranted[skillID] <- existing;
 		}
 		this.m.GrantedSkills = nextGranted;
+		this.m.CachedPosAura = null;
+		if ("CombatRules" in ::Wuxia && "bumpTacticalAuraEpoch" in ::Wuxia.CombatRules)
+			::Wuxia.CombatRules.bumpTacticalAuraEpoch();
 	}
 
 	function resolveSkillScriptPath( _skillID )
@@ -195,6 +199,9 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 	{
 		// onRoundStart refills AP immediately after this callback.
 		this.m.TemporaryAPOverflow = 0;
+		this.m.CachedPosAura = null;
+		if ("CombatRules" in ::Wuxia && "bumpTacticalAuraEpoch" in ::Wuxia.CombatRules)
+			::Wuxia.CombatRules.bumpTacticalAuraEpoch();
 	}
 
 	function onTurnEnd()
@@ -241,6 +248,7 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		{
 			local resolve = actor.getCurrentProperties().Bravery;
 			local risk = ::Math.max(5, 25 - ::Math.floor(resolve / 4));
+			if ("Traits" in ::Wuxia) risk += ::Wuxia.Traits.getExtraConflictRisk(actor);
 			if (agg.AntiInternalInjury) risk = risk / 2;
 			if (::Math.rand(1, 100) <= risk)
 			{
@@ -259,6 +267,8 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 	{
 		local container = this.getContainer();
 		local actor = container == null ? null : container.getActor();
+		if (actor != null && ::Wuxia.hasMember(actor, "m") && actor.m != null)
+			actor.m.WX_Container <- this;
 		local agg = ::Wuxia.CombatRules.getAggregateFlags(this);
 		this.m.CachedAggFlags = agg;
 
@@ -342,6 +352,10 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		{
 			_properties.MoraleCheckBravery[0] += 15;
 		}
+		if (actor != null && ("TileField" in ::Wuxia))
+		{
+			::Wuxia.TileField.applyActorUpdate(actor, _properties);
+		}
 	}
 
 	function onAfterUpdate( _properties )
@@ -359,31 +373,63 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 			_properties.RangedDefense += defBonus;
 		}
 
-		// Command Aura, Lone Wolf & Formation Bond positional checks
+		// Command Aura, Lone Wolf & Formation Bond positional checks (cached per TacticalAuraEpoch)
 		if ("Tactical" in getroottable() && ::Tactical != null && ::Tactical.isActive() && actor.isPlacedOnMap())
 		{
+			local hasBanner = this.getContainer().hasSkill("effects.player_banner");
+			if (hasBanner && agg.LoneWolfBonus <= 0 && agg.FormationBondDef <= 0) return;
+
 			local myTile = actor.getTile();
+			if (myTile == null) return;
+			local curEpoch = ("CombatRules" in ::Wuxia && "TacticalAuraEpoch" in ::Wuxia.CombatRules) ? ::Wuxia.CombatRules.TacticalAuraEpoch : 0;
+			local tileID = (::Wuxia.hasMember(myTile, "ID") && myTile.ID != null) ? myTile.ID : -1;
+			local fac = actor.getFaction();
 			local bestResolveBonus = 0;
 			local adjAllies = 0;
 			local within2Allies = 0;
-			local hasBanner = this.getContainer().hasSkill("effects.player_banner");
-			local allies = ::Tactical.Entities.getInstancesOfFaction(actor.getFaction());
-			foreach (ally in allies)
+
+			local pc = this.m.CachedPosAura;
+			if (pc != null && curEpoch > 0 && tileID >= 0 && pc.Epoch == curEpoch && pc.TileID == tileID && pc.HasBanner == hasBanner && pc.Faction == fac)
 			{
-				if (ally == null || ally.getID() == actor.getID() || !ally.isAlive() || !ally.isPlacedOnMap()) continue;
-				local dist = myTile.getDistanceTo(ally.getTile());
-				if (dist <= 2) within2Allies += 1;
-				if (ally.getMoraleState() == ::Const.MoraleState.Fleeing) continue;
-				if (dist == 1) adjAllies += 1;
-				if (!hasBanner && dist <= 4)
+				bestResolveBonus = pc.ResolveBonus;
+				within2Allies = pc.Within2;
+				adjAllies = pc.Adj;
+			}
+			else
+			{
+				local allies = ::Tactical.Entities.getInstancesOfFaction(fac);
+				local myID = actor.getID();
+				foreach (ally in allies)
 				{
-					local ac = ally.getSkills().getSkillByID("special.wx_martial_container");
-					if (ac != null && ac.m.CachedAggFlags != null && ac.m.CachedAggFlags.CommandAuraPct > 0.0)
+					if (ally == null || ally.getID() == myID || !ally.isAlive() || !ally.isPlacedOnMap()) continue;
+					local dist = myTile.getDistanceTo(ally.getTile());
+					if (dist <= 2) within2Allies += 1;
+					if (ally.getMoraleState() == ::Const.MoraleState.Fleeing) continue;
+					if (dist == 1) adjAllies += 1;
+					if (!hasBanner && dist <= 4)
 					{
-						local cmdBravery = ally.getBaseProperties().Bravery + (("Bravery" in ac.m.CachedAggFlags.Stats) ? ac.m.CachedAggFlags.Stats.Bravery : 0);
-						local bonus = ::Math.floor(cmdBravery * ac.m.CachedAggFlags.CommandAuraPct);
-						if (bonus > bestResolveBonus) bestResolveBonus = bonus;
+						local ac = (::Wuxia.hasMember(ally, "m") && ally.m != null && ("WX_Container" in ally.m))
+							? ally.m.WX_Container
+							: ally.getSkills().getSkillByID("special.wx_martial_container");
+						if (ac != null && ac.m.CachedAggFlags != null && ac.m.CachedAggFlags.CommandAuraPct > 0.0)
+						{
+							local cmdBravery = ally.getBaseProperties().Bravery + (("Bravery" in ac.m.CachedAggFlags.Stats) ? ac.m.CachedAggFlags.Stats.Bravery : 0);
+							local bonus = ::Math.floor(cmdBravery * ac.m.CachedAggFlags.CommandAuraPct);
+							if (bonus > bestResolveBonus) bestResolveBonus = bonus;
+						}
 					}
+				}
+				if (curEpoch > 0 && tileID >= 0)
+				{
+					this.m.CachedPosAura = {
+						Epoch        = curEpoch,
+						TileID       = tileID,
+						HasBanner    = hasBanner,
+						Faction      = fac,
+						ResolveBonus = bestResolveBonus,
+						Within2      = within2Allies,
+						Adj          = adjAllies
+					};
 				}
 			}
 			if (bestResolveBonus > 0) _properties.Bravery += bestResolveBonus;
@@ -405,6 +451,8 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 
 	function onAnySkillUsed( _skill, _targetEntity, _properties )
 	{
+		if (_skill != null && ::Wuxia.hasMember(_skill, "wxApplyTagPreHitProps"))
+			_skill.wxApplyTagPreHitProps(_targetEntity, _properties);
 		local f = this.m.CachedAggFlags;
 		if (f == null || _skill == null || !_skill.isAttack() || !_skill.m.IsWeaponSkill) return;
 		local adaptHit = (f.FastAdaptBonus > 0 && this.m.FastAdaptStacks > 0) ? (this.m.FastAdaptStacks * f.FastAdaptBonus) : 0;
@@ -603,11 +651,11 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 						{
 							local injChance = isConcussive ? 28 : 18;
 							local tCont = tsk0.getSkillByID("special.wx_martial_container");
-							if (tCont != null && tCont.m.CachedAggFlags != null)
-							{
-								if (tCont.m.CachedAggFlags.AntiInternalInjury) injChance = ::Math.floor(injChance * 0.5);
-								if (tCont.m.CachedAggFlags.HeavyArmorScale > 0.0 && !isConcussive) injChance -= 5;
-							}
+							local antiInj = (tCont != null && tCont.m.CachedAggFlags != null && tCont.m.CachedAggFlags.AntiInternalInjury)
+								|| (("Traits" in ::Wuxia) && ::Wuxia.Traits.hasAntiInternalInjury(_targetEntity));
+							if (antiInj) injChance = ::Math.floor(injChance * 0.5);
+							if (tCont != null && tCont.m.CachedAggFlags != null && tCont.m.CachedAggFlags.HeavyArmorScale > 0.0 && !isConcussive)
+								injChance -= 5;
 							if (injChance > 0 && ::Math.rand(1, 100) <= injChance)
 							{
 								local inj = tsk0.getSkillByID("effects.wx_internal_injury");
@@ -683,8 +731,11 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 
 		if (agg.OnDodgeQiRegen > 0 && this.m.DodgeRegenThisTurn < agg.OnDodgeQiCap)
 		{
+			local skCont = this.getContainer();
+			local inCounter = (skCont != null) && (skCont.hasSkill("effects.wx_status_counter_stance") || skCont.hasSkill("effects.riposte"));
+			local gain = inCounter ? ::Math.max(1, ::Math.floor(agg.OnDodgeQiRegen * 0.5)) : agg.OnDodgeQiRegen;
 			this.m.DodgeRegenThisTurn += 1;
-			::Wuxia.CombatRules.restoreQi(actor, agg.OnDodgeQiRegen);
+			::Wuxia.CombatRules.restoreQi(actor, gain);
 		}
 	}
 

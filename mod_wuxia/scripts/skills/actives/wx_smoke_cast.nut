@@ -31,6 +31,7 @@ this.wx_smoke_cast <- this.inherit("scripts/skills/actives/wx_move_base", {
 		this.m.FatigueCost = 14;
 		this.m.MinRange = 1;
 		this.m.MaxRange = 3;
+		this.m.MaxLevelDifference = 4;
 		this.m.RequiredWeaponTypes = ["Throwing"];
 	}
 

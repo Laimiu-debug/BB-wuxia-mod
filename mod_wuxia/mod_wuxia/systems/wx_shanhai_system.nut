@@ -1,6 +1,53 @@
 // Runtime System for Shan Hai Jing Mythical Bosses, Wild Beast Neidan/Herb Drops, Red Gear & Lair Rumor Discovery
 
-::Wuxia.ShanHai <- {};
+::Wuxia.ShanHai <- {
+	// Bespoke《山海经》Boss Registry: mounts dedicated original-text Trait + 3~4 geometric skills (zero generic cataclysm!)
+	BespokeBossSpecs = {
+		boss_zhuyin = {
+			TraitScript = "scripts/skills/special/wx_boss_trait_zhuyin",
+			TraitID     = "special.wx_boss_trait_zhuyin",
+			Skills = [
+				"scripts/skills/actives/wx_boss_zhuyin_winter_breath",
+				"scripts/skills/actives/wx_boss_zhuyin_summer_gale",
+				"scripts/skills/actives/wx_boss_zhuyin_coil_crush",
+				"scripts/skills/actives/wx_boss_zhuyin_primordial_wind"
+			],
+			CounterHint = "重兵先碎【赤鳞龙躯/盘山龙尾】破盘绞；勿踩玄冥冻土接夏炎吐息；趁偶轮阖目以点穴/纯阳截断朔风"
+		},
+		boss_xiangliuwang = {
+			TraitScript = "scripts/skills/special/wx_boss_trait_xiangliu",
+			TraitID     = "special.wx_boss_trait_xiangliu",
+			Skills = [
+				"scripts/skills/actives/wx_boss_xiangliu_nine_devour",
+				"scripts/skills/actives/wx_boss_xiangliu_mire_ram",
+				"scripts/skills/actives/wx_boss_xiangliu_poison_deluge",
+				"scripts/skills/actives/wx_boss_xiangliu_miasma_hex"
+			],
+			CounterHint = "优先斩灭【生肌血首】与【苦毒瘴首】封印对应凶招；以纯阳/烈火/火器灼封断颈防再生；登高台避苦泉"
+		},
+		boss_nvchou = {
+			TraitScript = "scripts/skills/special/wx_boss_trait_nvchou",
+			TraitID     = "special.wx_boss_trait_nvchou",
+			Skills = [
+				"scripts/skills/actives/wx_boss_nvchou_ten_suns_ray",
+				"scripts/skills/actives/wx_boss_nvchou_sleeve_shift",
+				"scripts/skills/actives/wx_boss_nvchou_scorch_apocalypse"
+			],
+			CounterHint = "神射/暗器优先『后羿射日』点灭空中日冕破阳炎障并断灭世咒；绕左后盲区背刺避右袂卸劲"
+		}
+	}
+};
+
+::Wuxia.ShanHai.findBossTrait <- function( _skills )
+{
+	if (_skills == null) return null;
+	foreach (_, spec in ::Wuxia.ShanHai.BespokeBossSpecs)
+	{
+		local bt = _skills.getSkillByID(spec.TraitID);
+		if (bt != null) return bt;
+	}
+	return _skills.getSkillByID("special.wx_shanhai_boss_trait");
+};
 
 ::Wuxia.ShanHai.initBossEntity <- function( _actor, _bossID )
 {
@@ -8,7 +55,7 @@
 	local cfg = ::Wuxia.Config.ShanHaiBosses[_bossID];
 
 	_actor.setName(cfg.Name);
-	_actor.m.IsMiniboss = true;
+	_actor.m.IsMiniboss <- true;
 
 	local b = _actor.m.BaseProperties;
 	b.Hitpoints = ::Math.max(180, ::Math.floor(b.Hitpoints * cfg.HpMult));
@@ -24,16 +71,36 @@
 			skills.add(::new("scripts/skills/perks/perk_steel_brow"));
 		if (("Underdog" in mech) && mech.Underdog && !skills.hasSkill("perk.underdog"))
 			skills.add(::new("scripts/skills/perks/perk_underdog"));
-		local trait = skills.getSkillByID("special.wx_shanhai_boss_trait");
-		if (trait == null)
+
+		if (_bossID in ::Wuxia.ShanHai.BespokeBossSpecs)
 		{
-			trait = ::new("scripts/skills/special/wx_shanhai_boss_trait");
-			trait.setBossID(cfg.Key);
-			skills.add(trait);
+			local bSpec = ::Wuxia.ShanHai.BespokeBossSpecs[_bossID];
+			skills.removeByID("special.wx_shanhai_boss_trait");
+			skills.removeByID("actives.wx_boss_cataclysm");
+			if (!skills.hasSkill(bSpec.TraitID))
+				skills.add(::new(bSpec.TraitScript));
+			foreach (skScript in bSpec.Skills)
+			{
+				local skInst = ::new(skScript);
+				if (!skills.hasSkill(skInst.getID()))
+					skills.add(skInst);
+			}
+		}
+		else
+		{
+			local trait = skills.getSkillByID("special.wx_shanhai_boss_trait");
+			if (trait == null)
+			{
+				trait = ::new("scripts/skills/special/wx_shanhai_boss_trait");
+				trait.setBossID(cfg.Key);
+				skills.add(trait);
+			}
+			if (!skills.hasSkill("actives.wx_boss_cataclysm"))
+				skills.add(::new("scripts/skills/actives/wx_boss_cataclysm"));
 		}
 		skills.update();
 	}
-	_actor.m.Hitpoints = _actor.getHitpointsMax();
+	_actor.m.Hitpoints <- _actor.getHitpointsMax();
 
 	if (cfg.CustomBodySprite != null && _actor.hasSprite("body"))
 	{
@@ -66,17 +133,19 @@
 
 ::Wuxia.ShanHai.dropBossCore <- function( _bossID, _tile )
 {
-	if (_tile == null || !(_bossID in ::Wuxia.Config.ShanHaiBosses)) return;
+	if (!(_bossID in ::Wuxia.Config.ShanHaiBosses)) return;
 	local cfg = ::Wuxia.Config.ShanHaiBosses[_bossID];
-	local core = ::new("scripts/items/misc/" + cfg.CoreID);
-	core.drop(_tile);
 
-	if ("World" in getroottable() && ::World != null && ("Flags" in ::World) && ::World.Flags != null)
+	if (::Wuxia.hasWorldField("Flags"))
 	{
 		local slain = ::World.Flags.has("wx_slain_shanhai_count") ? ::World.Flags.getAsInt("wx_slain_shanhai_count") : 0;
 		::World.Flags.set("wx_slain_shanhai_count", slain + 1);
 		::World.Flags.set("wx_last_battle_shanhai_boss", true);
 	}
+
+	if (_tile == null) return;
+	local core = ::new("scripts/items/misc/" + cfg.CoreID);
+	core.drop(_tile);
 
 	// 45% bonus chance for Lair Apex Bosses to also drop a《山海本草》Rare Spirit Herb!
 	if (::Math.rand(1, 100) <= 45)
@@ -170,12 +239,48 @@
 	return ::new("scripts/items/misc/" + pick);
 };
 
+::Wuxia.ShanHai.ensureWildBeastTrait <- function( _actor )
+{
+	if (_actor == null || !::Wuxia.hasMember(_actor, "isAlive") || !_actor.isAlive()) return;
+	if (::Wuxia.hasMember(_actor, "isPlayerControlled") && _actor.isPlayerControlled()) return;
+	if (!::Wuxia.hasMember(_actor, "getSkills") || !::Wuxia.hasMember(_actor, "getType")) return;
+	if (!("Const" in getroottable()) || !("EntityType" in ::Const)) return;
+
+	if (("m" in _actor) && ("WX_IsBossSubEntity" in _actor.m) && _actor.m.WX_IsBossSubEntity) return;
+	local sk = _actor.getSkills();
+	if (sk == null || ::Wuxia.ShanHai.findBossTrait(sk) != null || sk.hasSkill("special.wx_wild_beast_trait"))
+		return;
+
+	local t = _actor.getType();
+	local ET = ::Const.EntityType;
+	local fam = null;
+	if ((("Direwolf" in ET) && t == ET.Direwolf) || (("Wolf" in ET) && t == ET.Wolf)) fam = "direwolf";
+	else if (("Hyena" in ET) && t == ET.Hyena) fam = "hyena";
+	else if (("Spider" in ET) && t == ET.Spider) fam = "spider";
+	else if (("Ghoul" in ET) && t == ET.Ghoul) fam = "ghoul";
+	else if ((("Unhold" in ET) && t == ET.Unhold) || (("UnholdFrost" in ET) && t == ET.UnholdFrost) || (("UnholdBog" in ET) && t == ET.UnholdBog)) fam = "unhold";
+	else if (("Lindwurm" in ET) && t == ET.Lindwurm) fam = "lindwurm";
+	else if (("Schrat" in ET) && t == ET.Schrat) fam = "schrat";
+	else if (("Serpent" in ET) && t == ET.Serpent) fam = "serpent";
+	else if (("Alp" in ET) && t == ET.Alp) fam = "alp";
+	else if (("Hexe" in ET) && t == ET.Hexe) fam = "hexe";
+	else if (("SandGolem" in ET) && t == ET.SandGolem) fam = "sand_golem";
+
+	if (fam != null)
+	{
+		local wt = ::new("scripts/skills/special/wx_wild_beast_trait");
+		wt.initByFamily(fam);
+		sk.add(wt);
+	}
+};
+
 // Strictly gate Neidan Cores & Spirit Herbs to Sovereign Bosses, Warlords & Apex Mythic Beasts (zero drops on common/mid mobs)
 ::Wuxia.ShanHai.tryDropWildBeastLoot <- function( _actor, _tile )
 {
 	if (_actor == null || _tile == null) return;
+	if (("m" in _actor) && ("WX_IsBossSubEntity" in _actor.m) && _actor.m.WX_IsBossSubEntity) return;
 	local sk = (::Wuxia.hasMember(_actor, "getSkills")) ? _actor.getSkills() : null;
-	if (sk != null && sk.hasSkill("special.wx_shanhai_boss_trait")) return; // Handled by dropBossCore
+	if (sk != null && ::Wuxia.ShanHai.findBossTrait(sk) != null) return; // Handled by dropBossCore
 	if (!(::Wuxia.hasMember(_actor, "getType")) || !("Const" in getroottable()) || !("EntityType" in ::Const)) return;
 
 	local t = _actor.getType();
@@ -382,6 +487,8 @@
 ::Wuxia.ShanHai.getBossCounterHint <- function( _bossID )
 {
 	if (_bossID == null || !(_bossID in ::Wuxia.Config.ShanHaiBosses)) return "";
+	if ((_bossID in ::Wuxia.ShanHai.BespokeBossSpecs) && ("CounterHint" in ::Wuxia.ShanHai.BespokeBossSpecs[_bossID]))
+		return ::Wuxia.ShanHai.BespokeBossSpecs[_bossID].CounterHint;
 	local cfg = ::Wuxia.Config.ShanHaiBosses[_bossID];
 	local mech = ("Mechanics" in cfg && cfg.Mechanics != null) ? cfg.Mechanics : {};
 	local hints = [];

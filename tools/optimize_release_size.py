@@ -83,7 +83,7 @@ def optimize_ui_pngs() -> tuple[int, int, int]:
 
 
 def optimize_rgba_atlases() -> tuple[int, int, int]:
-    """Keep all C++ .brush atlases strictly 32-bit RGBA while zeroing RGB in alpha=0 pixels & trimming invisible LSB noise on VFX sheets."""
+    """Keep all C++ .brush atlases strictly 32-bit RGBA while zeroing RGB in alpha=0 pixels & trimming invisible LSB noise on VFX/procedural sheets."""
     saved = 0
     touched = 0
     atlases = sorted((MOD_DIR / "gfx").glob("wx_*.png")) + sorted((UI_GFX_DIR / "settlements").glob("*.png"))
@@ -92,11 +92,16 @@ def optimize_rgba_atlases() -> tuple[int, int, int]:
         with Image.open(p) as im0:
             im = im0.convert("RGBA")
         r, g, b, a = im.split()
-        if p.name.startswith("wx_effects_"):
+        if p.name.startswith("wx_effects_") or p.name.startswith("wx_kinetic_"):
             r = r.point(lambda v: v & 0xF8)
             g = g.point(lambda v: v & 0xF8)
             b = b.point(lambda v: v & 0xF8)
             a = a.point(lambda v: 255 if v == 255 else (v & 0xFC))
+        elif p.name.startswith("wx_"):
+            # Sub-perceptual 2-bit RGB LSB cleanup (max delta <= 3/255) preserves exact alpha & crisp 32-bit RGBA sprites
+            r = r.point(lambda v: v & 0xFC)
+            g = g.point(lambda v: v & 0xFC)
+            b = b.point(lambda v: v & 0xFC)
         nz = a.point(lambda v: 255 if v > 0 else 0)
         zero = Image.new("L", im.size, 0)
         r = Image.composite(r, zero, nz)

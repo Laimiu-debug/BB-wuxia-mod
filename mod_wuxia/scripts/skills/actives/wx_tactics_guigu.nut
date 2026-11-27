@@ -42,7 +42,7 @@ this.wx_tactics_guigu <- this.inherit("scripts/skills/skill", {
 		this.m.ActiveBuff = true;
 		this.m.Cooldown = 3;
 		::Wuxia.VFX.playSkillVfx(this, _user, _user.getTile(), this.m.WX_VfxBrush);
-		local actors = ::Tactical.Entities.getAllInstances(); local myT = _user.getTile(); foreach (team in actors) { foreach (a in team) { if (a == null || !a.isAlive() || !a.isPlacedOnMap()) continue; local dist = myT.getDistanceTo(a.getTile()); if (_user.isAlliedWith(a) && dist <= 4) { a.checkMorale(1, 20); a.setFatigue(::Math.max(0, a.getFatigue() - 8)); } else if (!_user.isAlliedWith(a) && dist <= 3) { local ask = a.getSkills(); if (ask != null && !ask.hasSkill("effects.wx_status_opening")) ask.add(::new("scripts/skills/effects/wx_status_opening")); } } }
+		local actors = ::Tactical.Entities.getAllInstances(); local myT = _user.getTile(); foreach (team in actors) { foreach (a in team) { if (a == null || !a.isAlive() || !a.isPlacedOnMap()) continue; local dist = myT.getDistanceTo(a.getTile()); if (_user.isAlliedWith(a) && dist <= 4) { a.checkMorale(1, 20); a.setFatigue(::Math.max(0, a.getFatigue() - 8)); } else if (!_user.isAlliedWith(a) && dist <= 3) { local ask = a.getSkills(); if (ask != null && !ask.hasSkill("effects.wx_status_opening")) ask.add(::new("scripts/skills/effects/wx_status_opening")); if ("Streams" in ::Wuxia) ::Wuxia.Streams.interruptEnemyCharge(_user, a, 2); } } }
 		this.getContainer().update();
 		return true;
 	}

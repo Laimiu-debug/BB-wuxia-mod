@@ -42,7 +42,10 @@ this.wx_neigong_hanbing <- this.inherit("scripts/skills/skill", {
 		this.m.ActiveBuff = true;
 		this.m.Cooldown = 2;
 		::Wuxia.VFX.playSkillVfx(this, _user, _user.getTile(), this.m.WX_VfxBrush);
-		local myT = _user.getTile(); for (local d = 0; d < ::Const.Direction.COUNT; d = ++d) { if (!myT.hasNextTile(d)) continue; local nt = myT.getNextTile(d); if (nt.IsOccupiedByActor && !_user.isAlliedWith(nt.getEntity()) && !::Wuxia.CombatRules.isUndeadOrConstruct(nt.getEntity())) nt.getEntity().setFatigue(::Math.min(nt.getEntity().getFatigueMax(), nt.getEntity().getFatigue() + 10)); }
+		local myT = _user.getTile();
+		if ("TileField" in ::Wuxia && myT != null)
+			::Wuxia.TileField.setField(myT, "abyss_frost", 2, _user);
+		for (local d = 0; d < ::Const.Direction.COUNT; d = ++d) { if (!myT.hasNextTile(d)) continue; local nt = myT.getNextTile(d); if (nt.IsOccupiedByActor && !_user.isAlliedWith(nt.getEntity()) && !::Wuxia.CombatRules.isUndeadOrConstruct(nt.getEntity())) { nt.getEntity().setFatigue(::Math.min(nt.getEntity().getFatigueMax(), nt.getEntity().getFatigue() + 10)); if ("TileField" in ::Wuxia) ::Wuxia.TileField.setField(nt, "abyss_frost", 2, _user); } }
 		this.getContainer().update();
 		return true;
 	}

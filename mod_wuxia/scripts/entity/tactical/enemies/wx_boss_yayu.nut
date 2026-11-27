@@ -11,6 +11,8 @@ this.wx_boss_yayu <- this.inherit("scripts/entity/tactical/enemies/ghoul_high", 
 
 	function onDeath( _killer, _skill, _tile, _fatalityType )
 	{
+		if ("ShanHaiMultiBody" in ::Wuxia)
+			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.ghoul_high.onDeath(_killer, _skill, _tile, _fatalityType);
 		::Wuxia.ShanHai.dropBossCore("boss_yayu", _tile);
 	}

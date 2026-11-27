@@ -6,27 +6,27 @@ this.wx_ambition_assemble_manual <- this.inherit("scripts/ambitions/ambition", {
 		this.ambition.create();
 		this.m.ID = "ambition.wx_assemble_manual";
 		this.m.Duration = 99999.0 * this.World.getTime().SecondsPerDay;
-		this.m.ButtonText = "残页合璧，在藏经阁拼成一部完整秘籍";
-		this.m.UIText = "在藏经阁以武学残页拼合成 1 部完整秘籍";
+		this.m.ButtonText = "残页合璧，拼成一部完整武学秘籍";
+		this.m.UIText = "在藏经阁或行囊以武学残页拼合成 1 部完整秘籍";
 		this.m.SuccessText = "[img]gfx/ui/events/wx_ev_08.png[/img]灯花挑尽、宣纸铺开，散落四方的武学残页终于在你们手中一一对准经脉图谱，装订成一部首尾完备的传世秘籍！众弟兄摩拳擦掌，迫不及待欲窥其中奥妙。";
 		this.m.SuccessButtonText = "好！壮哉我辈江湖儿女！";
 		if ("ButtonTooltip" in this.m)
-			this.m.ButtonTooltip = "在江湖厮杀、宗门试炼或茶肆历练中收集同篇残页，于【藏经阁】拼合成至少 1 部完整武学秘籍。";
+			this.m.ButtonTooltip = "通过江湖厮杀、宗门试炼或茶肆历练收集同篇武学残页（亦可 2:1 借同品阶闲置残页补缺），于【藏经阁】或行囊拼合成至少 1 部完整秘籍。";
 		if ("TooltipText" in this.m)
-			this.m.TooltipText = "于【藏经阁】以武学残页拼合成至少 1 部完整秘籍。";
+			this.m.TooltipText = "于【藏经阁】或行囊中将武学残页拼合成至少 1 部完整秘籍（支持同阶残页 2:1 补缺）。";
 	}
 
 	function onUpdateScore()
 	{
 		if (this.m.IsDone) return;
 		if (this.World.Flags.get("wx_crafted_page_manual")) return;
-		if (this.World.getTime().Days < 8) return;
+		if (this.World.getTime().Days < 2) return;
 		this.m.Score = 2 + this.Math.rand(0, 5);
 	}
 
 	function onCheckSuccess()
 	{
-		return this.World.Flags.get("wx_crafted_page_manual") == true;
+		return this.World.Flags.get("wx_crafted_page_manual") ? true : false;
 	}
 
 	function onReward()

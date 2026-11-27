@@ -21,9 +21,16 @@
 			{
 				foreach (s in ::World.EntityManager.getSettlements())
 				{
-					if (s != null && s.isAlive() && ::Wuxia.hasMember(s, "WX_ApplyArchVisuals"))
+					if (s != null && s.isAlive())
 					{
-						try { s.WX_ApplyArchVisuals(false); } catch (_eS) {}
+						if (::Wuxia.hasMember(s, "WX_EnsureDisguisePavilion"))
+						{
+							try { s.WX_EnsureDisguisePavilion(); } catch (_eW) {}
+						}
+						if (::Wuxia.hasMember(s, "WX_ApplyArchVisuals"))
+						{
+							try { s.WX_ApplyArchVisuals(false); } catch (_eS) {}
+						}
 					}
 				}
 			}
@@ -33,6 +40,11 @@
 
 	q.createFactions = @(__original) function()
 	{
+		if ("WorldVisuals" in ::Wuxia && "balanceWorldSettlementDistribution" in ::Wuxia.WorldVisuals)
+		{
+			try { ::Wuxia.WorldVisuals.balanceWorldSettlementDistribution(true); } catch (_eBal) {}
+		}
+
 		__original();
 
 		local maxID = 0;
