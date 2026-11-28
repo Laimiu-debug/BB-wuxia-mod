@@ -46,6 +46,32 @@
 	return false;
 };
 
+::Wuxia.CombatRules.isImmuneToBleeding <- function( _target )
+{
+	if (_target == null) return true;
+	if (::Wuxia.CombatRules.isUndeadOrConstruct(_target))
+		return true;
+	if (::Wuxia.hasMember(_target, "getCurrentProperties"))
+	{
+		local p = _target.getCurrentProperties();
+		if (p != null && ::Wuxia.hasMember(p, "IsImmuneToBleeding") && p.IsImmuneToBleeding)
+			return true;
+	}
+	return false;
+};
+
+::Wuxia.CombatRules.isSelfOrDyingKill <- function( _actor, _targetEntity )
+{
+	if (_actor == null) return true;
+	if (::Wuxia.hasMember(_actor, "isAlive") && !_actor.isAlive()) return true;
+	if (::Wuxia.hasMember(_actor, "isDying") && _actor.isDying()) return true;
+	if (::Wuxia.hasMember(_actor, "getHitpoints") && _actor.getHitpoints() <= 0) return true;
+	if (_targetEntity != null && ::Wuxia.hasMember(_actor, "getID") && ::Wuxia.hasMember(_targetEntity, "getID")
+		&& _targetEntity.getID() == _actor.getID())
+		return true;
+	return false;
+};
+
 ::Wuxia.CombatRules.isUndeadOrConstruct <- function( _target )
 {
 	if (_target == null) return false;

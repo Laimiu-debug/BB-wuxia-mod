@@ -976,7 +976,7 @@ this.wx_boss_{key} <- this.inherit("{pscript}", {{
 \tfunction onDeath( _killer, _skill, _tile, _fatalityType )
 \t{{
 \t\tthis.{p_cls}.onDeath(_killer, _skill, _tile, _fatalityType);
-\t\t::Wuxia.ShanHai.dropBossCore("boss_{key}", _tile);
+\t\t::Wuxia.ShanHai.dropBossCore("boss_{key}", _tile, this, _killer, _fatalityType);
 \t}}
 }});
 """)

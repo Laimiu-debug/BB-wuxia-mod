@@ -1159,7 +1159,7 @@
 					wxSwapSlotHtml(s.icon, true) +
 					'<div class="wx-c-title">穴' + WX_CN_NUM[i + 1] + ' · 《' + wxEscapeHtml(s.rawName || s.name) + '》</div>' +
 					'<div class="wx-c-desc">' + wxEscapeHtml(s.tierLabel) + ' · 火候 ' + s.exp + ' / ' + s.expNeeded + tag + '</div>' +
-					'<span class="wx-g">+' + gain + ' 火候</span>' +
+					'<span class="wx-g">基础火候 +' + gain + '</span>' +
 				'</div>';
 		}
 
@@ -2798,30 +2798,13 @@
 			var p = pills[i];
 			if (p.itemKind === 'pill_infuse') {
 				count++;
-				var expVal = p.expAmount;
-				var pSub = (p.stashIndex <= -1000) ? '百草药柜藏品' : '战团仓库灵丹';
-				if (p.pillKind === 'neidan' && _slot.manualID && _slot.manualID.indexOf('wx_manual_shanhai_') === 0) {
-					expVal = 500;
-					pSub += ' · 山海孤本共鸣';
-				} else if (p.auxNature && _slot.category) {
-					var auxHit =
-						(p.auxNature === 'origin') ||
-						(p.auxNature === 'yang' && _slot.category === 'external') ||
-						(p.auxNature === 'yin' && _slot.category === 'lightness') ||
-						(p.auxNature === 'vital' && _slot.category === 'hardening') ||
-						(p.auxNature === 'spirit' && _slot.category === 'internal') ||
-						(p.auxNature === 'venom' && (_slot.category === 'external' || _slot.category === 'hardening'));
-					if (auxHit) {
-						expVal = Math.floor(expVal * 1.15);
-						pSub += ' · ' + (p.auxTitle || '药引丹韵') + '共鸣 +15%';
-					}
-				}
+				var pSub = (p.stashIndex <= -1000) ? '百草药柜藏品' : '战团仓库';
 				rowsHtml +=
 					'<div class="wx-pick" data-inf-pill="' + p.stashIndex + '">' +
 						wxSwapSlotHtml(p.icon, false) +
 						'<div class="wx-c-title">' + wxEscapeHtml(p.name) + '</div>' +
 						'<div class="wx-c-desc">' + wxEscapeHtml(pSub) + '</div>' +
-						'<span class="wx-g">+' + expVal + ' 火候</span>' +
+						'<span class="wx-g">基础火候 +' + p.expAmount + '</span>' +
 					'</div>';
 			}
 		}
@@ -2840,7 +2823,7 @@
 						wxSwapSlotHtml(lb.icon, false) +
 						'<div class="wx-c-title">《' + wxEscapeHtml(lb.name) + '》残页</div>' +
 						'<div class="wx-c-desc">藏经阁 ×' + lb.count + note + '</div>' +
-						'<span class="wx-g">+' + gain + ' 火候</span>' +
+						'<span class="wx-g">基础火候 +' + gain + '</span>' +
 					'</div>';
 			}
 		}
@@ -2875,6 +2858,16 @@
 		});
 
 		this.wxOpenModal(box);
+		SQ.call(this.mDataSource.mSQHandle, 'onWXGetInfusionAmounts', [entityId, _slot.slotIndex, _slot.manualID], function (values) {
+			if (!values || self.mWXCurrentEntityId !== entityId || !$.contains(document.documentElement, box[0])) return;
+			box.find('[data-inf-pill]').each(function () {
+				var row = $(this);
+				var value = values[row.attr('data-inf-pill')];
+				if (!value) return;
+				row.find('.wx-g').text('+' + value.amount + ' 火候');
+				if (value.note) row.find('.wx-c-desc').append(document.createTextNode(' ' + value.note));
+			});
+		});
 	};
 
 	// ------------------------------------------------------------------------

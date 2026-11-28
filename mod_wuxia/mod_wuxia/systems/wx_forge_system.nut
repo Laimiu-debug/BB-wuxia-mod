@@ -7,6 +7,7 @@
 // - 5-Hammer Furnace Pity (`wx_forge_pity` in `::World.Flags`): every 5 reforges without 百炼/神工 guarantees 百炼/神工!
 
 ::Wuxia.Forge <- {
+	BasePerfectionPct = 52,
 	FallbackPity     = 0,
 	FallbackExtMeta  = {},
 	LastCraftBanner  = "",
@@ -1097,7 +1098,7 @@
 			? ::Wuxia.Forge.Grades[gIdx].TooltipColor
 			: "#0a4213";
 		local gTitle = ("WX_ForgeGradeTitle" in _item.m) ? _item.m.WX_ForgeGradeTitle : "良工";
-		local perf = ("WX_PerfectionPct" in _item.m) ? _item.m.WX_PerfectionPct : 50;
+		local perf = ("WX_PerfectionPct" in _item.m && _item.m.WX_PerfectionPct != null) ? _item.m.WX_PerfectionPct : ::Wuxia.Forge.BasePerfectionPct;
 		local tail = (_item.m.WX_ForgeGrade >= 3)
 			? "（炉火至臻 · 已达最高品相！）"
 			: "（可在「百草丹炉 → 神兵重锻」耗百工奇材免内丹重洗词条）";
@@ -1224,7 +1225,7 @@
 
 	local grade = ("WX_ForgeGrade" in _item.m && _item.m.WX_ForgeGrade != null) ? _item.m.WX_ForgeGrade : 1;
 	local gSpec = ::Wuxia.Forge.Grades[::Math.max(0, ::Math.min(3, grade))];
-	local perf  = ("WX_PerfectionPct" in _item.m && _item.m.WX_PerfectionPct != null) ? _item.m.WX_PerfectionPct : 52;
+	local perf  = ("WX_PerfectionPct" in _item.m && _item.m.WX_PerfectionPct != null) ? _item.m.WX_PerfectionPct : ::Wuxia.Forge.BasePerfectionPct;
 	::Wuxia.Forge.syncExtendedMeta(_item);
 	local curQuench = ("WX_QuenchID" in _item.m && _item.m.WX_QuenchID != null) ? _item.m.WX_QuenchID : "none";
 	local qSpec = (curQuench in ::Wuxia.Forge.QuenchCatalysts) ? ::Wuxia.Forge.QuenchCatalysts[curQuench] : ::Wuxia.Forge.QuenchCatalysts.none;
@@ -1386,7 +1387,7 @@
 	if (prevDec == null)
 		prevDec = { F1 = 0.52, F2 = 0.52, F3 = 0.52 };
 
-	local oldPerf  = ("WX_PerfectionPct" in item.m && item.m.WX_PerfectionPct != null) ? item.m.WX_PerfectionPct : 50;
+	local oldPerf  = ("WX_PerfectionPct" in item.m && item.m.WX_PerfectionPct != null) ? item.m.WX_PerfectionPct : ::Wuxia.Forge.BasePerfectionPct;
 	local oldGrade = ("WX_ForgeGrade" in item.m && item.m.WX_ForgeGrade != null) ? item.m.WX_ForgeGrade : 1;
 	local oldSpec  = ::Wuxia.Forge.Grades[::Math.max(0, ::Math.min(3, oldGrade))];
 	local oldTitle = ("WX_ForgeGradeTitle" in item.m && item.m.WX_ForgeGradeTitle != null) ? item.m.WX_ForgeGradeTitle : oldSpec.Title;

@@ -14,6 +14,6 @@ this.wx_boss_zheng <- this.inherit("scripts/entity/tactical/enemies/hyena_high",
 		if ("ShanHaiMultiBody" in ::Wuxia)
 			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.hyena_high.onDeath(_killer, _skill, _tile, _fatalityType);
-		::Wuxia.ShanHai.dropBossCore("boss_zheng", _tile);
+		::Wuxia.ShanHai.dropBossCore("boss_zheng", _tile, this, _killer, _fatalityType);
 	}
 });

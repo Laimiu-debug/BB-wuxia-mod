@@ -43,7 +43,6 @@ this.wx_saber_modao <- this.inherit("scripts/skills/actives/wx_move_base", {
 			if ("Streams" in ::Wuxia) ::Wuxia.Streams.interruptEnemyCharge(_user, target, 2);
 			this.wxTryKnockback(_user, target);
 		}
-		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

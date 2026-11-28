@@ -61,7 +61,6 @@ this.wx_saber_xinyue <- this.inherit("scripts/skills/actives/wx_move_base", {
 		}
 		if ("Streams" in ::Wuxia)
 			::Wuxia.Streams.consumeIaidoPostHit(_user, target, target != null && !target.isAlive());
-		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

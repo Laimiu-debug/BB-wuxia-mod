@@ -131,7 +131,7 @@
 		::Wuxia.Appearance.syncLindwurmTail(_actor);
 };
 
-::Wuxia.ShanHai.dropBossCore <- function( _bossID, _tile )
+::Wuxia.ShanHai.dropBossCore <- function( _bossID, _tile, _bossActor = null, _killer = null, _fatalityType = 0 )
 {
 	if (!(_bossID in ::Wuxia.Config.ShanHaiBosses)) return;
 	local cfg = ::Wuxia.Config.ShanHaiBosses[_bossID];
@@ -155,7 +155,10 @@
 	}
 	if ("BeastCraft" in ::Wuxia)
 	{
-		::Wuxia.BeastCraft.dropBossCompanionMaterials(cfg.Key, _tile);
+		// Only player kills qualify for the part-break guarantee.
+		local playerKill = _bossActor != null && !_bossActor.isPlayerControlled() && _killer != null
+			&& _killer.isPlayerControlled() && !_bossActor.isAlliedWith(_killer);
+		::Wuxia.BeastCraft.dropBossCompanionMaterials(cfg.Key, _tile, playerKill ? _bossActor : null, _fatalityType);
 	}
 };
 

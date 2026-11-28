@@ -14,6 +14,6 @@ this.wx_boss_yayu <- this.inherit("scripts/entity/tactical/enemies/ghoul_high", 
 		if ("ShanHaiMultiBody" in ::Wuxia)
 			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.ghoul_high.onDeath(_killer, _skill, _tile, _fatalityType);
-		::Wuxia.ShanHai.dropBossCore("boss_yayu", _tile);
+		::Wuxia.ShanHai.dropBossCore("boss_yayu", _tile, this, _killer, _fatalityType);
 	}
 });

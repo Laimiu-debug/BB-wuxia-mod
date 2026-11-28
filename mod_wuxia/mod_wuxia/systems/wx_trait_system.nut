@@ -129,21 +129,15 @@
 
 ::Wuxia.Traits.getMoveQiSaveMult <- function( _actor, _skill )
 {
-	if (_actor == null || _skill == null || !::Wuxia.hasMember(_skill, "m") || _skill.m == null) return 0.0;
-	local reqs = ::Wuxia.hasMember(_skill.m, "RequiredWeaponTypes") ? _skill.m.RequiredWeaponTypes : null;
-	if (reqs == null || reqs.len() == 0) return 0.0;
+	if (_skill == null || !::Wuxia.hasMember(_actor, "getItems") || _actor.getItems() == null) return 0.0;
+	local weapon = _actor.getItems().getItemAtSlot(::Const.ItemSlot.Mainhand);
+	local skills = _actor.getSkills();
+	if (weapon == null || skills == null) return 0.0;
 	local bestSave = 0.0;
-	foreach (def in ::Wuxia.Traits.getActorMeridianDefs(_actor))
+	foreach (_, def in ::Wuxia.Config.Traits.MeridianTraits)
 	{
-		if (!("WpnQiSave" in def) || !("WeaponFams" in def)) continue;
-		foreach (wf in def.WeaponFams)
-		{
-			if (reqs.find(wf) != null)
-			{
-				bestSave = ::Math.maxf(bestSave, def.WpnQiSave);
-				break;
-			}
-		}
+		if (("WpnQiSave" in def) && skills.hasSkill(def.ID) && ::Wuxia.CombatRules.matchesWeapon(weapon, def.WeaponFams))
+			bestSave = ::Math.maxf(bestSave, def.WpnQiSave);
 	}
 	return bestSave;
 };

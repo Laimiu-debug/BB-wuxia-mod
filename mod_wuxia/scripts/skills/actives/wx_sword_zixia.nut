@@ -50,7 +50,6 @@ this.wx_sword_zixia <- this.inherit("scripts/skills/actives/wx_move_base", {
 			if ("Streams" in ::Wuxia)
 				::Wuxia.Streams.spawnSwordNode(_user, _targetTile);
 		}
-		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

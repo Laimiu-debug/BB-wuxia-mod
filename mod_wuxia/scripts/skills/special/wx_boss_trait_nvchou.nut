@@ -120,7 +120,7 @@ this.wx_boss_trait_nvchou <- this.inherit("scripts/skills/skill", {
 	function onBeforeDamageReceived( _attacker, _skill, _hitInfo, _properties )
 	{
 		local actor = this.getContainer() != null ? this.getContainer().getActor() : null;
-		if (actor == null || _attacker == null || !::Wuxia.isOnMap(actor) || !::Wuxia.isOnMap(_attacker)) return;
+		if (actor == null || _attacker == null || _attacker.getID() == actor.getID() || !::Wuxia.isOnMap(actor) || !::Wuxia.isOnMap(_attacker)) return;
 
 		// `以右手鄣其面`: Frontal/right-sleeve directions (0, 1, 5) deflect 35% damage; rear/left (2, 3, 4) take +10%!
 		local dir = actor.getTile().getDirectionTo(_attacker.getTile());

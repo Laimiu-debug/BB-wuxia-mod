@@ -11,6 +11,6 @@ this.wx_boss_siwang <- this.inherit("scripts/entity/tactical/enemies/unhold_armo
 		if ("ShanHaiMultiBody" in ::Wuxia)
 			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.unhold_armored.onDeath(_killer, _skill, _tile, _fatalityType);
-		::Wuxia.ShanHai.dropBossCore("boss_siwang", _tile);
+		::Wuxia.ShanHai.dropBossCore("boss_siwang", _tile, this, _killer, _fatalityType);
 	}
 });

@@ -1069,7 +1069,7 @@ if (!("UI" in ::Wuxia))
 	{
 		local container = this.getContainer();
 		local actor = container != null ? container.getActor() : null;
-		if (actor == null || !actor.isAlive()) return;
+		if (::Wuxia.CombatRules.isSelfOrDyingKill(actor, _targetEntity)) return;
 
 		local cImpKill = this.wxGetCoreImprintSpec();
 		if (cImpKill != null && cImpKill.Mode == "devour_qi" && this.m.CoreQiTurn < 2 && (_targetEntity == null || !::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity)))
@@ -2462,10 +2462,10 @@ if ("buildStashPillsData" in ::Wuxia.UI)
 			items            = ("ItemCard" in res && res.ItemCard != null) ? [res.ItemCard] : [],
 			oldGradeTitle    = ("OldGradeTitle" in res) ? res.OldGradeTitle : "良工",
 			oldGradeColor    = ("OldGradeColor" in res) ? res.OldGradeColor : "#5ec47a",
-			oldPerfectionPct = ("OldPerfectionPct" in res) ? res.OldPerfectionPct : 50,
+			oldPerfectionPct = ("OldPerfectionPct" in res) ? res.OldPerfectionPct : ::Wuxia.Forge.BasePerfectionPct,
 			newGradeTitle    = ("GradeTitle" in res) ? res.GradeTitle : "良工",
 			newGradeColor    = ("GradeColor" in res) ? res.GradeColor : "#5ec47a",
-			newPerfectionPct = ("PerfectionPct" in res) ? res.PerfectionPct : 50,
+			newPerfectionPct = ("PerfectionPct" in res) ? res.PerfectionPct : ::Wuxia.Forge.BasePerfectionPct,
 			usedPity         = ("UsedPity" in res) && res.UsedPity,
 			message          = res.Message
 		};

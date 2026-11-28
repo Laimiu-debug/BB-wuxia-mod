@@ -53,7 +53,6 @@ this.wx_bow_luori <- this.inherit("scripts/skills/actives/wx_move_base", {
 			if (_targetTile != null && ("TileField" in ::Wuxia))
 				::Wuxia.TileField.setField(_targetTile, "drought_scorch", 2, _user);
 		}
-		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

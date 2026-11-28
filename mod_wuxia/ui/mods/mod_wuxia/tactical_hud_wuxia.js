@@ -170,4 +170,64 @@
 		}
 		return result;
 	};
+
+	var turnBar = TacticalScreenTurnSequenceBarModule.prototype;
+	var enableFirstSelection = turnBar.enableFirstEntitySelection;
+	turnBar.enableFirstEntitySelection = function (enable) {
+		if (!enable) return enableFirstSelection.call(this, false);
+		if (this.mFirstEntitySelectionTimer !== null) return;
+		var bar = this;
+		var normalWidth = this.mFirstSlotNormalSizeEntityTemplate.outerWidth(true);
+		var fullWidth = this.mFirstSlotFullSizeEntityTemplate.outerWidth(true);
+		this.mFirstEntitySelectionTimer = setInterval(function () {
+			var slot = bar.mEntitySliderContainer.children('.l-entity:not([in-removal])').first();
+			if (!slot.length) return;
+			var previousHidden = slot.prev().attr('is-hidden-to-player') === 'true';
+			var left = slot.position().left;
+			if (left < 0 || left >= (previousHidden ? normalWidth / 2 : fullWidth)) return;
+			enableFirstSelection.call(bar, false);
+			bar.selectFirstEntity(slot.data('entity'), slot, previousHidden);
+		}, this.mFirstEntitySelectionTimerInterval);
+	};
+
+	// The same actor may have a new portrait after waiting or changing rounds.
+	var notifyFirstSlot = turnBar.notifyBackendEntityEntersFirstSlot;
+	turnBar.notifyBackendEntityEntersFirstSlot = function (id, callback) {
+		var bar = this;
+		var slot = this.mEntitySliderContainer.children('.l-entity:not([in-removal])').first();
+		return notifyFirstSlot.call(this, id, function (data) {
+			var entity = slot.data('entity');
+			if (bar.mEntitySliderContainer && slot.parent()[0] === bar.mEntitySliderContainer[0] &&
+				!slot.is('[in-removal]') && entity && entity.id === id) callback(data);
+		});
+	};
+
+	// Velocity keeps running after jQuery.empty() discards the image and its placeholder.
+	function stopTurnAnimations(bar) {
+		bar.enableFirstEntitySelection(false);
+		if (bar.mEntitySliderContainer) {
+			bar.mEntitySliderContainer.find('.entity-slider, .l-entity, .l-entity img').velocity('stop', true);
+		}
+	}
+	var clearTurnBar = turnBar.clear;
+	turnBar.clear = function () {
+		stopTurnAnimations(this);
+		return clearTurnBar.apply(this, arguments);
+	};
+	var destroyTurnBar = turnBar.destroyDIV;
+	turnBar.destroyDIV = function () {
+		stopTurnAnimations(this);
+		return destroyTurnBar.apply(this, arguments);
+	};
+
+	// 4. Guard vanilla updateEntityImage against async callbacks landing after clear() empties the slider
+	if (TacticalScreenTurnSequenceBarModule.prototype.updateEntityImage) {
+		var origUpdateEntityImage = TacticalScreenTurnSequenceBarModule.prototype.updateEntityImage;
+		TacticalScreenTurnSequenceBarModule.prototype.updateEntityImage = function (_entityData, _entityDIV) {
+			if (!_entityDIV || !_entityDIV.length || _entityDIV.is('[in-removal]') || !_entityDIV.parent().length) return;
+			var img = _entityDIV.find('.image-layer:first img:first');
+			if (!img.length || (!img.data('is-scaling') && !img.data('placeholder'))) return;
+			return origUpdateEntityImage.call(this, _entityData, _entityDIV);
+		};
+	}
 })();

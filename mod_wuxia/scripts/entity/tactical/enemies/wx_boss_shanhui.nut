@@ -14,6 +14,6 @@ this.wx_boss_shanhui <- this.inherit("scripts/entity/tactical/enemies/goblin_wol
 		if ("ShanHaiMultiBody" in ::Wuxia)
 			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.goblin_wolfrider.onDeath(_killer, _skill, _tile, _fatalityType);
-		::Wuxia.ShanHai.dropBossCore("boss_shanhui", _tile);
+		::Wuxia.ShanHai.dropBossCore("boss_shanhui", _tile, this, _killer, _fatalityType);
 	}
 });

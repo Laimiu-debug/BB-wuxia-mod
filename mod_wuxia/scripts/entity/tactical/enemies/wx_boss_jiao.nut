@@ -11,6 +11,6 @@ this.wx_boss_jiao <- this.inherit("scripts/entity/tactical/enemies/direwolf_high
 		if ("ShanHaiMultiBody" in ::Wuxia)
 			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.direwolf_high.onDeath(_killer, _skill, _tile, _fatalityType);
-		::Wuxia.ShanHai.dropBossCore("boss_jiao", _tile);
+		::Wuxia.ShanHai.dropBossCore("boss_jiao", _tile, this, _killer, _fatalityType);
 	}
 });

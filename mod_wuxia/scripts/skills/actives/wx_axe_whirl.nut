@@ -75,7 +75,7 @@ this.wx_axe_whirl <- this.inherit("scripts/skills/actives/wx_move_base", {
 			if (hit)
 			{
 				anyHit = true;
-				if (t.isAlive() && (hpBefore - t.getHitpoints()) >= 6 && !::Wuxia.CombatRules.isImmuneToMeridianAndPoison(t))
+				if (t.isAlive() && (hpBefore - t.getHitpoints()) >= 6 && !::Wuxia.CombatRules.isImmuneToBleeding(t))
 				{
 					local bleed = ::new("scripts/skills/effects/bleeding_effect");
 					bleed.setDamage(5);

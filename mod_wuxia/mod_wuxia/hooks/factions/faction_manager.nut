@@ -67,3 +67,30 @@
 		}
 	};
 });
+
+::Wuxia.HooksMod.hook("scripts/entity/world/combat_manager", function( q )
+{
+	q.joinCombat = @(__original) function( _combat, _party )
+	{
+		if (_party != null)
+		{
+			local factionID = _party.getFaction();
+			while (_combat.Factions.len() <= factionID)
+				_combat.Factions.push([]);
+		}
+		return __original(_combat, _party);
+	};
+});
+
+::Wuxia.HooksMod.hook("scripts/entity/world/world_entity", function( q )
+{
+	q.onDeserialize = @(__original) function( _in )
+	{
+		local result = __original(_in);
+		// World.Combat restores actual participants after all entities load. Older
+		// saves can also contain a party marked in combat before joinCombat failed.
+		if (this.getCombatID() > 0)
+			this.setCombatID(0);
+		return result;
+	};
+});

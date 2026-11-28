@@ -14,6 +14,6 @@ this.wx_boss_xingxing <- this.inherit("scripts/entity/tactical/enemies/unhold", 
 		if ("ShanHaiMultiBody" in ::Wuxia)
 			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.unhold.onDeath(_killer, _skill, _tile, _fatalityType);
-		::Wuxia.ShanHai.dropBossCore("boss_xingxing", _tile);
+		::Wuxia.ShanHai.dropBossCore("boss_xingxing", _tile, this, _killer, _fatalityType);
 	}
 });

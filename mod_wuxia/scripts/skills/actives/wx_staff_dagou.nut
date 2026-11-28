@@ -96,7 +96,6 @@ this.wx_staff_dagou <- this.inherit("scripts/skills/actives/wx_move_base", {
 		{
 			::Wuxia.Streams.resetComboStage(_user, this.m.ID);
 		}
-		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

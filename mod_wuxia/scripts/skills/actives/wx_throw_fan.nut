@@ -85,7 +85,6 @@ this.wx_throw_fan <- this.inherit("scripts/skills/actives/wx_move_base", {
 		}
 		if ("Streams" in ::Wuxia)
 			::Wuxia.Streams.recallTangmenCaltrops(_user, _targetTile);
-		this.wxTriggerTagPostMechanic(_user, mainTarget, _targetTile, anyHit);
 		return anyHit;
 	}
 });

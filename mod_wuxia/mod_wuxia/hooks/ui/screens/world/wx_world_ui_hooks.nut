@@ -40,6 +40,18 @@
 	}
 });
 
+::Wuxia.HooksMod.hook("scripts/states/world_state", function( q )
+{
+	q.onDeserialize = @(__original) function( _in )
+	{
+		local result = __original(_in);
+		// A quickload can reuse the visible map HUD while replacing the campaign flags.
+		local screen = this.getWorldScreen();
+		if (screen != null) screen.WX_PushSectQuestTracker();
+		return result;
+	};
+});
+
 ::Wuxia.HooksMod.hook("scripts/ui/screens/world/world_relations_screen", function( q )
 {
 	::Wuxia.UI.attachSectTeaHouseRPCs(q, false, false);

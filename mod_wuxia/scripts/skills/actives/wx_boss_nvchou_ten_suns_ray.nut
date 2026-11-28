@@ -38,19 +38,7 @@ this.wx_boss_nvchou_ten_suns_ray <- this.inherit("scripts/skills/skill", {
 
 	function traceRayTiles( _fromTile, _toTile )
 	{
-		local out = [];
-		if (_fromTile == null || _toTile == null || !::Wuxia.hasMember(_fromTile, "getDirectionTo")) return out;
-		local cur = _fromTile;
-		for (local i = 0; i < 5; i = ++i)
-		{
-			if (cur == null || cur.ID == _toTile.ID) break;
-			local dir = cur.getDirectionTo(_toTile);
-			if (dir < 0 || !cur.hasNextTile(dir)) break;
-			cur = cur.getNextTile(dir);
-			if (cur != null && cur.ID != _toTile.ID)
-				out.push(cur);
-		}
-		return out;
+		return ::Wuxia.TileField.collectHexLine(_fromTile, _toTile, 5, false);
 	}
 
 	function onAnySkillUsed( _skill, _targetEntity, _properties )

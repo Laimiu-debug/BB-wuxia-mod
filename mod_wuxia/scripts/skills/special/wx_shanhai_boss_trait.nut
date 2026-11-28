@@ -641,7 +641,7 @@ this.wx_shanhai_boss_trait <- this.inherit("scripts/skills/skill", {
 		local tHasYuji  = (tBuff != null && (::Wuxia.hasMember(tBuff.m, "HasYuji")) && tBuff.m.HasYuji);
 		local tHasBihuo = (tBuff != null && (::Wuxia.hasMember(tBuff.m, "HasBihuo")) && tBuff.m.HasBihuo);
 
-		if ("OnHitBleed" in mech && _damageInflictedHitpoints >= 5 && !immuneBio && !tHasYuji)
+		if ("OnHitBleed" in mech && _damageInflictedHitpoints >= 5 && !::Wuxia.CombatRules.isImmuneToBleeding(_targetEntity) && !tHasYuji)
 		{
 			local bleed = ::new("scripts/skills/effects/bleeding_effect");
 			bleed.setDamage(mech.OnHitBleed);
@@ -703,7 +703,7 @@ this.wx_shanhai_boss_trait <- this.inherit("scripts/skills/skill", {
 	function onTargetKilled( _targetEntity, _skill )
 	{
 		local actor = this.getContainer() != null ? this.getContainer().getActor() : null;
-		if (actor == null || !actor.isAlive()) return;
+		if (::Wuxia.CombatRules.isSelfOrDyingKill(actor, _targetEntity)) return;
 		local mech = this.getMechanics();
 
 		if ("KillHealHP" in mech && mech.KillHealHP > 0 && actor.getHitpoints() < actor.getHitpointsMax())

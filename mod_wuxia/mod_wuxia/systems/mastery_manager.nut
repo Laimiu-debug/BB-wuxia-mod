@@ -120,6 +120,11 @@
 	return { Advanced = true, NewTier = slot.Tier, ManualName = def.Name, BlockedByReq = false, Missing = [] };
 };
 
+::Wuxia.Mastery.applyMasteryBonus <- function( _amount, _bonus )
+{
+	return _bonus > 0.001 ? ::Math.max(_amount + 1, ::Math.round(_amount * (1.0 + _bonus)).tointeger()) : _amount;
+};
+
 ::Wuxia.Mastery.addExpToSlot <- function( _actor, _slotIndex, _amount )
 {
 	if (_amount <= 0) return { Advanced = false };
@@ -137,13 +142,8 @@
 
 	local previousExp = slot.Exp;
 	local spentOnBreakthroughs = 0;
-	local effAmount = _amount;
-	if ("Traits" in ::Wuxia)
-	{
-		local trMult = ::Wuxia.Traits.getMasteryBonusMult(_actor, def);
-		if (trMult > 0.001)
-			effAmount = ::Math.max(_amount + 1, ::Math.round(_amount * (1.0 + trMult)).tointeger());
-	}
+	local bonus = ("Traits" in ::Wuxia) ? ::Wuxia.Traits.getMasteryBonusMult(_actor, def) : 0.0;
+	local effAmount = ::Wuxia.Mastery.applyMasteryBonus(_amount, bonus);
 	slot.Exp += effAmount;
 	c.syncSlotToLearned(_slotIndex);
 

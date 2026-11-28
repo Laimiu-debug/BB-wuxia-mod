@@ -14,6 +14,6 @@ this.wx_boss_yinglong <- this.inherit("scripts/entity/tactical/enemies/lindwurm"
 		if ("ShanHaiMultiBody" in ::Wuxia)
 			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.lindwurm.onDeath(_killer, _skill, _tile, _fatalityType);
-		::Wuxia.ShanHai.dropBossCore("boss_yinglong", _tile);
+		::Wuxia.ShanHai.dropBossCore("boss_yinglong", _tile, this, _killer, _fatalityType);
 	}
 });

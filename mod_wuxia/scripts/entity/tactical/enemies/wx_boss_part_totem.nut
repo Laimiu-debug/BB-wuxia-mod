@@ -14,7 +14,7 @@ this.wx_boss_part_totem <- this.inherit("scripts/entity/tactical/enemies/ghost",
 	function onInit()
 	{
 		this.ghost.onInit();
-		this.m.IsGenerateXP = false;
+		this.m.XP = 0;
 		local b = this.m.BaseProperties;
 		b.ActionPoints = 0;
 		b.Hitpoints = 85;
@@ -31,7 +31,7 @@ this.wx_boss_part_totem <- this.inherit("scripts/entity/tactical/enemies/ghost",
 		b.DamageReceivedRegularMult = 1.0;
 		this.m.ActionPoints = 0;
 		this.m.Hitpoints = b.Hitpoints;
-		this.m.CurrentProperties = clone b;
+		this.m.CurrentProperties = b.getClone();
 	}
 
 	function setupTotem( _master, _spec )

@@ -108,6 +108,7 @@
 	VecZero                = null,
 	LoggedErrors           = {},
 	BattleResourcesQueued  = false,
+	BattleTextures         = {},
 	LastQinggongCast       = {},
 
 	TacticalVfxTextures = [
@@ -135,19 +136,38 @@
 		"gfx/wx_projectiles_0.png",
 		"gfx/wx_corpses_1.png"
 	],
+	// One brush per combat texture lets the renderer finish the upload during deployment.
+	BattleTextureBrushes = {
+		["gfx/wx_kinetic_0.png"] = "wx_kin_sword_slash_00",
+		["gfx/wx_kinetic_1.png"] = "wx_kin_blood_arc_00",
+		["gfx/wx_kinetic_2.png"] = "wx_kin_buddha_palm_00",
+		["gfx/wx_kinetic_3.png"] = "wx_kin_taiji_seal_00",
+		["gfx/wx_kinetic_4.png"] = "wx_kin_lotus_poke_00",
+		["gfx/wx_kinetic_5.png"] = "wx_kin_peacock_fan_00",
+		["gfx/wx_kinetic_6.png"] = "wx_kin_snow_step_00",
+		["gfx/wx_kinetic_7.png"] = "wx_kin_sword_slash_L_01",
+		["gfx/wx_kinetic_8.png"] = "wx_kin_sword_slash_L_00",
+		["gfx/wx_effects_0.png"] = "wx_anim_01_f1",
+		["gfx/wx_effects_1.png"] = "wx_anim_133_f1",
+		["gfx/wx_effects_2.png"] = "wx_anim_19_f1",
+		["gfx/wx_effects_3.png"] = "wx_anim_64_f1",
+		["gfx/wx_effects_4.png"] = "wx_ov_wx_dagger_yingci",
+		["gfx/wx_effects_5.png"] = "wx_vfx_30",
+		["gfx/wx_projectiles_0.png"] = "wx_proj_chuijian"
+	},
 
 	SeqToKineticSheet = {
-		wx_kin_celestial_beam = ["gfx/wx_kinetic_0.png", "gfx/wx_kinetic_7.png"],
-		wx_kin_dragon_surge   = ["gfx/wx_kinetic_0.png", "gfx/wx_kinetic_8.png"],
-		wx_kin_flame_cleave   = ["gfx/wx_kinetic_0.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_celestial_beam = ["gfx/wx_kinetic_0.png", "gfx/wx_kinetic_7.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_dragon_surge   = ["gfx/wx_kinetic_0.png", "gfx/wx_kinetic_7.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_flame_cleave   = ["gfx/wx_kinetic_0.png", "gfx/wx_kinetic_7.png", "gfx/wx_kinetic_8.png"],
 		wx_kin_flame_pillar   = ["gfx/wx_kinetic_0.png"],
-		wx_kin_sword_slash    = ["gfx/wx_kinetic_0.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_sword_slash    = ["gfx/wx_kinetic_0.png", "gfx/wx_kinetic_7.png", "gfx/wx_kinetic_8.png"],
 		wx_kin_thunder_bolt   = ["gfx/wx_kinetic_0.png"],
 		wx_kin_blood_arc      = ["gfx/wx_kinetic_1.png", "gfx/wx_kinetic_8.png"],
-		wx_kin_claw_rend      = ["gfx/wx_kinetic_1.png", "gfx/wx_kinetic_8.png"],
-		wx_kin_shadow_cross   = ["gfx/wx_kinetic_1.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_claw_rend      = ["gfx/wx_kinetic_1.png", "gfx/wx_kinetic_7.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_shadow_cross   = ["gfx/wx_kinetic_1.png", "gfx/wx_kinetic_7.png", "gfx/wx_kinetic_8.png"],
 		wx_kin_spear_drill    = ["gfx/wx_kinetic_1.png", "gfx/wx_kinetic_8.png"],
-		wx_kin_whip_lash      = ["gfx/wx_kinetic_1.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_whip_lash      = ["gfx/wx_kinetic_1.png", "gfx/wx_kinetic_7.png", "gfx/wx_kinetic_8.png"],
 		wx_kin_whirl_cyclone  = ["gfx/wx_kinetic_1.png", "gfx/wx_kinetic_8.png"],
 		wx_kin_arrow_barrage  = ["gfx/wx_kinetic_2.png", "gfx/wx_kinetic_8.png"],
 		wx_kin_buddha_palm    = ["gfx/wx_kinetic_2.png"],
@@ -159,22 +179,22 @@
 		wx_kin_qinggong_gust  = ["gfx/wx_kinetic_3.png", "gfx/wx_kinetic_8.png"],
 		wx_kin_soul_vortex    = ["gfx/wx_kinetic_3.png", "gfx/wx_kinetic_7.png"],
 		wx_kin_taiji_seal     = ["gfx/wx_kinetic_3.png"],
-		wx_kin_bamboo_bind    = ["gfx/wx_kinetic_4.png", "gfx/wx_kinetic_8.png"],
-		wx_kin_fist_flurry    = ["gfx/wx_kinetic_4.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_bamboo_bind    = ["gfx/wx_kinetic_4.png", "gfx/wx_kinetic_7.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_fist_flurry    = ["gfx/wx_kinetic_4.png", "gfx/wx_kinetic_7.png", "gfx/wx_kinetic_8.png"],
 		wx_kin_flying_knives  = ["gfx/wx_kinetic_4.png", "gfx/wx_kinetic_8.png"],
 		wx_kin_giant_axe      = ["gfx/wx_kinetic_4.png", "gfx/wx_kinetic_7.png", "gfx/wx_kinetic_8.png"],
 		wx_kin_lotus_poke     = ["gfx/wx_kinetic_4.png"],
-		wx_kin_phoenix_spear  = ["gfx/wx_kinetic_4.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_phoenix_spear  = ["gfx/wx_kinetic_4.png", "gfx/wx_kinetic_7.png", "gfx/wx_kinetic_8.png"],
 		wx_kin_cannon_blast   = ["gfx/wx_kinetic_5.png"],
 		wx_kin_gold_needles   = ["gfx/wx_kinetic_5.png"],
-		wx_kin_peacock_fan    = ["gfx/wx_kinetic_5.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_peacock_fan    = ["gfx/wx_kinetic_5.png", "gfx/wx_kinetic_7.png", "gfx/wx_kinetic_8.png"],
 		wx_kin_tidal_wave     = ["gfx/wx_kinetic_5.png", "gfx/wx_kinetic_7.png"],
 		wx_kin_war_banner     = ["gfx/wx_kinetic_5.png"],
 		wx_kin_xuanwu_aegis   = ["gfx/wx_kinetic_5.png"],
 		wx_kin_moon_crescent  = ["gfx/wx_kinetic_6.png", "gfx/wx_kinetic_8.png"],
 		wx_kin_prism_burst    = ["gfx/wx_kinetic_6.png"],
 		wx_kin_smoke_cloud    = ["gfx/wx_kinetic_6.png"],
-		wx_kin_snow_step      = ["gfx/wx_kinetic_6.png", "gfx/wx_kinetic_8.png"],
+		wx_kin_snow_step      = ["gfx/wx_kinetic_6.png", "gfx/wx_kinetic_7.png", "gfx/wx_kinetic_8.png"],
 		wx_kin_sword_rain     = ["gfx/wx_kinetic_6.png", "gfx/wx_kinetic_8.png"],
 		wx_kin_warp_seal      = ["gfx/wx_kinetic_6.png"]
 	},
@@ -530,97 +550,87 @@ if (!("Settings" in ::Wuxia))
 	catch (_e) {}
 };
 
+// Track registration and whether the texture has a brush in this battle scene.
+::Wuxia.VFX.queueBattleTexture <- function( _path )
+{
+	if (_path in ::Wuxia.VFX.BattleTextures) return false;
+	::Tactical.addResource(_path);
+	::Wuxia.VFX.BattleTextures[_path] <- false;
+	return true;
+};
+
+::Wuxia.VFX.queueKineticProfile <- function( _profile )
+{
+	local added = false;
+	foreach (seq in [_profile.seq, _profile.seq2])
+	{
+		if (!(seq in ::Wuxia.VFX.SeqToKineticSheet)) continue;
+		foreach (path in ::Wuxia.VFX.SeqToKineticSheet[seq])
+			if (::Wuxia.VFX.queueBattleTexture(path)) added = true;
+	}
+	return added;
+};
+
+::Wuxia.VFX.warmBattleTextures <- function()
+{
+	if (!::Wuxia.VFX.isVfxEnabled() || !::Wuxia.VFX.BattleResourcesQueued) return;
+	local tile = ::Tactical.getTileSquare(0, 0);
+	if (tile == null) return;
+
+	// Late additions to the native resource package are not retained. A transparent map detail
+	// holds each texture until clearScene, including when effects are enabled mid-battle.
+	foreach (path, ready in ::Wuxia.VFX.BattleTextures)
+	{
+		if (ready || !(path in ::Wuxia.VFX.BattleTextureBrushes)) continue;
+		local detail = tile.spawnDetail(::Wuxia.VFX.BattleTextureBrushes[path], 0, false, false);
+		if (detail == null) continue;
+		detail.Alpha = 0;
+		detail.Scale = 0.0;
+		::Wuxia.VFX.BattleTextures[path] = true;
+	}
+};
+
 ::Wuxia.VFX.registerTacticalResources <- function( _loadImmediately = false )
 {
-	if (!("Tactical" in getroottable()) || ::Tactical == null || !("addResource" in ::Tactical))
-		return;
+	if (!("Tactical" in getroottable()) || ::Tactical == null || !::Wuxia.hasMember(::Tactical, "addResource")) return;
+	local previousCount = ::Wuxia.VFX.BattleTextures.len();
+	foreach (path in ::Wuxia.VFX.TacticalBaseTextures)
+		::Wuxia.VFX.queueBattleTexture(path);
 
-	local queued = {};
-	local addTex = function( _p )
+	local showVfx = ::Wuxia.VFX.isVfxEnabled();
+	if (showVfx)
 	{
-		if (_p == null || (_p in queued)) return;
-		queued[_p] <- true;
-		try { ::Tactical.addResource(_p); } catch (_e) {}
-	};
+		foreach (path in ["gfx/wx_effects_0.png", "gfx/wx_effects_1.png", "gfx/wx_effects_2.png",
+			"gfx/wx_effects_3.png", "gfx/wx_effects_5.png", "gfx/wx_kinetic_0.png", "gfx/wx_kinetic_3.png"])
+			::Wuxia.VFX.queueBattleTexture(path);
+	}
 
-	foreach (baseTex in ::Wuxia.VFX.TacticalBaseTextures)
-		addTex(baseTex);
-
-	local needsCustomCorpse0 = false;
-	local seqMap = ::Wuxia.VFX.SeqToKineticSheet;
-	local profiles = ("KineticVFX" in ::Wuxia && "Profiles" in ::Wuxia.KineticVFX) ? ::Wuxia.KineticVFX.Profiles : null;
-
-	try
+	if (::Wuxia.hasMember(::Tactical, "Entities") && ::Tactical.Entities != null)
 	{
-		if (("Entities" in ::Tactical) && ::Tactical.Entities != null && ("getAllInstances" in ::Tactical.Entities))
+		foreach (actor in ::Tactical.Entities.getAllInstancesAsArray())
 		{
-			local allInst = ::Tactical.Entities.getAllInstances();
-			if (allInst != null)
+			if (actor == null) continue;
+			if (("WX_CustomEnemyBust" in actor.m && actor.m.WX_CustomEnemyBust != null)
+				|| ("WX_BossID" in actor.m && actor.m.WX_BossID != null))
+				::Wuxia.VFX.queueBattleTexture("gfx/wx_corpses_0.png");
+
+			if (!showVfx) continue;
+			foreach (skill in actor.getSkills().m.Skills)
 			{
-				foreach (facList in allInst)
-				{
-					if (facList == null) continue;
-					foreach (act in facList)
-					{
-						if (act == null || !("m" in act) || act.m == null) continue;
-						if (("WX_CustomEnemyBust" in act.m && act.m.WX_CustomEnemyBust != null)
-							|| ("WX_BossID" in act.m && act.m.WX_BossID != null))
-						{
-							needsCustomCorpse0 = true;
-						}
-						if (!::Wuxia.VFX.Config.ShowSkillVfx || profiles == null || !::Wuxia.hasMember(act, "getSkills"))
-							continue;
-						local skCont = act.getSkills();
-						if (skCont == null || !("m" in skCont) || !("Skills" in skCont.m) || skCont.m.Skills == null)
-							continue;
-						foreach (sk in skCont.m.Skills)
-						{
-							if (sk == null || !("m" in sk) || sk.m.ID == null) continue;
-							if (sk.m.ID.find("actives.wx_") == 0)
-							{
-								local key = sk.m.ID.slice(8);
-								local pr = ("KineticVFX" in ::Wuxia && "getProfile" in ::Wuxia.KineticVFX)
-									? ::Wuxia.KineticVFX.getProfile(key)
-									: ((profiles != null && (key in profiles)) ? profiles[key] : null);
-								if (pr != null)
-								{
-									if (pr.seq != "" && (pr.seq in seqMap))
-									{
-										foreach (tp in seqMap[pr.seq]) addTex(tp);
-									}
-									if (pr.seq2 != "" && (pr.seq2 in seqMap))
-									{
-										foreach (tp2 in seqMap[pr.seq2]) addTex(tp2);
-									}
-								}
-							}
-						}
-					}
-				}
+				if (skill == null) continue;
+				local id = skill.getID();
+				if (typeof id != "string" || id.find("actives.wx_") != 0) continue;
+				local profile = ::Wuxia.KineticVFX.getProfile(id.slice(8));
+				if (profile != null) ::Wuxia.VFX.queueKineticProfile(profile);
 			}
 		}
 	}
-	catch (_eScan)
-	{
-		needsCustomCorpse0 = true;
-	}
-
-	if (needsCustomCorpse0)
-		addTex("gfx/wx_corpses_0.png");
-
-	if (::Wuxia.VFX.Config.ShowSkillVfx)
-	{
-		// Core particle rings, overhead skill icons & Qi trigger auras (skipping 11+ MB of unused `wx_effects_0..2` sheets!)
-		addTex("gfx/wx_effects_3.png");
-		addTex("gfx/wx_effects_5.png");
-		addTex("gfx/wx_kinetic_0.png");
-		addTex("gfx/wx_kinetic_3.png");
-	}
 
 	::Wuxia.VFX.BattleResourcesQueued = true;
-	if (_loadImmediately && ("loadResources" in ::Tactical))
+	if (_loadImmediately && ::Wuxia.VFX.BattleTextures.len() > previousCount)
 	{
-		try { ::Tactical.loadResources(); } catch (_e2) {}
+		::Tactical.loadResources();
+		::Wuxia.VFX.warmBattleTextures();
 	}
 };
 
@@ -1005,6 +1015,28 @@ if (!("Settings" in ::Wuxia))
 	return seq;
 };
 
+// The native emitter terminates the process on an unknown brush, before Squirrel can catch it.
+::Wuxia.VFX.resolveParticleBrushes <- function( _brushes, _flipX = false )
+{
+	if (typeof _brushes != "array" || _brushes.len() == 0 || !("doesBrushExist" in getroottable())) return null;
+	local result = _brushes;
+	foreach (index, brush in _brushes)
+	{
+		if (typeof brush != "string" || brush == "") return null;
+		if (_flipX && ::Wuxia.Appearance.brushExists(brush + "_L"))
+		{
+			if (result == _brushes) result = clone _brushes;
+			result[index] = brush + "_L";
+		}
+		else if (!::Wuxia.Appearance.brushExists(brush))
+		{
+			::Wuxia.VFX.logOnce("particle:" + brush, "Brush is not registered");
+			return null;
+		}
+	}
+	return result;
+};
+
 ::Wuxia.VFX.spawnParticleSpec <- function( _spec, _tile, _flipX = false, _extraDelayMs = 0 )
 {
 	if (!::Wuxia.VFX.isVfxEnabled()) return;
@@ -1013,25 +1045,8 @@ if (!("Settings" in ::Wuxia))
 	if (!("spawnParticleEffect" in ::Tactical)) return;
 	local d = _spec.Delay + _extraDelayMs;
 	if (d < 0) d = 0;
-	local brushes = _spec.Brushes;
-	if (_flipX && brushes != null && brushes.len() > 0 && "doesBrushExist" in getroottable())
-	{
-		local swapped = [];
-		local anySwapped = false;
-		foreach (b in brushes)
-		{
-			if (b != null && b != "" && ::doesBrushExist(b + "_L"))
-			{
-				swapped.push(b + "_L");
-				anySwapped = true;
-			}
-			else
-			{
-				swapped.push(b);
-			}
-		}
-		if (anySwapped) brushes = swapped;
-	}
+	local brushes = ::Wuxia.VFX.resolveParticleBrushes(_spec.Brushes, _flipX);
+	if (brushes == null) return;
 	::Tactical.spawnParticleEffect(
 		false,
 		brushes,
@@ -1428,6 +1443,7 @@ if (!("Settings" in ::Wuxia))
 		px                 = -dy * faceSign,
 		py                 = dx * faceSign,
 		startTime          = now + _delaySec.tofloat() * spd,
+		lastPoseTime       = -1.0,
 		duration           = ::Math.maxf(0.16, _durSec.tofloat() * spd),
 		origFlip           = origFlip,
 		flippedTemp        = false,
@@ -1520,6 +1536,9 @@ if (!("Settings" in ::Wuxia))
 		::Wuxia.VFX.clearActorMotion(_actor);
 		return;
 	}
+	// Combat resolution uses scheduled events. Only the visual pose needs sampling at 60 Hz.
+	if (mo.lastPoseTime >= 0.0 && now - mo.lastPoseTime < 1.0 / 60.0) return;
+	mo.lastPoseTime = now;
 
 	local dx = mo.dx;
 	local dy = mo.dy;
@@ -2839,7 +2858,7 @@ if (!("Settings" in ::Wuxia))
 // ============================================================================
 // Non-Destructive Engine Hooks:
 // 1. `scripts/skills/skill` (`use` & `attackEntity`)
-// 2. `scripts/states/tactical_state` & `tactical_entity_manager` (preload VFX atlases into Temporary Tactical Resources!)
+// 2. Tactical state and actor resource loading (battle-scoped VFX atlases).
 // 3. `scripts/states/world_state` (save/load options cleanly in `::World.Flags`)
 // 4. `scripts/ui/screens/menu/modules/options_menu_module` (RPCs for native Options -> Gameplay toggles)
 // ============================================================================
@@ -2912,23 +2931,28 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 		};
 	});
 
-	// Preload & pin Wuxia VFX/Projectile/Corpse atlases once per battle inside "Temporary Tactical Resources"
-	// so Battle Brothers NEVER decompresses/DXT5-compresses 2048x2048 textures synchronously on skill cast!
+	// Vanilla calls actor.loadResources after both campaign deployment and scenario generation,
+	// before it loads the temporary tactical resource package.
+	::Wuxia.HooksMod.hook("scripts/entity/tactical/actor", function( q )
+	{
+		q.loadResources = @(__original) function()
+		{
+			if (!::Wuxia.VFX.BattleResourcesQueued) ::Wuxia.VFX.registerTacticalResources();
+			return __original();
+		};
+	});
+
 	::Wuxia.HooksMod.hook("scripts/states/tactical_state", function( q )
 	{
-		if (::Wuxia.qHas(q, "initMap"))
+		q.init = @(__original) function()
 		{
-			q.initMap = @(__original) function()
-			{
-				::Wuxia.VFX.BattleResourcesQueued = false;
-				::Wuxia.VFX.LastQinggongCast = {};
-				local res = __original();
-				// Queue ONLY the sheets needed by entities spawned in this battle; BB's native tactical loader
-				// flushes queued resources immediately after `initMap()` without double-stalling the main thread!
-				::Wuxia.VFX.registerTacticalResources(false);
-				return res;
-			};
-		}
+			::Wuxia.VFX.BattleTextures = {};
+			::Wuxia.VFX.BattleResourcesQueued = false;
+			::Wuxia.VFX.LastQinggongCast = {};
+			local result = __original();
+			::Wuxia.VFX.warmBattleTextures();
+			return result;
+		};
 		if (::Wuxia.qHas(q, "onBattleEnded"))
 		{
 			q.onBattleEnded = @(__original) function()
@@ -2947,21 +2971,11 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 				if ("KineticVFX" in ::Wuxia && "clearAll" in ::Wuxia.KineticVFX)
 					::Wuxia.KineticVFX.clearAll();
 				::Wuxia.VFX.BattleResourcesQueued = false;
+				::Wuxia.VFX.BattleTextures = {};
 				::Wuxia.VFX.LastQinggongCast = {};
 				local ret = __original();
 				::Wuxia.VFX.clearAllActiveMotions(true);
 				return ret;
-			};
-		}
-	});
-
-	::Wuxia.HooksMod.hook("scripts/entity/tactical/tactical_entity_manager", function( q )
-	{
-		if (::Wuxia.qHas(q, "setupEntity"))
-		{
-			q.setupEntity = @(__original) function( _actor, _troop )
-			{
-				return __original(_actor, _troop);
 			};
 		}
 	});

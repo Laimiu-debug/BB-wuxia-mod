@@ -14,7 +14,7 @@ this.wx_boss_part_segment <- this.inherit("scripts/entity/tactical/enemies/unhol
 	function onInit()
 	{
 		this.unhold.onInit();
-		this.m.IsGenerateXP = false;
+		this.m.XP = 0;
 		local b = this.m.BaseProperties;
 		b.ActionPoints = 0;
 		b.Hitpoints = 2500;
@@ -30,7 +30,7 @@ this.wx_boss_part_segment <- this.inherit("scripts/entity/tactical/enemies/unhol
 		b.IsImmuneToDisarm = true;
 		this.m.ActionPoints = 0;
 		this.m.Hitpoints = b.Hitpoints;
-		this.m.CurrentProperties = clone b;
+		this.m.CurrentProperties = b.getClone();
 	}
 
 	function setupSegment( _master, _spec )

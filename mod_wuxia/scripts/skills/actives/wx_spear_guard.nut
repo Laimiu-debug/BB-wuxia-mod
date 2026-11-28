@@ -49,7 +49,6 @@ this.wx_spear_guard <- this.inherit("scripts/skills/actives/wx_move_base", {
 		{
 			this.wxApplyStatusToTarget(target, "effects.wx_status_offbalance", "scripts/skills/effects/wx_status_offbalance", "InflictOffBalancePct");
 		}
-		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

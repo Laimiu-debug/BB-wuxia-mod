@@ -14,6 +14,6 @@ this.wx_boss_hujiao <- this.inherit("scripts/entity/tactical/enemies/serpent", {
 		if ("ShanHaiMultiBody" in ::Wuxia)
 			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.serpent.onDeath(_killer, _skill, _tile, _fatalityType);
-		::Wuxia.ShanHai.dropBossCore("boss_hujiao", _tile);
+		::Wuxia.ShanHai.dropBossCore("boss_hujiao", _tile, this, _killer, _fatalityType);
 	}
 });

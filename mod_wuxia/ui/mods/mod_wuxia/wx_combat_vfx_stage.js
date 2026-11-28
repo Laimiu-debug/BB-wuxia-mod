@@ -27,8 +27,10 @@
 		vignette: null,
 		canvas: null,
 		ctx: null,
+		viewWidth: 0,
+		viewHeight: 0,
 		banner: null,
-		rafId: null,
+		drawTimer: null,
 		timers: [],
 		cue: null,
 		particles: []
@@ -57,10 +59,9 @@
 	}
 
 	function stopLoop() {
-		if (state.rafId !== null) {
-			if (window.cancelAnimationFrame) window.cancelAnimationFrame(state.rafId);
-			else clearTimeout(state.rafId);
-			state.rafId = null;
+		if (state.drawTimer !== null) {
+			clearTimeout(state.drawTimer);
+			state.drawTimer = null;
 		}
 	}
 
@@ -94,17 +95,23 @@
 		state.vignette = null;
 		state.canvas = null;
 		state.ctx = null;
+		state.viewWidth = 0;
+		state.viewHeight = 0;
 		state.banner = null;
 	}
 
 	function resizeCanvas() {
-		if (!state.canvas) return;
+		if (!state.ctx) return;
 		var w = window.innerWidth || 1280;
 		var h = window.innerHeight || 720;
-		if (state.canvas.width !== w || state.canvas.height !== h) {
-			state.canvas.width = w;
-			state.canvas.height = h;
-		}
+		if (state.viewWidth === w && state.viewHeight === h) return;
+		// Only the transparent effects layer is scaled. Keep the HUD and calligraphy at native resolution.
+		var scale = Math.min(1, 854 / w, 480 / h);
+		state.canvas.width = Math.max(1, Math.round(w * scale));
+		state.canvas.height = Math.max(1, Math.round(h * scale));
+		state.ctx.scale(state.canvas.width / w, state.canvas.height / h);
+		state.viewWidth = w;
+		state.viewHeight = h;
 	}
 
 	function seedEdgeParticles(_themeKey, _w, _h) {
@@ -128,14 +135,14 @@
 	}
 
 	function renderFrame() {
-		state.rafId = null;
+		state.drawTimer = null;
 		var cue = state.cue;
 		if (!cue || !state.ctx || !state.canvas) return;
 
 		var now = (new Date()).getTime();
 		var elapsed = now - cue.startTime;
 		if (elapsed >= cue.totalMs) {
-			state.ctx.clearRect(0, 0, state.canvas.width, state.canvas.height);
+			state.ctx.clearRect(0, 0, state.viewWidth, state.viewHeight);
 			if (state.vignette) state.vignette.removeClass('is-on');
 			state.cue = null;
 			return;
@@ -143,8 +150,8 @@
 
 		resizeCanvas();
 		var ctx = state.ctx;
-		var w = state.canvas.width;
-		var h = state.canvas.height;
+		var w = state.viewWidth;
+		var h = state.viewHeight;
 		var cx = w * 0.5;
 		var cy = h * 0.5;
 		var maxR = Math.sqrt(cx * cx + cy * cy);
@@ -205,7 +212,7 @@
 				var fAlpha = (1.0 - dtImp / 165.0) * (cue.theme === 'violet' ? 0.34 : (cue.theme === 'celestial' ? 0.30 : 0.22));
 				// CoherentUI supports solid canvas strokes on the game's renderer.
 				// Build the edge glow outwards so the targeted hex stays visible.
-				var bands = 20;
+				var bands = 10;
 				var bandWidth = maxR * 0.78 / bands;
 				ctx.save();
 				if (cue.theme === 'violet') {
@@ -274,11 +281,7 @@
 			ctx.restore();
 		}
 
-		if (window.requestAnimationFrame) {
-			state.rafId = window.requestAnimationFrame(renderFrame);
-		} else {
-			state.rafId = setTimeout(renderFrame, 16);
-		}
+		state.drawTimer = setTimeout(renderFrame, 33);
 	}
 
 	function playCombatCue(_data) {
@@ -346,8 +349,7 @@
 			}, totalMs + 80));
 		}
 
-		// 3. Kick off 60fps Canvas Loop
-		state.particles = seedEdgeParticles(theme, state.canvas ? state.canvas.width : 1280, state.canvas ? state.canvas.height : 720);
+		state.particles = seedEdgeParticles(theme, state.viewWidth, state.viewHeight);
 		state.cue = {
 			theme: theme,
 			startTime: (new Date()).getTime(),

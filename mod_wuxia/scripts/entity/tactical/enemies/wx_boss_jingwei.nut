@@ -14,6 +14,6 @@ this.wx_boss_jingwei <- this.inherit("scripts/entity/tactical/enemies/ghost_knig
 		if ("ShanHaiMultiBody" in ::Wuxia)
 			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.ghost_knight.onDeath(_killer, _skill, _tile, _fatalityType);
-		::Wuxia.ShanHai.dropBossCore("boss_jingwei", _tile);
+		::Wuxia.ShanHai.dropBossCore("boss_jingwei", _tile, this, _killer, _fatalityType);
 	}
 });

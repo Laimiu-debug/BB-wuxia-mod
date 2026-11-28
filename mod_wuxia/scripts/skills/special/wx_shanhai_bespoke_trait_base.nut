@@ -398,7 +398,7 @@ this.wx_shanhai_bespoke_trait_base <- this.inherit("scripts/skills/skill", {
 	{
 		local spec = this.getSpec();
 		local actor = this.getContainer() != null ? this.getContainer().getActor() : null;
-		if (spec == null || actor == null || this.m.KillAPUsedThisTurn) return;
+		if (spec == null || ::Wuxia.CombatRules.isSelfOrDyingKill(actor, _targetEntity) || this.m.KillAPUsedThisTurn) return;
 		if (("KillRefundAP" in spec) && spec.KillRefundAP > 0)
 		{
 			this.m.KillAPUsedThisTurn = true;

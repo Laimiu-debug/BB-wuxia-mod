@@ -424,6 +424,7 @@
 		{
 			if (seg != null && ::Wuxia.hasMember(seg, "isAlive") && seg.isAlive())
 			{
+				seg.m.WX_Master = null;
 				seg.m.WX_DeathHandled <- true;
 				seg.killSilently();
 			}
@@ -436,6 +437,7 @@
 		{
 			if (app != null && ::Wuxia.hasMember(app, "isAlive") && app.isAlive())
 			{
+				app.m.WX_Master = null;
 				app.m.WX_DeathHandled <- true;
 				app.killSilently();
 			}
@@ -448,6 +450,7 @@
 		{
 			if (tot != null && ::Wuxia.hasMember(tot, "isAlive") && tot.isAlive())
 			{
+				tot.m.WX_Master = null;
 				tot.m.WX_DeathHandled <- true;
 				tot.killSilently();
 			}

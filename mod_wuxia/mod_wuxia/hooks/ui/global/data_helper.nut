@@ -45,7 +45,7 @@
 		local hasWF = ("World" in getroottable()) && ::World != null && ("Flags" in ::World) && ::World.Flags != null;
 		if (_key == "showSkillVfx" && ("VFX" in ::Wuxia))
 		{
-			::Wuxia.VFX.Config.ShowSkillVfx = bVal;
+			::Wuxia.VFX.setOptions(bVal, null);
 			if (hasWF) ::World.Flags.set("wx_cfg_vfx", bVal);
 		}
 		else if (_key == "enableActorMotion" && ("VFX" in ::Wuxia))

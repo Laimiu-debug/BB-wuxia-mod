@@ -84,9 +84,7 @@ this.wx_item_tactical_powder <- this.inherit("scripts/skills/skill", {
 		else if (cfg.SubMode == "oral" && ::Wuxia.hasMember(actor, "getSkills") && actor.getSkills() != null)
 		{
 			local buff = actor.getSkills().getSkillByID("effects.wx_pill_battle_buff");
-			local prepCnt = (buff != null && ::Wuxia.hasMember(buff, "countActiveBuffs")) ? buff.countActiveBuffs() : 0;
-			local midCnt  = ("m" in actor && actor.m != null && ("WX_MidBattleOralDoses" in actor.m)) ? actor.m.WX_MidBattleOralDoses : 0;
-			if (prepCnt + midCnt >= 3) return false;
+			if (::Wuxia.CraftBridge.getBattleOralDoseCount(actor, buff) >= 3) return false;
 		}
 		return true;
 	}
@@ -166,7 +164,7 @@ this.wx_item_tactical_powder <- this.inherit("scripts/skills/skill", {
 				}
 			}
 			::Wuxia.CombatRules.restoreQi(_user, 10);
-			if ("m" in _user && _user.m != null)
+			if (::Wuxia.hasMember(_user, "m") && _user.m != null)
 				_user.m.WX_FreeDisengageRound <- ::Wuxia.CraftBridge.getCurrentRound();
 		}
 		else if (cfg.ID == "wx_tact_pohuanxiang")
@@ -206,7 +204,7 @@ this.wx_item_tactical_powder <- this.inherit("scripts/skills/skill", {
 			}
 			foreach (bt in blastTiles)
 			{
-				if (bt == null || !("IsOccupiedByActor" in bt) || !bt.IsOccupiedByActor || bt.getEntity() == null) continue;
+				if (bt == null || !::Wuxia.isTileOccupiedByActor(bt) || bt.getEntity() == null) continue;
 				local e = bt.getEntity();
 				if (!e.isAlive() || _user.isAlliedWith(e)) continue;
 				if (::Wuxia.hasMember(e, "getItems") && e.getItems() != null)

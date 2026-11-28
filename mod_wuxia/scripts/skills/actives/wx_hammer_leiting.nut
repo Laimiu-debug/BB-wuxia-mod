@@ -60,7 +60,6 @@ this.wx_hammer_leiting <- this.inherit("scripts/skills/actives/wx_move_base", {
 				}
 			}
 		}
-		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

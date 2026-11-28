@@ -1965,7 +1965,7 @@ if (!("Alchemy" in ::Wuxia))
 	local pv = ::Wuxia.MarrowWash.getPreview(_actor, _targetAttrIdx, _replaceAttrIdx, _useProtectPill);
 	if (!pv.Ok) return pv;
 
-	local stash = (("World" in getroottable()) && ::World != null && ::World.Assets != null) ? ::World.Assets.getStash() : null;
+	local stash = ::Wuxia.getCampaignStash();
 	local pillBonus = 0;
 	local maxCap = 85;
 	local avoidHeavyShock = false;

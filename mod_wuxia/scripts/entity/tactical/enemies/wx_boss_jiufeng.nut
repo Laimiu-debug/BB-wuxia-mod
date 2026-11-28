@@ -11,6 +11,6 @@ this.wx_boss_jiufeng <- this.inherit("scripts/entity/tactical/enemies/vampire", 
 		if ("ShanHaiMultiBody" in ::Wuxia)
 			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.vampire.onDeath(_killer, _skill, _tile, _fatalityType);
-		::Wuxia.ShanHai.dropBossCore("boss_jiufeng", _tile);
+		::Wuxia.ShanHai.dropBossCore("boss_jiufeng", _tile, this, _killer, _fatalityType);
 	}
 });

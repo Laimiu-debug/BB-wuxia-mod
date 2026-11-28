@@ -1950,6 +1950,19 @@
 		}
 	}
 
+	if (typeof WorldTownScreen !== 'undefined') {
+		var townScreenProto = WorldTownScreen.prototype;
+		var origTownDisconnect = townScreenProto.onDisconnection;
+		townScreenProto.onDisconnection = function () {
+			// Quitting a match can leave the town fade queued while its dialog is destroyed.
+			if (this.mContainer) this.mContainer.velocity('stop', true);
+			return origTownDisconnect.apply(this, arguments);
+		};
+		if (typeof Screens !== 'undefined' && Screens['WorldTownScreen']) {
+			Screens['WorldTownScreen'].onDisconnection = townScreenProto.onDisconnection;
+		}
+	}
+
 	if (typeof WorldTownScreenMainDialogModule !== 'undefined') {
 		var townProto = WorldTownScreenMainDialogModule.prototype;
 		var origTownLoad = townProto.loadFromData;

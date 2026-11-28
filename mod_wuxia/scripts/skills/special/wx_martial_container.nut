@@ -596,7 +596,7 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 					if ("VFX" in ::Wuxia) ::Wuxia.VFX.playTriggerVfx(_targetEntity, "wx_vfx_28", "wx_fx_poison_skull", -24, 0, 1.02);
 				}
 			}
-			if (agg.BleedOnHitPct > 0 && _damageInflictedHitpoints >= 6 && !::Wuxia.CombatRules.isImmuneToMeridianAndPoison(_targetEntity) && ::Math.rand(1, 100) <= agg.BleedOnHitPct)
+			if (agg.BleedOnHitPct > 0 && _damageInflictedHitpoints >= 6 && !::Wuxia.CombatRules.isImmuneToBleeding(_targetEntity) && ::Math.rand(1, 100) <= agg.BleedOnHitPct)
 			{
 				local bleed = ::new("scripts/skills/effects/bleeding_effect");
 				bleed.setDamage(5);
@@ -744,7 +744,7 @@ this.wx_martial_container <- this.inherit("scripts/skills/skill", {
 		if (this.m.CachedAggFlags == null) return;
 		local agg = this.m.CachedAggFlags;
 		local actor = this.getContainer().getActor();
-		if (actor == null) return;
+		if (::Wuxia.CombatRules.isSelfOrDyingKill(actor, _targetEntity)) return;
 
 		if (agg.OnKillQiRegen > 0)
 		{

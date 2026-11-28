@@ -1084,7 +1084,7 @@ if (!("ShanHaiBossMoves" in ::Wuxia)) ::Wuxia.ShanHaiBossMoves <- {};
 		{
 			if (t == null) continue;
 			if (_move.m.FieldKind != "") ::Wuxia.TileField.setField(t, _move.m.FieldKind, _move.m.FieldTurns, _user);
-			if (("IsOccupiedByActor" in t) && t.IsOccupiedByActor && t.getEntity() != null && t.getEntity().isAlive() && !_user.isAlliedWith(t.getEntity()))
+			if (::Wuxia.isTileOccupiedByActor(t) && t.getEntity() != null && t.getEntity().isAlive() && !_user.isAlliedWith(t.getEntity()))
 			{
 				local ent = t.getEntity();
 				if (_move.attackEntity(_user, ent))
@@ -1124,7 +1124,7 @@ if (!("ShanHaiBossMoves" in ::Wuxia)) ::Wuxia.ShanHaiBossMoves <- {};
 		foreach (lt in lineTiles)
 		{
 			if (_move.m.FieldKind != "") ::Wuxia.TileField.setField(lt, _move.m.FieldKind, _move.m.FieldTurns, _user);
-			if (("IsOccupiedByActor" in lt) && lt.IsOccupiedByActor && lt.getEntity() != null && lt.getEntity().isAlive() && !_user.isAlliedWith(lt.getEntity()))
+			if (::Wuxia.isTileOccupiedByActor(lt) && lt.getEntity() != null && lt.getEntity().isAlive() && !_user.isAlliedWith(lt.getEntity()))
 			{
 				local le = lt.getEntity();
 				if (_move.attackEntity(_user, le))
@@ -1133,7 +1133,7 @@ if (!("ShanHaiBossMoves" in ::Wuxia)) ::Wuxia.ShanHaiBossMoves <- {};
 					_move.wxInflictPostEffects(_user, le, lt);
 				}
 			}
-			else if (("IsEmpty" in lt) && lt.IsEmpty && !lt.IsOccupiedByActor)
+			else if (lt.IsEmpty && !lt.IsOccupiedByActor)
 			{
 				lastEmpty = lt;
 			}
@@ -1158,7 +1158,7 @@ if (!("ShanHaiBossMoves" in ::Wuxia)) ::Wuxia.ShanHaiBossMoves <- {};
 			local nt = _uTile.getNextTile(d);
 			if (nt == null) continue;
 			if (_move.m.FieldKind != "") ::Wuxia.TileField.setField(nt, _move.m.FieldKind, _move.m.FieldTurns, _user);
-			if (("IsOccupiedByActor" in nt) && nt.IsOccupiedByActor && nt.getEntity() != null && nt.getEntity().isAlive() && !_user.isAlliedWith(nt.getEntity()))
+			if (::Wuxia.isTileOccupiedByActor(nt) && nt.getEntity() != null && nt.getEntity().isAlive() && !_user.isAlliedWith(nt.getEntity()))
 			{
 				local ne = nt.getEntity();
 				if (g == "ring_quake_6")
@@ -1260,7 +1260,7 @@ if (!("ShanHaiBossMoves" in ::Wuxia)) ::Wuxia.ShanHaiBossMoves <- {};
 				foreach (rt in rayTiles)
 				{
 					if (_move.m.FieldKind != "") ::Wuxia.TileField.setField(rt, _move.m.FieldKind, 2, _user);
-					if (("IsOccupiedByActor" in rt) && rt.IsOccupiedByActor && rt.getEntity() != null && rt.getEntity().isAlive() && !_user.isAlliedWith(rt.getEntity()))
+					if (::Wuxia.isTileOccupiedByActor(rt) && rt.getEntity() != null && rt.getEntity().isAlive() && !_user.isAlliedWith(rt.getEntity()))
 					{
 						local re = rt.getEntity();
 						if (re.getHitpoints() > 19) re.setHitpoints(re.getHitpoints() - 18);
@@ -1312,7 +1312,7 @@ if (!("ShanHaiBossMoves" in ::Wuxia)) ::Wuxia.ShanHaiBossMoves <- {};
 			if (f == null || f.Kind != wantKind || f.TileRef == null) continue;
 			local ft = f.TileRef;
 			erupted += 1;
-			if (("IsOccupiedByActor" in ft) && ft.IsOccupiedByActor && ft.getEntity() != null && ft.getEntity().isAlive() && !_user.isAlliedWith(ft.getEntity()))
+			if (::Wuxia.isTileOccupiedByActor(ft) && ft.getEntity() != null && ft.getEntity().isAlive() && !_user.isAlliedWith(ft.getEntity()))
 			{
 				local fe = ft.getEntity();
 				if (fe.getHitpoints() > 23) fe.setHitpoints(fe.getHitpoints() - 22);

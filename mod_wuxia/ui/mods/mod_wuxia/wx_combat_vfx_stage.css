@@ -91,7 +91,7 @@
 		rgba(2, 2, 6, 0.76) 100%);
 }
 
-/* 2. Fullscreen 60fps Canvas for Impact Flashes & Ink Speed-Lines */
+/* 2. Fullscreen canvas for impact flashes and ink speed lines */
 .wx-cvfx-canvas
 {
 	position: absolute;

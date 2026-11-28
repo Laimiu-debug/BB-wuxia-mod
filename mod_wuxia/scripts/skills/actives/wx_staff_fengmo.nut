@@ -54,7 +54,6 @@ this.wx_staff_fengmo <- this.inherit("scripts/skills/actives/wx_move_base", {
 			if (target != null && target.isAlive())
 				this.wxApplyStatusToTarget(target, "effects.wx_internal_injury", "scripts/skills/effects/wx_internal_injury");
 		}
-		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

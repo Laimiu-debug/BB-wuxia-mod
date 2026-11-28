@@ -7,8 +7,7 @@
 ::Wuxia.BeastCraft <- {
 	EntityTypeToKey      = null,
 	QueryStashCounts     = null,
-	SkipAutoStoreInQuery = false,
-	LastDyingBossSnap    = null
+	SkipAutoStoreInQuery = false
 };
 
 ::Wuxia.BeastCraft.buildStashCountMap <- function( _stashItems )
@@ -278,15 +277,7 @@
 		local spec = ::Wuxia.CraftBridge.resolveBossPartEssenceSpec(_bossKey);
 		if (spec != null && ("EssenceID" in spec))
 		{
-			local partBroken = false;
-			if (_bossActor != null)
-			{
-				partBroken = ::Wuxia.CraftBridge.detectBrokenBossParts(_bossActor, _fatalityType).Broken;
-			}
-			else if (::Wuxia.BeastCraft.LastDyingBossSnap != null && ::Wuxia.BeastCraft.LastDyingBossSnap.Broken)
-			{
-				partBroken = true;
-			}
+			local partBroken = _bossActor != null && ::Wuxia.CraftBridge.detectBrokenBossParts(_bossActor, _fatalityType).Broken;
 			local dropChance = partBroken ? 100 : 20;
 			if (::Math.rand(1, 100) <= dropChance)
 			{
@@ -299,7 +290,6 @@
 			}
 		}
 	}
-	::Wuxia.BeastCraft.LastDyingBossSnap = null;
 };
 
 ::Wuxia.BeastCraft.getBlueprintComponents <- function( _bp )

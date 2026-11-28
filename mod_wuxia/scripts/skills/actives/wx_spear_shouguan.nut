@@ -41,7 +41,6 @@ this.wx_spear_shouguan <- this.inherit("scripts/skills/actives/wx_move_base", {
 		{
 			this.wxApplyStatusToTarget(target, "effects.wx_scatter_weakness", "scripts/skills/effects/wx_scatter_weakness");
 		}
-		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

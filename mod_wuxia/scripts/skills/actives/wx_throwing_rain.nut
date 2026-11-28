@@ -60,7 +60,6 @@ this.wx_throwing_rain <- this.inherit("scripts/skills/actives/wx_move_base", {
 			if ("Streams" in ::Wuxia)
 				::Wuxia.Streams.plantTangmenCaltrop(_user, _targetTile);
 		}
-		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

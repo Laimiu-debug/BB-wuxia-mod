@@ -46,26 +46,6 @@ this.wx_move_base <- this.inherit("scripts/skills/skill", {
 		return this.skill.getActionPointCost();
 	}
 
-	function getFatigueCost()
-	{
-		local cf = this.wxGetActiveComboForm();
-		local cost = this.skill.getFatigueCost();
-		local cfFat = (cf != null && ("Fatigue" in cf)) ? cf.Fatigue : ((cf != null && ("Qi" in cf)) ? cf.Qi : -1);
-		if (cfFat >= 0 && this.m.FatigueCost > 0)
-		{
-			cost = ::Math.max(0, ::Math.round(cost * (cfFat.tofloat() / this.m.FatigueCost.tofloat())));
-		}
-		local cont = this.getContainer();
-		local actor = cont != null ? cont.getActor() : null;
-		if (actor != null && ("Traits" in ::Wuxia) && ("getMoveQiSaveMult" in ::Wuxia.Traits))
-		{
-			local save = ::Wuxia.Traits.getMoveQiSaveMult(actor, this);
-			if (save > 0.0)
-				cost = ::Math.max(0, ::Math.floor(cost * (1.0 - save)));
-		}
-		return cost;
-	}
-
 	function create()
 	{
 		this.m.Type = this.Const.SkillType.Active;
@@ -523,23 +503,33 @@ this.wx_move_base <- this.inherit("scripts/skills/skill", {
 	function getFatigueCost()
 	{
 		local cf = this.wxGetActiveComboForm();
-		local cost = (cf != null && ("Fatigue" in cf)) ? cf.Fatigue : this.skill.getFatigueCost();
+		// Let vanilla apply its flat and percentage modifiers to this stage's raw cost.
+		local baseCost = this.m.FatigueCost;
+		if (cf != null)
+		{
+			if ("Fatigue" in cf) this.m.FatigueCost = cf.Fatigue;
+			else if ("Qi" in cf) this.m.FatigueCost = cf.Qi;
+		}
+		local cost;
+		try { cost = this.skill.getFatigueCost(); }
+		catch (error)
+		{
+			this.m.FatigueCost = baseCost;
+			throw error;
+		}
+		this.m.FatigueCost = baseCost;
 		local container = this.getContainer();
 		local actor = container == null ? null : container.getActor();
 		local c = actor == null ? null : ::Wuxia.Slots.getContainer(actor);
 		local disc = (c != null && c.m.CachedAggFlags != null) ? c.m.CachedAggFlags.WeaponQiDiscount : 0.0;
-		if (container != null && container.hasSkill("trait.wx_jiangu") && actor != null && ::Wuxia.hasMember(actor, "getItems") && actor.getItems() != null)
-		{
-			local mw = actor.getItems().getItemAtSlot(::Const.ItemSlot.Mainhand);
-			if (mw != null && ::Wuxia.CombatRules.matchesWeapon(mw, ["Sword", "Dagger"]))
-				disc = ::Math.maxf(disc, 0.10);
-		}
-		if (disc > 0.0)
+		if (actor != null && ("Traits" in ::Wuxia))
+			disc = ::Math.maxf(disc, ::Wuxia.Traits.getMoveQiSaveMult(actor, this));
+		if (cost > 0 && disc > 0.0)
 		{
 			cost = ::Math.max(1, ::Math.floor(cost * (1.0 - disc)));
 		}
 		// Single-hand empty-offhand (`孤锋诀`) reduces follow-up combo step Qi cost by 2!
-		if (cf != null && ("Stage" in cf) && cf.Stage > 0 && c != null && c.m.CachedAggFlags != null
+		if (cost > 0 && cf != null && cf != this.m.WX_ComboForms[0] && c != null && c.m.CachedAggFlags != null
 			&& c.m.CachedAggFlags.EmptyOffhandPen > 0.0 && ::Wuxia.CombatRules.hasSingleHandEmptyOffhand(actor))
 		{
 			cost = ::Math.max(1, cost - 2);
@@ -565,9 +555,7 @@ this.wx_move_base <- this.inherit("scripts/skills/skill", {
 		if (sk == null) return;
 		if (_effectID == "effects.bleeding")
 		{
-			if (::Wuxia.CombatRules.isUndeadOrConstruct(_target)) return;
-			local tProps = ::Wuxia.hasMember(_target, "getCurrentProperties") ? _target.getCurrentProperties() : null;
-			if (tProps != null && ("IsImmuneToBleeding" in tProps) && tProps.IsImmuneToBleeding) return;
+			if (::Wuxia.CombatRules.isImmuneToBleeding(_target)) return;
 			local bleed = ::new(_effectScript);
 			if (::Wuxia.hasMember(bleed, "setDamage")) bleed.setDamage(6);
 			sk.add(bleed);

@@ -1070,12 +1070,12 @@ foreach (pid, pdef in wxDeepPills)
 		},
 		{
 			ID = "f_jianmu_fengchun", Category = "prep", PillID = "wx_pill_jianmu", BaseYield = 1, RequiredCoreKey = "core:wx_core_jumang",
-			JunNatures = ["origin", "vital", "yin"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 660,
+			JunNatures = ["origin", "vital", "yin", "spirit"], MinJunPotency = 4, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 660,
 			FormulaNote = "【大妖本命古方】须以《都广建木神心》坐镇君药鼎位，辅以两味生机灵引，催化横练硬功生肌修甲！"
 		},
 		{
 			ID = "f_taotie_tunyuan", Category = "prep", PillID = "wx_pill_taotie", BaseYield = 1, RequiredCoreKey = "core:wx_core_taotie",
-			JunNatures = ["origin", "yang", "venom"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 660,
+			JunNatures = ["origin", "yang", "venom", "vital"], MinJunPotency = 4, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 660,
 			FormulaNote = "【大妖本命古方】须以《饕餮噬元凶丹》坐镇君药鼎位，辅以两味凶煞奇材，催化外功重击鲸吞敌气！"
 		},
 		{
@@ -1085,7 +1085,7 @@ foreach (pid, pdef in wxDeepPills)
 		},
 		{
 			ID = "f_chiyou_baizhan", Category = "prep", PillID = "wx_pill_chiyou", BaseYield = 1, RequiredCoreKey = "core:wx_core_chiyou",
-			JunNatures = ["origin", "yang", "vital"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 680,
+			JunNatures = ["origin", "yang", "vital", "spirit"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 680,
 			FormulaNote = "【大妖本命古方】须以《冀州蚩尤五兵煞主丹》坐镇君药鼎位，催化外功重兵破甲碎盾与斩敌威慑！"
 		},
 		{
@@ -1100,22 +1100,22 @@ foreach (pid, pdef in wxDeepPills)
 		},
 		{
 			ID = "f_xuangui_buhuai", Category = "prep", PillID = "wx_pill_xuangui", BaseYield = 1, RequiredCoreKey = "core:wx_core_xuangui",
-			JunNatures = ["origin", "yin", "vital"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 660,
+			JunNatures = ["origin", "yin", "vital"], MinJunPotency = 4, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 660,
 			FormulaNote = "【大妖本命古方】须以《杻阳玄龟镇海神丹》坐镇君药鼎位，催化横练磐石抗远免晕卸重击！"
 		},
 		{
 			ID = "f_dijiang_suodi", Category = "prep", PillID = "wx_pill_dijiang", BaseYield = 1, RequiredCoreKey = "core:wx_core_dijiang",
-			JunNatures = ["origin", "spirit", "yang"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 670,
+			JunNatures = ["origin", "spirit", "yang"], MinJunPotency = 4, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 670,
 			FormulaNote = "【大妖本命古方】须以《天山帝江空间混沌丹》坐镇君药鼎位，催化轻功幻空折跃偏折重伤！"
 		},
 		{
 			ID = "f_jiuwei_shehun", Category = "prep", PillID = "wx_pill_jiuwei", BaseYield = 1, RequiredCoreKey = "core:wx_core_jiuwei",
-			JunNatures = ["origin", "spirit", "yin"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 650,
+			JunNatures = ["origin", "spirit", "yin"], MinJunPotency = 4, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 650,
 			FormulaNote = "【大妖本命古方】须以《青丘九尾天狐幻丹》坐镇君药鼎位，催化奇门清心免魅惑并动摇敌魄！"
 		},
 		{
 			ID = "f_xingtian_zhanhun", Category = "prep", PillID = "wx_pill_xingtian", BaseYield = 1, RequiredCoreKey = "core:wx_core_xingtian",
-			JunNatures = ["origin", "yang", "vital"], MinJunPotency = 5, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 680,
+			JunNatures = ["origin", "yang", "vital", "spirit"], MinJunPotency = 4, RequireRareJun = true, MinAuxCount = 2, TargetPotency = 10, SilverCost = 680,
 			FormulaNote = "【大妖本命古方】须以《常羊刑天不灭战魂丹》坐镇君药鼎位，催化狂战免晕与残血战魂回气增伤！"
 		}
 	]

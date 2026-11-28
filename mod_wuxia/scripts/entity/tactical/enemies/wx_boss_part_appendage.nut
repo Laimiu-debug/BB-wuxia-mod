@@ -15,7 +15,7 @@ this.wx_boss_part_appendage <- this.inherit("scripts/entity/tactical/enemies/dir
 	function onInit()
 	{
 		this.direwolf.onInit();
-		this.m.IsGenerateXP = false;
+		this.m.XP = 0;
 		local b = this.m.BaseProperties;
 		b.ActionPoints = 5;
 		b.Hitpoints = 155;
@@ -32,7 +32,7 @@ this.wx_boss_part_appendage <- this.inherit("scripts/entity/tactical/enemies/dir
 		b.IsImmuneToKnockBackAndGrab = true;
 		this.m.ActionPoints = b.ActionPoints;
 		this.m.Hitpoints = b.Hitpoints;
-		this.m.CurrentProperties = clone b;
+		this.m.CurrentProperties = b.getClone();
 	}
 
 	function setupAppendage( _master, _spec )

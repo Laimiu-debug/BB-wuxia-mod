@@ -64,7 +64,7 @@ this.wx_boss_xiangliu_poison_deluge <- this.inherit("scripts/skills/skill", {
 			local t = f.TileRef;
 			if (t == null) continue;
 			::Wuxia.TileField.renderFieldVisual(t, "bitter_mire", 0);
-			if (!("IsOccupiedByActor" in t) || !t.IsOccupiedByActor) continue;
+			if (!::Wuxia.isTileOccupiedByActor(t)) continue;
 			local ent = t.getEntity();
 			if (ent == null || !ent.isAlive() || _user.isAlliedWith(ent)) continue;
 			// High ground ("众帝之台") avoids low-ground poison flood!

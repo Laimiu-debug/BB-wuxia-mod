@@ -759,6 +759,30 @@
 // =============================================================================
 if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 {
+	// This contract fields a second orc clan under the native Enemy faction.
+	::Wuxia.HooksMod.hook("scripts/entity/tactical/tactical_entity_manager", function( q )
+	{
+		q.spawn = @(__original) function( _properties )
+		{
+			local result = __original(_properties);
+			if (_properties == null || !("CombatID" in _properties) || _properties.CombatID != "OrcAttack") return result;
+			local contract = this.World.Contracts.getActiveContract();
+			if (contract == null || contract.getType() != "contract.destroy_orc_camp" || !contract.m.Flags.get("IsOrcsAgainstOrcs")) return result;
+
+			local campFaction = this.World.FactionManager.getFactionOfType(this.Const.FactionType.Orcs);
+			if (campFaction == null) return result;
+			local types = this.Const.EntityType;
+			local orcs = [types.OrcYoung, types.OrcWarrior, types.OrcBerserker, types.OrcWarlord];
+			foreach (faction in [campFaction.getID(), this.Const.Faction.Enemy])
+			{
+				local prefix = faction == campFaction.getID() ? "守寨·" : "攻寨·";
+				foreach (actor in this.getInstancesOfFaction(faction))
+					if (orcs.find(actor.getType()) != null) actor.setName(prefix + actor.getNameOnly());
+			}
+			return result;
+		};
+	});
+
 	// A. Contracts Overhaul (`scripts/contracts/contract` + subclasses)
 	::Wuxia.HooksMod.hook("scripts/contracts/contract", function( q )
 	{
@@ -781,6 +805,8 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 
 			if ("Title" in _scr && _scr.Title != null && _scr.Title != "")
 				_scr.Title = (spec != null) ? spec[0] : ::Wuxia.Contracts.rewriteText(_scr.Title);
+			if (sid == "OrcsAgainstOrcs" && this.getType() == "contract.destroy_orc_camp")
+				_scr.Title = "药人窟 · 守寨与攻寨两帮火并";
 
 			if ("Text" in _scr && typeof _scr.Text == "string" && _scr.Text != "")
 			{

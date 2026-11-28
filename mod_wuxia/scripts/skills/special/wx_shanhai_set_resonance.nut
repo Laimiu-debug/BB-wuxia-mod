@@ -461,7 +461,7 @@ this.wx_shanhai_set_resonance <- this.inherit("scripts/skills/skill", {
 			if (_targetEntity.getHitpoints() > 1)
 				_targetEntity.setHitpoints(::Math.max(1, _targetEntity.getHitpoints() - 8));
 			if ("VFX" in ::Wuxia)
-				::Wuxia.VFX.playTriggerVfx(_targetEntity, "wx_vfx_12", "wx_fx_lightning_strike", 0, 0, 1.05);
+				::Wuxia.VFX.playTriggerVfx(_targetEntity, "wx_vfx_12", "wx_fx_thunder_bolt", 0, 0, 1.05);
 		}
 
 		// 3. 大荒金乌套 3 件：十日焚邪 — 对尸傀/古墓机关/山海首领额外灼伤 12 身甲与 12 气血
@@ -476,7 +476,7 @@ this.wx_shanhai_set_resonance <- this.inherit("scripts/skills/skill", {
 				if (_targetEntity.getHitpoints() > 1)
 					_targetEntity.setHitpoints(::Math.max(1, _targetEntity.getHitpoints() - 12));
 				if ("VFX" in ::Wuxia)
-					::Wuxia.VFX.playTriggerVfx(_targetEntity, "wx_vfx_06", "wx_fx_fire_slash", 0, 0, 1.04);
+					::Wuxia.VFX.playTriggerVfx(_targetEntity, "wx_vfx_06", "wx_anim_03_f3", 0, 0, 1.04);
 			}
 		}
 
@@ -563,7 +563,7 @@ this.wx_shanhai_set_resonance <- this.inherit("scripts/skills/skill", {
 	{
 		local cont = this.getContainer();
 		local actor = cont == null ? null : cont.getActor();
-		if (actor == null || !actor.isAlive()) return;
+		if (::Wuxia.CombatRules.isSelfOrDyingKill(actor, _targetEntity)) return;
 
 		// 1. 兵主凶煞套 2 件：凶煞噬血 — 斩敌回 8 内息 + 活物回 6 气血（每回合限 1 次）
 		if (this.hasTier("wx_set_bingzhu", 2) && !this.m.BingzhuKillUsedThisTurn)

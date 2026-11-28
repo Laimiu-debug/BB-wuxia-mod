@@ -451,6 +451,17 @@
 			return ::Wuxia.Tournament.arenaContext() == null && __original();
 		};
 	}
+	q.onFinish = @(__original) function()
+	{
+		if (::Wuxia.Tournament.arenaContext() != null)
+		{
+			// onHide keeps the town open for the return leg. When quitting instead,
+			// run its normal leave callback while the world services still exist.
+			this.m.MenuStack.popAll(true);
+			::Wuxia.Gambling.Runtime.arenaCombat = null;
+		}
+		return __original();
+	};
 	if (::Wuxia.qHas(q, "onCombatFinished"))
 	{
 		q.onCombatFinished = @(__original) function()

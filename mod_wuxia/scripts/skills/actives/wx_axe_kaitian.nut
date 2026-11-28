@@ -60,7 +60,6 @@ this.wx_axe_kaitian <- this.inherit("scripts/skills/actives/wx_move_base", {
 				}
 			}
 		}
-		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

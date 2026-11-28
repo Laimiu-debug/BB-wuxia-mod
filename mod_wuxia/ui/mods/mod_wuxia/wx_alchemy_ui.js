@@ -406,6 +406,7 @@
 			var tm = wxAlcState.taxMod;
 			SQ.call(tm.mSQHandle, 'queryBlueprints', null, function (_bpData) {
 				if (_bpData && tm && tm.mDialogContainer) {
+					if (_bpData.Assets && tm.mParent) tm.mParent.loadAssetData(_bpData.Assets);
 					delete _bpData.wxCraftBanner;
 					delete _bpData.wxCraftShowcase;
 					tm.loadFromData(_bpData);
@@ -2032,7 +2033,7 @@
 					html += '<button type="button" class="wx-wash-attr" data-attr="' + n + '"' +
 						(!_replacement && stars >= 3 ? ' disabled="disabled"' : '') + '><span>' +
 						wxEsc(bro.attrLabels[n]) + ' ' + wxEsc(bro.baseStats[n]) + '</span><small>' +
-						(['无星', '★', '★★', '★★★'][stars] || '') + '</small></button>';
+						(stars > 0 ? stars + ' 星' : '无星') + '</small></button>';
 				}
 				return html;
 			}
@@ -2072,8 +2073,8 @@
 				SQ.call(self.mDataSource.mSQHandle, 'onWXGetWashPreviewEx', [actorId, target, replace, guard.is(':checked'), source || 'wx_pill_xisui'], function (pv) {
 					if (!active() || rev !== request || submitting) return;
 					if (!pv || !pv.Ok) { preview.text(pv && pv.Reason || '暂时无法计算，请重新选择属性。'); return; }
-					var change = pv.IsReplaceMode ? wxEsc(pv.ReplaceAttrName) + '洗去星级，' + wxEsc(pv.TargetAttrName) + '升至 1★' :
-						wxEsc(pv.TargetAttrName) + '　' + pv.CurrentStar + '★ → ' + pv.NextStar + '★';
+					var change = pv.IsReplaceMode ? wxEsc(pv.ReplaceAttrName) + '洗去星级，' + wxEsc(pv.TargetAttrName) + '升至 1 星' :
+						wxEsc(pv.TargetAttrName) + '从 ' + pv.CurrentStar + ' 星升至 ' + pv.NextStar + ' 星';
 					var lightDays = (typeof pv.LightShockDays === 'number' && pv.LightShockDays > 0) ? pv.LightShockDays : 2;
 					var risk = pv.AvoidAllShock ? '免除经脉震荡' : (pv.AvoidHeavyShock ? ('轻度调息 ' + lightDays + ' 日') : '经脉震荡');
 					preview.html('<strong>' + change + '</strong><div>成功率 <b>' + pv.FinalChance + '%</b>　基础 ' + pv.BaseChance +

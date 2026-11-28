@@ -71,6 +71,7 @@
 ::include("mod_wuxia/systems/wx_trait_system.nut");
 ::include("mod_wuxia/systems/wx_ecology_system.nut");
 ::include("mod_wuxia/systems/wx_world_visuals_system.nut");
+::include("mod_wuxia/systems/wx_legendary_locations.nut");
 ::include("mod_wuxia/systems/wx_vanilla_purification.nut");
 ::include("mod_wuxia/systems/wx_contracts_and_ambitions.nut");
 ::include("mod_wuxia/systems/wx_casino_system.nut");
@@ -86,7 +87,9 @@
 ::include("mod_wuxia/hooks/ai/tactical/behaviors/ai_wuxia_skills.nut");
 ::include("mod_wuxia/hooks/entity/world/settlement_shop.nut");
 ::include("mod_wuxia/hooks/factions/faction_manager.nut");
+::include("mod_wuxia/hooks/factions/wx_local_combat.nut");
 ::include("mod_wuxia/hooks/ui/global/data_helper.nut");
+::include("mod_wuxia/hooks/ui/wx_turn_sequence.nut");
 ::include("mod_wuxia/hooks/ui/screens/character/character_screen.nut");
 ::include("mod_wuxia/hooks/ui/screens/world/wx_world_ui_hooks.nut");
 ::include("mod_wuxia/hooks/ui/wx_alchemy_hooks.nut");

@@ -94,18 +94,7 @@
 
 		// Trace flight path from `nTile` -> `_targetTile`
 		local pathTiles = [nTile];
-		if (::Wuxia.hasMember(nTile, "getDirectionTo") && nTile.ID != _targetTile.ID)
-		{
-			local cur = nTile;
-			for (local step = 0; step < 5; step = ++step)
-			{
-				if (cur == null || cur.ID == _targetTile.ID) break;
-				local dir = cur.getDirectionTo(_targetTile);
-				if (dir < 0 || !cur.hasNextTile(dir)) break;
-				cur = cur.getNextTile(dir);
-				if (cur != null) pathTiles.push(cur);
-			}
-		}
+		pathTiles.extend(::Wuxia.TileField.collectHexLine(nTile, _targetTile, 5));
 		if (pathTiles[pathTiles.len() - 1] != _targetTile)
 			pathTiles.push(_targetTile);
 
@@ -114,7 +103,7 @@
 			if (pt == null) continue;
 			if (::Wuxia.TileField.isLiveTactical() && "KineticVFX" in ::Wuxia)
 				::Wuxia.KineticVFX.spawnShockwaveRing(pt, "wx_pt_ring_cyan", 25 * result.recalled, 0.22, 1.15, 0.26, -14.0, 200);
-			if (!("IsOccupiedByActor" in pt) || !pt.IsOccupiedByActor) continue;
+			if (!::Wuxia.isTileOccupiedByActor(pt)) continue;
 			local ent = pt.getEntity();
 			if (ent == null || !ent.isAlive() || _user.isAlliedWith(ent)) continue;
 
@@ -255,7 +244,7 @@
 		{
 			if (!aTile.hasNextTile(d)) continue;
 			local nt = aTile.getNextTile(d);
-			if (!("IsOccupiedByActor" in nt) || !nt.IsOccupiedByActor) continue;
+			if (!::Wuxia.isTileOccupiedByActor(nt)) continue;
 			local cand = nt.getEntity();
 			if (cand == null || !cand.isAlive()) continue;
 			if (::Wuxia.hasMember(cand, "getID") && ::Wuxia.hasMember(_attacker, "getID") && cand.getID() == _attacker.getID()) continue;
@@ -385,7 +374,7 @@
 		if (::Wuxia.TileField.isLiveTactical() && "KineticVFX" in ::Wuxia)
 			::Wuxia.KineticVFX.spawnShockwaveRing(cur, "wx_pt_ring_gold", step * 55, 0.25, 1.65, 0.30, -12.0, 230);
 
-		if ("IsOccupiedByActor" in cur && cur.IsOccupiedByActor)
+		if (::Wuxia.isTileOccupiedByActor(cur))
 		{
 			local rear = cur.getEntity();
 			if (rear != null && rear.isAlive() && !_user.isAlliedWith(rear))
@@ -709,7 +698,7 @@
 {
 	if (_user == null || _nearTile == null) return null;
 	local chosen = _nearTile;
-	if (("IsOccupiedByActor" in _nearTile) && _nearTile.IsOccupiedByActor && ::Wuxia.hasMember(_nearTile, "hasNextTile"))
+	if (::Wuxia.isTileOccupiedByActor(_nearTile) && ::Wuxia.hasMember(_nearTile, "hasNextTile"))
 	{
 		for (local d = 0; d < 6; d = ++d)
 		{
@@ -740,7 +729,7 @@
 		res.recalled += 1;
 	}
 
-	if (("IsOccupiedByActor" in _targetTile) && _targetTile.IsOccupiedByActor)
+	if (::Wuxia.isTileOccupiedByActor(_targetTile))
 	{
 		local foe = _targetTile.getEntity();
 		if (foe != null && foe.isAlive() && !_user.isAlliedWith(foe))

@@ -67,6 +67,8 @@
 	{
 		q.onCombatFinished = @(__original) function()
 		{
+			this.m.WX_MidBattleOralDoses <- 0;
+			this.m.WX_FreeDisengageRound <- -1;
 			if ("VFX" in ::Wuxia && "clearActorMotion" in ::Wuxia.VFX)
 				::Wuxia.VFX.clearActorMotion(this, true);
 			if ("KineticVFX" in ::Wuxia && "releaseActorBusy" in ::Wuxia.KineticVFX)
@@ -80,6 +82,8 @@
 
 	q.onCombatStart = @(__original) function()
 	{
+		this.m.WX_MidBattleOralDoses <- 0;
+		this.m.WX_FreeDisengageRound <- -1;
 		if ("VFX" in ::Wuxia && "clearActorMotion" in ::Wuxia.VFX)
 			::Wuxia.VFX.clearActorMotion(this, true);
 		__original();

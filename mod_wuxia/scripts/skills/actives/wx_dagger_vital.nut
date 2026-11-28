@@ -53,9 +53,12 @@ this.wx_dagger_vital <- this.inherit("scripts/skills/actives/wx_move_base", {
 		local hit = this.attackEntity(_user, target);
 		if (hit && target != null && target.isAlive() && !::Wuxia.CombatRules.isImmuneToMeridianAndPoison(target))
 		{
-			local bleed = ::new("scripts/skills/effects/bleeding_effect");
-			bleed.setDamage(5);
-			target.getSkills().add(bleed);
+			if (!::Wuxia.CombatRules.isImmuneToBleeding(target))
+			{
+				local bleed = ::new("scripts/skills/effects/bleeding_effect");
+				bleed.setDamage(5);
+				target.getSkills().add(bleed);
+			}
 			target.setFatigue(::Math.min(target.getFatigueMax(), target.getFatigue() + 12));
 		}
 		return hit;

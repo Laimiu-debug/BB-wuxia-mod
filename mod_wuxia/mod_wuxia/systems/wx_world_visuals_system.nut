@@ -77,6 +77,13 @@
 {
 	local cfg = ::Wuxia.Config.WorldVisuals;
 
+	// Vanilla supplies N/S road ends. Junction pruning can leave a diagonal end as well.
+	if ("World" in ::Const && "RoadBrushes" in ::Const.World)
+	{
+		foreach (dir in ["NE", "SE", "SW", "NW"])
+			::Const.World.RoadBrushes.add(::Const.DirectionAsBit[dir], "wx_road_end_" + dir);
+	}
+
 	// 1. Set `::Const.PlayerBanners` exclusively to the 12 Wuxia vertical war standards (`banner_51..62`)
 	//    so New Campaign always opens & cycles on pure Wuxia standards; legacy `banner_01..34` on old saves
 	//    are upgraded seamlessly in `asset_manager.onDeserialize` and `player_banner`.
@@ -1649,7 +1656,8 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 		local tt = ::Const.World.TerrainType;
 		local nav = ::World.getNavigator().createSettings();
 		nav.ActionPointCosts = ::Const.World.TerrainTypeNavCost_Flat;
-		local locs = ::World.EntityManager.getLocations();
+		local originalTownTiles = [];
+		foreach (town in towns) originalTownTiles.push(town.getTile());
 
 		local spawnedCount = 0;
 		local maxAdditions = 5;
@@ -1657,6 +1665,11 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 		for (local pass = 0; pass < maxAdditions; ++pass)
 		{
 			towns = ::World.EntityManager.getSettlements();
+			local townTiles = [];
+			foreach (town in towns) townTiles.push(town.getTile());
+			local siteTiles = [];
+			foreach (site in ::World.EntityManager.getLocations())
+				if (site != null && site.isAlive()) siteTiles.push(site.getTile());
 			local bestTile = null;
 			local bestNearTown = null;
 			local bestGapScore = -999999;
@@ -1686,24 +1699,28 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 
 					local minTownD = 9999;
 					local nearTown = null;
-					foreach (tw in towns)
+					foreach (idx, townTile in townTiles)
 					{
-						if (tw == null || !tw.isAlive() || tw.getTile() == null) continue;
-						local td = tile.getDistanceTo(tw.getTile());
+						local td = tile.getDistanceTo(townTile);
 						if (td < minTownD)
 						{
 							minTownD = td;
-							nearTown = tw;
+							nearTown = towns[idx];
 						}
 					}
-					// Only fill genuine uninhabited regional gaps (>= 19 hexes from any existing town, <= 40 so reachable)
-					if (minTownD < 19 || minTownD > 40 || nearTown == null)
+					if (minTownD < 19 || minTownD > 25 || nearTown == null)
 						continue;
+					// Fill gaps between original towns. Extending a chain out into the
+					// wilderness consumes the only remote tiles for the native monolith.
+					local nearbyOriginals = 0;
+					foreach (townTile in originalTownTiles)
+						if (tile.getDistanceTo(townTile) <= 29 && ++nearbyOriginals == 2) break;
+					if (nearbyOriginals < 2) continue;
 
 					local nearSite = false;
-					foreach (lc in locs)
+					foreach (siteTile in siteTiles)
 					{
-						if (lc != null && lc.isAlive() && lc.getTile() != null && tile.getDistanceTo(lc.getTile()) < 6)
+						if (siteTile != null && tile.getDistanceTo(siteTile) < 6)
 						{
 							nearSite = true;
 							break;
@@ -1913,6 +1930,7 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 	{
 		q.WX_ApplyWildLocationName <- function()
 		{
+			if (this.isLocationType(::Const.World.LocationType.Unique)) return;
 			if (::Wuxia.hasMember(this, "isLocationType") && "LocationType" in ::Const.World && this.isLocationType(::Const.World.LocationType.Settlement))
 				return;
 			if (::Wuxia.hasMember(this, "getSize"))
@@ -1985,7 +2003,8 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 			q.onSpawned = @(__original) function()
 			{
 				// Dynamic late-game garrison scaling for wilderness hostile camps (Era 2..4)
-				if (!("WX_EraBoosted" in this.m) && ::Wuxia.hasMember(this.m, "Resources") && this.m.Resources > 0
+				if (!this.isLocationType(::Const.World.LocationType.Unique)
+					&& !("WX_EraBoosted" in this.m) && ::Wuxia.hasMember(this.m, "Resources") && this.m.Resources > 0
 					&& !(::Wuxia.hasMember(this, "isLocationType") && "LocationType" in ::Const.World && this.isLocationType(::Const.World.LocationType.Settlement))
 					&& !::Wuxia.hasMember(this, "getSize"))
 				{

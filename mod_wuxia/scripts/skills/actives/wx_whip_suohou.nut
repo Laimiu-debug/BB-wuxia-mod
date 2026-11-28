@@ -47,7 +47,6 @@ this.wx_whip_suohou <- this.inherit("scripts/skills/actives/wx_move_base", {
 				this.wxApplyStatusToTarget(target, "effects.bleeding", "scripts/skills/effects/bleeding_effect");
 			this.wxTryPullToAdjacent(_user, target);
 		}
-		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

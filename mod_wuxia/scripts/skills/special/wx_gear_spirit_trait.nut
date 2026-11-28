@@ -156,7 +156,7 @@ this.wx_gear_spirit_trait <- this.inherit("scripts/skills/skill", {
 		{
 			if (!tTile.hasNextTile(d)) continue;
 			local adjT = tTile.getNextTile(d);
-			if (adjT != null && ("IsOccupiedByActor" in adjT) && adjT.IsOccupiedByActor && adjT.getEntity() != null)
+			if (adjT != null && ::Wuxia.isTileOccupiedByActor(adjT) && adjT.getEntity() != null)
 			{
 				local ent = adjT.getEntity();
 				if (ent.getID() != _centerEntity.getID() && ent.isAlive() && !_actor.isAlliedWith(ent))
@@ -1437,7 +1437,7 @@ this.wx_gear_spirit_trait <- this.inherit("scripts/skills/skill", {
 			}
 			else if (rmode == "kunwu" && !_skill.isRanged())
 			{
-				if (this.m.LastHitTargetID == _targetEntity.getID() && tsk != null && !::Wuxia.CombatRules.isImmuneToMeridianAndPoison(_targetEntity))
+				if (this.m.LastHitTargetID == _targetEntity.getID() && tsk != null && !::Wuxia.CombatRules.isImmuneToBleeding(_targetEntity))
 				{
 					local deepBleed = ::new("scripts/skills/effects/bleeding_effect");
 					deepBleed.setDamage(8);
@@ -1573,7 +1573,7 @@ this.wx_gear_spirit_trait <- this.inherit("scripts/skills/skill", {
 			}
 			else if (rmode == "dashenbian")
 			{
-				if (_damageInflictedHitpoints >= 5 && tsk != null && !::Wuxia.CombatRules.isImmuneToMeridianAndPoison(_targetEntity))
+				if (_damageInflictedHitpoints >= 5 && tsk != null && !::Wuxia.CombatRules.isImmuneToBleeding(_targetEntity))
 				{
 					local bWh = ::new("scripts/skills/effects/bleeding_effect");
 					bWh.setDamage(5);
@@ -1837,7 +1837,7 @@ this.wx_gear_spirit_trait <- this.inherit("scripts/skills/skill", {
 				if (::Math.rand(1, 100) <= (cfg.OnHitPoisonPct + mwPct))
 					this.wxApplyStatusSafe(tsk, "effects.wx_status_poison_dart", "scripts/skills/effects/wx_status_poison_dart");
 			}
-			if (("OnHitBleedPct" in cfg) && cfg.OnHitBleedPct > 0 && _damageInflictedHitpoints >= 4 && !::Wuxia.CombatRules.isImmuneToMeridianAndPoison(_targetEntity))
+			if (("OnHitBleedPct" in cfg) && cfg.OnHitBleedPct > 0 && _damageInflictedHitpoints >= 4 && !::Wuxia.CombatRules.isImmuneToBleeding(_targetEntity))
 			{
 				if (::Math.rand(1, 100) <= (cfg.OnHitBleedPct + mwPct))
 				{
@@ -1876,7 +1876,7 @@ this.wx_gear_spirit_trait <- this.inherit("scripts/skills/skill", {
 		local qid = this.getAttachedQuenchID();
 		local cont = this.getContainer();
 		local actor = cont == null ? null : cont.getActor();
-		if (actor == null || !actor.isAlive()) return;
+		if (::Wuxia.CombatRules.isSelfOrDyingKill(actor, _targetEntity)) return;
 
 		if (qid == "blood" && this.m.QuenchHealTurn < 1 && (_targetEntity == null || !::Wuxia.CombatRules.isUndeadOrConstruct(_targetEntity)))
 		{

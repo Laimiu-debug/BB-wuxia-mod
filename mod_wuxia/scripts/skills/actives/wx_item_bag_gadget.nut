@@ -155,7 +155,7 @@ this.wx_item_bag_gadget <- this.inherit("scripts/skills/skill", {
 						IsPositive = false
 					};
 				}
-				if ("IsOccupiedByActor" in ht && ht.IsOccupiedByActor && ht.getEntity() != null)
+				if (::Wuxia.isTileOccupiedByActor(ht) && ht.getEntity() != null)
 				{
 					local victim = ht.getEntity();
 					if (victim.isAlive() && !_user.isAlliedWith(victim))
@@ -217,7 +217,7 @@ this.wx_item_bag_gadget <- this.inherit("scripts/skills/skill", {
 					if (etp == "web" || etp == "wx_caltrops" || etp.find("vine") != null)
 						lt.Properties.Effect = null;
 				}
-				if ("IsOccupiedByActor" in lt && lt.IsOccupiedByActor && lt.getEntity() != null)
+				if (::Wuxia.isTileOccupiedByActor(lt) && lt.getEntity() != null)
 				{
 					local vicL = lt.getEntity();
 					if (vicL.isAlive() && !_user.isAlliedWith(vicL))
@@ -260,7 +260,7 @@ this.wx_item_bag_gadget <- this.inherit("scripts/skills/skill", {
 				{
 					wt.Properties.Effect = { Type = "miasma", Timeout = 2, IsPositive = false };
 				}
-				if ("IsOccupiedByActor" in wt && wt.IsOccupiedByActor && wt.getEntity() != null)
+				if (::Wuxia.isTileOccupiedByActor(wt) && wt.getEntity() != null)
 				{
 					local vicW = wt.getEntity();
 					if (vicW.isAlive() && !_user.isAlliedWith(vicW))

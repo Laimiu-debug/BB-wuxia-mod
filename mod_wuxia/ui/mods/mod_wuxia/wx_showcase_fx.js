@@ -240,10 +240,7 @@
 
 	function buildStarString(_count) {
 		var c = parseInt(_count || 0, 10);
-		if (c <= 0) return '无星';
-		var s = '';
-		for (var i = 0; i < c; i++) s += '★';
-		return s;
+		return c > 0 ? c + ' 星' : '无星';
 	}
 
 	function buildItemCardHtml(_item, _idx, _totalCount) {
@@ -338,7 +335,7 @@
 		var newStr = ok ? buildStarString(_spec.newStars) : oldStr;
 		var transHtml = ok
 			? ('<span class="wx-fx-stars-old">' + wxEsc(oldStr) + '</span>' +
-			   '<span class="wx-fx-delta-arrow">➔</span>' +
+			   '<span class="wx-fx-delta-arrow">升至</span>' +
 			   '<span class="wx-fx-stars-new">' + wxEsc(newStr) + '</span>')
 			: (warded
 				? '<span style="color:#8af0a8;font-size:2.0rem;">【造化护脉 · 奇经八脉完好无损】</span>'

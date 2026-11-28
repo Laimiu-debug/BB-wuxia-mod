@@ -109,8 +109,24 @@
 {
 	if (_tile == null) return null;
 	if (typeof _tile == "integer" || typeof _tile == "string") return "" + _tile;
-	if ("ID" in _tile) return "" + _tile.ID;
+	if (::Wuxia.hasMember(_tile, "ID")) return "" + _tile.ID;
 	return null;
+};
+
+// Follow the ray from the first neighbouring hex up to the target or range limit.
+::Wuxia.TileField.collectHexLine <- function( _fromTile, _toTile, _maxSteps, _includeTarget = true )
+{
+	local tiles = [];
+	if (_toTile == null || !::Wuxia.hasMember(_fromTile, "getDirectionTo")) return tiles;
+	local current = _fromTile;
+	for (local i = 0; i < _maxSteps && current.ID != _toTile.ID; ++i)
+	{
+		local dir = current.getDirectionTo(_toTile);
+		if (dir < 0 || !current.hasNextTile(dir)) break;
+		current = current.getNextTile(dir);
+		if (_includeTarget || current.ID != _toTile.ID) tiles.push(current);
+	}
+	return tiles;
 };
 
 ::Wuxia.TileField.getField <- function( _tile )
@@ -208,7 +224,7 @@
 
 	foreach (ht in hitTiles)
 	{
-		if (ht == null || !("IsOccupiedByActor" in ht) || !ht.IsOccupiedByActor) continue;
+		if (ht == null || !::Wuxia.isTileOccupiedByActor(ht)) continue;
 		local ent = ht.getEntity();
 		if (ent == null || !ent.isAlive()) continue;
 		if (_instigator != null && ::Wuxia.hasMember(_instigator, "getID") && ::Wuxia.hasMember(ent, "getID") && ent.getID() == _instigator.getID())
@@ -354,7 +370,7 @@
 	local f = ::Wuxia.TileField.getField(tile);
 	if (f == null) return;
 
-	local isAlly = (f.Faction != -1 && ::Wuxia.hasMember(_actor, "getFaction") && _actor.getFaction() == f.Faction);
+	local isAlly = f.Faction != -1 && _actor.isAlliedWith(f.Faction);
 
 	if (f.Kind == "drought_scorch")
 	{
@@ -407,9 +423,9 @@
 	if (f == null) return;
 
 	local sk = ::Wuxia.hasMember(_actor, "getSkills") ? _actor.getSkills() : null;
-	local isBossSub = ("m" in _actor) && ("WX_IsBossSubEntity" in _actor.m) && _actor.m.WX_IsBossSubEntity;
+	local isBossSub = ::Wuxia.hasMember(_actor, "m") && ("WX_IsBossSubEntity" in _actor.m) && _actor.m.WX_IsBossSubEntity;
 	if (isBossSub) return;
-	local isAlly = (f.Faction != -1 && ::Wuxia.hasMember(_actor, "getFaction") && _actor.getFaction() == f.Faction);
+	local isAlly = f.Faction != -1 && _actor.isAlliedWith(f.Faction);
 	local ngElem = ::Wuxia.TileField.getPrimaryNeigongElement(_actor);
 
 	if (f.Kind == "abyss_frost")
@@ -603,3 +619,19 @@
 	local cat = ::Wuxia.TileField.Catalog[f.Kind];
 	return "【脚下地脉：" + cat.Name + "（余 " + f.TurnsLeft + " 轮）】" + cat.Desc;
 };
+
+::Wuxia.HooksMod.hook("scripts/states/tactical_state", function( q )
+{
+	q.turnsequencebar_onNextRound = @(__original) function( _round )
+	{
+		if (_round > 1) ::Wuxia.TileField.tickRound();
+		return __original(_round);
+	};
+
+	q.onFinish = @(__original) function()
+	{
+		::Wuxia.TileField.clearAll();
+		::Wuxia.ShanHaiMultiBody.clearAll();
+		return __original();
+	};
+});

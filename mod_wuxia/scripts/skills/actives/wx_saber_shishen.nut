@@ -48,7 +48,6 @@ this.wx_saber_shishen <- this.inherit("scripts/skills/actives/wx_move_base", {
 		{
 			::Wuxia.Streams.triggerBloodBlade(_user, target);
 		}
-		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

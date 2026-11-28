@@ -1,7 +1,7 @@
 ::Wuxia <- {
 	ID = "mod_wuxia",
 	Name = "山海武侠 (BB Wuxia)",
-	Version = "0.8.16",
+	Version = "0.8.22",
 	SchemaVersion = 1,
 	Config = {},
 	Text = {},
@@ -36,6 +36,17 @@
 ::Wuxia.hasWorldField <- function( _key )
 {
 	return ("World" in getroottable()) && ::Wuxia.hasMember(::World, _key) && ::World[_key] != null;
+};
+
+::Wuxia.getCampaignStash <- function()
+{
+	return ::Wuxia.hasWorldField("Assets") ? ::World.Assets.getStash() : null;
+};
+
+// Native tactical tile properties are exposed through accessors.
+::Wuxia.isTileOccupiedByActor <- function( _tile )
+{
+	return ::Wuxia.hasMember(_tile, "IsOccupiedByActor") && _tile.IsOccupiedByActor;
 };
 
 ::Wuxia.isOnMap <- function( _ent )

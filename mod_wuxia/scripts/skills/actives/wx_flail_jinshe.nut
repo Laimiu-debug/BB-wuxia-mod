@@ -46,7 +46,6 @@ this.wx_flail_jinshe <- this.inherit("scripts/skills/actives/wx_move_base", {
 			this.wxApplyStatusToTarget(target, "effects.wx_status_acupoint", "scripts/skills/effects/wx_status_acupoint");
 			this.wxTryPullToAdjacent(_user, target);
 		}
-		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

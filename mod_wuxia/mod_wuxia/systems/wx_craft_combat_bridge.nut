@@ -461,7 +461,7 @@
 	}
 
 	local cleansedAlly = false;
-	local ent = ("IsOccupiedByActor" in _tile && _tile.IsOccupiedByActor && ::Wuxia.hasMember(_tile, "getEntity")) ? _tile.getEntity() : null;
+	local ent = (::Wuxia.isTileOccupiedByActor(_tile) && ::Wuxia.hasMember(_tile, "getEntity")) ? _tile.getEntity() : null;
 	if (ent != null && ent.isAlive() && (_caster == null || _caster.isAlliedWith(ent)))
 	{
 		if (::Wuxia.hasMember(ent, "getSkills") && ent.getSkills() != null)
@@ -600,7 +600,7 @@
 				out.ClearedTiles += 1;
 			}
 		}
-		local occ = ("IsOccupiedByActor" in tl && tl.IsOccupiedByActor && ::Wuxia.hasMember(tl, "getEntity")) ? tl.getEntity() : null;
+		local occ = (::Wuxia.isTileOccupiedByActor(tl) && ::Wuxia.hasMember(tl, "getEntity")) ? tl.getEntity() : null;
 		if (occ != null && (_caster == null || occ.getID() != _caster.getID()) && (_caster == null || _caster.isAlliedWith(occ)))
 		{
 			if (cleanseActor(occ))
@@ -632,7 +632,7 @@
 		{
 			if (!_tile.hasNextTile(d)) continue;
 			local nt = _tile.getNextTile(d);
-			if (nt != null && ("IsOccupiedByActor" in nt) && nt.IsOccupiedByActor && nt.getEntity() != null)
+			if (nt != null && ::Wuxia.isTileOccupiedByActor(nt) && nt.getEntity() != null)
 			{
 				local ent = nt.getEntity();
 				if (ent.isAlive() && ent.isAlliedWith(_deadHost))
@@ -808,7 +808,7 @@
 	foreach (pk in ["head", "tail", "shell", "wing", "horn", "core"])
 	{
 		local hitFlag = (flags != null && flags.get("wx_part_broken_" + pk))
-			|| (("m" in _bossActor) && _bossActor.m != null && (("WX_PartBroken_" + pk) in _bossActor.m) && _bossActor.m["WX_PartBroken_" + pk]);
+			|| (::Wuxia.hasMember(_bossActor, "m") && _bossActor.m != null && (("WX_PartBroken_" + pk) in _bossActor.m) && _bossActor.m["WX_PartBroken_" + pk]);
 		if (hitFlag) parts.push(pk);
 	}
 
@@ -852,6 +852,13 @@
 // -----------------------------------------------------------------------------
 // 6. Single-Battle Shared Dan-Toxin Counter (Pre-Battle Pills + Mid-Battle Oral Powders)
 // -----------------------------------------------------------------------------
+::Wuxia.CraftBridge.getBattleOralDoseCount <- function( _actor, _buff )
+{
+	local data = _actor.m;
+	local midBattle = ("WX_MidBattleOralDoses" in data) ? data.WX_MidBattleOralDoses : 0;
+	return midBattle + (_buff != null ? _buff.countActiveBuffs() : 0);
+};
+
 ::Wuxia.CraftBridge.tryConsumeBattleOralDose <- function( _actor, _oralKey )
 {
 	if (_actor == null || !::Wuxia.hasMember(_actor, "getSkills") || _actor.getSkills() == null)
@@ -859,11 +866,7 @@
 
 	local skills = _actor.getSkills();
 	local buff = skills.getSkillByID("effects.wx_pill_battle_buff");
-	local midOralCnt = ("m" in _actor && _actor.m != null && ("WX_MidBattleOralDoses" in _actor.m))
-		? _actor.m.WX_MidBattleOralDoses
-		: 0;
-	local prepCnt = (buff != null && ::Wuxia.hasMember(buff, "countActiveBuffs")) ? buff.countActiveBuffs() : 0;
-	local totalDoses = prepCnt + midOralCnt;
+	local totalDoses = ::Wuxia.CraftBridge.getBattleOralDoseCount(_actor, buff);
 
 	if (totalDoses >= 3)
 	{
@@ -873,8 +876,8 @@
 		};
 	}
 
-	if ("m" in _actor && _actor.m != null)
-		_actor.m.WX_MidBattleOralDoses <- (midOralCnt + 1);
+	local data = _actor.m;
+	data.WX_MidBattleOralDoses <- ("WX_MidBattleOralDoses" in data) ? data.WX_MidBattleOralDoses + 1 : 1;
 
 	local triggeredToxin = false;
 	local toxinMsg = "";

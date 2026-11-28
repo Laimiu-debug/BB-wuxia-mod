@@ -104,7 +104,7 @@ this.wx_status_blade_coating <- this.inherit("scripts/skills/skill", {
 			local hasWound = tsk != null && (tsk.hasSkill("effects.bleeding") || tsk.hasSkill("effects.wx_status_opening") || tsk.hasSkill("effects.wx_internal_injury"));
 			if (hasWound && _targetEntity.getHitpoints() > 1)
 				_targetEntity.setHitpoints(::Math.max(1, _targetEntity.getHitpoints() - 8));
-			if (tsk != null && !::Wuxia.CombatRules.isImmuneToMeridianAndPoison(_targetEntity))
+			if (tsk != null && !::Wuxia.CombatRules.isImmuneToBleeding(_targetEntity))
 			{
 				local bG = ::new("scripts/skills/effects/bleeding_effect");
 				bG.setDamage(6);

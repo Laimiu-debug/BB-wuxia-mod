@@ -14,6 +14,6 @@ this.wx_boss_chiyou <- this.inherit("scripts/entity/tactical/enemies/orc_warlord
 		if ("ShanHaiMultiBody" in ::Wuxia)
 			::Wuxia.ShanHaiMultiBody.onMasterDeath(this);
 		this.orc_warlord.onDeath(_killer, _skill, _tile, _fatalityType);
-		::Wuxia.ShanHai.dropBossCore("boss_chiyou", _tile);
+		::Wuxia.ShanHai.dropBossCore("boss_chiyou", _tile, this, _killer, _fatalityType);
 	}
 });

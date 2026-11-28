@@ -276,9 +276,11 @@ if (!("KineticVFX" in ::Wuxia)) ::Wuxia.KineticVFX <- {};
 ::Wuxia.KineticVFX.spawnBurst <- function( _tile, _brushes, _cfg )
 {
 	if (!::Wuxia.VFX.isVfxEnabled()) return;
-	if (_tile == null || !_tile.IsVisibleForPlayer || _brushes == null || _brushes.len() == 0) return;
+	if (_tile == null || !_tile.IsVisibleForPlayer) return;
 	if (!("Tactical" in getroottable()) || ::Tactical == null || !::Tactical.isActive()) return;
 	if (!("spawnParticleEffect" in ::Tactical)) return;
+	local brushes = ::Wuxia.VFX.resolveParticleBrushes(_brushes);
+	if (brushes == null) return;
 
 	local delay    = ("delay" in _cfg)    ? ::Math.max(0, _cfg.delay.tointeger()) : 0;
 	local qty      = ("qty" in _cfg)      ? ::Math.max(1, _cfg.qty.tointeger())   : 16;
@@ -373,7 +375,7 @@ if (!("KineticVFX" in ::Wuxia)) ::Wuxia.KineticVFX <- {};
 		}
 	];
 
-	::Tactical.spawnParticleEffect(false, _brushes, _tile, delay, qty, qty, rate, stages);
+	::Tactical.spawnParticleEffect(false, brushes, _tile, delay, qty, qty, rate, stages);
 };
 
 ::Wuxia.KineticVFX.spawnShockwaveRing <- function( _tile, _ringBrush, _delayMs = 0, _sc0 = 0.26, _sc1 = 2.35, _durSec = 0.34, _oy = -10.0, _peakAlpha = 235 )
@@ -1571,6 +1573,9 @@ if (!("KineticVFX" in ::Wuxia)) ::Wuxia.KineticVFX <- {};
 		return _onImpactFn(_user, _targetTile);
 	}
 
+	// Reinforcements and equipment changes can introduce a sequence after deployment.
+	if (::Wuxia.VFX.queueKineticProfile(prof)) ::Wuxia.VFX.warmBattleTextures();
+
 	local spd        = ::Wuxia.VFX.getMotionSpeedScale(_user);
 	local dir        = ::Wuxia.VFX.getDirVec(originTile, targetTile, _user);
 	local flipX      = ::Wuxia.VFX.shouldFlipLeft(dir, _user);
@@ -1757,13 +1762,13 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 		{
 			q.onUse = @(__original) function( _user, _targetTile )
 			{
-				if (this.m.ID == null || this.m.ID.find("actives.wx_") != 0)
+				if (this.m.ID == null || this.m.ID.find("actives.wx_") != 0 || (("WX_InKineticExec" in this.m) && this.m.WX_InKineticExec))
 					return __original(_user, _targetTile);
 
 				local runWithMechanics = function( _self, _u, _tTile )
 				{
 					local origUTile = ::Wuxia.isOnMap(_u) ? _u.getTile() : null;
-					local preEnt = (_tTile != null && ::Wuxia.hasMember(_tTile, "IsOccupiedByActor") && _tTile.IsOccupiedByActor) ? _tTile.getEntity() : null;
+					local preEnt = ::Wuxia.isTileOccupiedByActor(_tTile) ? _tTile.getEntity() : null;
 					local rHit = __original.call(_self, _u, _tTile);
 					if (::Wuxia.hasMember(_self, "wxTriggerTagPostMechanic"))
 					{
@@ -1775,13 +1780,6 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 					}
 					return rHit;
 				};
-
-				if (("WX_InKineticExec" in this.m) && this.m.WX_InKineticExec)
-					return runWithMechanics(this, _user, _targetTile);
-
-				local key = this.m.ID.slice(8);
-				if (::Wuxia.KineticVFX.getProfile(key) == null)
-					return runWithMechanics(this, _user, _targetTile);
 
 				local self = this;
 				local doImpact = function( _u, _tTile )
@@ -1801,6 +1799,8 @@ if ("HooksMod" in ::Wuxia && ::Wuxia.HooksMod != null)
 					return res;
 				};
 
+				local key = this.m.ID.slice(8);
+				if (::Wuxia.KineticVFX.getProfile(key) == null) return doImpact(_user, _targetTile);
 				return ::Wuxia.KineticVFX.executeSkill(this, _user, _targetTile, key, doImpact);
 			};
 		}

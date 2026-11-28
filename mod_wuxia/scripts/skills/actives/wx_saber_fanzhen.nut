@@ -69,7 +69,6 @@ this.wx_saber_fanzhen <- this.inherit("scripts/skills/actives/wx_move_base", {
 				::Wuxia.CombatRules.restoreQi(_user, 6);
 			}
 		}
-		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

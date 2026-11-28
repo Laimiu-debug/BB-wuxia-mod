@@ -46,7 +46,6 @@ this.wx_spear_bawang <- this.inherit("scripts/skills/actives/wx_move_base", {
 			if (!flipped)
 				this.wxTryKnockback(_user, target);
 		}
-		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

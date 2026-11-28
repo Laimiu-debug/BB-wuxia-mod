@@ -40,7 +40,6 @@ this.wx_fist_luohan <- this.inherit("scripts/skills/actives/wx_move_base", {
 		{
 			::Wuxia.Streams.applyHiddenForce(target, 1, _user);
 		}
-		this.wxTriggerTagPostMechanic(_user, target, _targetTile, hit);
 		return hit;
 	}
 });

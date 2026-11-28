@@ -131,7 +131,7 @@ this.wx_shanhai_bespoke_active_base <- this.inherit("scripts/skills/skill", {
 		if (_originTile == null || _targetTile == null) return false;
 		local d = _originTile.getDistanceTo(_targetTile);
 		if (d < this.m.MinRange || d > this.m.MaxRange) return false;
-		if (!("IsOccupiedByActor" in _targetTile) || !_targetTile.IsOccupiedByActor) return false;
+		if (!::Wuxia.isTileOccupiedByActor(_targetTile)) return false;
 		local ent = _targetTile.getEntity();
 		local actor = this.getContainer() != null ? this.getContainer().getActor() : null;
 		if (ent == null || !ent.isAlive()) return false;
@@ -205,7 +205,7 @@ this.wx_shanhai_bespoke_active_base <- this.inherit("scripts/skills/skill", {
 			tsk.add(::new("scripts/skills/effects/wx_internal_injury"));
 		else if (st == "scatter" && !::Wuxia.CombatRules.isUndeadOrConstruct(_target) && !tsk.hasSkill("effects.wx_scatter_weakness"))
 			tsk.add(::new("scripts/skills/effects/wx_scatter_weakness"));
-		else if (st == "bleed" && !::Wuxia.CombatRules.isUndeadOrConstruct(_target))
+		else if (st == "bleed" && !::Wuxia.CombatRules.isImmuneToBleeding(_target))
 		{
 			local bl = ::new("scripts/skills/effects/bleeding_effect");
 			bl.setDamage(10);

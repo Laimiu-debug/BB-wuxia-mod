@@ -31,7 +31,7 @@
 
 	q.onAttackOfOpportunity = @(__original) function( _entity, _isOnEnter )
 	{
-		if (!_isOnEnter && _entity != null && ("m" in _entity) && _entity.m != null
+		if (!_isOnEnter && ::Wuxia.hasMember(_entity, "m") && _entity.m != null
 			&& ("WX_FreeDisengageRound" in _entity.m) && ("CraftBridge" in ::Wuxia)
 			&& _entity.m.WX_FreeDisengageRound == ::Wuxia.CraftBridge.getCurrentRound())
 		{
@@ -72,10 +72,6 @@
 		local isHandled = ("WX_DeathHandled" in this.m) && this.m.WX_DeathHandled;
 		local wxSnap = isHandled ? null : ::Wuxia.Appearance.captureDeathLayers(this);
 		local canDropBeast = (!this.isPlayerControlled() && !(("WX_IsBossSubEntity" in this.m) && this.m.WX_IsBossSubEntity) && _tile != null && _killer != null && _killer.isPlayerControlled() && !this.isAlliedWith(_killer));
-		if (canDropBeast && ("CraftBridge" in ::Wuxia) && ("BeastCraft" in ::Wuxia) && this.getSkills() != null && this.getSkills().hasSkill("special.wx_shanhai_boss_trait"))
-		{
-			::Wuxia.BeastCraft.LastDyingBossSnap = ::Wuxia.CraftBridge.detectBrokenBossParts(this, _fatalityType);
-		}
 		if (!isHandled && wxSnap != null)
 			::Wuxia.Appearance.restoreVanillaBrushesForDeath(this, _fatalityType, wxSnap);
 		__original(_killer, _skill, _tile, _fatalityType);
@@ -201,8 +197,6 @@
 				::Wuxia.CombatRules.bumpTacticalAuraEpoch();
 			if (("WX_Motion" in this.m) && this.m.WX_Motion != null && ("VFX" in ::Wuxia) && ("clearActorMotion" in ::Wuxia.VFX))
 				::Wuxia.VFX.clearActorMotion(this);
-			if ("TileField" in ::Wuxia) ::Wuxia.TileField.clearAll();
-			if ("ShanHaiMultiBody" in ::Wuxia) ::Wuxia.ShanHaiMultiBody.clearAll();
 			return __original();
 		};
 	}

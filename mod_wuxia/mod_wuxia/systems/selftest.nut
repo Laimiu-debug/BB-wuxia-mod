@@ -6917,7 +6917,7 @@
 		if (fZhuyin == null)
 			throw "Missing formula f_zhuyin_lunzhuan";
 		local wrongCore = { Key = "core:wx_core_qiongqi", Kind = "core", IsRare = true, Nature = "yang", Potency = 5 };
-		local rightCore = { Key = "core:wx_core_zhuyin", Kind = "core", IsRare = true, Nature = "yang", Potency = 5 };
+		local rightCore = ::Wuxia.Alchemy.classifyItem(::new("scripts/items/misc/wx_core_zhuyin"));
 		if (::Wuxia.Alchemy.doesJunMatchFormula(wrongCore, fZhuyin))
 			throw "f_zhuyin_lunzhuan must reject non-Zhuyin core!";
 		if (!::Wuxia.Alchemy.doesJunMatchFormula(rightCore, fZhuyin))
@@ -7046,7 +7046,7 @@
 		{
 			local sigF = ::Wuxia.Alchemy.findFormula(sigPair[0]);
 			if (sigF == null) throw "Missing signature Neidan formula: " + sigPair[0];
-			local rightC = { Key = sigPair[1], Kind = "core", IsRare = true, Nature = sigF.JunNatures[0], Potency = 5 };
+			local rightC = ::Wuxia.Alchemy.classifyItem(::new("scripts/items/misc/" + sigPair[1].slice(5)));
 			if (::Wuxia.Alchemy.doesJunMatchFormula(wrongCore, sigF) || !::Wuxia.Alchemy.doesJunMatchFormula(rightC, sigF))
 				throw "Signature Neidan formula CoreKey gate failed on " + sigPair[0];
 		}
@@ -7266,7 +7266,10 @@
 				function isAlive() { return this.HP > 0; },
 				function isPlayerControlled() { return this.Faction == 1; },
 				function getFaction() { return this.Faction; },
-				function isAlliedWith( _o ) { return _o != null && _o.getFaction() == this.Faction; },
+				function isAlliedWith( _o ) {
+					if (typeof _o == "integer") return this.Faction == _o;
+					return _o != null && this.Faction == _o.getFaction();
+				},
 				function getHitpoints() { return this.HP; },
 				function getHitpointsMax() { return this.MaxHP; },
 				function setHitpoints( _v ) { this.HP = _v; this.m.Hitpoints = _v; },
@@ -7341,8 +7344,30 @@
 			return tiles;
 		};
 
+		local AccessorTile = class {
+			function _get( key )
+			{
+				if (key == "ID") return 431;
+				if (key == "IsOccupiedByActor") return true;
+				throw null;
+			}
+		};
+		local nativeLikeTile = AccessorTile();
+		if (!::Wuxia.isTileOccupiedByActor(nativeLikeTile) || ::Wuxia.TileField.getTileKey(nativeLikeTile) != "431")
+			throw "Tactical tile accessors must work without table slots";
+		::Wuxia.TileField.setField(nativeLikeTile, "drought_scorch", 1);
+		::Wuxia.TileField.setWeather("zhuyin_night", -1, 1);
+		if (!::Wuxia.TileField.hasField(nativeLikeTile, "drought_scorch")) throw "Field placement failed";
+		::Wuxia.TileField.tickRound();
+		if (::Wuxia.TileField.getField(nativeLikeTile) != null || ::Wuxia.TileField.getWeather().Kind != null)
+			throw "One-round terrain and weather must expire together";
+
 		// 1. TileField Elemental Alchemy: Frost + Boss Scorch -> Steam Explosion!
 		local line = mkHexLine(5);
+		local ray = ::Wuxia.TileField.collectHexLine(line[0], line[4], 2);
+		if (ray.len() != 2 || ray[0] != line[1] || ray[1] != line[2]) throw "Totem ray range limit failed";
+		local interior = ::Wuxia.TileField.collectHexLine(line[0], line[2], 5, false);
+		if (interior.len() != 1 || interior[0] != line[1]) throw "Nvchou ray must exclude both endpoints";
 		local victim = mkMockUnit(1001, 1, 100, 120, line[2]);
 		local bossDummy = mkMockUnit(2001, 2, 400, 200, line[0]);
 		::Wuxia.TileField.setField(line[2], "abyss_frost", 3, bossDummy);
@@ -7803,7 +7828,10 @@
 				function isAlive() { return this.HP > 0; },
 				function isPlayerControlled() { return this.Faction == 1; },
 				function getFaction() { return this.Faction; },
-				function isAlliedWith( _o ) { return _o != null && _o.getFaction() == this.Faction; },
+				function isAlliedWith( _o ) {
+					if (typeof _o == "integer") return this.Faction == _o;
+					return _o != null && this.Faction == _o.getFaction();
+				},
 				function getHitpoints() { return this.HP; },
 				function getHitpointsMax() { return this.MaxHP; },
 				function getHitpointsPct() { return this.MaxHP > 0 ? (this.HP.tofloat() / this.MaxHP.tofloat()) : 1.0; },
@@ -8147,6 +8175,251 @@
 		::Wuxia.TileField.clearAll();
 		::Wuxia.ShanHaiMultiBody.clearAll();
 		::logInfo("[WX-SELFTEST] Verified Stage 26: ALL 64/64 Bespoke Shan Hai Bosses (" + totalBossMoves + " bespoke moves, 0 generic cataclysm) + ALL 13-Family Deep Martial Streams!");
+	});
+
+	check("Standalone battle preparation opens without campaign assets", function()
+	{
+		local world = ::World;
+		::World = {};
+		try
+		{
+			local screen = clone ::Hooks.BBClass["scripts/ui/screens/character/character_screen"].Prototype;
+			screen.m = clone screen.m;
+			screen.m.InventoryMode = ::Const.CharacterScreen.InventoryMode.BattlePreparation;
+			local rosterLimit = 0;
+			screen.m.JSDataSourceHandle = { function asyncCall(_method, _value) { if (_method == "setRosterLimit") rosterLimit = _value; } };
+			screen.show();
+			if (rosterLimit != 12 || ::Wuxia.getCampaignStash() != null)
+				throw "Standalone preparation must use the scenario roster and have no campaign stash";
+		}
+		catch (err)
+		{
+			::World = world;
+			throw err;
+		}
+		::World = world;
+	});
+
+	check("Lethal bleed on wait advances past both lindwurm segments", function()
+	{
+		local makeActor = function( _id )
+		{
+			return {
+				ID = _id, Alive = true, Activations = 0, TurnEnds = 0,
+				function getID() { return this.ID; },
+				function isAlive() { return this.Alive; },
+				function isPlacedOnMap() { return this.Alive; },
+				function isPlayerControlled() { return false; },
+				function isWaitActionSpent() { return false; },
+				function onTurnEnd() { ++this.TurnEnds; },
+				function onBeforeActivation() { ++this.Activations; }
+			};
+		};
+		foreach (currentDiesFirst in [true, false])
+		{
+			local bar = ::new("scripts/ui/screens/tactical/modules/turn_sequence_bar/turn_sequence_bar");
+			bar.Tactical <- { State = { function isPaused() { return false; } } };
+			bar.Time <- { function hasEventScheduled(_unit) { return false; }, function getRealTimeF() { return 0.0; } };
+			bar.checkBattleEndedCondition <- function() {};
+			bar.m.JSHandle = { function call(_method, _arg) {}, function asyncCall(_method, _arg) {} };
+
+			local current = makeActor(1), linked = makeActor(2), survivor = makeActor(3);
+			bar.m.CurrentEntities = [current, linked, survivor];
+			bar.m.AllEntities = clone bar.m.CurrentEntities;
+			// Works for any wait DoT (e.g. poison/bleed), not just a hardcoded 4-skill allowlist
+			current.getSkills <- function() { return { function hasSkill(_id) { return false; } }; };
+			local waits = 0;
+			current.wait <- function()
+			{
+				++waits;
+				foreach (part in (currentDiesFirst ? [this, linked] : [linked, this]))
+				{
+					part.Alive = false;
+					bar.removeEntity(part);
+				}
+			};
+			bar.entityWaitTurn(current);
+			if (waits != 1 || bar.m.CurrentEntities.len() != 1 || bar.m.CurrentEntities[0] != survivor)
+				throw "Lethal wait left a dead segment in the turn queue";
+			if (current.TurnEnds != 0)
+				throw "Dead wait actor must not run onTurnEnd() again (TurnEnds=" + current.TurnEnds + ")";
+			bar.onEntityEnteredFirstSlotFully(survivor.getID());
+			if (bar.getActiveEntity() != survivor || survivor.Activations != 1 || linked.Activations != 0)
+				throw "The surviving actor did not receive the next turn";
+
+			// End-of-round wait death `[current, linked]` must unlock and schedule next round
+			local barEnd = ::new("scripts/ui/screens/tactical/modules/turn_sequence_bar/turn_sequence_bar");
+			barEnd.Tactical <- { State = { function isPaused() { return false; } } };
+			barEnd.Time <- { function hasEventScheduled(_unit) { return false; }, function getRealTimeF() { return 0.0; } };
+			barEnd.checkBattleEndedCondition <- function() {};
+			barEnd.m.JSHandle = { function call(_method, _arg) {}, function asyncCall(_method, _arg) {} };
+			local eHead = makeActor(11), eTail = makeActor(12), eOther = makeActor(13);
+			barEnd.m.CurrentEntities = [eHead, eTail];
+			barEnd.m.AllEntities = [eHead, eTail, eOther];
+			eHead.wait <- function()
+			{
+				foreach (part in (currentDiesFirst ? [this, eTail] : [eTail, this]))
+				{
+					part.Alive = false;
+					barEnd.removeEntity(part);
+				}
+			};
+			barEnd.entityWaitTurn(eHead);
+			if (barEnd.m.IsLocked || !barEnd.m.IsInitNextRound)
+				throw "End-of-round lethal wait deadlocked turn bar (locked=" + barEnd.m.IsLocked + ", initNextRnd=" + barEnd.m.IsInitNextRound + ")";
+		}
+	});
+
+	check("Lethal bleed on turn end advances past multi-body segments and transitions round", function()
+	{
+		local makeActor = function( _id )
+		{
+			return {
+				ID = _id, Alive = true, Activations = 0, TurnEnds = 0,
+				function getID() { return this.ID; },
+				function isAlive() { return this.Alive; },
+				function isPlacedOnMap() { return this.Alive; },
+				function isPlayerControlled() { return false; },
+				function isWaitActionSpent() { return false; },
+				function onTurnEnd() { ++this.TurnEnds; },
+				function onBeforeActivation() { ++this.Activations; }
+			};
+		};
+		foreach (currentDiesFirst in [true, false])
+		{
+			// 1. Mid-round `[current, linked, survivor]`
+			local barMid = ::new("scripts/ui/screens/tactical/modules/turn_sequence_bar/turn_sequence_bar");
+			barMid.Tactical <- { State = { function isPaused() { return false; } } };
+			barMid.Time <- { function hasEventScheduled(_unit) { return false; }, function getRealTimeF() { return 0.0; } };
+			barMid.checkBattleEndedCondition <- function() {};
+			barMid.m.JSHandle = { function call(_method, _arg) {}, function asyncCall(_method, _arg) {} };
+			local head = makeActor(21), tail = makeActor(22), nextA = makeActor(23);
+			barMid.m.CurrentEntities = [head, tail, nextA];
+			barMid.m.AllEntities = [head, tail, nextA];
+			head.onTurnEnd = function()
+			{
+				++this.TurnEnds;
+				foreach (part in (currentDiesFirst ? [this, tail] : [tail, this]))
+				{
+					part.Alive = false;
+					barMid.removeEntity(part);
+				}
+			};
+			barMid.initNextTurn();
+			if (head.TurnEnds != 1 || barMid.m.CurrentEntities.len() != 1 || barMid.m.CurrentEntities[0] != nextA)
+				throw "Mid-round multi-body lethal onTurnEnd left corrupt queue (TurnEnds=" + head.TurnEnds + ", len=" + barMid.m.CurrentEntities.len() + ")";
+			barMid.onEntityEnteredFirstSlotFully(nextA.getID());
+			if (barMid.getActiveEntity() != nextA || nextA.Activations != 1 || tail.Activations != 0)
+				throw "Mid-round multi-body lethal onTurnEnd failed to activate survivor";
+
+			// 2. End-of-round `[boss, seg1, seg2]` -> must set IsInitNextRound instead of locking with cur=[]
+			local barEnd = ::new("scripts/ui/screens/tactical/modules/turn_sequence_bar/turn_sequence_bar");
+			barEnd.Tactical <- { State = { function isPaused() { return false; } } };
+			barEnd.Time <- { function hasEventScheduled(_unit) { return false; }, function getRealTimeF() { return 0.0; } };
+			barEnd.checkBattleEndedCondition <- function() {};
+			barEnd.m.JSHandle = { function call(_method, _arg) {}, function asyncCall(_method, _arg) {} };
+			local boss = makeActor(31), seg1 = makeActor(32), seg2 = makeActor(33), bro = makeActor(34);
+			barEnd.m.CurrentEntities = [boss, seg1, seg2];
+			barEnd.m.AllEntities = [boss, seg1, seg2, bro];
+			boss.onTurnEnd = function()
+			{
+				++this.TurnEnds;
+				local order = currentDiesFirst ? [this, seg1, seg2] : [seg1, seg2, this];
+				foreach (part in order)
+				{
+					part.Alive = false;
+					barEnd.removeEntity(part);
+				}
+			};
+			barEnd.initNextTurn();
+			if (boss.TurnEnds != 1 || barEnd.m.IsLocked || !barEnd.m.IsInitNextRound)
+				throw "End-of-round multi-body lethal onTurnEnd deadlocked turn bar (TurnEnds=" + boss.TurnEnds + ", locked=" + barEnd.m.IsLocked + ", initNextRnd=" + barEnd.m.IsInitNextRound + ")";
+		}
+	});
+
+	check("Poison dart DoT uses turnEnd/wait lifecycle and bleed/self-kill guards hold", function()
+	{
+		// Verify wx_status_poison_dart does NOT damage onTurnStart, ticks onWaitTurn/onTurnEnd once per round,
+		// and does NOT drain Qi if lethal damage kills the actor.
+		local pd = ::new("scripts/skills/effects/wx_status_poison_dart");
+		local round = 1;
+		pd.Time <- { function getRound() { return round; } };
+		local pdHits = 0;
+		local pdQiSpent = 0;
+		local pdTarget = {
+			ID = 776, HP = 10, MaxHP = 50, Fat = 10, MaxFat = 100, Alive = true,
+			function getID() { return this.ID; },
+			function isAlive() { return this.Alive; },
+			function isDying() { return !this.Alive; },
+			function isPlacedOnMap() { return this.Alive; },
+			function getHitpoints() { return this.HP; },
+			function getHitpointsMax() { return this.MaxHP; },
+			function getFatigue() { return this.Fat; },
+			function getFatigueMax() { return this.MaxFat; },
+			function setFatigue(_v) { pdQiSpent += (_v - this.Fat); this.Fat = _v; },
+			function onDamageReceived(_atk, _sk, _hi)
+			{
+				++pdHits;
+				this.HP -= _hi.DamageRegular;
+				if (this.HP <= 0) this.Alive = false;
+				return _hi.DamageRegular;
+			}
+		};
+		pd.m.Container = { function getActor() { return pdTarget; } };
+		pd.onTurnStart();
+		if (pdHits != 0 || pdTarget.HP != 10)
+			throw "wx_status_poison_dart must NOT deal damage in onTurnStart (hits=" + pdHits + ")";
+		pd.onWaitTurn();
+		if (pdHits != 1 || pdTarget.HP != 2 || pdQiSpent != 5)
+			throw "wx_status_poison_dart failed to tick onWaitTurn (hits=" + pdHits + ", hp=" + pdTarget.HP + ", qi=" + pdQiSpent + ")";
+		// Same-round onTurnEnd must NOT double-tick when LastRoundApplied matches current round
+		pd.onTurnEnd();
+		if (pdHits != 1)
+			throw "wx_status_poison_dart double-ticked in the same round!";
+		// Next round lethal tick must kill without draining Qi on dead actor
+		++round;
+		local qiBeforeKill = pdQiSpent;
+		pd.onTurnEnd();
+		if (pdTarget.Alive || pdQiSpent != qiBeforeKill)
+			throw "wx_status_poison_dart drained Qi after killing actor (alive=" + pdTarget.Alive + ", qi=" + pdQiSpent + ")";
+
+		// Verify self-kill guard blocks onTargetKilled healing while actor.isAlive() is still true (vanilla kill timing)
+		local dyingSelf = {
+			ID = 777, HP = -8, MaxHP = 60, Fat = 20, MaxFat = 100, AP = 4,
+			function getID() { return this.ID; },
+			function isAlive() { return true; },
+			function isDying() { return false; },
+			function getHitpoints() { return this.HP; },
+			function getHitpointsMax() { return this.MaxHP; },
+			function setHitpoints(_v) { this.HP = _v; },
+			function getFatigue() { return this.Fat; },
+			function getFatigueMax() { return this.MaxFat; },
+			function setFatigue(_v) { this.Fat = _v; },
+			function getActionPoints() { return this.AP; },
+			function getActionPointsMax() { return 9; },
+			function setActionPoints(_v) { this.AP = _v; },
+			function getFlags() { return { function has(_k) { return false; } }; }
+		};
+		if (!::Wuxia.CombatRules.isSelfOrDyingKill(dyingSelf, dyingSelf))
+			throw "isSelfOrDyingKill failed to detect self-bleed kill while isAlive()==true";
+		local mc = ::new("scripts/skills/special/wx_martial_container");
+		mc.m.Container = { function getActor() { return dyingSelf; } };
+		mc.m.CachedAggFlags = { OnKillQiRegen = 10, OnKillHealHP = 15, OnKillAPRefund = 3 };
+		mc.onTargetKilled(dyingSelf, null);
+		if (dyingSelf.HP != -8 || dyingSelf.Fat != 20)
+			throw "wx_martial_container.onTargetKilled mutated dying self-kill actor (HP=" + dyingSelf.HP + ", Fat=" + dyingSelf.Fat + ")";
+
+		// Verify bleed immunity helper blocks both undead and IsImmuneToBleeding
+		local mockSkel = {
+			function getFlags() { return { function has(_k) { return _k == "undead"; } }; },
+			function getCurrentProperties() { return ::Const.CharacterProperties.getClone(); }
+		};
+		local mockBleedImmune = {
+			function getFlags() { return { function has(_k) { return false; } }; },
+			function getCurrentProperties() { local p = ::Const.CharacterProperties.getClone(); p.IsImmuneToBleeding = true; return p; }
+		};
+		if (!::Wuxia.CombatRules.isImmuneToBleeding(mockSkel) || !::Wuxia.CombatRules.isImmuneToBleeding(mockBleedImmune))
+			throw "isImmuneToBleeding failed to block undead or IsImmuneToBleeding target";
 	});
 
 	::logInfo("[WX-SELFTEST] ================= Result: " + passed + " PASSED, " + failed + " FAILED =================");

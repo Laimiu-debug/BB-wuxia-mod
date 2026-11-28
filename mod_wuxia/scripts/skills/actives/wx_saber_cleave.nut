@@ -45,7 +45,8 @@ this.wx_saber_cleave <- this.inherit("scripts/skills/actives/wx_move_base", {
 		local target = _targetTile.getEntity();
 		local hpBefore = (target != null) ? target.getHitpoints() : 0;
 		local hit = this.attackEntity(_user, target);
-		if (hit && target != null && target.isAlive() && (hpBefore - target.getHitpoints()) >= 6)
+		if (hit && target != null && target.isAlive() && (hpBefore - target.getHitpoints()) >= 6
+			&& !::Wuxia.CombatRules.isImmuneToBleeding(target))
 		{
 			local bleed = ::new("scripts/skills/effects/bleeding_effect");
 			bleed.setDamage(8);

@@ -14,20 +14,15 @@
 		{
 			::Wuxia.VFX.clearAllActiveMotions(true);
 		}
-		if (!this.isInGroundMode() && ::Wuxia.Library.isAutoStoreEnabled()
-			&& ("World" in getroottable()) && ::World != null && ::World.Assets != null)
+		if (!this.isInGroundMode() && ::Wuxia.Library.isAutoStoreEnabled())
 		{
-			local stash = ::World.Assets.getStash();
-			if (stash != null)
+			local moved = ::Wuxia.Library.storeAllFromStash(::Wuxia.getCampaignStash(), false);
+			if (moved.booksMoved > 0 || moved.pagesMoved > 0)
 			{
-				local moved = ::Wuxia.Library.storeAllFromStash(stash, false);
-				if (moved.booksMoved > 0 || moved.pagesMoved > 0)
-				{
-					local parts = [];
-					if (moved.booksMoved > 0) parts.push(moved.booksMoved + " 册秘籍");
-					if (moved.pagesMoved > 0) parts.push(moved.pagesMoved + " 张残页");
-					this.m.WX_PendingAutoStoreNotice = "已自动将行囊新获典籍（" + parts[0] + (parts.len() > 1 ? ("、" + parts[1]) : "") + "）归入【藏经阁】，释放 " + moved.slotsCleared + " 格仓库空间。";
-				}
+				local parts = [];
+				if (moved.booksMoved > 0) parts.push(moved.booksMoved + " 册秘籍");
+				if (moved.pagesMoved > 0) parts.push(moved.pagesMoved + " 张残页");
+				this.m.WX_PendingAutoStoreNotice = "已自动将行囊新获典籍（" + parts[0] + (parts.len() > 1 ? ("、" + parts[1]) : "") + "）归入【藏经阁】，释放 " + moved.slotsCleared + " 格仓库空间。";
 			}
 		}
 		__original();
@@ -48,12 +43,12 @@
 	{
 		local manualMeta = null;
 		local wmodMeta = null;
-		if (typeof _data == "array" && _data.len() >= 2 && ("World" in getroottable()) && ::World != null && ::World.Assets != null)
+		local stash = ::Wuxia.getCampaignStash();
+		if (typeof _data == "array" && _data.len() >= 2 && stash != null)
 		{
 			local bro = this.WX_findBrotherById(_data[0]);
-			local stash = ::World.Assets.getStash();
 			local itemId = _data[1];
-			if (bro != null && stash != null && itemId != null)
+			if (bro != null && itemId != null)
 			{
 				local slotItem = stash.getItemByInstanceID(itemId);
 				local itemObj = (slotItem != null && ("item" in slotItem)) ? slotItem.item : slotItem;
@@ -91,7 +86,7 @@
 
 		if (wmodMeta != null && typeof ret == "table")
 		{
-			local stashAfter = (("World" in getroottable()) && ::World != null && ::World.Assets != null) ? ::World.Assets.getStash() : null;
+			local stashAfter = ::Wuxia.getCampaignStash();
 			local stillInStash = (stashAfter != null && stashAfter.getItemByInstanceID(wmodMeta.instanceID) != null);
 			if (stillInStash)
 			{
@@ -188,9 +183,9 @@
 			}
 			catch (_err) {}
 		}
-		if (_syncStash && ("World" in getroottable()) && ::World != null && ::World.Assets != null)
+		if (_syncStash)
 		{
-			local stash = ::World.Assets.getStash();
+			local stash = ::Wuxia.getCampaignStash();
 			if (stash != null)
 			{
 				_state.stashSpaceUsed <- stash.getNumberOfFilledSlots();
@@ -429,7 +424,7 @@
 	{
 		local entityId = (typeof _data == "array" && _data.len() > 0) ? _data[0] : _data;
 		local bro = this.WX_findBrotherById(entityId);
-		local stash = ::World.Assets.getStash();
+		local stash = ::Wuxia.getCampaignStash();
 		if (stash == null)
 			return { ok = false, reason = "无法访问战团仓库。" };
 
@@ -462,7 +457,7 @@
 		local manualID = _data[1];
 		local isPage   = _data.len() >= 3 ? _data[2] : false;
 		local bro      = this.WX_findBrotherById(entityId);
-		local stash    = ::World.Assets.getStash();
+		local stash    = ::Wuxia.getCampaignStash();
 
 		local res = isPage
 			? ::Wuxia.Library.withdrawPagesToStash(stash, manualID)
@@ -488,9 +483,9 @@
 		::Wuxia.Library.setAutoStoreEnabled(enabled);
 
 		local swept = { booksMoved = 0, pagesMoved = 0, slotsCleared = 0 };
-		if (enabled && ::World != null && ::World.Assets != null && ::World.Assets.getStash() != null)
+		if (enabled)
 		{
-			swept = ::Wuxia.Library.storeAllFromStash(::World.Assets.getStash(), false);
+			swept = ::Wuxia.Library.storeAllFromStash(::Wuxia.getCampaignStash(), false);
 		}
 
 		local state = this.onWXGetState(entityId);
@@ -584,24 +579,8 @@
 		return state;
 	};
 
-	// Infuse mastery exp into an equipped slot from Stash Pill/Neidan OR 藏经阁 Page
-	// Stash Pill: _data = [entityId, stashIndex, slotIndex]
-	q.onWXInfusePill <- function( _data )
+	q.WX_getInfusionItem <- function( it, bro, slotIndex, mdef )
 	{
-		local entityId   = _data[0];
-		local stashIndex = _data[1];
-		local slotIndex  = _data[2];
-
-		local bro = this.WX_findBrotherById(entityId);
-		local stash = ::World.Assets.getStash();
-		if (bro == null || stash == null)
-			return { ok = false, reason = "未找到侠客或战团仓库。" };
-
-		local items = stash.getItems();
-		if (stashIndex < 0 || stashIndex >= items.len() || items[stashIndex] == null)
-			return { ok = false, reason = "丹药已不在仓库中。" };
-
-		local it = items[stashIndex];
 		local expAmt = 0;
 		local curesScatter = false;
 		local curesInternal = false;
@@ -611,7 +590,7 @@
 		{
 			local pid = it.getPillID();
 			if (!(pid in ::Wuxia.Config.Pills) || ::Wuxia.Config.Pills[pid].Kind != "infuse_exp")
-				return { ok = false, reason = "此丹药不可用于灌注火候。" };
+				return { Reason = "此丹药不可用于灌注火候。" };
 			local pdef = ::Wuxia.Config.Pills[pid];
 			if (::Wuxia.hasMember(it, "getInfuseExpForSlot"))
 			{
@@ -631,17 +610,15 @@
 		{
 			local hdef = ::Wuxia.Config.Herbs[it.m.HerbID];
 			if (hdef.Kind != "herb_infuse")
-				return { ok = false, reason = "此奇草请直接点击服用或携往百工炼丹房入炉。" };
+				return { Reason = "此奇草请直接点击服用或携往百工炼丹房入炉。" };
 			expAmt = hdef.ExpAmount;
 		}
 		else if (::Wuxia.hasMember(it.m, "CoreID") && (it.m.CoreID in ::Wuxia.Config.ShanHaiCores))
 		{
 			local baseExp = ::Wuxia.Config.ShanHaiCores[it.m.CoreID].ExpAmount;
 			expAmt = baseExp;
-			local c = bro.getSkills().getSkillByID("special.wx_martial_container");
-			if (c != null && slotIndex >= 0 && slotIndex < c.m.Slots.len() && c.m.Slots[slotIndex].ManualID != null)
+			if (mdef != null)
 			{
-				local mdef = ::Wuxia.Slots.getManualDef(c.m.Slots[slotIndex].ManualID);
 				expAmt = ::Wuxia.ShanHai.getCoreInfuseExp(it.m.CoreID, mdef);
 				if (expAmt >= baseExp + 180) resonanceNote = "（山海孤本大共鸣！）";
 				else if (expAmt > baseExp) resonanceNote = "（内丹气脉共鸣！）";
@@ -649,8 +626,71 @@
 		}
 		else
 		{
-			return { ok = false, reason = "所选物品不是修为丹药、仙株或山海内丹。" };
+			return null;
 		}
+
+		return { Amount = expAmt, Note = resonanceNote, HealHP = healHP, CuresScatter = curesScatter, CuresInternal = curesInternal };
+	};
+
+	q.onWXGetInfusionAmounts <- function( _data )
+	{
+		local bro = this.WX_findBrotherById(_data[0]);
+		local slotIndex = _data[1];
+		local stash = ::Wuxia.getCampaignStash();
+		if (bro == null || stash == null) return null;
+		local c = ::Wuxia.Slots.getContainer(bro);
+		local check = ::Wuxia.Mastery.checkInfusionSlot(bro, c, slotIndex);
+		if (!check.Ok || check.Def.ID != _data[2]) return null;
+		local slot = c.m.Slots[slotIndex];
+		local bonus = ("Traits" in ::Wuxia) ? ::Wuxia.Traits.getMasteryBonusMult(bro, check.Def) : 0.0;
+		local limit = null;
+		if (!::Wuxia.Mastery.checkRequirements(bro, check.Def).Met)
+		{
+			limit = -slot.Exp;
+			for (local tier = slot.Tier; tier < check.Def.Levels.len(); ++tier)
+				limit += check.Def.Levels[tier].ExpNeeded;
+		}
+		local result = {};
+		foreach (idx, it in stash.getItems())
+		{
+			if (it == null) continue;
+			local info = this.WX_getInfusionItem(it, bro, slotIndex, check.Def);
+			if (info == null || !("Amount" in info)) continue;
+			local gain = ::Wuxia.Mastery.applyMasteryBonus(info.Amount, bonus);
+			result[idx.tostring()] <- { amount = limit == null ? gain : ::Math.min(gain, limit), note = info.Note };
+		}
+		return result;
+	};
+
+	// Infuse mastery exp into an equipped slot from Stash Pill/Neidan OR 藏经阁 Page
+	// Stash Pill: _data = [entityId, stashIndex, slotIndex]
+	q.onWXInfusePill <- function( _data )
+	{
+		local entityId   = _data[0];
+		local stashIndex = _data[1];
+		local slotIndex  = _data[2];
+
+		local bro = this.WX_findBrotherById(entityId);
+		local stash = ::Wuxia.getCampaignStash();
+		if (bro == null || stash == null)
+			return { ok = false, reason = "未找到侠客或战团仓库。" };
+
+		local items = stash.getItems();
+		if (stashIndex < 0 || stashIndex >= items.len() || items[stashIndex] == null)
+			return { ok = false, reason = "丹药已不在仓库中。" };
+
+		local it = items[stashIndex];
+		local container = ::Wuxia.Slots.getContainer(bro);
+		local check = ::Wuxia.Mastery.checkInfusionSlot(bro, container, slotIndex);
+		if (!check.Ok) return { ok = false, reason = check.Reason };
+		local info = this.WX_getInfusionItem(it, bro, slotIndex, check.Def);
+		if (info == null) return { ok = false, reason = "所选物品不是修为丹药、仙株或山海内丹。" };
+		if ("Reason" in info) return { ok = false, reason = info.Reason };
+		local expAmt = info.Amount;
+		local curesScatter = info.CuresScatter;
+		local curesInternal = info.CuresInternal;
+		local healHP = info.HealHP;
+		local resonanceNote = info.Note;
 
 		local res = ::Wuxia.Mastery.infuseWithPill(bro, slotIndex, expAmt);
 		if (!res.Ok)
@@ -815,7 +855,7 @@
 		local stashIndex = _data[1];
 
 		local bro = this.WX_findBrotherById(entityId);
-		local stash = ::World.Assets.getStash();
+		local stash = ::Wuxia.getCampaignStash();
 		if (bro == null || stash == null)
 			return { ok = false, reason = "未找到侠客或战团仓库。" };
 
@@ -878,7 +918,7 @@
 		local usePendingChance = _data[4];
 
 		local bro = this.WX_findBrotherById(entityId);
-		local stash = ::World.Assets.getStash();
+		local stash = ::Wuxia.getCampaignStash();
 		if (bro == null || stash == null)
 			return { ok = false, reason = "未找到侠客或战团仓库。" };
 

@@ -92,7 +92,7 @@ this.wx_fist_xianglong <- this.inherit("scripts/skills/actives/wx_move_base", {
 					cur = cur.getNextTile(dir);
 					if (cur == null) break;
 					::Wuxia.TileField.setField(cur, "drought_scorch", 2, _user);
-					if ("IsOccupiedByActor" in cur && cur.IsOccupiedByActor)
+					if (::Wuxia.isTileOccupiedByActor(cur))
 					{
 						local lEnt = cur.getEntity();
 						if (lEnt != null && lEnt.isAlive() && !_user.isAlliedWith(lEnt))
